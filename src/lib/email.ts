@@ -1,5 +1,5 @@
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.EMAIL_FROM || "Akwetche <onboarding@resend.dev>";
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const FROM_EMAIL = process.env.EMAIL_FROM || "Akwetche <noreply@brevo.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 function emailLayout(title: string, content: string): string {
@@ -49,28 +49,33 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  if (!RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY not set — email not sent");
-    return { error: "RESEND_API_KEY not configured" };
+  if (!BREVO_API_KEY) {
+    console.warn("BREVO_API_KEY not set — email not sent");
+    return { error: "BREVO_API_KEY not configured" };
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
+  const [name, email] = FROM_EMAIL.match(/^(.*?)\s*<(.+)>$/)?.slice(1) ?? [
+    "Akwetche",
+    FROM_EMAIL,
+  ];
+
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${RESEND_API_KEY}`,
+      "api-key": BREVO_API_KEY,
     },
     body: JSON.stringify({
-      from: FROM_EMAIL,
-      to,
+      sender: { name, email },
+      to: [{ email: to }],
       subject,
-      html,
+      htmlContent: html,
     }),
   });
 
   if (!res.ok) {
     const body = await res.text();
-    console.error("Resend error:", body);
+    console.error("Brevo error:", body);
     return { error: body };
   }
 
