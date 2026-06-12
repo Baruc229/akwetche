@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "./lib/auth";
 
+const APP_DOMAIN = "app.akwetche.app";
 const publicPaths = [
   "/login",
   "/register",
@@ -19,12 +20,28 @@ const publicPaths = [
   "/favicon.ico",
 ];
 
+function isAppDomain(request: NextRequest): boolean {
+  return request.headers.get("host")?.includes(APP_DOMAIN) ?? false;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Rediriger les dashboard routes du domaine principal vers app.*
+  if (!isAppDomain(request) && !publicPaths.some((p) => pathname.startsWith(p)) && pathname !== "/") {
+    const appUrl = new URL(pathname, `https://${APP_DOMAIN}`);
+    return NextResponse.redirect(appUrl);
+  }
+
+  // Sur app.akwetche.app : afficher le dashboard à la racine
+  if (isAppDomain(request) && pathname === "/") {
+    return NextResponse.rewrite(new URL("/dashboard", request.url));
+  }
 
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
   if (isPublic) return NextResponse.next();
 
+  // Landing page sur le domaine principal
   if (pathname === "/") return NextResponse.next();
 
   const token = request.cookies.get("token")?.value;
