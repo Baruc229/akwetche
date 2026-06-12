@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import {
   Wallet,
@@ -9,14 +12,18 @@ import {
   ArrowRight,
   Check,
   Crown,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-amber-50">
       <header className="border-b border-emerald-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-sm">
               <Wallet className="w-5 h-5 text-white" />
             </div>
@@ -24,7 +31,7 @@ export default function LandingPage() {
               Akwetche
             </span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <a href="/login" className="btn-secondary text-sm inline-flex items-center justify-center">
               Connexion
             </a>
@@ -32,7 +39,32 @@ export default function LandingPage() {
               S'inscrire
             </a>
           </div>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 text-stone-600 hover:text-stone-900 transition-colors"
+            aria-label="Menu"
+          >
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+        {menuOpen && (
+          <div className="md:hidden border-t border-emerald-100 bg-white px-4 py-4 space-y-3 animate-fade-in">
+            <a
+              href="/login"
+              className="block w-full btn-secondary text-sm text-center py-3"
+              onClick={() => setMenuOpen(false)}
+            >
+              Connexion
+            </a>
+            <a
+              href="/register"
+              className="block w-full btn-primary text-sm text-center py-3"
+              onClick={() => setMenuOpen(false)}
+            >
+              S'inscrire
+            </a>
+          </div>
+        )}
       </header>
 
       <main>
