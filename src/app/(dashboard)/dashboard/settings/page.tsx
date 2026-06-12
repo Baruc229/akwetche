@@ -149,23 +149,36 @@ export default function SettingsPage() {
     e.preventDefault();
     setCatError("");
     if (!newCatName.trim()) return;
+    const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType };
+    setCategories((prev) => [...prev, optimistic]);
+    setNewCatName("");
     try {
       const res = await fetch("/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCatName.trim(), type: newCatType, icon: "" }),
+        body: JSON.stringify({ name: optimistic.name, type: optimistic.type, icon: "" }),
       });
       const data = await res.json();
-      if (!res.ok) { setCatError(data.error || "Erreur"); return; }
-      setNewCatName("");
-      loadCategories();
-    } catch { setCatError("Erreur"); }
+      if (!res.ok) {
+        setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
+        setCatError(data.error || "Erreur");
+        return;
+      }
+      setCategories((prev) => prev.map((c) => (c.id === optimistic.id ? data.category : c)));
+    } catch {
+      setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
+      setCatError("Erreur");
+    }
   }
 
   async function handleDeleteCategory(id: number) {
     setConfirmDeleteCat(null);
-    await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-    loadCategories();
+    const deleted = categories.find((c) => c.id === id);
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (!res.ok && deleted) {
+      setCategories((prev) => [...prev, deleted].sort((a, b) => a.name.localeCompare(b.name)));
+    }
   }
 
   async function handleDeleteAccount() {
@@ -223,13 +236,30 @@ export default function SettingsPage() {
 
   async function addPresetCategories(type: "income" | "expense") {
     const presets = PRESET_CATEGORIES[type];
-    for (const preset of presets) {
-      const exists = categories.some((c) => c.name === preset.name && c.type === preset.type);
-      if (!exists) {
-        await fetch("/api/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...preset, icon: "" }) });
+    const newPresets = presets.filter((p) => !categories.some((c) => c.name === p.name && c.type === p.type));
+    if (newPresets.length === 0) return;
+    const optimism: Category[] = newPresets.map((p, i) => ({ id: Date.now() + i, name: p.name, icon: "", type: p.type }));
+    setCategories((prev) => [...prev, ...optimism]);
+    try {
+      const res = await fetch("/api/categories/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories: newPresets }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
+        return;
       }
+      setCategories((prev) =>
+        prev.map((c) => {
+          const match = data.categories.find((nc: Category) => nc.name === c.name && nc.type === c.type);
+          return match ? match : c;
+        })
+      );
+    } catch {
+      setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
     }
-    loadCategories();
   }
 
   if (loading) {
@@ -396,6 +426,7 @@ export default function SettingsPage() {
             <div className="relative">
               <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
               <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input-field pl-10">
+                <option value="auto">Automatique</option>
                 <option value="XOF">FCFA (Franc CFA)</option>
                 <option value="EUR">EUR (Euro)</option>
               </select>

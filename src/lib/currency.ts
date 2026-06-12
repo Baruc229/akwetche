@@ -4,10 +4,10 @@ export type CurrencyPref = "auto" | "EUR" | "XOF";
 const FCFA_TO_EUR = 655.957;
 
 const FCFA_LOCALES = [
-  "fr-CM", "fr-CI", "fr-SN", "fr-ML", "fr-BF", "fr-NE",
+  "fr", "fr-FR", "fr-CM", "fr-CI", "fr-SN", "fr-ML", "fr-BF", "fr-NE",
   "fr-TD", "fr-CF", "fr-GQ", "fr-GA", "fr-CG", "fr-BJ",
   "fr-TG", "fr-GN", "fr-MR", "fr-KM", "fr-SC", "fr-DJ",
-  "fr-MG",
+  "fr-MG", "fr-BE", "fr-CH",
 ];
 
 let _activeCurrency: CurrencyCode | null = null;

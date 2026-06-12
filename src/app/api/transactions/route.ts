@@ -48,9 +48,12 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { subscription: { select: { status: true } } },
+      select: {
+        role: true,
+        subscription: { select: { status: true } },
+      },
     });
-    const isPremium = user?.subscription?.status === "active";
+    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
 
     if (!isPremium) {
       const now = new Date();

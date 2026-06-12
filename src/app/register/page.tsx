@@ -41,7 +41,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [initialBalance, setInitialBalance] = useState("");
-  const [currency, setCurrency] = useState("auto");
+  const [currency, setCurrency] = useState("XOF");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

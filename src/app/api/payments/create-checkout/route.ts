@@ -13,8 +13,15 @@ export async function POST() {
     return badRequest("Stripe non configuré (mode démo)");
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, currency: true },
+  });
   if (!user) return unauthorized();
+
+  const isXOF = user.currency === "XOF" || user.currency === "FCFA";
+  const amount = isXOF ? 5000 : 799;
+  const currency = isXOF ? "xof" : "eur";
 
   const Stripe = require("stripe");
   const stripe = Stripe(STRIPE_SECRET_KEY);
@@ -25,9 +32,9 @@ export async function POST() {
     line_items: [
       {
         price_data: {
-          currency: "eur",
+          currency,
           product_data: { name: "Akwetche Premium" },
-          unit_amount: 799,
+          unit_amount: amount,
           recurring: { interval: "month" },
         },
         quantity: 1,

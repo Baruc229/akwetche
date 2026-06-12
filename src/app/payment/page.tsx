@@ -385,7 +385,7 @@ export default function PaymentPage() {
                     {method === "paypal" && (
                       <PayPalScriptProvider options={{
                         clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-                        currency: userCurrency === "XOF" || userCurrency === "FCFA" ? "EUR" : "EUR",
+                        currency: userCurrency === "XOF" || userCurrency === "FCFA" ? "XOF" : "EUR",
                         intent: "capture",
                       }}>
                         <PayPalForm onStatus={setStatus} onSuccess={handleSuccess} />

@@ -45,7 +45,7 @@ export async function POST() {
 
   const isXOF = user.currency === "XOF" || user.currency === "FCFA";
   const amount = isXOF ? "5000.00" : "7.99";
-  const currencyCode = isXOF ? "EUR" : "EUR";
+  const currencyCode = isXOF ? "XOF" : "EUR";
 
   const res = await fetch(`${base}/v2/checkout/orders`, {
     method: "POST",
