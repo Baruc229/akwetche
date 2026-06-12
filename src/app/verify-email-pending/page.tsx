@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Mail,AlertCircle, ArrowLeft } from "lucide-react";
+import { Mail, AlertCircle, ArrowLeft, RefreshCw } from "lucide-react";
 
 export default function VerifyEmailPendingPage() {
   const router = useRouter();
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [checkMessage, setCheckMessage] = useState("");
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -21,9 +23,28 @@ export default function VerifyEmailPendingPage() {
       .catch(() => {});
   }, [router]);
 
+  async function handleCheckVerification() {
+    setChecking(true);
+    setCheckMessage("");
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.user?.emailVerified) {
+        router.push("/dashboard");
+      } else {
+        setCheckMessage("Votre email n'est pas encore vérifié. Vérifiez votre boîte de réception (y compris les spams) ou renvoyez l'email.");
+      }
+    } catch {
+      setCheckMessage("Erreur de connexion. Réessayez.");
+    } finally {
+      setChecking(false);
+    }
+  }
+
   async function handleResend() {
     setResending(true);
     setError("");
+    setCheckMessage("");
     try {
       const res = await fetch("/api/auth/resend-verification", { method: "POST" });
       const data = await res.json();
@@ -68,16 +89,31 @@ export default function VerifyEmailPendingPage() {
             </div>
           </div>
 
+          <button
+            onClick={handleCheckVerification}
+            disabled={checking}
+            className="btn-primary w-full py-3 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${checking ? "animate-spin" : ""}`} />
+            {checking ? "Vérification..." : "Actualiser"}
+          </button>
+
+          {checkMessage && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 mt-3">
+              {checkMessage}
+            </div>
+          )}
+
           {!resent ? (
             <button
               onClick={handleResend}
               disabled={resending}
-              className="btn-primary w-full py-3 text-sm disabled:opacity-50"
+              className="w-full py-3 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors mt-4"
             >
               {resending ? "Envoi en cours..." : "Renvoyer l'email de vérification"}
             </button>
           ) : (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-800">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-800 mt-4">
               Email renvoyé ! Vérifiez votre boîte de réception.
             </div>
           )}

@@ -332,6 +332,13 @@ export default function RegisterPage() {
               >
                 {loading ? "Création..." : "Créer mon compte"}
               </button>
+
+              <p className="text-center text-sm text-stone-500 mt-4">
+                Déjà un compte ?{" "}
+                <a href="/login" className="text-emerald-600 font-medium hover:text-emerald-700">
+                  Se connecter
+                </a>
+              </p>
             </form>
           </div>
         )}
