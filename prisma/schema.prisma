@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  plan      String   @default("free") // "free" ou "premium"
+  status    String   @default("inactive") // "inactive", "active"
+  initialBalance Float @default(0)
+  initialBalanceActivity Float @default(0)
+  role      String   @default("user") // "super_admin", "admin", "user"
+  currency  String   @default("auto")
+  emailVerified DateTime?
+  loginAttempts Int      @default(0)
+  lockedUntil   DateTime?
+  activityActivated Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions       Transaction[]
+  categories         Category[]
+  products           Product[]
+  sales              Sale[]
+  stockMovements     StockMovement[]
+  reports            Report[]
+  subscription       Subscription?
+  verificationTokens VerificationToken[]
+  loginLogs          LoginLog[]
+}
+
+model VerificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  type      String   @default("email_verification")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId    Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  ip        String   @default("")
+  userAgent String   @default("")
+  success   Boolean  @default(false)
+  reason    String   @default("")
+  createdAt DateTime @default(now())
+  userId    Int?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  status    String   @default("active") // "active", "cancelled", "expired"
+  provider  String   @default("")
+  method    String   @default("")
+  amount    Float    @default(5000)
+  currency  String   @default("XOF")
+  startDate DateTime @default(now())
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int      @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id     Int    @id @default(autoincrement())
+  name   String
+  icon   String @default("")
+  type   String // "income" or "expense"
+  userId Int
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([name, userId])
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  type        String   // "income" or "expense"
+  amount      Float
+  description String
+  date        DateTime @default(now())
+  scope       String   @default("personal") // "personal" or "activity"
+  categoryId  Int
+  userId      Int
+
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String
+  purchasePrice Float    @default(0)
+  salePrice     Float    @default(0)
+  stock         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  userId        Int
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sales          Sale[]
+  stockMovements StockMovement[]
+}
+
+model Sale {
+  id        Int      @id @default(autoincrement())
+  quantity  Int      @default(1)
+  unitPrice Float
+  totalAmount Float
+  profit    Float    @default(0)
+  date      DateTime @default(now())
+  productId Int
+  userId    Int
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StockMovement {
+  id        Int      @id @default(autoincrement())
+  type      String   // "in" or "out"
+  quantity  Int
+  date      DateTime @default(now())
+  description String @default("")
+  productId Int
+  userId    Int
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id        Int      @id @default(autoincrement())
+  type      String   // "weekly", "monthly", "yearly"
+  data      String   // JSON string
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt DateTime @default(now())
+  userId    Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
