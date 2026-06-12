@@ -65,6 +65,11 @@ export default function SettingsPage() {
   const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
   const [paymentType, setPaymentType] = useState<"success" | "error" | null>(null);
   const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
   const isPremium = user?.subscription?.status === "active" || isAdmin;
@@ -190,6 +195,30 @@ export default function SettingsPage() {
       setInitialBalanceActivity("0");
     } catch (e) { console.error(e); }
     finally { setResetLoading(false); }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSaved(false);
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Les mots de passe ne correspondent pas");
+      return;
+    }
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setPasswordError(data.error || "Erreur"); return; }
+      setPasswordSaved(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPasswordSaved(false), 3000);
+    } catch { setPasswordError("Erreur réseau"); }
   }
 
   async function addPresetCategories(type: "income" | "expense") {
@@ -375,6 +404,34 @@ export default function SettingsPage() {
           <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
             <Save className="w-4 h-4" />
             {saved ? "Enregistré ✓" : "Enregistrer"}
+          </button>
+        </form>
+      </div>
+
+      {/* PASSWORD */}
+      <div className="card p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <Lock className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-base font-semibold text-stone-800">Mot de passe</h2>
+        </div>
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <div>
+            <label className="block text-sm text-stone-600 mb-1">Mot de passe actuel</label>
+            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field" required />
+          </div>
+          <div>
+            <label className="block text-sm text-stone-600 mb-1">Nouveau mot de passe</label>
+            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field" minLength={8} required />
+            <p className="text-xs text-stone-400 mt-1">Minimum 8 caractères.</p>
+          </div>
+          <div>
+            <label className="block text-sm text-stone-600 mb-1">Confirmer le nouveau mot de passe</label>
+            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field" minLength={8} required />
+          </div>
+          {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+          <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
+            <Save className="w-4 h-4" />
+            {passwordSaved ? "Mis à jour ✓" : "Modifier le mot de passe"}
           </button>
         </form>
       </div>
