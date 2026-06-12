@@ -69,7 +69,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error || "Erreur d'inscription");
       } else {
-        setStep("done");
+        window.location.href = "/verify-email-pending";
       }
     } catch {
       setError("Erreur de connexion au serveur");

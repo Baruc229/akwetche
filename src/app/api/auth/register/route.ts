@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, generateEmailToken } from "@/lib/auth";
+import { hashPassword, generateEmailToken, generateToken } from "@/lib/auth";
 import { badRequest, created } from "@/lib/api";
 import { sendEmail, verificationEmailHtml } from "@/lib/email";
+import { cookies } from "next/headers";
 
 const registerAttempts = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 3;
@@ -80,6 +81,16 @@ export async function POST(req: NextRequest) {
       to: email,
       subject: "Confirmez votre email — Akwetche",
       html: verificationEmailHtml(token),
+    });
+
+    const jwt = generateToken(user.id);
+    const cookieStore = await cookies();
+    cookieStore.set("token", jwt, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60,
+      path: "/",
     });
 
     return created({
