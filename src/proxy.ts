@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "./lib/auth";
 
+const MAIN_DOMAIN = "akwetche.com";
 const APP_DOMAIN = "app.akwetche.app";
 const publicPaths = [
   "/login",
@@ -20,28 +21,41 @@ const publicPaths = [
   "/favicon.ico",
 ];
 
-function isAppDomain(request: NextRequest): boolean {
-  return request.headers.get("host")?.includes(APP_DOMAIN) ?? false;
+function getHost(request: NextRequest): string {
+  return request.headers.get("host") ?? "";
 }
 
 export function proxy(request: NextRequest) {
+  const host = getHost(request);
   const { pathname } = request.nextUrl;
 
-  // Rediriger les dashboard routes du domaine principal vers app.*
-  if (!isAppDomain(request) && !publicPaths.some((p) => pathname.startsWith(p)) && pathname !== "/") {
-    const appUrl = new URL(pathname, `https://${APP_DOMAIN}`);
-    return NextResponse.redirect(appUrl);
+  // --- app.akwetche.app : dashboard à la racine ---
+  if (host.includes(APP_DOMAIN)) {
+    if (pathname === "/") {
+      return NextResponse.rewrite(new URL("/dashboard", request.url));
+    }
+    // Comportement normal pour les autres routes (login, etc.)
+    return handleAuth(request, pathname);
   }
 
-  // Sur app.akwetche.app : afficher le dashboard à la racine
-  if (isAppDomain(request) && pathname === "/") {
-    return NextResponse.rewrite(new URL("/dashboard", request.url));
+  // --- akwetche.com : landing + redirection vers app ---
+  if (host.includes(MAIN_DOMAIN)) {
+    if (pathname === "/") return NextResponse.next();
+    if (!publicPaths.some((p) => pathname.startsWith(p))) {
+      return NextResponse.redirect(new URL(pathname, `https://${APP_DOMAIN}`));
+    }
+    return NextResponse.next();
   }
 
-  const isPublic = publicPaths.some((p) => pathname.startsWith(p));
-  if (isPublic) return NextResponse.next();
+  // --- Domaine inconnu (Vercel default, preview, etc.) : comportement normal ---
+  return handleAuth(request, pathname);
+}
 
-  // Landing page sur le domaine principal
+function handleAuth(request: NextRequest, pathname: string) {
+  if (publicPaths.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
   if (pathname === "/") return NextResponse.next();
 
   const token = request.cookies.get("token")?.value;
