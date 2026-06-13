@@ -208,6 +208,32 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Bannière plan gratuit */}
+      {limits && !limits.isPremium && user?.role === "user" && (
+        <div className="bg-gradient-to-r from-stone-50 to-amber-50 border border-amber-200 rounded-2xl p-5 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+              <Crown className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-stone-800">
+                Plan gratuit — {limits.maxFreeIncome} revenus et {limits.maxFreeExpense} dépenses max
+              </p>
+              <p className="text-sm text-stone-600 mt-1">
+                Passez à Premium pour profiter de catégories illimitées, du mode commercial, et exporter vos rapports.
+              </p>
+              <button
+                onClick={handleSubscribe}
+                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-800 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-xl transition-colors"
+              >
+                Passer à Premium
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Argent disponible aujourd'hui */}
       <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg animate-fade-in">
         <div className="flex items-center gap-2 mb-1">
@@ -862,6 +888,27 @@ export default function DashboardPage() {
                     ))}
                 </select>
               </div>
+
+              {limits && !limits.isPremium && user?.role === "user" && (
+                <div className="p-3 bg-amber-50 rounded-xl">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-medium text-amber-800">
+                      {newTx.type === "income" ? "Revenus" : "Dépenses"} ce mois
+                    </span>
+                    <span className="font-semibold text-amber-800">
+                      {newTx.type === "income" ? limits.incomeCount : limits.expenseCount}/{newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}
+                    </span>
+                  </div>
+                  {(newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
+                   (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
+                    <p className="text-xs text-red-600">Limite mensuelle atteinte. Passez à Premium.</p>
+                  ) : (
+                    <p className="text-xs text-amber-600">
+                      {Math.max(0, (newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (newTx.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)
+                    </p>
+                  )}
+                </div>
+              )}
 
               {txError && (
                 <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useDashboard } from "../../layout";
 import { TrendingUp, Plus, ShoppingBag } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -21,6 +23,8 @@ type Product = {
 };
 
 export default function SalesPage() {
+  const { user } = useDashboard();
+  const router = useRouter();
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,8 +51,12 @@ export default function SalesPage() {
   }
 
   useEffect(() => {
+    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
+      router.replace("/dashboard");
+      return;
+    }
     loadSales();
-  }, []);
+  }, [user]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

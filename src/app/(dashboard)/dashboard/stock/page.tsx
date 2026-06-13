@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useDashboard } from "../../layout";
 import { Package, Plus, AlertTriangle, Archive, ArrowUpDown } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -21,6 +23,8 @@ type Product = {
 };
 
 export default function StockPage() {
+  const { user } = useDashboard();
+  const router = useRouter();
   const [movements, setMovements] = useState<Movement[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [totalStockValue, setTotalStockValue] = useState(0);
@@ -51,8 +55,12 @@ export default function StockPage() {
   }
 
   useEffect(() => {
+    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
+      router.replace("/dashboard");
+      return;
+    }
     loadData();
-  }, []);
+  }, [user]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

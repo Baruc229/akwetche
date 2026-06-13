@@ -133,6 +133,26 @@ export default function ReportsPage() {
                 ? `Du ${new Date(data.period.start).toLocaleDateString("fr-FR")} au ${new Date(data.period.end).toLocaleDateString("fr-FR")}`
                 : periodLabel}
             </p>
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 print-summary">
+              <div className="bg-emerald-50 rounded-xl p-3">
+                <p className="text-xs text-emerald-600 font-medium">Revenus totaux</p>
+                <p className="text-lg font-bold text-emerald-700">{formatCurrency(data.current.income)}</p>
+              </div>
+              <div className="bg-amber-50 rounded-xl p-3">
+                <p className="text-xs text-amber-600 font-medium">Dépenses totales</p>
+                <p className="text-lg font-bold text-amber-700">{formatCurrency(data.current.expense)}</p>
+              </div>
+              <div className="bg-teal-50 rounded-xl p-3">
+                <p className="text-xs text-teal-600 font-medium">Solde net</p>
+                <p className="text-lg font-bold text-teal-700">{formatCurrency(data.current.savings)}</p>
+              </div>
+              <div className="bg-stone-50 rounded-xl p-3">
+                <p className="text-xs text-stone-500 font-medium">Taux d'épargne</p>
+                <p className={`text-lg font-bold ${savingsRate >= 20 ? "text-emerald-600" : savingsRate >= 5 ? "text-amber-600" : "text-red-500"}`}>
+                  {savingsRate.toFixed(0)}%
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Résumé humain */}

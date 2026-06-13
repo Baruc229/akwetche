@@ -149,6 +149,10 @@ export default function SettingsPage() {
     e.preventDefault();
     setCatError("");
     if (!newCatName.trim()) return;
+    if (isFree && categories.length >= 3 && !categories.some(c => c.name === newCatName.trim() && c.type === newCatType)) {
+      setCatError("Limite gratuite atteinte (3 catégories max). Passez à Premium pour en créer plus.");
+      return;
+    }
     const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType };
     setCategories((prev) => [...prev, optimistic]);
     setNewCatName("");
@@ -481,6 +485,25 @@ export default function SettingsPage() {
           <Tag className="w-5 h-5 text-emerald-600" />
           <h2 className="text-base font-semibold text-stone-800">Catégories</h2>
         </div>
+        {isFree && (
+          <div className="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-amber-800">Limite plan gratuit</span>
+              <span className="text-amber-700 font-semibold">{categories.length}/3 catégories</span>
+            </div>
+            <div className="w-full h-1.5 bg-amber-200 rounded-full mt-2 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${categories.length >= 3 ? "bg-red-500" : "bg-amber-500"}`}
+                style={{ width: `${Math.min(100, (categories.length / 3) * 100)}%` }}
+              />
+            </div>
+            {categories.length >= 3 && (
+              <p className="text-xs text-red-600 mt-2">
+                Limite de catégories atteinte. Passez à Premium pour en créer plus.
+              </p>
+            )}
+          </div>
+        )}
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between mb-3">

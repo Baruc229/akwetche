@@ -103,6 +103,7 @@ export default function DashboardLayout({
   }, [commercialMode]);
 
   useEffect(() => {
+    const sessionFlag = localStorage.getItem("akwetche_session");
     fetch("/api/auth/me")
       .then((res) => {
         if (!res.ok) throw new Error("Not authenticated");
@@ -110,14 +111,17 @@ export default function DashboardLayout({
       })
       .then((data) => {
         if (!data.user.emailVerified) {
+          localStorage.removeItem("akwetche_session");
           router.push("/verify-email-pending");
           return;
         }
+        localStorage.setItem("akwetche_session", "true");
         setUser(data.user);
         setActiveCurrency(resolveCurrency(data.user?.currency));
       })
       .catch(() => {
-        router.push("/login");
+        localStorage.removeItem("akwetche_session");
+        router.push(sessionFlag ? "/login?expired=1" : "/login");
       })
       .finally(() => setLoading(false));
   }, [router]);
@@ -143,7 +147,7 @@ export default function DashboardLayout({
     >
       <div className="min-h-screen bg-stone-50 flex">
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col ${
+          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-hidden ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -336,6 +340,7 @@ export default function DashboardLayout({
                 ...(commercialMode ? [{ href: "/dashboard/products", label: "Produits", icon: Package }] : []),
                 { href: "/dashboard/transactions", label: "Transactions", icon: ArrowUpDown },
                 ...(commercialMode ? [{ href: "/dashboard/sales", label: "Ventes", icon: TrendingUp }] : []),
+                ...(commercialMode ? [{ href: "/dashboard/stock", label: "Stock", icon: ShoppingBag }] : []),
                 { href: "/dashboard/reports", label: "Bilans", icon: BarChart3 },
                 { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
               ].map((item) => {
@@ -359,7 +364,7 @@ export default function DashboardLayout({
             </div>
           </nav>
 
-          <footer className="border-t border-stone-200 bg-white px-4 md:px-6 lg:px-8 py-3 hidden lg:block">
+          <footer className="border-t border-stone-200 bg-white px-4 md:px-6 lg:px-8 py-3 pb-20 lg:pb-3">
             <p className="text-xs text-stone-400 text-center">
               &copy; {new Date().getFullYear()} Akwetche — Tous droits réservés.
             </p>

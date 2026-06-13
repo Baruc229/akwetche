@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useDashboard } from "../../layout";
 import { Package, Plus, Edit3, Trash2, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -14,6 +16,8 @@ type Product = {
 };
 
 export default function ProductsPage() {
+  const { user } = useDashboard();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -41,8 +45,12 @@ export default function ProductsPage() {
   }
 
   useEffect(() => {
+    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
+      router.replace("/dashboard");
+      return;
+    }
     loadProducts();
-  }, []);
+  }, [user]);
 
   function openCreate() {
     setEditProduct(null);

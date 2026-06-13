@@ -7,7 +7,7 @@ import {
   Users, Activity, Trash2, Shield, DollarSign,
   ShoppingBag, FileText, CreditCard, LogIn, AlertTriangle,
   CheckCircle, XCircle, Plus, X, Crown, Star,
-  Mail, CalendarDays, Lock, Unlock, Eye,
+  Mail, CalendarDays, Lock, Unlock, Eye, Download,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -64,6 +64,9 @@ export default function AdminPage() {
   const [addAdminError, setAddAdminError] = useState("");
   const [addingAdmin, setAddingAdmin] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [allLogs, setAllLogs] = useState<LoginLog[]>([]);
+  const [showAllLogs, setShowAllLogs] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   useEffect(() => {
     if (user && user.role === "user") router.push("/dashboard");
@@ -78,6 +81,17 @@ export default function AdminPage() {
       setStats(statsData);
     }).finally(() => setLoading(false));
   }, []);
+
+  async function loadAllLogs() {
+    setLogsLoading(true);
+    try {
+      const res = await fetch("/api/admin/login-logs");
+      const data = await res.json();
+      setAllLogs(data.logs || []);
+      setShowAllLogs(true);
+    } catch {}
+    finally { setLogsLoading(false); }
+  }
 
   async function handleCreateAdmin(e: React.FormEvent) {
     e.preventDefault();
@@ -122,7 +136,28 @@ export default function AdminPage() {
     if (selectedUser?.id === id) setSelectedUser(null);
   }
 
+  function downloadUserReport() {
+    const headers = ["Nom", "Email", "Rôle", "Plan", "Statut", "Transactions", "Produits", "Ventes", "Date d'inscription"];
+    const rows = users.map((u) => [
+      u.name, u.email, u.role,
+      u.role !== "user" ? "Admin" : u.subscription?.status === "active" || u.plan === "premium" ? "Premium" : "Gratuit",
+      u.lockedUntil && new Date(u.lockedUntil) > new Date() ? "Verrouillé" : u.emailVerified ? "Actif" : "En attente",
+      u._count.transactions, u._count.products, u._count.sales,
+      new Date(u.createdAt).toLocaleDateString("fr-FR"),
+    ]);
+    const csv = [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `utilisateurs_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
   function getPlanBadge(u: UserData) {
+    if (u.role !== "user") {
+      return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded"><Shield className="w-2.5 h-2.5" />Admin</span>;
+    }
     if (u.subscription?.status === "active" || u.plan === "premium") {
       return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded"><Crown className="w-2.5 h-2.5" />Premium</span>;
     }
@@ -230,7 +265,57 @@ export default function AdminPage() {
 
       <div className="card overflow-hidden">
         <div className="p-4 border-b border-stone-100">
-          <h2 className="text-sm font-semibold text-stone-700">Utilisateurs</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-stone-700">Historique complet des connexions</h2>
+            <button
+              onClick={() => showAllLogs ? setShowAllLogs(false) : loadAllLogs()}
+              className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              {showAllLogs ? "Masquer" : logsLoading ? "Chargement..." : "Voir tout"}
+            </button>
+          </div>
+        </div>
+        {showAllLogs && (
+          <div className="divide-y divide-stone-100 max-h-96 overflow-y-auto">
+            {allLogs.length === 0 ? (
+              <p className="p-4 text-sm text-stone-400 text-center">Aucune tentative de connexion</p>
+            ) : (
+              allLogs.map((log) => (
+                <div key={log.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 hover:bg-stone-50 text-xs gap-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {log.success
+                      ? <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
+                      : <XCircle className="w-3 h-3 text-red-400 shrink-0" />
+                    }
+                    <span className="text-stone-700 font-medium truncate">{log.user?.email || "Inconnu"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-3 text-stone-400 shrink-0 ml-5 sm:ml-0 flex-wrap">
+                    <span className="text-stone-500">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason === "user_not_found" ? "Utilisateur introuvable" : log.reason}</span>
+                    {log.ip && <span className="text-stone-400 hidden sm:inline">{log.ip}</span>}
+                    <span className="text-stone-400">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {!showAllLogs && (
+          <p className="p-4 text-sm text-stone-400 text-center">Cliquez sur &quot;Voir tout&quot; pour charger l&apos;historique complet.</p>
+        )}
+      </div>
+
+      <div className="card overflow-hidden">
+        <div className="p-4 border-b border-stone-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-stone-700">Utilisateurs</h2>
+            <button
+              onClick={downloadUserReport}
+              className="flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Télécharger rapport
+            </button>
+          </div>
         </div>
         <div className="divide-y divide-stone-100">
           {users.map((u) => (
@@ -318,7 +403,13 @@ export default function AdminPage() {
                 </div>
                 <div className="bg-stone-50 rounded-xl p-3">
                   <p className="text-xs text-stone-500">Plan</p>
-                  <p className="text-sm font-semibold text-stone-800">{selectedUser.plan === "premium" || selectedUser.subscription?.status === "active" ? "Premium" : "Gratuit"}</p>
+                  <p className="text-sm font-semibold text-stone-800">
+                    {selectedUser.role !== "user"
+                      ? "Admin (accès total)"
+                      : selectedUser.subscription?.status === "active" || selectedUser.plan === "premium"
+                        ? "Premium"
+                        : "Gratuit"}
+                  </p>
                 </div>
                 <div className="bg-stone-50 rounded-xl p-3">
                   <p className="text-xs text-stone-500">Date d'inscription</p>
