@@ -19,6 +19,7 @@ import {
   MessageCircle,
   Home,
   CheckCircle,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
@@ -75,6 +76,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
+  const [commercialMode, setCommercialMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -94,8 +96,13 @@ export default function DashboardLayout({
         localStorage.setItem("akwetche_session", "true");
         setUser(data.user);
         setActiveCurrency(resolveCurrency(data.user?.currency));
-        if (data.user && (data.user.plan === "premium" || data.user.role !== "user") && !data.user.activityActivated) {
-          fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+        const isPremium = data.user.plan === "premium" || data.user.role !== "user";
+        if (isPremium) {
+          const saved = localStorage.getItem("akwetche_commercial");
+          setCommercialMode(saved === "true" || saved === null);
+          if (!data.user.activityActivated) {
+            fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+          }
         }
       })
       .catch(() => {
@@ -104,6 +111,12 @@ export default function DashboardLayout({
       })
       .finally(() => setLoading(false));
   }, [router]);
+
+  useEffect(() => {
+    if (user && (user.plan === "premium" || user.role !== "user")) {
+      localStorage.setItem("akwetche_commercial", String(commercialMode));
+    }
+  }, [commercialMode, user]);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -120,7 +133,8 @@ export default function DashboardLayout({
 
   if (!user) return null;
 
-  const commercialMode = user?.plan === "premium" || user?.role !== "user";
+  const isPremium = user?.plan === "premium" || user?.role !== "user";
+  const isFreeLocked = user?.role === "user" && user?.plan !== "premium" && user?.subscription?.status !== "active";
 
   return (
     <DashboardContext.Provider
@@ -128,7 +142,7 @@ export default function DashboardLayout({
     >
       <div className="min-h-screen bg-stone-50 flex">
         <aside
-          className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-y-auto sidebar-mobile ${
+          className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-hidden sidebar-mobile ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -156,7 +170,7 @@ export default function DashboardLayout({
             </p>
           </div>
 
-          <nav className="p-3 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -245,13 +259,23 @@ export default function DashboardLayout({
               </Link>
             </div>
 
-            {commercialMode && (
+            {isPremium && (
               <div className="pt-3 mt-3 border-t border-stone-100">
-                <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-emerald-700 bg-emerald-50 rounded-xl">
-                  <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  <span className="font-medium">Activité commerciale</span>
-                  <span className="ml-auto text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Activé</span>
-                </div>
+                <label className="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 cursor-pointer hover:bg-stone-50 rounded-xl transition-all">
+                  <input
+                    type="checkbox"
+                    checked={commercialMode}
+                    onChange={(e) => {
+                      setCommercialMode(e.target.checked);
+                      if (e.target.checked && !user?.activityActivated) {
+                        fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <ShoppingBag className="w-4 h-4" />
+                  Activité commerciale
+                </label>
               </div>
             )}
           </nav>
@@ -299,22 +323,32 @@ export default function DashboardLayout({
             <div className="flex items-center gap-0 px-1 py-1 overflow-x-auto flex-nowrap scrollbar-hide">
               {[
                 { href: "/dashboard", label: "Accueil", icon: Home },
-                ...(commercialMode ? [{ href: "/dashboard/products", label: "Produits", icon: Package }] : []),
+                { href: "/dashboard/products", label: "Produits", icon: Package, locked: isFreeLocked, lockedHref: "/payment" },
                 { href: "/dashboard/transactions", label: "Transactions", icon: ArrowUpDown },
-                ...(commercialMode ? [{ href: "/dashboard/sales", label: "Ventes", icon: TrendingUp }] : []),
+                { href: "/dashboard/sales", label: "Ventes", icon: TrendingUp, locked: isFreeLocked, lockedHref: "/payment" },
                 { href: "/dashboard/reports", label: "Bilans", icon: BarChart3 },
                 { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
-              ].map((item) => {
+              ].map((item: any) => {
                 const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                if (item.locked) {
+                  return (
+                    <button
+                      key={item.href}
+                      onClick={() => router.push(item.lockedHref)}
+                      className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 min-w-0 shrink-0 rounded-xl text-[10px] font-medium transition-all text-stone-300`}
+                    >
+                      <Lock className="w-5 h-5" />
+                      <span className="whitespace-nowrap">{item.label}</span>
+                    </button>
+                  );
+                }
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
                     className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 min-w-0 shrink-0 rounded-xl text-[10px] font-medium transition-all ${
-                      isActive
-                        ? "text-emerald-600"
-                        : "text-stone-400 hover:text-stone-600"
+                      isActive ? "text-emerald-600" : "text-stone-400 hover:text-stone-600"
                     }`}
                   >
                     <item.icon className="w-5 h-5" />

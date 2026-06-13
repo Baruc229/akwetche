@@ -238,10 +238,18 @@ export default function AdminPage() {
 
       <div className="card overflow-hidden">
         <div className="p-4 border-b border-stone-100">
-          <h2 className="text-sm font-semibold text-stone-700">Tentatives de connexion récentes</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-stone-700">Historique des connexions</h2>
+            <button
+              onClick={() => showAllLogs ? setShowAllLogs(false) : loadAllLogs()}
+              className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              {showAllLogs ? "Masquer" : logsLoading ? "Chargement..." : "Voir tout"}
+            </button>
+          </div>
         </div>
-        <div className="divide-y divide-stone-100 max-h-64 overflow-y-auto">
-          {stats?.recentLogs.map((log) => (
+        <div className="divide-y divide-stone-100 max-h-96 overflow-y-auto">
+          {(stats?.recentLogs || []).map((log) => (
             <div key={log.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 hover:bg-stone-50 text-xs gap-1">
               <div className="flex items-center gap-2 min-w-0">
                 {log.success
@@ -252,55 +260,44 @@ export default function AdminPage() {
                 <span className="text-stone-400 truncate hidden sm:inline">{log.ip}</span>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 text-stone-400 shrink-0 ml-5 sm:ml-0">
-                <span className="text-stone-500">{log.reason}</span>
+                <span className="text-stone-500">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason === "user_not_found" ? "Utilisateur introuvable" : log.reason}</span>
                 <span className="text-stone-400">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
               </div>
             </div>
           ))}
-          {(!stats?.recentLogs || stats.recentLogs.length === 0) && (
+          {showAllLogs && allLogs.slice((stats?.recentLogs || []).length).map((log) => (
+            <div key={log.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 hover:bg-stone-50 text-xs gap-1">
+              <div className="flex items-center gap-2 min-w-0">
+                {log.success
+                  ? <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
+                  : <XCircle className="w-3 h-3 text-red-400 shrink-0" />
+                }
+                <span className="text-stone-700 font-medium truncate">{log.user?.email || "Inconnu"}</span>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 text-stone-400 shrink-0 ml-5 sm:ml-0 flex-wrap">
+                <span className="text-stone-500">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason === "user_not_found" ? "Utilisateur introuvable" : log.reason}</span>
+                {log.ip && <span className="text-stone-400 hidden sm:inline">{log.ip}</span>}
+                <span className="text-stone-400">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
+              </div>
+            </div>
+          ))}
+          {(!stats?.recentLogs || stats.recentLogs.length === 0) && !showAllLogs && (
+            <p className="p-4 text-sm text-stone-400 text-center">Aucune tentative de connexion</p>
+          )}
+          {showAllLogs && allLogs.length === 0 && (
             <p className="p-4 text-sm text-stone-400 text-center">Aucune tentative de connexion</p>
           )}
         </div>
-      </div>
-
-      <div className="card overflow-hidden">
-        <div className="p-4 border-b border-stone-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-stone-700">Historique complet des connexions</h2>
+        {!showAllLogs && stats?.recentLogs && stats.recentLogs.length > 0 && (
+          <div className="p-3 border-t border-stone-100 text-center">
             <button
-              onClick={() => showAllLogs ? setShowAllLogs(false) : loadAllLogs()}
-              className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+              onClick={loadAllLogs}
+              disabled={logsLoading}
+              className="text-xs text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50"
             >
-              {showAllLogs ? "Masquer" : logsLoading ? "Chargement..." : "Voir tout"}
+              {logsLoading ? "Chargement..." : "Voir tout l'historique"}
             </button>
           </div>
-        </div>
-        {showAllLogs && (
-          <div className="divide-y divide-stone-100 max-h-96 overflow-y-auto">
-            {allLogs.length === 0 ? (
-              <p className="p-4 text-sm text-stone-400 text-center">Aucune tentative de connexion</p>
-            ) : (
-              allLogs.map((log) => (
-                <div key={log.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 hover:bg-stone-50 text-xs gap-1">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {log.success
-                      ? <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
-                      : <XCircle className="w-3 h-3 text-red-400 shrink-0" />
-                    }
-                    <span className="text-stone-700 font-medium truncate">{log.user?.email || "Inconnu"}</span>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-3 text-stone-400 shrink-0 ml-5 sm:ml-0 flex-wrap">
-                    <span className="text-stone-500">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason === "user_not_found" ? "Utilisateur introuvable" : log.reason}</span>
-                    {log.ip && <span className="text-stone-400 hidden sm:inline">{log.ip}</span>}
-                    <span className="text-stone-400">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-        {!showAllLogs && (
-          <p className="p-4 text-sm text-stone-400 text-center">Cliquez sur &quot;Voir tout&quot; pour charger l&apos;historique complet.</p>
         )}
       </div>
 
