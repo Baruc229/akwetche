@@ -223,7 +223,7 @@ export default function ReportsPage() {
             </div>
             <div className="rounded-2xl p-4 sm:p-5 animate-fade-in bg-stone-50 border border-stone-200">
               <p className="text-xs sm:text-sm font-medium text-stone-600">Plus grosse dépense</p>
-              <p className="text-lg sm:text-xl font-bold text-stone-800 truncate mt-1" title={getTopExpenseLabel(data.current.topCategories)}>
+              <p className="text-lg sm:text-xl font-bold text-stone-800 mt-1 break-words leading-tight">
                 {getTopExpenseLabel(data.current.topCategories) || "—"}
               </p>
               <p className="text-xs sm:text-sm text-stone-400 mt-0.5">Catégorie principale</p>
