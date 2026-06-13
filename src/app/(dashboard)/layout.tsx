@@ -18,6 +18,7 @@ import {
   Shield,
   MessageCircle,
   Home,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
@@ -42,7 +43,6 @@ type DashboardContextType = {
   user: UserData | null;
   setUser: (u: UserData | null) => void;
   commercialMode: boolean;
-  setCommercialMode: (v: boolean) => void;
   currency: CurrencyCode;
 };
 
@@ -50,7 +50,6 @@ const DashboardContext = createContext<DashboardContextType>({
   user: null,
   setUser: () => {},
   commercialMode: false,
-  setCommercialMode: () => {},
   currency: "XOF",
 });
 
@@ -76,31 +75,8 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
-  const [commercialMode, setCommercialMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("akwetche_commercial");
-    const isMobile = window.innerWidth < 1024;
-
-    if (saved === "true") {
-      setCommercialMode(true);
-      if (user?.plan === "premium" && !user?.activityActivated) {
-        fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
-      }
-    } else if (saved === null && isMobile && user?.plan === "premium") {
-      setCommercialMode(true);
-      localStorage.setItem("akwetche_commercial", "true");
-      if (!user?.activityActivated) {
-        fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
-      }
-    }
-  }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem("akwetche_commercial", String(commercialMode));
-  }, [commercialMode]);
 
   useEffect(() => {
     const sessionFlag = localStorage.getItem("akwetche_session");
@@ -118,6 +94,9 @@ export default function DashboardLayout({
         localStorage.setItem("akwetche_session", "true");
         setUser(data.user);
         setActiveCurrency(resolveCurrency(data.user?.currency));
+        if (data.user && (data.user.plan === "premium" || data.user.role !== "user") && !data.user.activityActivated) {
+          fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+        }
       })
       .catch(() => {
         localStorage.removeItem("akwetche_session");
@@ -141,9 +120,11 @@ export default function DashboardLayout({
 
   if (!user) return null;
 
+  const commercialMode = user?.plan === "premium" || user?.role !== "user";
+
   return (
     <DashboardContext.Provider
-      value={{ user, setUser, commercialMode, setCommercialMode, currency: resolveCurrency(user?.currency) }}
+      value={{ user, setUser, commercialMode, currency: resolveCurrency(user?.currency) }}
     >
       <div className="min-h-screen bg-stone-50 flex">
         <aside
@@ -264,31 +245,12 @@ export default function DashboardLayout({
               </Link>
             </div>
 
-            {(user?.plan === "premium" || user?.role !== "user") ? (
+            {commercialMode && (
               <div className="pt-3 mt-3 border-t border-stone-100">
-                <label className="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 cursor-pointer hover:bg-stone-50 rounded-xl transition-all">
-                  <input
-                    type="checkbox"
-                    checked={commercialMode}
-                    onChange={(e) => {
-                      setCommercialMode(e.target.checked);
-                      if (e.target.checked) {
-                        fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <ShoppingBag className="w-4 h-4" />
-                  Activité commerciale
-                </label>
-              </div>
-            ) : (
-              <div className="pt-3 mt-3 border-t border-stone-100">
-                <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-stone-400 opacity-60">
-                  <input type="checkbox" disabled className="w-4 h-4 rounded border-stone-200 bg-stone-100" />
-                  <ShoppingBag className="w-4 h-4" />
-                  Activité commerciale
-                  <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-auto">Premium</span>
+                <div className="flex items-center gap-3 px-3 py-2.5 text-sm text-emerald-700 bg-emerald-50 rounded-xl">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <span className="font-medium">Activité commerciale</span>
+                  <span className="ml-auto text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Activé</span>
                 </div>
               </div>
             )}
