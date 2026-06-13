@@ -158,10 +158,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       {/* En-tête */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-stone-900">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold text-stone-900">
               Bonjour, {user?.name?.split(" ")[0] || "utilisateur"}
             </h1>
             {limits?.isPremium && (
@@ -177,7 +177,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center gap-2 text-sm"
+          className="btn-primary flex items-center gap-2 text-sm self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Nouvelle transaction
@@ -633,8 +633,8 @@ export default function DashboardPage() {
             return (
               <>
                 {/* Tableau comparatif */}
-                <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white mb-4">
-                  <table className="w-full text-sm">
+                <div className="overflow-x-auto rounded-xl border border-emerald-200 bg-white mb-4">
+                  <table className="w-full text-sm whitespace-nowrap">
                     <thead>
                       <tr className="bg-emerald-100">
                         <th className="text-left px-4 py-2.5 font-semibold text-emerald-800"></th>

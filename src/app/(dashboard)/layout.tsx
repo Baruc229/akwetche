@@ -82,9 +82,17 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const saved = localStorage.getItem("akwetche_commercial");
+    const isMobile = window.innerWidth < 1024;
+
     if (saved === "true") {
       setCommercialMode(true);
       if (user?.plan === "premium" && !user?.activityActivated) {
+        fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+      }
+    } else if (saved === null && isMobile && user?.plan === "premium") {
+      setCommercialMode(true);
+      localStorage.setItem("akwetche_commercial", "true");
+      if (!user?.activityActivated) {
         fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
       }
     }
@@ -135,19 +143,19 @@ export default function DashboardLayout({
     >
       <div className="min-h-screen bg-stone-50 flex">
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto ${
+          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-            <div className="flex items-center justify-between p-4 border-b border-stone-200">
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-sm">
-                  <Wallet className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg font-bold text-emerald-700">
-                  Akwetche
-                </span>
-              </Link>
+          <div className="flex items-center justify-between p-4 border-b border-stone-200 shrink-0">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-sm">
+                <Wallet className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-lg font-bold text-emerald-700">
+                Akwetche
+              </span>
+            </Link>
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-stone-400 hover:text-stone-600"
@@ -156,14 +164,14 @@ export default function DashboardLayout({
             </button>
           </div>
 
-          <div className="p-4 border-b border-stone-100">
+          <div className="p-4 border-b border-stone-100 shrink-0">
             <p className="text-sm text-stone-500">Connecté en tant que</p>
             <p className="text-sm font-medium text-stone-800 truncate">
               {user.name}
             </p>
           </div>
 
-          <nav className="p-3 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -282,7 +290,7 @@ export default function DashboardLayout({
             )}
           </nav>
 
-          <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-stone-200 bg-white">
+          <div className="shrink-0 p-3 border-t border-stone-200 bg-white">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-stone-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
@@ -322,7 +330,7 @@ export default function DashboardLayout({
 
           {/* Navigation inférieure (mobile) */}
           <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-200 lg:hidden safe-area-bottom">
-            <div className="flex items-center justify-around px-2 py-1">
+            <div className="flex items-center gap-0 px-1 py-1 overflow-x-auto flex-nowrap scrollbar-hide">
               {[
                 { href: "/dashboard", label: "Accueil", icon: Home },
                 ...(commercialMode ? [{ href: "/dashboard/products", label: "Produits", icon: Package }] : []),
@@ -337,14 +345,14 @@ export default function DashboardLayout({
                     key={item.href}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl text-xs font-medium transition-all ${
+                    className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 min-w-0 shrink-0 rounded-xl text-[10px] font-medium transition-all ${
                       isActive
                         ? "text-emerald-600"
                         : "text-stone-400 hover:text-stone-600"
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
-                    {item.label}
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </Link>
                 );
               })}

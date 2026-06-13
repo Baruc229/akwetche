@@ -236,8 +236,16 @@ export default function SettingsPage() {
 
   async function addPresetCategories(type: "income" | "expense") {
     const presets = PRESET_CATEGORIES[type];
-    const newPresets = presets.filter((p) => !categories.some((c) => c.name === p.name && c.type === p.type));
+    let newPresets = presets.filter((p) => !categories.some((c) => c.name === p.name && c.type === p.type));
     if (newPresets.length === 0) return;
+    if (!isPremium) {
+      const freeLimit = 3;
+      const currentCount = categories.length;
+      const available = freeLimit - currentCount;
+      if (available <= 0) return;
+      newPresets = newPresets.slice(0, available);
+      if (newPresets.length === 0) return;
+    }
     const optimism: Category[] = newPresets.map((p, i) => ({ id: Date.now() + i, name: p.name, icon: "", type: p.type }));
     setCategories((prev) => [...prev, ...optimism]);
     try {

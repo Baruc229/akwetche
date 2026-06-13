@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, PiggyBank, ShoppingBag, Wallet, ArrowUpRight, Package, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, PiggyBank, ShoppingBag, Wallet, ArrowUpRight, Package, AlertTriangle, Download, BarChart3, CalendarDays } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 type StatsBlock = {
@@ -47,6 +47,10 @@ export default function ReportsPage() {
       .finally(() => setLoading(false));
   }, [period]);
 
+  function handleDownload() {
+    window.print();
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -83,14 +87,27 @@ export default function ReportsPage() {
     return `${name} (${formatCurrency(amount)})`;
   }
 
+  const totalCurrent = data ? data.current.income + data.current.expense : 0;
+  const savingsRate = data && data.current.income > 0 ? (data.current.savings / data.current.income) * 100 : 0;
+  const avgDaily = data ? data.current.expense / 30 : 0;
+
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-stone-900">Bilans</h1>
-        <p className="text-stone-500 text-sm mt-0.5">Ce qui s&apos;est passé, en clair</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-stone-900">Bilans</h1>
+          <p className="text-stone-500 text-sm mt-0.5">Ce qui s&apos;est passé, en clair</p>
+        </div>
+        <button
+          onClick={handleDownload}
+          className="btn-secondary flex items-center gap-2 text-sm self-start sm:self-auto no-print"
+        >
+          <Download className="w-4 h-4" />
+          Télécharger le rapport
+        </button>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap no-print">
         {periods.map((p) => (
           <button
             key={p.value}
@@ -108,54 +125,156 @@ export default function ReportsPage() {
 
       {data && (
         <>
+          {/* En-tête du rapport imprimable */}
+          <div className="print-header">
+            <h1 className="text-xl font-bold text-emerald-700">Akwetche — Rapport financier</h1>
+            <p className="text-sm text-stone-500">
+              {data.period.start && data.period.end
+                ? `Du ${new Date(data.period.start).toLocaleDateString("fr-FR")} au ${new Date(data.period.end).toLocaleDateString("fr-FR")}`
+                : periodLabel}
+            </p>
+          </div>
+
           {/* Résumé humain */}
           <div className="card p-6 bg-gradient-to-br from-emerald-50 to-teal-50 animate-fade-in">
-            <h2 className="text-sm font-semibold text-stone-700 mb-4">{periodLabel}</h2>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-stone-700">{periodLabel}</h2>
+              <div className="flex items-center gap-1.5 text-xs text-stone-400">
+                <CalendarDays className="w-3.5 h-3.5" />
+                {data.period.start && data.period.end
+                  ? `Du ${new Date(data.period.start).toLocaleDateString("fr-FR")} au ${new Date(data.period.end).toLocaleDateString("fr-FR")}`
+                  : periodLabel}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
-                <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center shrink-0">
                   <TrendingUp className="w-5 h-5 text-teal-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-stone-500">Vous avez reçu</p>
                   <p className="text-lg font-bold text-teal-700">{formatCurrency(data.current.income)}</p>
                   <EvolutionBadge value={data.evolution.income} positiveIsGood={true} />
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
                   <TrendingDown className="w-5 h-5 text-amber-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-stone-500">Vous avez dépensé</p>
                   <p className="text-lg font-bold text-amber-700">{formatCurrency(data.current.expense)}</p>
                   <EvolutionBadge value={data.evolution.expense} positiveIsGood={false} />
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
                   <PiggyBank className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-stone-500">Il vous reste</p>
                   <p className="text-lg font-bold text-emerald-700">{formatCurrency(Math.max(0, data.current.savings))}</p>
                   <EvolutionBadge value={data.evolution.savings} positiveIsGood={true} />
                 </div>
               </div>
             </div>
-            {Object.keys(data.current.topCategories).length > 0 && (
-              <div className="mt-3 p-3 bg-white rounded-xl">
-                <p className="text-sm text-stone-500">
-                  Votre plus grosse dépense : <span className="font-semibold text-stone-800">{getTopExpenseLabel(data.current.topCategories)}</span>
-                </p>
-              </div>
-            )}
+          </div>
+
+          {/* Indicateurs clés */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="card p-4 animate-fade-in">
+              <p className="text-xs text-stone-500">Revenus + Dépenses</p>
+              <p className="text-lg font-bold text-stone-800">{formatCurrency(totalCurrent)}</p>
+              <p className="text-xs text-stone-400">Volume total</p>
+            </div>
+            <div className="card p-4 animate-fade-in">
+              <p className="text-xs text-stone-500">Taux d&apos;épargne</p>
+              <p className={`text-lg font-bold ${savingsRate >= 20 ? "text-emerald-600" : savingsRate >= 5 ? "text-amber-600" : "text-red-500"}`}>
+                {savingsRate.toFixed(0)}%
+              </p>
+              <p className="text-xs text-stone-400">
+                {savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Correct" : "Faible"}
+              </p>
+            </div>
+            <div className="card p-4 animate-fade-in">
+              <p className="text-xs text-stone-500">Moyenne / jour</p>
+              <p className="text-lg font-bold text-stone-800">{formatCurrency(avgDaily)}</p>
+              <p className="text-xs text-stone-400">Dépense quotidienne</p>
+            </div>
+            <div className="card p-4 animate-fade-in">
+              <p className="text-xs text-stone-500">Plus grosse dépense</p>
+              <p className="text-lg font-bold text-stone-800 truncate" title={getTopExpenseLabel(data.current.topCategories)}>
+                {getTopExpenseLabel(data.current.topCategories) || "—"}
+              </p>
+              <p className="text-xs text-stone-400">Catégorie principale</p>
+            </div>
+          </div>
+
+          {/* Comparaison périodes */}
+          <div className="card p-5 animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-sm font-semibold text-stone-700">Comparaison</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-stone-200">
+                    <th className="text-left px-3 py-2 text-stone-500 font-medium"></th>
+                    <th className="text-right px-3 py-2 text-stone-500 font-medium">Période actuelle</th>
+                    <th className="text-right px-3 py-2 text-stone-500 font-medium">Période précédente</th>
+                    <th className="text-right px-3 py-2 text-stone-500 font-medium">Évolution</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  <tr>
+                    <td className="px-3 py-2.5 text-stone-700">Revenus</td>
+                    <td className="text-right px-3 py-2.5 font-medium text-teal-600">{formatCurrency(data.current.income)}</td>
+                    <td className="text-right px-3 py-2.5 text-stone-500">{formatCurrency(data.previous.income)}</td>
+                    <td className="text-right px-3 py-2.5">
+                      {data.evolution.income && (
+                        <span className={parseFloat(data.evolution.income) >= 0 ? "text-emerald-600" : "text-red-500"}>
+                          {parseFloat(data.evolution.income) >= 0 ? "+" : ""}{data.evolution.income}%
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2.5 text-stone-700">Dépenses</td>
+                    <td className="text-right px-3 py-2.5 font-medium text-amber-600">{formatCurrency(data.current.expense)}</td>
+                    <td className="text-right px-3 py-2.5 text-stone-500">{formatCurrency(data.previous.expense)}</td>
+                    <td className="text-right px-3 py-2.5">
+                      {data.evolution.expense && (
+                        <span className={parseFloat(data.evolution.expense) <= 0 ? "text-emerald-600" : "text-red-500"}>
+                          {parseFloat(data.evolution.expense) >= 0 ? "+" : ""}{data.evolution.expense}%
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  <tr className="bg-emerald-50">
+                    <td className="px-3 py-2.5 text-stone-700 font-medium">Épargne</td>
+                    <td className="text-right px-3 py-2.5 font-bold text-emerald-700">{formatCurrency(Math.max(0, data.current.savings))}</td>
+                    <td className="text-right px-3 py-2.5 text-stone-500">{formatCurrency(Math.max(0, data.previous.savings))}</td>
+                    <td className="text-right px-3 py-2.5">
+                      {data.evolution.savings && (
+                        <span className={parseFloat(data.evolution.savings) >= 0 ? "text-emerald-600" : "text-red-500"}>
+                          {parseFloat(data.evolution.savings) >= 0 ? "+" : ""}{data.evolution.savings}%
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Détail des dépenses */}
           {Object.keys(data.current.topCategories).length > 0 && (
             <div className="card p-5 animate-fade-in">
-              <h2 className="text-sm font-semibold text-stone-700 mb-1">Où est passé votre argent ?</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingDown className="w-5 h-5 text-amber-600" />
+                <h2 className="text-sm font-semibold text-stone-700">Où est passé votre argent ?</h2>
+              </div>
               <p className="text-xs text-stone-400 mb-4">Répartition par catégorie</p>
               <div className="space-y-3">
                 {Object.entries(data.current.topCategories)
@@ -208,7 +327,6 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
-            {/* Activité */}
             {data.initialBalanceActivity > 0 || data.activity.current.income > 0 || data.activity.current.expense > 0 ? (
               <div>
                 <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-2">Activité</h3>
@@ -236,7 +354,7 @@ export default function ReportsPage() {
             ) : null}
           </div>
 
-          {/* Activité commerciale — version humaine */}
+          {/* Activité commerciale */}
           {data.commercial.productCount > 0 && (
             <div className="card p-5 animate-fade-in border-l-4 border-l-amber-400">
               <div className="flex items-center gap-2 mb-4">
@@ -296,7 +414,7 @@ export default function ReportsPage() {
           )}
 
           {/* Lien vers historique */}
-          <div className="flex justify-center">
+          <div className="flex justify-center no-print">
             <a
               href="/dashboard/transactions"
               className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium"
