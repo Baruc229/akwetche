@@ -101,6 +101,15 @@ export default function DashboardPage() {
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
     setTxError("");
+    if (limits && !limits.isPremium && user?.role === "user") {
+      const atLimit = newTx.type === "income"
+        ? limits.incomeCount >= limits.maxFreeIncome
+        : limits.expenseCount >= limits.maxFreeExpense;
+      if (atLimit) {
+        setTxError(`Limite mensuelle gratuite atteinte (${limits.maxFreeIncome} revenus / ${limits.maxFreeExpense} dépenses max). Passez à Premium pour continuer.`);
+        return;
+      }
+    }
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
@@ -916,9 +925,17 @@ export default function DashboardPage() {
                 </p>
               )}
 
-              <button type="submit" className="btn-primary w-full py-3">
-                Ajouter
-              </button>
+              {(() => {
+                const atLimit = limits && !limits.isPremium && user?.role === "user" && (
+                  (newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
+                  (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense)
+                );
+                return (
+                  <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Ajouter
+                  </button>
+                );
+              })()}
             </form>
           </div>
         </div>

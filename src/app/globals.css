@@ -260,3 +260,13 @@ body {
 .print-header {
   display: none;
 }
+
+.sidebar-mobile {
+  height: 100dvh;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-mobile {
+    height: auto;
+  }
+}

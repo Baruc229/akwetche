@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useDashboard } from "../../layout";
 import {
   ArrowUpDown,
   TrendingUp,
@@ -27,6 +29,8 @@ type Transaction = {
 };
 
 export default function TransactionsPage() {
+  const { user } = useDashboard();
+  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,13 @@ export default function TransactionsPage() {
   const [scopeFilter, setScopeFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+  const [limits, setLimits] = useState<{
+    isPremium: boolean;
+    incomeCount: number;
+    expenseCount: number;
+    maxFreeIncome: number;
+    maxFreeExpense: number;
+  } | null>(null);
   const [newTx, setNewTx] = useState({
     type: "expense",
     amount: "",
@@ -56,15 +67,18 @@ export default function TransactionsPage() {
       if (filter !== "all") params.set("type", filter);
       if (scopeFilter !== "all") params.set("scope", scopeFilter);
 
-      const [txRes, catRes] = await Promise.all([
+      const [txRes, catRes, limitsRes] = await Promise.all([
         fetch(`/api/transactions?${params}`),
         fetch("/api/categories"),
+        fetch("/api/user/limits"),
       ]);
       const txData = await txRes.json();
       const catData = await catRes.json();
+      const limitsData = await limitsRes.json();
       setTransactions(txData.transactions || []);
       setTotal(txData.total || 0);
       setCategories(catData.categories || []);
+      setLimits(limitsData);
     } catch (e) {
       console.error(e);
     } finally {
@@ -79,6 +93,15 @@ export default function TransactionsPage() {
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
     setTxError("");
+    if (limits && !limits.isPremium && user?.role === "user") {
+      const atLimit = newTx.type === "income"
+        ? limits.incomeCount >= limits.maxFreeIncome
+        : limits.expenseCount >= limits.maxFreeExpense;
+      if (atLimit) {
+        setTxError(`Limite mensuelle gratuite atteinte (${limits.maxFreeIncome} revenus / ${limits.maxFreeExpense} dépenses max). Passez à Premium pour continuer.`);
+        return;
+      }
+    }
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
@@ -363,12 +386,40 @@ export default function TransactionsPage() {
                     ))}
                 </select>
               </div>
+              {limits && !limits.isPremium && user?.role === "user" && (
+                <div className="p-3 bg-amber-50 rounded-xl">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-medium text-amber-800">
+                      {newTx.type === "income" ? "Revenus" : "Dépenses"} ce mois
+                    </span>
+                    <span className="font-semibold text-amber-800">
+                      {newTx.type === "income" ? limits.incomeCount : limits.expenseCount}/{newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}
+                    </span>
+                  </div>
+                  {(newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
+                   (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
+                    <p className="text-xs text-red-600">Limite mensuelle atteinte. Passez à Premium.</p>
+                  ) : (
+                    <p className="text-xs text-amber-600">
+                      {Math.max(0, (newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (newTx.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)
+                    </p>
+                  )}
+                </div>
+              )}
               {txError && (
                 <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{txError}</p>
               )}
-              <button type="submit" className="btn-primary w-full py-3">
-                Ajouter
-              </button>
+              {(() => {
+                const atLimit = limits && !limits.isPremium && user?.role === "user" && (
+                  (newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
+                  (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense)
+                );
+                return (
+                  <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Ajouter
+                  </button>
+                );
+              })()}
             </form>
           </div>
         </div>

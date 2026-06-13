@@ -202,31 +202,31 @@ export default function ReportsPage() {
 
           {/* Indicateurs clés */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="card p-4 animate-fade-in">
-              <p className="text-xs text-stone-500">Revenus + Dépenses</p>
-              <p className="text-lg font-bold text-stone-800">{formatCurrency(totalCurrent)}</p>
-              <p className="text-xs text-stone-400">Volume total</p>
+            <div className="rounded-2xl p-4 sm:p-5 animate-fade-in bg-emerald-50 border border-emerald-200">
+              <p className="text-xs sm:text-sm font-medium text-emerald-600">Revenus + Dépenses</p>
+              <p className="text-lg sm:text-xl font-bold text-emerald-800 mt-1">{formatCurrency(totalCurrent)}</p>
+              <p className="text-xs sm:text-sm text-emerald-500 mt-0.5">Volume total</p>
             </div>
-            <div className="card p-4 animate-fade-in">
-              <p className="text-xs text-stone-500">Taux d&apos;épargne</p>
-              <p className={`text-lg font-bold ${savingsRate >= 20 ? "text-emerald-600" : savingsRate >= 5 ? "text-amber-600" : "text-red-500"}`}>
+            <div className="rounded-2xl p-4 sm:p-5 animate-fade-in bg-teal-50 border border-teal-200">
+              <p className="text-xs sm:text-sm font-medium text-teal-600">Taux d&apos;épargne</p>
+              <p className={`text-lg sm:text-xl font-bold mt-1 ${savingsRate >= 20 ? "text-emerald-600" : savingsRate >= 5 ? "text-amber-600" : "text-red-500"}`}>
                 {savingsRate.toFixed(0)}%
               </p>
-              <p className="text-xs text-stone-400">
+              <p className={`text-xs sm:text-sm mt-0.5 ${savingsRate >= 20 ? "text-emerald-500" : savingsRate >= 5 ? "text-amber-600" : "text-red-500"}`}>
                 {savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Correct" : "Faible"}
               </p>
             </div>
-            <div className="card p-4 animate-fade-in">
-              <p className="text-xs text-stone-500">Moyenne / jour</p>
-              <p className="text-lg font-bold text-stone-800">{formatCurrency(avgDaily)}</p>
-              <p className="text-xs text-stone-400">Dépense quotidienne</p>
+            <div className="rounded-2xl p-4 sm:p-5 animate-fade-in bg-amber-50 border border-amber-200">
+              <p className="text-xs sm:text-sm font-medium text-amber-600">Moyenne / jour</p>
+              <p className="text-lg sm:text-xl font-bold text-amber-800 mt-1">{formatCurrency(avgDaily)}</p>
+              <p className="text-xs sm:text-sm text-amber-500 mt-0.5">Dépense quotidienne</p>
             </div>
-            <div className="card p-4 animate-fade-in">
-              <p className="text-xs text-stone-500">Plus grosse dépense</p>
-              <p className="text-lg font-bold text-stone-800 truncate" title={getTopExpenseLabel(data.current.topCategories)}>
+            <div className="rounded-2xl p-4 sm:p-5 animate-fade-in bg-stone-50 border border-stone-200">
+              <p className="text-xs sm:text-sm font-medium text-stone-600">Plus grosse dépense</p>
+              <p className="text-lg sm:text-xl font-bold text-stone-800 truncate mt-1" title={getTopExpenseLabel(data.current.topCategories)}>
                 {getTopExpenseLabel(data.current.topCategories) || "—"}
               </p>
-              <p className="text-xs text-stone-400">Catégorie principale</p>
+              <p className="text-xs sm:text-sm text-stone-400 mt-0.5">Catégorie principale</p>
             </div>
           </div>
 

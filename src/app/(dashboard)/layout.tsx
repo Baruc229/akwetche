@@ -147,7 +147,7 @@ export default function DashboardLayout({
     >
       <div className="min-h-screen bg-stone-50 flex">
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-hidden ${
+          className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-y-auto sidebar-mobile ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -175,7 +175,7 @@ export default function DashboardLayout({
             </p>
           </div>
 
-          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          <nav className="p-3 space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -340,7 +340,6 @@ export default function DashboardLayout({
                 ...(commercialMode ? [{ href: "/dashboard/products", label: "Produits", icon: Package }] : []),
                 { href: "/dashboard/transactions", label: "Transactions", icon: ArrowUpDown },
                 ...(commercialMode ? [{ href: "/dashboard/sales", label: "Ventes", icon: TrendingUp }] : []),
-                ...(commercialMode ? [{ href: "/dashboard/stock", label: "Stock", icon: ShoppingBag }] : []),
                 { href: "/dashboard/reports", label: "Bilans", icon: BarChart3 },
                 { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
               ].map((item) => {
