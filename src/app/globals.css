@@ -267,6 +267,6 @@ body {
 
 @media (min-width: 1024px) {
   .sidebar-mobile {
-    height: auto;
+    height: 100vh;
   }
 }

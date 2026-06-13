@@ -142,7 +142,7 @@ export default function DashboardLayout({
     >
       <div className="min-h-screen bg-stone-50 flex">
         <aside
-          className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 lg:static lg:inset-auto flex flex-col overflow-hidden sidebar-mobile ${
+          className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-stone-200 transform transition-transform duration-200 lg:translate-x-0 flex flex-col overflow-y-auto lg:overflow-hidden sidebar-mobile ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -170,7 +170,7 @@ export default function DashboardLayout({
             </p>
           </div>
 
-          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          <nav className="lg:flex-1 lg:overflow-y-auto p-3 space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -298,7 +298,7 @@ export default function DashboardLayout({
           />
         )}
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 lg:ml-64">
           <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-sm border-b border-stone-200 px-4 py-3 flex items-center gap-3 lg:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
