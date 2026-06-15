@@ -280,7 +280,7 @@ export default function SalesPage() {
                   type="date"
                   value={pendingCustomStart}
                   onChange={(e) => { setPendingCustomStart(e.target.value); setCustomDateError(""); }}
-                  className="input-field text-xs py-1.5 px-2 w-full sm:w-32"
+                  className="input-field text-xs py-1.5 px-2 w-full sm:w-40"
                 />
               </div>
               <span className="hidden sm:inline text-muted text-xs">→</span>
@@ -290,7 +290,7 @@ export default function SalesPage() {
                   type="date"
                   value={pendingCustomEnd}
                   onChange={(e) => { setPendingCustomEnd(e.target.value); setCustomDateError(""); }}
-                  className="input-field text-xs py-1.5 px-2 w-full sm:w-32"
+                  className="input-field text-xs py-1.5 px-2 w-full sm:w-40"
                 />
               </div>
             </div>

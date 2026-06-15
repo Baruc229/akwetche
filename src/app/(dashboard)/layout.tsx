@@ -3,7 +3,8 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
 import type { CurrencyCode } from "@/lib/currency";
@@ -123,156 +124,172 @@ export default function DashboardLayout({
  <DashboardContext.Provider
  value={{ user, setUser, commercialMode, currency: resolveCurrency(user?.currency) }}
  >
- <div className="min-h-screen bg-sand flex">
- <aside
- className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-border transform transition-transform duration-200 lg:translate-x-0 flex flex-col overflow-y-auto lg:overflow-hidden sidebar-mobile ${
- sidebarOpen ? "translate-x-0" : "-translate-x-full"
- }`}
- >
- <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
- <Link href="/dashboard" className="flex items-center gap-2">
- <div className="w-8 h-8 bg-forest rounded-xl flex items-center justify-center shadow-sm">
- <FontAwesomeIcon icon={faWallet} className="w-4 h-4 text-white" />
- </div>
- <span className="text-lg font-bold text-forest">
- Akwetche
- </span>
- </Link>
- <button
- onClick={() => setSidebarOpen(false)}
- className="lg:hidden text-muted hover:text-muted"
- >
- <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
- </button>
- </div>
+  <div className="min-h-screen bg-sand flex flex-col lg:flex-row">
+  <aside
+    className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-border transform transition-transform duration-200 lg:translate-x-0 flex flex-col h-full lg:h-screen sidebar-mobile ${
+      sidebarOpen ? "translate-x-0" : "-translate-x-full"
+    }`}
+  >
+    <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+      <Link href="/dashboard" className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-forest rounded-xl flex items-center justify-center shadow-sm">
+          <FontAwesomeIcon icon={faWallet} className="w-4 h-4 text-white" />
+        </div>
+        <span className="text-lg font-bold text-forest">
+          Akwetche
+        </span>
+      </Link>
+      <button
+        onClick={() => setSidebarOpen(false)}
+        className="lg:hidden text-muted hover:text-muted"
+      >
+        <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
+      </button>
+    </div>
 
- <div className="p-4 border-b border-border shrink-0">
- <p className="text-sm text-muted">Connecté en tant que</p>
- <p className="text-sm font-medium text-ink truncate">
- {user.name}
- </p>
- </div>
+    <div className="p-4 border-b border-border shrink-0">
+      <p className="text-sm text-muted">Connecté en tant que</p>
+      <p className="text-sm font-medium text-ink truncate">
+        {user.name}
+      </p>
+    </div>
 
- <nav className="lg:flex-1 lg:overflow-y-auto p-3 space-y-1">
- {navItems.map((item) => {
- const isActive = pathname === item.href;
- return (
- <Link
- key={item.href}
- href={item.href}
- onClick={() => setSidebarOpen(false)}
- className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
- isActive
- ? "bg-ochre-light text-forest font-medium"
- : "text-muted hover:bg-sand hover:text-ink"
- }`}
- >
- <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
- {item.label}
- {isActive && (
- <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-forest-light" />
- )}
- </Link>
- );
- })}
+    {/* Zone principale — navigation scrollable */}
+    <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      {navItems.map((item) => {
+        const isActive = pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setSidebarOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+              isActive
+                ? "bg-ochre-light text-forest font-medium"
+                : "text-muted hover:bg-sand hover:text-ink"
+            }`}
+          >
+            <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
+            {item.label}
+            {isActive && (
+              <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-forest-light" />
+            )}
+          </Link>
+        );
+      })}
 
- {commercialMode && (
- <>
- <div className="pt-3 mt-3 border-t border-border">
- <p className="px-3 text-xs font-semibold text-muted uppercase tracking-wider">
- Activité
- </p>
- </div>
- {commercialNavItems.map((item) => {
- const isActive = pathname === item.href;
- return (
- <Link
- key={item.href}
- href={item.href}
- onClick={() => setSidebarOpen(false)}
- className={`flex items-center gap-3 px-3 ml-2 py-2 rounded-xl text-sm transition-all ${
- isActive
- ? "bg-ochre-light text-ochre font-medium"
- : "text-muted hover:bg-sand hover:text-ink"
- }`}
- >
- <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
- {item.label}
- {isActive && (
- <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-ochre" />
- )}
- </Link>
- );
- })}
- </>
- )}
+      {commercialMode && (
+        <>
+          <div className="pt-3 mt-3 border-t border-border">
+            <p className="px-3 text-xs font-semibold text-muted uppercase tracking-wider">
+              Activité
+            </p>
+          </div>
+          {commercialNavItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 ml-2 py-2 rounded-xl text-sm transition-all ${
+                  isActive
+                    ? "bg-ochre-light text-ochre font-medium"
+                    : "text-muted hover:bg-sand hover:text-ink"
+                }`}
+              >
+                <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
+                {item.label}
+                {isActive && (
+                  <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-ochre" />
+                )}
+              </Link>
+            );
+          })}
+        </>
+      )}
 
- <div className="pt-3 mt-3 border-t border-border">
- {user && user.role !== "user" && (
- <Link
- href="/admin"
- onClick={() => setSidebarOpen(false)}
- className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
- pathname === "/admin"
- ? "bg-ochre-light text-forest font-medium"
- : "text-muted hover:bg-sand hover:text-ink"
- }`}
- >
- <FontAwesomeIcon icon={faShield} className="w-4 h-4" />
- Administration
- {pathname === "/admin" && (
- <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-forest-light" />
- )}
- </Link>
- )}
- <Link
- href="/dashboard/settings"
- onClick={() => setSidebarOpen(false)}
- className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
- pathname === "/dashboard/settings"
- ? "bg-ochre-light text-forest font-medium"
- : "text-muted hover:bg-sand hover:text-ink"
- }`}
- >
- <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
- Paramètres
- {pathname === "/dashboard/settings" && (
- <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-forest-light" />
- )}
- </Link>
- </div>
+      <div className="pt-3 mt-3 border-t border-border">
+        {user && user.role !== "user" && (
+          <Link
+            href="/admin"
+            onClick={() => setSidebarOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+              pathname === "/admin"
+                ? "bg-ochre-light text-forest font-medium"
+                : "text-muted hover:bg-sand hover:text-ink"
+            }`}
+          >
+            <FontAwesomeIcon icon={faShield} className="w-4 h-4" />
+            Administration
+            {pathname === "/admin" && (
+              <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-forest-light" />
+            )}
+          </Link>
+        )}
+        <Link
+          href="/dashboard/settings"
+          onClick={() => setSidebarOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+            pathname === "/dashboard/settings"
+              ? "bg-ochre-light text-forest font-medium"
+              : "text-muted hover:bg-sand hover:text-ink"
+          }`}
+        >
+          <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
+          Paramètres
+          {pathname === "/dashboard/settings" && (
+            <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-forest-light" />
+          )}
+        </Link>
+      </div>
 
- {isPremium && (
- <div className="pt-3 mt-3 border-t border-border">
- <label className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted cursor-pointer hover:bg-sand rounded-xl transition-all">
- <input
- type="checkbox"
- checked={commercialMode}
- onChange={(e) => {
- setCommercialMode(e.target.checked);
- if (e.target.checked && !user?.activityActivated) {
- fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
- }
- }}
- className="w-4 h-4 rounded border-border text-forest focus:ring-forest"
- />
- <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
- Activité commerciale
- </label>
- </div>
- )}
- </nav>
+      {isPremium && (
+        <div className="pt-3 mt-3 border-t border-border">
+          <label className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted cursor-pointer hover:bg-sand rounded-xl transition-all">
+            <input
+              type="checkbox"
+              checked={commercialMode}
+              onChange={(e) => {
+                setCommercialMode(e.target.checked);
+                if (e.target.checked && !user?.activityActivated) {
+                  fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+                }
+              }}
+              className="w-4 h-4 rounded border-border text-forest focus:ring-forest"
+            />
+            <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
+            Activité commerciale
+          </label>
+        </div>
+      )}
+    </nav>
 
- <div className="shrink-0 p-3 border-t border-border bg-white">
- <button
- onClick={handleLogout}
- className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
- >
- <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
- Déconnexion
- </button>
- </div>
- </aside>
+    {/* Zone secondaire épinglée — Support, WhatsApp, Déconnexion */}
+    <div className="shrink-0 border-t border-border py-3 px-3 space-y-1 bg-white">
+      <button
+        onClick={() => {/* Support — à connecter */}}
+        className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-sand hover:text-ink rounded-xl transition-all"
+      >
+        <FontAwesomeIcon icon={faCircleQuestion} className="w-4 h-4" />
+        Support
+      </button>
+      <button
+        onClick={() => {/* WhatsApp — à connecter */}}
+        className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-sand hover:text-ink rounded-xl transition-all"
+      >
+        <FontAwesomeIcon icon={faWhatsapp} className="w-4 h-4" />
+        WhatsApp
+      </button>
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+      >
+        <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
+        Déconnexion
+      </button>
+    </div>
+  </aside>
 
  {sidebarOpen && (
  <div
@@ -281,73 +298,73 @@ export default function DashboardLayout({
  />
  )}
 
- <div className="flex-1 min-w-0 lg:ml-64">
- <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3 lg:hidden">
- <button
- onClick={() => setSidebarOpen(true)}
- className="text-muted hover:text-ink"
- >
- <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
- </button>
- <Link href="/dashboard" className="flex items-center gap-2">
- <div className="w-7 h-7 bg-forest rounded-lg flex items-center justify-center">
- <FontAwesomeIcon icon={faWallet} className="w-3.5 h-3.5 text-white" />
- </div>
- <span className="font-bold text-forest">Akwetche</span>
- </Link>
- </header>
+  <div className="flex-1 min-w-0 lg:ml-64 flex flex-col">
+    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3 lg:hidden">
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="text-muted hover:text-ink"
+      >
+        <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
+      </button>
+      <Link href="/dashboard" className="flex items-center gap-2">
+        <div className="w-7 h-7 bg-forest rounded-lg flex items-center justify-center">
+          <FontAwesomeIcon icon={faWallet} className="w-3.5 h-3.5 text-white" />
+        </div>
+        <span className="font-bold text-forest">Akwetche</span>
+      </Link>
+    </header>
 
- <main className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto min-h-[calc(100vh-8rem)] pb-20 lg:pb-0">
- {children}
- </main>
+    <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full pb-20 lg:pb-0">
+      {children}
+    </main>
 
-  {/* Navigation inférieure (mobile) */}
-  <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border lg:hidden safe-area-bottom">
-  <div className="flex items-center justify-around px-1 py-0 max-w-lg mx-auto">
-  {[
-  { href: "/dashboard", label: "Accueil", icon: faHouse },
-  { href: "/dashboard/products", label: "Produits", icon: faBox, locked: isFreeLocked, lockedHref: "/payment" },
-  { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
-  { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp, locked: isFreeLocked, lockedHref: "/payment" },
-  { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
-  { href: "/dashboard/settings", label: "Paramètres", icon: faGear },
-  ].map((item: any) => {
-  const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-  if (item.locked) {
-  return (
-  <button
-  key={item.href}
-  onClick={() => router.push(item.lockedHref)}
-  className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 text-muted"
-  >
-  <FontAwesomeIcon icon={faLock} className="text-xl" />
-  <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
-  </button>
-  );
-  }
-  return (
-  <Link
-  key={item.href}
-  href={item.href}
-  onClick={() => setSidebarOpen(false)}
-  className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 ${
-  isActive ? "text-forest" : "text-muted"
-  }`}
-  >
-  <FontAwesomeIcon icon={item.icon} className="text-xl" />
-  <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
-  </Link>
-  );
-  })}
+    {/* Navigation inférieure (mobile) */}
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border lg:hidden safe-area-bottom">
+      <div className="flex items-center justify-around px-1 py-0 max-w-lg mx-auto">
+        {[
+          { href: "/dashboard", label: "Accueil", icon: faHouse },
+          { href: "/dashboard/products", label: "Produits", icon: faBox, locked: isFreeLocked, lockedHref: "/payment" },
+          { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+          { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp, locked: isFreeLocked, lockedHref: "/payment" },
+          { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
+          { href: "/dashboard/settings", label: "Paramètres", icon: faGear },
+        ].map((item: any) => {
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          if (item.locked) {
+            return (
+              <button
+                key={item.href}
+                onClick={() => router.push(item.lockedHref)}
+                className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 text-muted"
+              >
+                <FontAwesomeIcon icon={faLock} className="text-xl" />
+                <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
+              </button>
+            );
+          }
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setSidebarOpen(false)}
+              className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 ${
+                isActive ? "text-forest" : "text-muted"
+              }`}
+            >
+              <FontAwesomeIcon icon={item.icon} className="text-xl" />
+              <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+
+    <footer className="border-t border-border bg-white px-4 md:px-6 lg:px-8 py-3 pb-16 lg:pb-3">
+      <p className="text-xs text-muted text-center">
+        &copy; {new Date().getFullYear()} Akwetche — Tous droits réservés.
+      </p>
+    </footer>
   </div>
-  </nav>
-
- <footer className="border-t border-border bg-white px-4 md:px-6 lg:px-8 py-3 pb-20 lg:pb-3">
- <p className="text-xs text-muted text-center">
- &copy; {new Date().getFullYear()} Akwetche — Tous droits réservés.
- </p>
- </footer>
- </div>
  </div>
  </DashboardContext.Provider>
  );
