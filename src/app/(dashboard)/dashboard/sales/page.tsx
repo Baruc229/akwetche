@@ -238,9 +238,9 @@ export default function SalesPage() {
         </div>
         <div className="card p-4">
           <p className="stat-label">Produit le plus vendu</p>
-          <p className="stat-value text-ink text-lg truncate">
+          <p className="stat-value text-ink text-sm sm:text-lg break-words">
             {summary.topProduct ? (
-              <><FontAwesomeIcon icon={faCrown} className="w-4 h-4 text-ochre mr-1.5 inline" />{summary.topProduct}</>
+              <><FontAwesomeIcon icon={faCrown} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ochre mr-1 inline" />{summary.topProduct}</>
             ) : "—"}
           </p>
         </div>
@@ -248,17 +248,29 @@ export default function SalesPage() {
 
       {/* Filters & Sort */}
       <div className="flex flex-wrap items-center gap-2">
-        <CustomSelect options={periodOptions} value={period} onChange={(v) => setPeriod(v as Period)} className="w-36 sm:w-44" />
+        <div className="flex items-center gap-1.5">
+          {periodOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value as Period)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                period === opt.value ? "bg-ochre-light text-forest" : "text-muted hover:bg-border"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
         {period === "custom" && (
           <div className="flex items-center gap-1.5">
-            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32 sm:w-40" />
+            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32" />
             <span className="text-muted text-xs">→</span>
-            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32 sm:w-40" />
+            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32" />
           </div>
         )}
         <div className="flex items-center gap-1.5 ml-auto">
-          <span className="text-xs text-muted hidden sm:inline">Trier par</span>
-          <CustomSelect options={sortOptions} value={sortBy} onChange={(v) => setSortBy(v as "date" | "product" | "amount")} className="w-32 sm:w-36" />
+          <span className="text-xs text-muted hidden sm:inline">Trier</span>
+          <CustomSelect options={sortOptions} value={sortBy} onChange={(v) => setSortBy(v as "date" | "product" | "amount")} className="w-28 sm:w-32" />
           <button
             onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
             className="text-muted hover:text-ink transition-colors text-sm px-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center"

@@ -280,8 +280,8 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="flex sm:grid sm:grid-cols-3 gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="card p-4 snap-start shrink-0 w-[75vw] sm:w-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="card p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center">
               <FontAwesomeIcon icon={faArrowTrendUp} className="w-5 h-5 text-forest-light" />
@@ -292,7 +292,7 @@ export default function TransactionsPage() {
             </div>
           </div>
         </div>
-        <div className="card p-4 snap-start shrink-0 w-[75vw] sm:w-auto">
+        <div className="card p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center">
               <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-ochre" />
@@ -303,7 +303,7 @@ export default function TransactionsPage() {
             </div>
           </div>
         </div>
-        <div className="card p-4 snap-start shrink-0 w-[75vw] sm:w-auto">
+        <div className="card p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center">
               <FontAwesomeIcon icon={faArrowsUpDown} className="w-5 h-5" style={{ color: netBalance >= 0 ? '#1ABC9C' : '#E74C6F' }} />
@@ -353,8 +353,8 @@ export default function TransactionsPage() {
         )}
       </div>
 
-      {/* Search & Sort */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Search & Sort (desktop only) */}
+      <div className="hidden sm:flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-xs">
           <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="input-field pl-9 pr-9 py-2 text-sm" placeholder="Rechercher..." />
