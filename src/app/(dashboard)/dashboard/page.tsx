@@ -7,6 +7,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faArrowTrendUp, faArrowTrendDown, faPlus, faCircleExclamation, faBriefcase, faUser, faArrowRight, faClock, faBagShopping, faPiggyBank, faTriangleExclamation, faCrown, faChartBar, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 
+const CATEGORY_COLORS = [
+ '#4A90D9',
+ '#9B59B6',
+ '#E74C6F',
+ '#1ABC9C',
+ '#E67E22',
+ '#3498DB',
+ '#8E44AD',
+ '#16A085',
+];
+
 type ScopeSummary = {
  income: number;
  expense: number;
@@ -333,46 +344,54 @@ export default function DashboardPage() {
  {weekExpenses.length > 0 && (
  <div>
  {commercialMode && <p className="text-xs font-semibold text-forest mb-2 uppercase tracking-wider">Personnel</p>}
- <div className="space-y-3">
- {weekExpenses.slice(0, 5).map((cat) => {
- const absAmount = Math.abs(cat.amount);
- const pct = totalWeekExpense > 0 ? (absAmount / totalWeekExpense) * 100 : 0;
- return (
- <div key={cat.name}>
- <div className="flex justify-between text-sm mb-1">
- <span className="text-ink">{cat.name}</span>
- <span className="text-muted font-medium">{pct.toFixed(0)}% ({formatCurrency(absAmount)})</span>
- </div>
- <div className="h-2 bg-border rounded-full overflow-hidden">
- <div className="h-full bg-ochre-light rounded-full transition-all duration-500"
- style={{ width: `${pct}%` }} />
- </div>
- </div>
- );
- })}
+  <div className="space-y-3">
+  {weekExpenses.slice(0, 5).map((cat, i) => {
+  const absAmount = Math.abs(cat.amount);
+  const pct = totalWeekExpense > 0 ? (absAmount / totalWeekExpense) * 100 : 0;
+  const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+  return (
+  <div key={cat.name}>
+  <div className="flex justify-between text-sm mb-1">
+  <span className="text-ink flex items-center gap-1.5">
+  <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
+  {cat.name}
+  </span>
+  <span className="text-muted font-medium">{pct.toFixed(0)}% ({formatCurrency(absAmount)})</span>
+  </div>
+  <div className="h-2 bg-border rounded-full overflow-hidden">
+  <div className="h-full rounded-full transition-all duration-500"
+  style={{ width: `${pct}%`, backgroundColor: color }} />
+  </div>
+  </div>
+  );
+  })}
  </div>
  </div>
  )}
  {commercialMode && weekActivityExpenses.length > 0 && (
  <div>
  <p className="text-xs font-semibold text-ochre mb-2 uppercase tracking-wider">Activité</p>
- <div className="space-y-3">
- {weekActivityExpenses.slice(0, 5).map((cat) => {
- const absAmount = Math.abs(cat.amount);
- const pct = totalWeekActivityExpense > 0 ? (absAmount / totalWeekActivityExpense) * 100 : 0;
- return (
- <div key={cat.name}>
- <div className="flex justify-between text-sm mb-1">
- <span className="text-ink">{cat.name}</span>
- <span className="text-muted font-medium">{pct.toFixed(0)}% ({formatCurrency(absAmount)})</span>
- </div>
- <div className="h-2 bg-border rounded-full overflow-hidden">
- <div className="h-full bg-ochre rounded-full transition-all duration-500"
- style={{ width: `${pct}%` }} />
- </div>
- </div>
- );
- })}
+  <div className="space-y-3">
+  {weekActivityExpenses.slice(0, 5).map((cat, i) => {
+  const absAmount = Math.abs(cat.amount);
+  const pct = totalWeekActivityExpense > 0 ? (absAmount / totalWeekActivityExpense) * 100 : 0;
+  const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+  return (
+  <div key={cat.name}>
+  <div className="flex justify-between text-sm mb-1">
+  <span className="text-ink flex items-center gap-1.5">
+  <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
+  {cat.name}
+  </span>
+  <span className="text-muted font-medium">{pct.toFixed(0)}% ({formatCurrency(absAmount)})</span>
+  </div>
+  <div className="h-2 bg-border rounded-full overflow-hidden">
+  <div className="h-full rounded-full transition-all duration-500"
+  style={{ width: `${pct}%`, backgroundColor: color }} />
+  </div>
+  </div>
+  );
+  })}
  </div>
  </div>
  )}

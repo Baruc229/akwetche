@@ -301,46 +301,46 @@ export default function DashboardLayout({
  {children}
  </main>
 
- {/* Navigation inférieure (mobile) */}
- <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border lg:hidden safe-area-bottom">
- <div className="flex items-center gap-0 px-1 py-1 overflow-x-auto flex-nowrap scrollbar-hide">
- {[
+  {/* Navigation inférieure (mobile) */}
+  <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border lg:hidden safe-area-bottom">
+  <div className="flex items-center justify-around px-1 py-0 max-w-lg mx-auto">
+  {[
   { href: "/dashboard", label: "Accueil", icon: faHouse },
   { href: "/dashboard/products", label: "Produits", icon: faBox, locked: isFreeLocked, lockedHref: "/payment" },
   { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
   { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp, locked: isFreeLocked, lockedHref: "/payment" },
   { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
   { href: "/dashboard/settings", label: "Paramètres", icon: faGear },
- ].map((item: any) => {
- const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
- if (item.locked) {
- return (
- <button
- key={item.href}
- onClick={() => router.push(item.lockedHref)}
- className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 min-w-0 shrink-0 rounded-xl text-[10px] font-medium transition-all text-muted`}
- >
- <FontAwesomeIcon icon={faLock} className="w-5 h-5" />
- <span className="whitespace-nowrap">{item.label}</span>
- </button>
- );
- }
- return (
- <Link
- key={item.href}
- href={item.href}
- onClick={() => setSidebarOpen(false)}
- className={`flex flex-col items-center gap-0.5 py-1.5 px-2.5 min-w-0 shrink-0 rounded-xl text-[10px] font-medium transition-all ${
- isActive ? "text-forest" : "text-muted hover:text-muted"
- }`}
- >
- <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
- <span className="whitespace-nowrap">{item.label}</span>
- </Link>
- );
- })}
- </div>
- </nav>
+  ].map((item: any) => {
+  const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+  if (item.locked) {
+  return (
+  <button
+  key={item.href}
+  onClick={() => router.push(item.lockedHref)}
+  className="flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 text-muted"
+  >
+  <FontAwesomeIcon icon={faLock} className="text-xl" />
+  <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
+  </button>
+  );
+  }
+  return (
+  <Link
+  key={item.href}
+  href={item.href}
+  onClick={() => setSidebarOpen(false)}
+  className={`flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 ${
+  isActive ? "text-forest" : "text-muted"
+  }`}
+  >
+  <FontAwesomeIcon icon={item.icon} className="text-xl" />
+  <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
+  </Link>
+  );
+  })}
+  </div>
+  </nav>
 
  <footer className="border-t border-border bg-white px-4 md:px-6 lg:px-8 py-3 pb-20 lg:pb-3">
  <p className="text-xs text-muted text-center">
