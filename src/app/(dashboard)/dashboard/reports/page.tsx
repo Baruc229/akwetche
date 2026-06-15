@@ -5,6 +5,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowTrendUp, faArrowTrendDown, faPiggyBank, faBagShopping, faWallet, faArrowUpRightFromSquare, faBox, faTriangleExclamation, faDownload, faChartBar, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 
+const CATEGORY_COLORS = [
+ '#4A90D9',
+ '#9B59B6',
+ '#E74C6F',
+ '#1ABC9C',
+ '#E67E22',
+ '#3498DB',
+ '#8E44AD',
+ '#16A085',
+];
+
 type StatsBlock = {
  income: number; expense: number; savings: number; topCategories: Record<string, number>;
 };
@@ -298,23 +309,27 @@ export default function ReportsPage() {
  </div>
  <p className="text-xs text-muted mb-4">Répartition par catégorie</p>
  <div className="space-y-3">
- {Object.entries(data.current.topCategories)
- .sort(([, a], [, b]) => b - a)
- .map(([cat, amount]) => {
- const total = data.current.expense || 1;
- const pct = (amount / total) * 100;
- return (
- <div key={cat}>
- <div className="flex justify-between text-sm mb-1">
- <span className="text-ink">{cat}</span>
- <span className="text-muted">{formatCurrency(amount)} ({pct.toFixed(0)}%)</span>
- </div>
- <div className="h-2.5 bg-border rounded-full overflow-hidden">
- <div className="h-full bg-ochre-light rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
- </div>
- </div>
- );
- })}
+  {Object.entries(data.current.topCategories)
+  .sort(([, a], [, b]) => b - a)
+  .map(([cat, amount], i) => {
+  const total = data.current.expense || 1;
+  const pct = (amount / total) * 100;
+  const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+  return (
+  <div key={cat}>
+  <div className="flex justify-between text-sm mb-1">
+  <span className="text-ink flex items-center gap-1.5">
+  <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
+  {cat}
+  </span>
+  <span className="text-muted">{formatCurrency(amount)} ({pct.toFixed(0)}%)</span>
+  </div>
+  <div className="h-2.5 bg-border rounded-full overflow-hidden">
+  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+  </div>
+  </div>
+  );
+  })}
  </div>
  </div>
  )}
