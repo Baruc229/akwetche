@@ -162,28 +162,38 @@ export default function StockPage() {
 
       {lowStockProducts.length > 0 && (
         <div className="space-y-2">
-          {lowStockProducts
-            .filter(s => s.status === "out")
-            .map(s => (
-              <div key={s.product.id} className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-800">Rupture de stock</p>
-                  <p className="text-sm text-red-700 mt-1">{s.product.name}</p>
-                </div>
+          {lowStockProducts.map(s => (
+            <div key={s.product.id} className={`rounded-xl px-4 py-3 flex items-center gap-3 text-sm ${
+              s.status === "out"
+                ? "bg-red-50 border border-red-200"
+                : "bg-orange-50 border border-orange-200"
+            }`}>
+              <FontAwesomeIcon 
+                icon={faTriangleExclamation} 
+                className={`w-4 h-4 shrink-0 ${s.status === "out" ? "text-red-500" : "text-orange-500"}`} 
+              />
+              <div className="min-w-0 flex-1">
+                <p className={`font-medium truncate ${s.status === "out" ? "text-red-800" : "text-orange-800"}`}>
+                  {s.status === "out" ? "Rupture" : "Stock faible"} — {s.product.name}
+                </p>
+                <p className={`text-xs mt-0.5 ${s.status === "out" ? "text-red-600" : "text-orange-600"}`}>
+                  {s.remaining} restant{s.remaining !== 1 ? "s" : ""}{s.status === "low" ? ` sur ${s.initialStock} initiaux` : ""}
+                </p>
               </div>
-            ))}
-          {lowStockProducts
-            .filter(s => s.status === "low")
-            .map(s => (
-              <div key={s.product.id} className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-orange-800">Stock faible</p>
-                  <p className="text-sm text-orange-700 mt-1">{s.product.name} — {s.remaining} restant{s.remaining !== 1 ? "s" : ""} sur {s.initialStock} initial{s.initialStock !== 1 ? "s" : ""}</p>
-                </div>
-              </div>
-            ))}
+              <button
+                onClick={() => {
+                  setReplenishProduct(s.product);
+                  setReplenishQty("1");
+                  setReplenishNote("");
+                  setReplenishError("");
+                }}
+                className="shrink-0 text-xs font-medium text-forest hover:text-ochre transition-colors px-2 py-1"
+              >
+                <FontAwesomeIcon icon={faRotateLeft} className="w-3 h-3 mr-1" />
+                Réappro.
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -229,40 +239,44 @@ export default function StockPage() {
           </table>
         </div>
         <div className="md:hidden space-y-3 p-4 pt-0">
-          {stats.map((s, i) => (
-            <div key={s.product.id} className="bg-sand rounded-xl p-4 animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-medium text-ink">{s.product.name}</p>
-                {renderStatusBadge(s.status)}
+          {stats.map((s, i) => {
+            const pctSold = s.initialStock > 0 ? (s.sold / s.initialStock) * 100 : 0;
+            const barColor = s.status === "out" ? "#EF4444" : s.status === "low" ? "#F97316" : "#10B981";
+            return (
+              <div key={s.product.id} className="card p-4 animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink truncate">{s.product.name}</p>
+                    <p className="text-xs text-muted mt-0.5">{s.remaining} restant{s.remaining !== 1 ? "s" : ""} sur {s.initialStock}</p>
+                  </div>
+                  {renderStatusBadge(s.status)}
+                </div>
+                {/* Progress bar */}
+                <div className="h-2 bg-border rounded-full overflow-hidden mb-3">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(pctSold, 100)}%`, backgroundColor: barColor }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted mb-3">
+                  <span>{s.sold} vendu{s.sold !== 1 ? "s" : ""}</span>
+                  <span>{pctSold.toFixed(0)}%</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setReplenishProduct(s.product);
+                    setReplenishQty("1");
+                    setReplenishNote("");
+                    setReplenishError("");
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 rounded-xl bg-forest/10 text-forest hover:bg-forest/20 transition-colors min-h-[44px]"
+                >
+                  <FontAwesomeIcon icon={faRotateLeft} className="w-3.5 h-3.5" />
+                  Réapprovisionner
+                </button>
               </div>
-              <div className="grid grid-cols-3 gap-3 text-center mb-3">
-                <div>
-                  <p className="text-xs text-muted">Initial</p>
-                  <p className="text-sm font-semibold text-ink">{s.initialStock}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted">Vendu</p>
-                  <p className="text-sm font-semibold text-ink">{s.sold}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted">Restant</p>
-                  <p className="text-sm font-semibold text-ink">{s.remaining}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setReplenishProduct(s.product);
-                  setReplenishQty("1");
-                  setReplenishNote("");
-                  setReplenishError("");
-                }}
-                className="w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-xl bg-forest/10 text-forest hover:bg-forest/20 transition-colors"
-              >
-                <FontAwesomeIcon icon={faRotateLeft} className="w-3.5 h-3.5" />
-                Réapprovisionner
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -295,8 +309,43 @@ export default function StockPage() {
         )}
       </div>
 
+      {/* Mobile drawer */}
       {replenishProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in">
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setReplenishProduct(null)}>
+          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-ink">Réapprovisionner</h3>
+              <button onClick={() => setReplenishProduct(null)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
+                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              <form onSubmit={handleReplenish} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-muted mb-1">Produit</label>
+                  <p className="text-sm font-medium text-ink bg-sand rounded-xl px-3 py-2.5">{replenishProduct.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-muted mb-1">Quantité</label>
+                  <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                  <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="Ex: Livraison fournisseur" />
+                </div>
+                {replenishError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{replenishError}</p>}
+                <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
+                  {submitting ? "En cours..." : "Ajouter au stock"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Desktop modal */}
+      {replenishProduct && (
+        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">Réapprovisionner</h3>

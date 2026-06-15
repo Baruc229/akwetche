@@ -35,6 +35,8 @@ export default function HistoryPage() {
   const [customEnd, setCustomEnd] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
   function getPeriodDates() {
     const now = new Date();
@@ -99,13 +101,25 @@ export default function HistoryPage() {
     }
   }, [period, customStart, customEnd]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   function resetFilters() {
     setPeriod("month");
     setCustomStart("");
     setCustomEnd("");
     setTypeFilter("all");
     setCategoryFilter("all");
+    setSearchInput("");
+    setSearch("");
   }
+
+  const totalIncome = useMemo(() => transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [transactions]);
+  const totalExpense = useMemo(() => transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [transactions]);
+  const netBalance = totalIncome - totalExpense;
+  const totalCount = transactions.length;
 
   const filteredTransactions = useMemo(() => {
     let result = [...transactions];
@@ -115,9 +129,16 @@ export default function HistoryPage() {
     if (categoryFilter !== "all") {
       result = result.filter(tx => String(tx.category.id) === categoryFilter);
     }
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(tx =>
+        tx.description.toLowerCase().includes(q) ||
+        (tx.category?.name || "").toLowerCase().includes(q)
+      );
+    }
     result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return result;
-  }, [transactions, typeFilter, categoryFilter]);
+  }, [transactions, typeFilter, categoryFilter, search]);
 
   const groupedTransactions = useMemo(() => {
     const today = new Date();
@@ -240,7 +261,7 @@ export default function HistoryPage() {
             Réinitialiser
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <label className="block text-xs text-muted mb-1.5">Période</label>
             <CustomSelect
@@ -267,7 +288,7 @@ export default function HistoryPage() {
               onChange={setTypeFilter}
             />
           </div>
-          <div>
+          <div className="col-span-2 sm:col-span-1">
             <label className="block text-xs text-muted mb-1.5">Catégorie</label>
             <CustomSelect
               options={categoryOptions}
@@ -276,20 +297,43 @@ export default function HistoryPage() {
             />
           </div>
           {period === "custom" && (
-            <div className="flex items-end gap-2">
-              <div className="flex-1">
-                <label className="block text-xs text-muted mb-1.5">
-                  <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3 mr-1" />
-                  Du
-                </label>
-                <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs text-muted mb-1.5">Au</label>
-                <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
+            <div className="col-span-2 sm:col-span-1">
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="block text-xs text-muted mb-1.5">
+                    <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3 mr-1" />
+                    Du
+                  </label>
+                  <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs text-muted mb-1.5">Au</label>
+                  <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
+                </div>
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="card p-4">
+          <p className="text-xs text-muted mb-0.5">Revenus</p>
+          <p className="text-lg font-bold text-forest-light">{formatCurrency(totalIncome)}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-muted mb-0.5">Dépenses</p>
+          <p className="text-lg font-bold text-ochre">{formatCurrency(totalExpense)}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-muted mb-0.5">Transactions</p>
+          <p className="text-lg font-bold text-ink">{totalCount}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-muted mb-0.5">Solde</p>
+          <p className={`text-lg font-bold ${netBalance >= 0 ? 'text-forest-light' : 'text-red-500'}`}>
+            {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance)}
+          </p>
         </div>
       </div>
 
@@ -307,8 +351,8 @@ export default function HistoryPage() {
         {barData.length === 0 ? (
           <p className="text-sm text-muted text-center py-8">Aucune donnée pour cette période</p>
         ) : (
-          <div className="overflow-x-auto pb-2">
-            <div className="flex items-end gap-1.5 min-w-[500px] h-44">
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex items-end gap-1.5 min-w-[500px] h-32 sm:h-44">
               {barData.map((d) => {
                 const incomeH = (d.income / maxBarValue) * 100;
                 const expenseH = (d.expense / maxBarValue) * 100;
@@ -367,9 +411,27 @@ export default function HistoryPage() {
       )}
 
       <div className="card">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">Transactions</h2>
-          <span className="text-xs text-muted">{filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}</span>
+        <div className="p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <h2 className="text-sm font-semibold text-ink">Transactions</h2>
+            <span className="text-xs text-muted sm:hidden">{filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}</span>
+          </div>
+          <div className="relative w-full sm:w-64">
+            <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              type="text"
+              placeholder="Rechercher une transaction..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="input-field pl-9 pr-9 py-2 text-sm w-full"
+            />
+            {searchInput && (
+              <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-sand transition-colors">
+                <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <span className="text-xs text-muted hidden sm:block">{filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}</span>
         </div>
         {loading ? (
           <div className="flex items-center justify-center h-32">
@@ -387,7 +449,7 @@ export default function HistoryPage() {
               const groupTotal = group.transactions.reduce((sum, tx) => sum + (tx.type === "income" ? tx.amount : -tx.amount), 0);
               return (
                 <div key={group.date}>
-                  <div className="flex items-center justify-between px-4 py-2.5 bg-sand/50">
+                  <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-sand/80 backdrop-blur-sm">
                     <span className="text-xs font-semibold text-ink">{group.label}</span>
                     <span className={`text-xs font-medium ${groupTotal >= 0 ? "text-forest-light" : "text-ochre"}`}>
                       {groupTotal >= 0 ? "+" : ""}{formatCurrency(groupTotal)}

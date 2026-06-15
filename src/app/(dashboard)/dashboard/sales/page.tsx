@@ -223,20 +223,20 @@ export default function SalesPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="card p-4">
           <p className="stat-label">Chiffre d&apos;affaires du mois</p>
           <p className="stat-value text-forest">{formatCurrency(summary.revenue)}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-4">
           <p className="stat-label">Nombre de ventes</p>
           <p className="stat-value text-forest-light">{summary.count}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-4">
           <p className="stat-label">Marge totale</p>
           <p className="stat-value text-amber">{formatCurrency(summary.margin)}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-4">
           <p className="stat-label">Produit le plus vendu</p>
           <p className="stat-value text-ink text-lg truncate">
             {summary.topProduct ? (
@@ -247,21 +247,21 @@ export default function SalesPage() {
       </div>
 
       {/* Filters & Sort */}
-      <div className="flex flex-wrap items-center gap-3">
-        <CustomSelect options={periodOptions} value={period} onChange={(v) => setPeriod(v as Period)} className="w-44" />
+      <div className="flex flex-wrap items-center gap-2">
+        <CustomSelect options={periodOptions} value={period} onChange={(v) => setPeriod(v as Period)} className="w-36 sm:w-44" />
         {period === "custom" && (
-          <div className="flex items-center gap-2">
-            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field w-40 text-sm" />
-            <span className="text-muted text-sm">→</span>
-            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field w-40 text-sm" />
+          <div className="flex items-center gap-1.5">
+            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32 sm:w-40" />
+            <span className="text-muted text-xs">→</span>
+            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32 sm:w-40" />
           </div>
         )}
-        <div className="flex items-center gap-2 ml-auto">
-          <span className="text-xs text-muted">Trier par</span>
-          <CustomSelect options={sortOptions} value={sortBy} onChange={(v) => setSortBy(v as "date" | "product" | "amount")} className="w-36" />
+        <div className="flex items-center gap-1.5 ml-auto">
+          <span className="text-xs text-muted hidden sm:inline">Trier par</span>
+          <CustomSelect options={sortOptions} value={sortBy} onChange={(v) => setSortBy(v as "date" | "product" | "amount")} className="w-32 sm:w-36" />
           <button
             onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-            className="text-muted hover:text-ink transition-colors text-sm px-2"
+            className="text-muted hover:text-ink transition-colors text-sm px-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center"
             title={sortDir === "asc" ? "Ascendant" : "Descendant"}
           >
             {sortDir === "asc" ? "↑" : "↓"}
@@ -323,30 +323,35 @@ export default function SalesPage() {
           <div className="md:hidden space-y-3">
             {sortedSales.map((sale) => (
               <div key={sale.id} className="card p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 bg-ochre-light rounded-xl flex items-center justify-center shrink-0">
-                      <FontAwesomeIcon icon={faArrowTrendUp} className="w-5 h-5 text-forest-light" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-ink truncate">{sale.product.name}</p>
-                      <p className="text-xs text-muted">{formatDate(sale.date)}</p>
-                    </div>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink truncate">{sale.product.name}</p>
+                    <p className="text-xs text-muted">{formatDate(sale.date)}</p>
                   </div>
                   <button
                     onClick={() => { setDeleteTarget(sale); setDeleteMsg(""); }}
-                    className="text-muted hover:text-red-500 transition-colors p-1 shrink-0"
+                    className="text-muted hover:text-red-500 transition-colors p-1.5 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Supprimer"
                   >
-                    <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                    <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border text-sm">
-                  <span className="text-muted">{sale.quantity} × {formatCurrency(sale.unitPrice)}</span>
-                  <div className="text-right">
-                    <p className="font-semibold text-ink">{formatCurrency(sale.totalAmount)}</p>
-                    <p className="text-xs text-forest">+{formatCurrency(sale.profit)}</p>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="bg-sand rounded-lg p-2">
+                    <p className="text-muted mb-0.5">Qté</p>
+                    <p className="font-semibold text-ink">{sale.quantity}</p>
                   </div>
+                  <div className="bg-sand rounded-lg p-2">
+                    <p className="text-muted mb-0.5">Prix unit.</p>
+                    <p className="font-semibold text-ink">{formatCurrency(sale.unitPrice)}</p>
+                  </div>
+                  <div className="bg-ochre-light rounded-lg p-2">
+                    <p className="text-ochre/70 mb-0.5">Total</p>
+                    <p className="font-semibold text-ochre">{formatCurrency(sale.totalAmount)}</p>
+                  </div>
+                </div>
+                <div className="mt-2 text-right">
+                  <span className="text-xs font-medium text-forest">+{formatCurrency(sale.profit)} de marge</span>
                 </div>
               </div>
             ))}
@@ -354,9 +359,95 @@ export default function SalesPage() {
         </>
       )}
 
-      {/* Add Sale Modal */}
+      {/* Mobile drawer */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in">
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => { setShowModal(false); setFormError(""); }}>
+          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-ink">Nouvelle vente</h3>
+              <button onClick={() => { setShowModal(false); setFormError(""); }} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
+                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-muted mb-1">Produit</label>
+                  <CustomSelect
+                    options={products.map((p) => ({
+                      value: String(p.id),
+                      label: `${p.name} — ${formatCurrency(p.salePrice)} (${p.stock} dispo)`,
+                    }))}
+                    value={formProductId}
+                    onChange={setFormProductId}
+                    placeholder="Sélectionner un produit"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted mb-1">Quantité</label>
+                  <input
+                    type="number"
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(e.target.value)}
+                    className="input-field"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value)}
+                    className="input-field"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                  <input
+                    type="text"
+                    value={formNote}
+                    onChange={(e) => setFormNote(e.target.value)}
+                    className="input-field"
+                    placeholder="Ex: Vente en magasin"
+                  />
+                </div>
+                {selectedProduct && (
+                  <div className="bg-ochre-light p-3 rounded-xl text-sm space-y-1">
+                    <p className="text-forest-light">
+                      Prix unitaire : <strong>{formatCurrency(selectedProduct.salePrice)}</strong>
+                    </p>
+                    {qtyNum > 1 && (
+                      <p className="text-forest-light">
+                        {qtyNum} × {formatCurrency(selectedProduct.salePrice)}
+                      </p>
+                    )}
+                    <p className="text-forest font-semibold text-base">
+                      Total : {formatCurrency(totalDisplay)}
+                    </p>
+                    {qtyNum > selectedProduct.stock && (
+                      <p className="text-red-500 text-xs mt-1">
+                        ⚠ Stock insuffisant ({selectedProduct.stock} disponible{selectedProduct.stock !== 1 ? "s" : ""})
+                      </p>
+                    )}
+                  </div>
+                )}
+                {formError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{formError}</p>}
+                <button type="submit" className="btn-primary w-full py-3">
+                  Enregistrer la vente
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop modal */}
+      {showModal && (
+        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">Nouvelle vente</h3>
