@@ -412,28 +412,59 @@ export default function TransactionsPage() {
                 </div>
                 <div className="divide-y divide-border/50">
                   {group.transactions.map((tx, i) => (
-                    <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-ink truncate">{tx.description}</p>
-                          <p className="text-xs text-muted">
-                            {tx.category?.name} · {formatDate(tx.date)}
-                            {tx.scope === "activity" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
-                            {tx.scope === "personal" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
-                          </p>
+                    <div key={tx.id} className="p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
+                      {/* Mobile: stacked layout */}
+                      <div className="md:hidden">
+                        <div className="flex items-start gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-ink whitespace-normal break-words">{tx.description}</p>
+                            <p className="text-xs text-muted mt-0.5">
+                              {tx.category?.name}
+                              {tx.scope === "activity" && <span className="ml-1 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
+                              {tx.scope === "personal" && <span className="ml-1 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-ochre"}`}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </span>
+                          <span className="text-xs text-muted">{formatDate(tx.date)}</span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-border/50">
+                          <button onClick={() => openEditModal(tx)} className="text-xs font-medium text-muted hover:text-forest transition-colors flex items-center gap-1">
+                            <FontAwesomeIcon icon={faPen} className="w-3 h-3" /> Modifier
+                          </button>
+                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="text-xs font-medium text-muted hover:text-red-500 transition-colors flex items-center gap-1">
+                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3" /> Supprimer
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-ochre"}`}>
-                          {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                        </span>
-                        <button onClick={() => openEditModal(tx)} className="text-muted hover:text-forest transition-colors p-1" title="Modifier">
-                          <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setConfirmDeleteTx(tx.id)} className="text-muted hover:text-red-500 transition-colors p-1" title="Supprimer">
-                          <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
-                        </button>
+                      {/* Desktop: inline layout */}
+                      <div className="hidden md:flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-ink truncate">{tx.description}</p>
+                            <p className="text-xs text-muted">
+                              {tx.category?.name} · {formatDate(tx.date)}
+                              {tx.scope === "activity" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
+                              {tx.scope === "personal" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-ochre"}`}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </span>
+                          <button onClick={() => openEditModal(tx)} className="text-muted hover:text-forest transition-colors p-1" title="Modifier">
+                            <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="text-muted hover:text-red-500 transition-colors p-1" title="Supprimer">
+                            <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -19,17 +19,6 @@ type Product = {
   unit?: string;
 };
 
-const UNIT_OPTIONS = [
-  { value: "pièce", label: "Pièce" },
-  { value: "kg", label: "Kilogramme (kg)" },
-  { value: "litre", label: "Litre" },
-  { value: "mètre", label: "Mètre" },
-  { value: "carton", label: "Carton" },
-  { value: "sachet", label: "Sachet" },
-  { value: "bouteille", label: "Bouteille" },
-  { value: "boîte", label: "Boîte" },
-];
-
 type SortKey = "name" | "salePrice" | "margin" | "stock";
 
 export default function ProductsPage() {
@@ -45,7 +34,6 @@ export default function ProductsPage() {
     purchasePrice: "",
     salePrice: "",
     stock: "",
-    unit: "",
   });
   const [error, setError] = useState("");
   const [confirmDeleteProduct, setConfirmDeleteProduct] = useState<number | null>(null);
@@ -81,7 +69,7 @@ export default function ProductsPage() {
 
   function openCreate() {
     setEditProduct(null);
-    setForm({ name: "", description: "", purchasePrice: "", salePrice: "", stock: "", unit: "" });
+    setForm({ name: "", description: "", purchasePrice: "", salePrice: "", stock: "" });
     setError("");
     setShowModal(true);
   }
@@ -94,7 +82,6 @@ export default function ProductsPage() {
       purchasePrice: String(product.purchasePrice),
       salePrice: String(product.salePrice),
       stock: String(product.stock),
-      unit: product.unit || "",
     });
     setError("");
     setShowModal(true);
@@ -200,8 +187,8 @@ export default function ProductsPage() {
         </div>
       ) : (
         <>
-          <div className="sm:flex sm:flex-row gap-3 flex justify-end">
-            <div className="hidden sm:block relative flex-1">
+          <div className="md:flex md:flex-row gap-3 flex justify-end">
+            <div className="hidden md:block relative flex-1">
               <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="text"
@@ -254,11 +241,8 @@ export default function ProductsPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="mb-3">
                       <h3 className="text-base font-semibold text-ink">{p.name}</h3>
-                      {p.unit && (
-                        <span className="text-xs text-muted bg-sand px-2 py-0.5 rounded-full">{p.unit}</span>
-                      )}
                     </div>
                     <div className="space-y-1.5 text-sm">
                       <div className="flex justify-between">
@@ -280,7 +264,7 @@ export default function ProductsPage() {
                       <div className="flex justify-between text-sm mb-1.5">
                         <span className="text-muted">Stock</span>
                         <span className={`font-semibold ${p.stock === 0 ? "text-red-500" : p.stock <= 5 ? "text-ochre" : "text-ink"}`}>
-                          {p.stock} {p.unit || "unité"}{p.stock !== 1 ? "s" : ""}
+                          {p.stock} unité{p.stock !== 1 ? "s" : ""}
                         </span>
                       </div>
                       {maxStock > 0 && (
@@ -337,15 +321,6 @@ export default function ProductsPage() {
                     <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="input-field" min="0" />
                   </div>
                 )}
-                <div>
-                  <label className="block text-sm text-muted mb-1">Unité</label>
-                  <CustomSelect
-                    options={UNIT_OPTIONS}
-                    value={form.unit}
-                    onChange={(v) => setForm({ ...form, unit: v })}
-                    placeholder="Sélectionner une unité"
-                  />
-                </div>
                 {salePriceNum > 0 && (
                   <div className="bg-ochre-light p-3 rounded-xl text-sm flex items-center gap-2">
                     <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-forest-light" />
@@ -400,15 +375,6 @@ export default function ProductsPage() {
                   <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="input-field" min="0" />
                 </div>
               )}
-              <div>
-                <label className="block text-sm text-muted mb-1">Unité</label>
-                <CustomSelect
-                  options={UNIT_OPTIONS}
-                  value={form.unit}
-                  onChange={(v) => setForm({ ...form, unit: v })}
-                  placeholder="Sélectionner une unité"
-                />
-              </div>
               {salePriceNum > 0 && (
                 <div className="bg-ochre-light p-3 rounded-xl text-sm flex items-center gap-2">
                   <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-forest-light" />

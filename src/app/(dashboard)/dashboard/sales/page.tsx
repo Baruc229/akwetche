@@ -63,6 +63,9 @@ export default function SalesPage() {
   const [period, setPeriod] = useState<Period>("month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
+  const [pendingCustomStart, setPendingCustomStart] = useState("");
+  const [pendingCustomEnd, setPendingCustomEnd] = useState("");
+  const [customDateError, setCustomDateError] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "product" | "amount">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -252,7 +255,14 @@ export default function SalesPage() {
           {periodOptions.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setPeriod(opt.value as Period)}
+              onClick={() => {
+                setPeriod(opt.value as Period);
+                if (opt.value === "custom") {
+                  setPendingCustomStart(customStart);
+                  setPendingCustomEnd(customEnd);
+                  setCustomDateError("");
+                }
+              }}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
                 period === opt.value ? "bg-ochre-light text-forest" : "text-muted hover:bg-border"
               }`}
@@ -262,14 +272,53 @@ export default function SalesPage() {
           ))}
         </div>
         {period === "custom" && (
-          <div className="flex items-center gap-1.5">
-            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32" />
-            <span className="text-muted text-xs">→</span>
-            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-1.5 px-2 w-32" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 w-full sm:w-auto">
+              <div className="w-full sm:w-auto">
+                <label className="block text-xs text-muted mb-0.5 sm:hidden">Date de début</label>
+                <input
+                  type="date"
+                  value={pendingCustomStart}
+                  onChange={(e) => { setPendingCustomStart(e.target.value); setCustomDateError(""); }}
+                  className="input-field text-xs py-1.5 px-2 w-full sm:w-32"
+                />
+              </div>
+              <span className="hidden sm:inline text-muted text-xs">→</span>
+              <div className="w-full sm:w-auto">
+                <label className="block text-xs text-muted mb-0.5 mt-1 sm:mt-0 sm:hidden">Date de fin</label>
+                <input
+                  type="date"
+                  value={pendingCustomEnd}
+                  onChange={(e) => { setPendingCustomEnd(e.target.value); setCustomDateError(""); }}
+                  className="input-field text-xs py-1.5 px-2 w-full sm:w-32"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (!pendingCustomStart || !pendingCustomEnd) {
+                  setCustomDateError("Veuillez sélectionner une date de début et une date de fin");
+                  return;
+                }
+                if (new Date(pendingCustomEnd) < new Date(pendingCustomStart)) {
+                  setCustomDateError("La date de fin ne peut pas être antérieure à la date de début");
+                  return;
+                }
+                setCustomStart(pendingCustomStart);
+                setCustomEnd(pendingCustomEnd);
+                setCustomDateError("");
+              }}
+              className="btn-secondary text-xs py-1.5 px-3 whitespace-nowrap"
+            >
+              Appliquer
+            </button>
+            {customDateError && (
+              <p className="text-xs text-red-500 w-full">{customDateError}</p>
+            )}
           </div>
         )}
-        <div className="flex items-center gap-1.5 ml-auto">
-          <span className="text-xs text-muted hidden sm:inline">Trier</span>
+        <div className="hidden md:flex items-center gap-1.5 ml-auto">
+          <span className="text-xs text-muted">Trier</span>
           <CustomSelect options={sortOptions} value={sortBy} onChange={(v) => setSortBy(v as "date" | "product" | "amount")} className="w-28 sm:w-32" />
           <button
             onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
