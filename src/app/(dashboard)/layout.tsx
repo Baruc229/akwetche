@@ -3,8 +3,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
-import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import { faWallet, faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
 import type { CurrencyCode } from "@/lib/currency";
@@ -265,22 +264,8 @@ export default function DashboardLayout({
       )}
     </nav>
 
-    {/* Zone secondaire épinglée — Support, WhatsApp, Déconnexion */}
+    {/* Zone secondaire épinglée — Déconnexion */}
     <div className="shrink-0 border-t border-border py-3 px-3 space-y-1 bg-white">
-      <button
-        onClick={() => {/* Support — à connecter */}}
-        className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-sand hover:text-ink rounded-xl transition-all"
-      >
-        <FontAwesomeIcon icon={faCircleQuestion} className="w-4 h-4" />
-        Support
-      </button>
-      <button
-        onClick={() => {/* WhatsApp — à connecter */}}
-        className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-sand hover:text-ink rounded-xl transition-all"
-      >
-        <FontAwesomeIcon icon={faWhatsapp} className="w-4 h-4" />
-        WhatsApp
-      </button>
       <button
         onClick={handleLogout}
         className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-muted hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
