@@ -299,18 +299,18 @@ export default function DashboardLayout({
  )}
 
   <div className="flex-1 min-w-0 lg:ml-64 flex flex-col">
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3 lg:hidden">
+    <header className="sticky top-0 z-20 bg-white border-b-2 border-border/60 px-4 py-2.5 flex items-center gap-3 lg:hidden">
       <button
         onClick={() => setSidebarOpen(true)}
         className="text-muted hover:text-ink"
       >
         <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
       </button>
-      <Link href="/dashboard" className="flex items-center gap-2">
-        <div className="w-7 h-7 bg-forest rounded-lg flex items-center justify-center">
-          <FontAwesomeIcon icon={faWallet} className="w-3.5 h-3.5 text-white" />
+      <Link href="/dashboard" className="flex items-center gap-2.5">
+        <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
+          <FontAwesomeIcon icon={faWallet} className="w-4.5 h-4.5 text-white" />
         </div>
-        <span className="font-bold text-forest">Akwetche</span>
+        <span className="text-xl font-bold text-forest">Akwetche</span>
       </Link>
     </header>
 
