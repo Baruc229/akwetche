@@ -203,8 +203,8 @@ export default function ProductsPage() {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted md:hidden">Trier</span>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs text-muted md:hidden shrink-0">Trier</span>
               <CustomSelect
                 options={[
                   { value: "name", label: "Nom" },
@@ -214,7 +214,7 @@ export default function ProductsPage() {
                 ]}
                 value={sortKey}
                 onChange={(v) => setSortKey(v as SortKey)}
-                className="w-36"
+                className="w-full sm:w-36"
               />
             </div>
           </div>

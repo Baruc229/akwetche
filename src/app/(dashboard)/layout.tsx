@@ -302,9 +302,9 @@ export default function DashboardLayout({
     <header className="sticky top-0 z-20 bg-white border-b-2 border-border/60 px-4 py-2.5 flex items-center gap-3 lg:hidden">
       <button
         onClick={() => setSidebarOpen(true)}
-        className="text-ink hover:text-forest p-1"
+        className="text-ink hover:text-forest"
       >
-        <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
+        <FontAwesomeIcon icon={faBars} className="w-8 h-8" />
       </button>
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
