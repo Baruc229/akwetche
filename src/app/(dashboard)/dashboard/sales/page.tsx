@@ -1,197 +1,463 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowTrendUp, faPlus, faBagShopping, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowTrendUp, faPlus, faBagShopping, faXmark, faTrash, faSearch, faCalendarDays, faCrown } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
+import ConfirmModal from "@/components/ConfirmModal";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type Sale = {
- id: number;
- quantity: number;
- totalAmount: number;
- profit: number;
- date: string;
- product: { name: string; salePrice: number };
+  id: number;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+  profit: number;
+  date: string;
+  product: { id: number; name: string; salePrice: number; purchasePrice: number };
 };
 
 type Product = {
- id: number;
- name: string;
- salePrice: number;
- stock: number;
+  id: number;
+  name: string;
+  salePrice: number;
+  purchasePrice: number;
+  stock: number;
 };
 
+type Period = "month" | "lastMonth" | "custom";
+
+function getMonthBounds(offset = 0) {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + offset);
+  d.setHours(0, 0, 0, 0);
+  const start = new Date(d);
+  d.setMonth(d.getMonth() + 1, 0);
+  d.setHours(23, 59, 59, 999);
+  const end = new Date(d);
+  return { start, end };
+}
+
+function isSaleInRange(sale: Sale, start: Date, end: Date) {
+  const d = new Date(sale.date);
+  return d >= start && d <= end;
+}
+
 export default function SalesPage() {
- const { user } = useDashboard();
- const router = useRouter();
- const [sales, setSales] = useState<Sale[]>([]);
- const [products, setProducts] = useState<Product[]>([]);
- const [loading, setLoading] = useState(true);
- const [showModal, setShowModal] = useState(false);
- const [form, setForm] = useState({ productId: "", quantity: "1" });
- const [error, setError] = useState("");
+  const { user } = useDashboard();
+  const router = useRouter();
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
- async function loadSales() {
- setLoading(true);
- try {
- const [salesRes, prodRes] = await Promise.all([
- fetch("/api/sales?limit=100"),
- fetch("/api/products"),
- ]);
- const salesData = await salesRes.json();
- const prodData = await prodRes.json();
- setSales(salesData.sales || []);
- setProducts(prodData.products || []);
- } catch (e) {
- console.error(e);
- } finally {
- setLoading(false);
- }
- }
+  const [showModal, setShowModal] = useState(false);
+  const [formProductId, setFormProductId] = useState("");
+  const [formQuantity, setFormQuantity] = useState("1");
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [formNote, setFormNote] = useState("");
+  const [formError, setFormError] = useState("");
 
- useEffect(() => {
- if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
- router.replace("/dashboard");
- return;
- }
- loadSales();
- }, [user]);
+  const [period, setPeriod] = useState<Period>("month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "product" | "amount">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
- async function handleSubmit(e: React.FormEvent) {
- e.preventDefault();
- setError("");
+  const [deleteTarget, setDeleteTarget] = useState<Sale | null>(null);
+  const [deleteMsg, setDeleteMsg] = useState("");
 
- try {
- const res = await fetch("/api/sales", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify(form),
- });
- const data = await res.json();
- if (!res.ok) {
- setError(data.error || "Erreur");
- return;
- }
- setShowModal(false);
- setForm({ productId: "", quantity: "1" });
- loadSales();
- } catch {
- setError("Erreur");
- }
- }
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [salesRes, prodRes] = await Promise.all([
+        fetch("/api/sales?limit=1000"),
+        fetch("/api/products"),
+      ]);
+      const salesData = await salesRes.json();
+      const prodData = await prodRes.json();
+      setSales(salesData.sales || []);
+      setProducts(prodData.products || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
 
- const totalRevenue = sales.reduce((s, sale) => s + sale.totalAmount, 0);
- const totalProfit = sales.reduce((s, sale) => s + sale.profit, 0);
+  useEffect(() => {
+    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
+      router.replace("/dashboard");
+      return;
+    }
+    loadData();
+  }, [user]);
 
- return (
- <div className="space-y-6">
- <div className="flex items-center justify-between">
- <div>
- <h1 className="text-2xl font-bold text-ink">Ventes</h1>
- <p className="text-muted text-sm mt-0.5">{sales.length} vente{sales.length !== 1 ? "s" : ""}</p>
- </div>
- <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2 text-sm">
- <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
- Nouvelle vente
- </button>
- </div>
+  const periodBounds = useMemo(() => {
+    if (period === "month") return getMonthBounds(0);
+    if (period === "lastMonth") return getMonthBounds(-1);
+    return {
+      start: customStart ? new Date(customStart) : new Date(0),
+      end: customEnd ? new Date(customEnd) : new Date(864e13),
+    };
+  }, [period, customStart, customEnd]);
 
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div className="card p-5">
- <p className="stat-label">Chiffre d'affaires</p>
- <p className="stat-value text-forest">{formatCurrency(totalRevenue)}</p>
- </div>
- <div className="card p-5">
- <p className="stat-label">Bénéfice total</p>
- <p className="stat-value text-forest-light">{formatCurrency(totalProfit)}</p>
- </div>
- <div className="card p-5">
- <p className="stat-label">Marge moyenne</p>
- <p className="stat-value text-ink">
- {totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0"}%
- </p>
- </div>
- </div>
+  const filteredSales = useMemo(() => {
+    const { start, end } = periodBounds;
+    return sales.filter((s) => isSaleInRange(s, start, end));
+  }, [sales, periodBounds]);
 
- <div className="card">
- {loading ? (
- <div className="flex items-center justify-center h-32">
- <div className="w-6 h-6 border-2 border-forest border-t-transparent rounded-full animate-spin" />
- </div>
- ) : sales.length === 0 ? (
- <div className="text-center py-12 text-muted">
- <FontAwesomeIcon icon={faBagShopping} className="w-10 h-10 mx-auto mb-3 opacity-50" />
- <p className="text-sm">Aucune vente enregistrée</p>
- </div>
- ) : (
- <div className="divide-y divide-border">
- {sales.map((sale, i) => (
- <div key={sale.id} className="flex items-center justify-between p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 bg-ochre-light rounded-xl flex items-center justify-center">
- <FontAwesomeIcon icon={faArrowTrendUp} className="w-5 h-5 text-forest-light" />
- </div>
- <div>
- <p className="text-sm font-medium text-ink">{sale.product?.name}</p>
- <p className="text-xs text-muted">{sale.quantity} unité{sale.quantity !== 1 ? "s" : ""} · {formatDate(sale.date)}</p>
- </div>
- </div>
- <div className="text-right">
- <p className="text-sm font-semibold text-ink">{formatCurrency(sale.totalAmount)}</p>
- <p className="text-xs text-forest">+{formatCurrency(sale.profit)}</p>
- </div>
- </div>
- ))}
- </div>
- )}
- </div>
+  const sortedSales = useMemo(() => {
+    const arr = [...filteredSales];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === "date") cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+      else if (sortBy === "product") cmp = a.product.name.localeCompare(b.product.name);
+      else if (sortBy === "amount") cmp = a.totalAmount - b.totalAmount;
+      return sortDir === "desc" ? -cmp : cmp;
+    });
+    return arr;
+  }, [filteredSales, sortBy, sortDir]);
 
- {showModal && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in">
- <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in">
- <div className="flex items-center justify-between mb-5">
- <h3 className="text-lg font-semibold text-ink">Nouvelle vente</h3>
- <button onClick={() => setShowModal(false)} className="text-muted hover:text-muted"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
- </div>
- <form onSubmit={handleSubmit} className="space-y-4">
- <div>
- <label className="block text-sm text-muted mb-1">Produit</label>
- <select value={form.productId} onChange={(e) => setForm({ ...form, productId: e.target.value })} className="input-field" required>
- <option value="">Sélectionner...</option>
- {products.filter(p => p.stock > 0).map((p) => (
- <option key={p.id} value={p.id}>
- {p.name} — {formatCurrency(p.salePrice)} ({p.stock} dispo)
- </option>
- ))}
- </select>
- </div>
- <div>
- <label className="block text-sm text-muted mb-1">Quantité</label>
- <input type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="input-field" min="1" required />
- </div>
- {form.productId && (() => {
- const p = products.find(x => x.id === parseInt(form.productId));
- if (!p) return null;
- const qty = parseInt(form.quantity) || 1;
- return (
- <div className="bg-ochre-light p-3 rounded-xl text-sm space-y-1">
- <p className="text-forest-light">
- Prix unitaire : <strong>{formatCurrency(p.salePrice)}</strong>
- </p>
- <p className="text-forest-light">
- Total : <strong>{formatCurrency(p.salePrice * qty)}</strong>
- </p>
- </div>
- );
- })()}
- {error && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{error}</p>}
- <button type="submit" className="btn-primary w-full py-3">Enregistrer la vente</button>
- </form>
- </div>
- </div>
- )}
- </div>
- );
+  const summary = useMemo(() => {
+    const revenue = filteredSales.reduce((s, x) => s + x.totalAmount, 0);
+    const margin = filteredSales.reduce((s, x) => s + x.profit, 0);
+    const count = filteredSales.length;
+
+    const productQty: Record<number, { name: string; qty: number }> = {};
+    for (const s of filteredSales) {
+      if (!productQty[s.product.id]) productQty[s.product.id] = { name: s.product.name, qty: 0 };
+      productQty[s.product.id].qty += s.quantity;
+    }
+    let topProduct = "";
+    let topQty = 0;
+    for (const key of Object.keys(productQty)) {
+      const p = productQty[Number(key)];
+      if (p.qty > topQty) { topQty = p.qty; topProduct = p.name; }
+    }
+
+    return { revenue, margin, count, topProduct };
+  }, [filteredSales]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError("");
+
+    const qty = parseInt(formQuantity);
+    if (!formProductId || !qty || qty < 1) { setFormError("Veuillez remplir tous les champs"); return; }
+
+    try {
+      const res = await fetch("/api/sales", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: formProductId, quantity: formQuantity }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setFormError(data.error || "Erreur"); return; }
+
+      setShowModal(false);
+      setFormProductId("");
+      setFormQuantity("1");
+      setFormDate(new Date().toISOString().split("T")[0]);
+      setFormNote("");
+      loadData();
+    } catch {
+      setFormError("Erreur réseau");
+    }
+  }
+
+  async function handleDelete(sale: Sale) {
+    try {
+      const res = await fetch("/api/sales", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: sale.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 404 || res.status === 405) {
+          setDeleteMsg("La suppression via l'API n'est pas encore disponible");
+        } else {
+          setDeleteMsg(data.error || "Erreur lors de la suppression");
+        }
+        return;
+      }
+      setSales((prev) => prev.filter((s) => s.id !== sale.id));
+      setDeleteTarget(null);
+      setDeleteMsg("");
+    } catch {
+      setDeleteMsg("Erreur réseau");
+    }
+  }
+
+  const selectedProduct = products.find((p) => p.id === parseInt(formProductId));
+  const qtyNum = parseInt(formQuantity) || 0;
+  const totalDisplay = selectedProduct ? selectedProduct.salePrice * qtyNum : 0;
+
+  const periodOptions = [
+    { value: "month", label: "Ce mois" },
+    { value: "lastMonth", label: "Mois dernier" },
+    { value: "custom", label: "Personnalisé" },
+  ];
+
+  const sortOptions = [
+    { value: "date", label: "Date" },
+    { value: "product", label: "Produit" },
+    { value: "amount", label: "Montant" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Ventes</h1>
+          <p className="text-muted text-sm mt-0.5">{filteredSales.length} vente{filteredSales.length !== 1 ? "s" : ""}</p>
+        </div>
+        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2 text-sm">
+          <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+          Nouvelle vente
+        </button>
+      </div>
+
+      {/* Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-5">
+          <p className="stat-label">Chiffre d&apos;affaires du mois</p>
+          <p className="stat-value text-forest">{formatCurrency(summary.revenue)}</p>
+        </div>
+        <div className="card p-5">
+          <p className="stat-label">Nombre de ventes</p>
+          <p className="stat-value text-forest-light">{summary.count}</p>
+        </div>
+        <div className="card p-5">
+          <p className="stat-label">Marge totale</p>
+          <p className="stat-value text-amber">{formatCurrency(summary.margin)}</p>
+        </div>
+        <div className="card p-5">
+          <p className="stat-label">Produit le plus vendu</p>
+          <p className="stat-value text-ink text-lg truncate">
+            {summary.topProduct ? (
+              <><FontAwesomeIcon icon={faCrown} className="w-4 h-4 text-ochre mr-1.5 inline" />{summary.topProduct}</>
+            ) : "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Filters & Sort */}
+      <div className="flex flex-wrap items-center gap-3">
+        <CustomSelect options={periodOptions} value={period} onChange={(v) => setPeriod(v as Period)} className="w-44" />
+        {period === "custom" && (
+          <div className="flex items-center gap-2">
+            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field w-40 text-sm" />
+            <span className="text-muted text-sm">→</span>
+            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field w-40 text-sm" />
+          </div>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted">Trier par</span>
+          <CustomSelect options={sortOptions} value={sortBy} onChange={(v) => setSortBy(v as "date" | "product" | "amount")} className="w-36" />
+          <button
+            onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+            className="text-muted hover:text-ink transition-colors text-sm px-2"
+            title={sortDir === "asc" ? "Ascendant" : "Descendant"}
+          >
+            {sortDir === "asc" ? "↑" : "↓"}
+          </button>
+        </div>
+      </div>
+
+      {/* Sales List */}
+      {loading ? (
+        <div className="card flex items-center justify-center h-32">
+          <div className="w-6 h-6 border-2 border-forest border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : sortedSales.length === 0 ? (
+        <div className="card text-center py-12 text-muted">
+          <FontAwesomeIcon icon={faBagShopping} className="w-10 h-10 mx-auto mb-3 opacity-50" />
+          <p className="text-sm">Aucune vente pour cette période</p>
+        </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="card hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted text-xs uppercase tracking-wider border-b border-border">
+                  <th className="p-4 font-medium">Date</th>
+                  <th className="p-4 font-medium">Produit</th>
+                  <th className="p-4 font-medium text-right">Qté</th>
+                  <th className="p-4 font-medium text-right">Prix unitaire</th>
+                  <th className="p-4 font-medium text-right">Total</th>
+                  <th className="p-4 font-medium text-right">Marge</th>
+                  <th className="p-4 w-10" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {sortedSales.map((sale) => (
+                  <tr key={sale.id} className="hover:bg-sand transition-colors">
+                    <td className="p-4 text-ink whitespace-nowrap">{formatDate(sale.date)}</td>
+                    <td className="p-4 text-ink font-medium">{sale.product.name}</td>
+                    <td className="p-4 text-ink text-right">{sale.quantity}</td>
+                    <td className="p-4 text-ink text-right">{formatCurrency(sale.unitPrice)}</td>
+                    <td className="p-4 text-ink text-right font-semibold">{formatCurrency(sale.totalAmount)}</td>
+                    <td className="p-4 text-right text-forest">{formatCurrency(sale.profit)}</td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => { setDeleteTarget(sale); setDeleteMsg(""); }}
+                        className="text-muted hover:text-red-500 transition-colors p-1"
+                        title="Supprimer"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {sortedSales.map((sale) => (
+              <div key={sale.id} className="card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 bg-ochre-light rounded-xl flex items-center justify-center shrink-0">
+                      <FontAwesomeIcon icon={faArrowTrendUp} className="w-5 h-5 text-forest-light" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ink truncate">{sale.product.name}</p>
+                      <p className="text-xs text-muted">{formatDate(sale.date)}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setDeleteTarget(sale); setDeleteMsg(""); }}
+                    className="text-muted hover:text-red-500 transition-colors p-1 shrink-0"
+                    title="Supprimer"
+                  >
+                    <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border text-sm">
+                  <span className="text-muted">{sale.quantity} × {formatCurrency(sale.unitPrice)}</span>
+                  <div className="text-right">
+                    <p className="font-semibold text-ink">{formatCurrency(sale.totalAmount)}</p>
+                    <p className="text-xs text-forest">+{formatCurrency(sale.profit)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Add Sale Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-ink">Nouvelle vente</h3>
+              <button onClick={() => { setShowModal(false); setFormError(""); }} className="text-muted hover:text-ink transition-colors">
+                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm text-muted mb-1">Produit</label>
+                <CustomSelect
+                  options={products.map((p) => ({
+                    value: String(p.id),
+                    label: `${p.name} — ${formatCurrency(p.salePrice)} (${p.stock} dispo)`,
+                  }))}
+                  value={formProductId}
+                  onChange={setFormProductId}
+                  placeholder="Sélectionner un produit"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-1">Quantité</label>
+                <input
+                  type="number"
+                  value={formQuantity}
+                  onChange={(e) => setFormQuantity(e.target.value)}
+                  className="input-field"
+                  min="1"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-1">Date</label>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="input-field"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                <input
+                  type="text"
+                  value={formNote}
+                  onChange={(e) => setFormNote(e.target.value)}
+                  className="input-field"
+                  placeholder="Ex: Vente en magasin"
+                />
+              </div>
+              {selectedProduct && (
+                <div className="bg-ochre-light p-3 rounded-xl text-sm space-y-1">
+                  <p className="text-forest-light">
+                    Prix unitaire : <strong>{formatCurrency(selectedProduct.salePrice)}</strong>
+                  </p>
+                  {qtyNum > 1 && (
+                    <p className="text-forest-light">
+                      {qtyNum} × {formatCurrency(selectedProduct.salePrice)}
+                    </p>
+                  )}
+                  <p className="text-forest font-semibold text-base">
+                    Total : {formatCurrency(totalDisplay)}
+                  </p>
+                  {qtyNum > selectedProduct.stock && (
+                    <p className="text-red-500 text-xs mt-1">
+                      ⚠ Stock insuffisant ({selectedProduct.stock} disponible{selectedProduct.stock !== 1 ? "s" : ""})
+                    </p>
+                  )}
+                </div>
+              )}
+              {formError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{formError}</p>}
+              <button type="submit" className="btn-primary w-full py-3">
+                Enregistrer la vente
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      <ConfirmModal
+        open={deleteTarget !== null}
+        title="Supprimer la vente"
+        message={`Voulez-vous vraiment supprimer la vente de ${deleteTarget?.quantity} × ${deleteTarget?.product.name} ?`}
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        variant="danger"
+        onConfirm={() => { if (deleteTarget) handleDelete(deleteTarget); }}
+        onCancel={() => { setDeleteTarget(null); setDeleteMsg(""); }}
+      />
+
+      {/* Delete message overlay */}
+      {deleteMsg && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-5 py-3 rounded-xl shadow-lg text-sm animate-fade-in max-w-md text-center">
+          {deleteMsg}
+          <button onClick={() => setDeleteMsg("")} className="ml-3 text-white/80 hover:text-white">
+            <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }

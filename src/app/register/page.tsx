@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar } from '@fortawesome/free-solid-svg-icons';
+import CustomSelect from "@/components/ui/CustomSelect";
 
 const PLANS = [
  {
@@ -305,16 +306,15 @@ export default function RegisterPage() {
  <label className="block text-sm font-medium text-ink mb-1.5">
  Devise
  </label>
- <select
- value={currency}
- onChange={(e) => setCurrency(e.target.value)}
- className="input-field"
- required
- >
- <option value="" disabled>Choisissez votre devise</option>
- <option value="XOF">FCFA (Franc CFA)</option>
- <option value="EUR">EUR (Euro)</option>
- </select>
+ <CustomSelect
+          options={[
+            { value: "XOF", label: "FCFA (Franc CFA)" },
+            { value: "EUR", label: "EUR (Euro)" },
+          ]}
+          value={currency}
+          onChange={(v) => setCurrency(v)}
+          placeholder="Choisissez votre devise"
+        />
  <p className="text-xs text-muted mt-1">
  Tous les montants seront affichés dans cette devise
  </p>

@@ -6,6 +6,7 @@ import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faArrowTrendUp, faArrowTrendDown, faPlus, faCircleExclamation, faBriefcase, faUser, faArrowRight, faClock, faBagShopping, faPiggyBank, faTriangleExclamation, faCrown, faChartBar, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 const CATEGORY_COLORS = [
  '#4A90D9',
@@ -884,24 +885,15 @@ export default function DashboardPage() {
  />
  </div>
 
- <div>
- <label className="block text-sm text-muted mb-1">Catégorie</label>
- <select
- value={newTx.categoryId}
- onChange={(e) => setNewTx({ ...newTx, categoryId: e.target.value })}
- className="input-field"
- required
- >
- <option value="">Sélectionner...</option>
- {categories
- .filter((c) => c.type === newTx.type)
- .map((c) => (
- <option key={c.id} value={c.id}>
- {c.name}
- </option>
- ))}
- </select>
- </div>
+  <div>
+  <label className="block text-sm text-muted mb-1">Catégorie</label>
+   <CustomSelect
+   options={categories.filter((c: any) => c.type === newTx.type).map((c: any) => ({ value: String(c.id), label: c.name }))}
+   value={newTx.categoryId}
+   onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
+   placeholder="Sélectionner..."
+   />
+  </div>
 
  {limits && !limits.isPremium && user?.role === "user" && (
  <div className="p-3 bg-ochre-light rounded-xl">

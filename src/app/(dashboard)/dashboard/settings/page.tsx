@@ -7,6 +7,7 @@ import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriang
 import { useDashboard } from "../../layout";
 import { formatCurrency, resolveCurrency, setActiveCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type Category = { id: number; name: string; icon: string; type: string };
 
@@ -435,15 +436,20 @@ export default function SettingsPage() {
  </div>
  )}
  <div>
- <label className="block text-sm text-muted mb-1">Devise préférée</label>
- <div className="relative">
- <FontAwesomeIcon icon={faGlobe} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
- <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input-field pl-10">
- <option value="auto">Automatique</option>
- <option value="XOF">FCFA (Franc CFA)</option>
- <option value="EUR">EUR (Euro)</option>
- </select>
- </div>
+              <label className="block text-sm text-muted mb-1">Devise préférée</label>
+              <div className="relative">
+                <FontAwesomeIcon icon={faGlobe} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <CustomSelect
+                  options={[
+                    { value: "auto", label: "Automatique" },
+                    { value: "XOF", label: "FCFA (Franc CFA)" },
+                    { value: "EUR", label: "EUR (Euro)" },
+                  ]}
+                  value={currency}
+                  onChange={(v) => setCurrency(v)}
+                  className="pl-10"
+                />
+              </div>
  </div>
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
@@ -548,11 +554,15 @@ export default function SettingsPage() {
  <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="input-field text-sm" placeholder="Nom" />
  </div>
  <div>
- <label className="block text-xs text-muted mb-1">Type</label>
- <select value={newCatType} onChange={(e) => setNewCatType(e.target.value)} className="input-field text-sm">
- <option value="expense">Dépense</option>
- <option value="income">Revenu</option>
- </select>
+              <label className="block text-xs text-muted mb-1">Type</label>
+              <CustomSelect
+                options={[
+                  { value: "expense", label: "Dépense" },
+                  { value: "income", label: "Revenu" },
+                ]}
+                value={newCatType}
+                onChange={(v) => setNewCatType(v)}
+              />
  </div>
  <button type="submit" className="btn-primary py-2.5 px-3 text-sm"><FontAwesomeIcon icon={faPlus} className="w-4 h-4" /></button>
  </form>

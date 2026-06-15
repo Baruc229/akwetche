@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faChartLine, faTrash, faShield, faDollarSign, faBagShopping, faFileLines, faCreditCard, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faStar, faEnvelope, faCalendarDays, faLock, faUnlock, faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type UserData = {
  id: number;
@@ -483,20 +484,22 @@ export default function AdminPage() {
  <label className="block text-sm font-medium text-ink mb-1">Mot de passe</label>
  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" required minLength={6} />
  </div>
- <div>
- <label className="block text-sm font-medium text-ink mb-1">Rôle</label>
- <select value={newAdmin.role} onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })} className="input-field">
- <option value="admin">Admin</option>
- <option value="super_admin">Super admin</option>
- </select>
- </div>
- <div>
- <label className="block text-sm font-medium text-ink mb-1">Plan</label>
- <select value={newAdmin.plan} onChange={(e) => setNewAdmin({ ...newAdmin, plan: e.target.value })} className="input-field">
- <option value="free">Gratuit</option>
- <option value="premium">Premium</option>
- </select>
- </div>
+  <div>
+  <label className="block text-sm font-medium text-ink mb-1">Rôle</label>
+  <CustomSelect
+  options={[{ value: "admin", label: "Admin" }, { value: "super_admin", label: "Super admin" }]}
+  value={newAdmin.role}
+  onChange={(v) => setNewAdmin({ ...newAdmin, role: v })}
+  />
+  </div>
+  <div>
+  <label className="block text-sm font-medium text-ink mb-1">Plan</label>
+  <CustomSelect
+  options={[{ value: "free", label: "Gratuit" }, { value: "premium", label: "Premium" }]}
+  value={newAdmin.plan}
+  onChange={(v) => setNewAdmin({ ...newAdmin, plan: v })}
+  />
+  </div>
  {addAdminError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">{addAdminError}</p>}
  <button type="submit" disabled={addingAdmin} className="btn-primary w-full py-2.5 text-sm disabled:opacity-50">
  {addingAdmin ? "Création..." : "Créer l'administrateur"}
