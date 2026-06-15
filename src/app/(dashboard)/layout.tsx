@@ -125,7 +125,7 @@ export default function DashboardLayout({
  >
   <div className="min-h-screen bg-sand flex flex-col lg:flex-row">
   <aside
-    className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-border transform transition-transform duration-200 lg:translate-x-0 flex flex-col sidebar-mobile overflow-hidden ${
+    className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-border transition-transform duration-200 lg:translate-x-0 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden pb-14 lg:pb-0 ${
       sidebarOpen ? "translate-x-0" : "-translate-x-full"
     }`}
   >
