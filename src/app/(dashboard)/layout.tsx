@@ -325,7 +325,6 @@ export default function DashboardLayout({
           { href: "/dashboard", label: "Accueil", icon: faHouse },
           { href: "/dashboard/products", label: "Produits", icon: faBox, locked: isFreeLocked, lockedHref: "/payment" },
           { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
-          { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp, locked: isFreeLocked, lockedHref: "/payment" },
           { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
           { href: "/dashboard/settings", label: "Paramètres", icon: faGear },
         ].map((item: any) => {

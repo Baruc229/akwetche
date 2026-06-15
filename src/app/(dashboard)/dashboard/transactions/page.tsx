@@ -345,10 +345,30 @@ export default function TransactionsPage() {
           </button>
         ))}
         {period === "custom" && (
-          <div className="flex items-center gap-2">
-            <input type="date" value={customStart} onChange={(e) => { setCustomStart(e.target.value); setPage(0); }} className="input-field text-xs py-1.5 px-2 w-32" />
-            <span className="text-xs text-muted">au</span>
-            <input type="date" value={customEnd} onChange={(e) => { setCustomEnd(e.target.value); setPage(0); }} className="input-field text-xs py-1.5 px-2 w-32" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
+                <label className="block text-xs text-muted mb-0.5 sm:hidden">Date de début</label>
+                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none sm:top-1/2" />
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => { setCustomStart(e.target.value); setPage(0); }}
+                  className="input-field text-xs py-1.5 pl-8 pr-2 w-full sm:w-32"
+                />
+              </div>
+              <span className="hidden sm:inline text-xs text-muted text-center">au</span>
+              <div className="relative w-full sm:w-auto">
+                <label className="block text-xs text-muted mb-0.5 sm:hidden">Date de fin</label>
+                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none sm:top-1/2" />
+                <input
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) => { setCustomEnd(e.target.value); setPage(0); }}
+                  className="input-field text-xs py-1.5 pl-8 pr-2 w-full sm:w-32"
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

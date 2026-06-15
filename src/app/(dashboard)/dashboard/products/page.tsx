@@ -187,8 +187,8 @@ export default function ProductsPage() {
         </div>
       ) : (
         <>
-          <div className="md:flex md:flex-row gap-3 flex justify-end">
-            <div className="hidden md:block relative flex-1">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <div className="hidden md:block relative flex-1 w-full">
               <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="text"
@@ -203,17 +203,20 @@ export default function ProductsPage() {
                 </button>
               )}
             </div>
-            <CustomSelect
-              options={[
-                { value: "name", label: "Nom" },
-                { value: "salePrice", label: "Prix vente" },
-                { value: "margin", label: "Marge" },
-                { value: "stock", label: "Stock" },
-              ]}
-              value={sortKey}
-              onChange={(v) => setSortKey(v as SortKey)}
-              className="w-36"
-            />
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted md:hidden">Trier</span>
+              <CustomSelect
+                options={[
+                  { value: "name", label: "Nom" },
+                  { value: "salePrice", label: "Prix vente" },
+                  { value: "margin", label: "Marge" },
+                  { value: "stock", label: "Stock" },
+                ]}
+                value={sortKey}
+                onChange={(v) => setSortKey(v as SortKey)}
+                className="w-36"
+              />
+            </div>
           </div>
 
           {sorted.length === 0 ? (
