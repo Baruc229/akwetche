@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faEnvelope, faLock, faEye, faEyeSlash, faArrowLeft, faChartBar, faBagShopping, faShield, faBolt } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faEnvelope, faLock, faEye, faEyeSlash, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import AuthFeaturePanel from "@/components/auth/AuthFeaturePanel";
 
 export default function LoginPage() {
  const [email, setEmail] = useState("");
@@ -35,14 +36,6 @@ export default function LoginPage() {
  setLoading(false);
  }
  }
-
-  const features = [
-    { icon: faWallet, title: "Budget personnel", desc: "Suivez chaque franc, dépense par dépense." },
-    { icon: faChartBar, title: "Bilans automatiques", desc: "Rapports hebdo, mensuels et annuels générés sans effort." },
-    { icon: faBagShopping, title: "Activité commerciale", desc: "Produits, stocks et ventes centralisés." },
-    { icon: faShield, title: "Données sécurisées", desc: "Vos informations chiffrées et protégées." },
-    { icon: faBolt, title: "Activation instantanée", desc: "Passez au Premium et débloquez tout immédiatement." },
-  ];
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -152,28 +145,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Colonne présentation */}
-      <div className="hidden lg:flex flex-col justify-center px-12 py-12 bg-[#1E4D35]">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Votre assistant financier
-        </h2>
-        <p className="text-white/70 text-sm mb-10">
-          Tout ce dont vous avez besoin pour gérer vos finances au quotidien.
-        </p>
-        <div className="space-y-8">
-          {features.map((f, i) => (
-            <div key={i} className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                <FontAwesomeIcon icon={f.icon} className="w-5 h-5 text-[#C4862A]" />
-              </div>
-              <div>
-                <p className="text-white font-semibold text-sm">{f.title}</p>
-                <p className="text-white/60 text-xs mt-0.5">{f.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <AuthFeaturePanel />
     </div>
   );
 }
