@@ -513,7 +513,7 @@ export default function SalesPage() {
       {/* Desktop modal */}
       {showModal && (
         <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">Nouvelle vente</h3>
               <button onClick={() => { setShowModal(false); setFormError(""); }} className="text-muted hover:text-ink transition-colors">

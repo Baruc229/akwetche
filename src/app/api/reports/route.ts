@@ -42,16 +42,23 @@ export async function GET(req: NextRequest) {
       previousEnd = getEndOfMonth(prevMonth);
     }
 
-    const [currentTransactions, previousTransactions, user] = await Promise.all([
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, initialBalance: true, initialBalanceActivity: true, subscription: { select: { status: true } } },
+    });
+
+    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
+    const catFilter = isPremium ? {} : { archived: false };
+
+    const [currentTransactions, previousTransactions] = await Promise.all([
       prisma.transaction.findMany({
-        where: { userId, date: { gte: startDate, lte: endDate } },
+        where: { userId, date: { gte: startDate, lte: endDate }, category: catFilter },
         include: { category: true },
       }),
       prisma.transaction.findMany({
-        where: { userId, date: { gte: previousStart, lte: previousEnd } },
+        where: { userId, date: { gte: previousStart, lte: previousEnd }, category: catFilter },
         include: { category: true },
       }),
-      prisma.user.findUnique({ where: { id: userId } }),
     ]);
 
     const calcStats = (txns: typeof currentTransactions) => {

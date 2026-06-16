@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const existing = await prisma.category.findMany({
       where: { userId },
-      select: { name: true, type: true },
+      select: { name: true, type: true, archived: true },
     });
     const existingKeys = new Set(existing.map((c) => `${c.type}:${c.name}`));
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!isPremium) {
-      const currentCount = existing.length;
+      const currentCount = existing.filter(c => !c.archived).length;
       if (currentCount + toCreate.length > 3) {
         return badRequest("Limite gratuite atteinte (3 catégories max). Passez à Premium pour ajouter plus de catégories.");
       }

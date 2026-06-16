@@ -66,12 +66,20 @@ export async function GET(req: NextRequest) {
       where.date = { gte: startDate, lte: endDate };
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, initialBalance: true, initialBalanceActivity: true, subscription: { select: { status: true } } },
+    });
+
+    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
+    if (!isPremium) {
+      where.category = { archived: false };
+    }
+
     const allTransactions = await prisma.transaction.findMany({
       where,
       include: { category: true },
     });
-
-    const user = await prisma.user.findUnique({ where: { id: userId } });
     const personalBalance = user?.initialBalance || 0;
     const activityBalance = user?.initialBalanceActivity || 0;
 

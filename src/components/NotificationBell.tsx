@@ -69,7 +69,21 @@ export default function NotificationBell() {
   function openDropdown() {
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      setCoords({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+      const gap = 6;
+      const dropdownWidth = 320;
+      const margin = 8;
+
+      let top = rect.bottom + gap;
+      let right = window.innerWidth - rect.right;
+
+      if (right + dropdownWidth > window.innerWidth - margin) {
+        right = Math.max(margin, window.innerWidth - rect.left - dropdownWidth);
+      }
+      if (top + 400 > window.innerHeight) {
+        top = Math.max(margin, rect.top - 400);
+      }
+
+      setCoords({ top, right });
     }
     fetchNotifications();
     setOpen(true);
