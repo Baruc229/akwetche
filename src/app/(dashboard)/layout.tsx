@@ -132,7 +132,7 @@ export default function DashboardLayout({
     <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
       <Link href="/dashboard" className="flex items-center gap-2">
         <div className="w-8 h-8 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-          <img src="/akwetche.svg" alt="Akwetche" className="w-4 h-4" />
+          <img src="/icon.png" alt="Akwetche" className="w-4 h-4" />
         </div>
         <span className="text-lg font-bold text-forest">
           Akwetche
@@ -293,7 +293,7 @@ export default function DashboardLayout({
       </button>
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-          <img src="/akwetche.svg" alt="Akwetche" className="w-5 h-5" />
+          <img src="/icon.png" alt="Akwetche" className="w-5 h-5" />
         </div>
         <span className="text-xl font-bold text-forest">Akwetche</span>
       </Link>
