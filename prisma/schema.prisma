@@ -123,11 +123,12 @@ model SubscriptionHistory {
 }
 
 model Category {
-  id     Int    @id @default(autoincrement())
-  name   String
-  icon   String @default("")
-  type   String // "income" or "expense"
-  userId Int
+  id       Int    @id @default(autoincrement())
+  name     String
+  icon     String @default("")
+  type     String // "income" or "expense"
+  archived Boolean @default(false)
+  userId   Int
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]

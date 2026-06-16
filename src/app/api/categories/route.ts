@@ -5,8 +5,18 @@ import { requireAuth, badRequest, ok, created } from "@/lib/api";
 export async function GET() {
   try {
     const userId = await requireAuth();
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, subscription: { select: { status: true } } },
+    });
+    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
+
+    const where: Record<string, unknown> = { userId };
+    if (!isPremium) where.archived = false;
+
     const categories = await prisma.category.findMany({
-      where: { userId },
+      where,
       orderBy: { name: "asc" },
     });
     return ok({ categories });
@@ -34,7 +44,7 @@ export async function POST(req: NextRequest) {
     const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
 
     if (!isPremium) {
-      const categoryCount = await prisma.category.count({ where: { userId } });
+      const categoryCount = await prisma.category.count({ where: { userId, archived: false } });
       if (categoryCount >= 3) {
         return badRequest("Limite gratuite atteinte (3 catégories max). Passez à Premium pour ajouter plus de catégories.");
       }

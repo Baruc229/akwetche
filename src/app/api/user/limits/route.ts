@@ -23,7 +23,7 @@ export async function GET() {
       prisma.transaction.count({
         where: { userId, type: "expense", date: { gte: startOfMonth } },
       }),
-      prisma.category.count({ where: { userId } }),
+      prisma.category.count({ where: { userId, archived: false } }),
     ]);
 
     return ok({

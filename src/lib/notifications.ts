@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-type NotificationType = "subscription" | "product" | "sale" | "stock" | "admin" | "role" | "system";
+type NotificationType = "subscription" | "product" | "sale" | "stock" | "transaction" | "admin" | "role" | "system";
 
 export async function createNotification(
   userId: number,

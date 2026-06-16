@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faCheck, faCrown, faBox, faCartShopping, faArrowTrendUp, faUserGear, faShield } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faCheck, faCrown, faBox, faCartShopping, faArrowTrendUp, faUserGear, faShield, faArrowsUpDown } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 
 type Notification = {
@@ -20,6 +21,7 @@ const iconMap: Record<string, any> = {
   product: faBox,
   sale: faCartShopping,
   stock: faArrowTrendUp,
+  transaction: faArrowsUpDown,
   admin: faShield,
   role: faUserGear,
   system: faBell,
@@ -30,7 +32,9 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -62,6 +66,15 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  function openDropdown() {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+    }
+    fetchNotifications();
+    setOpen(true);
+  }
+
   async function handleReadAll() {
     await fetch("/api/notifications/read-all", { method: "POST" });
     setNotifications(n => n.map(n => ({ ...n, read: true })));
@@ -78,9 +91,10 @@ export default function NotificationBell() {
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative inline-flex">
       <button
-        onClick={() => { setOpen(!open); if (!open) fetchNotifications(); }}
+        ref={btnRef}
+        onClick={() => { if (open) { setOpen(false); } else { openDropdown(); } }}
         className="relative p-1.5 text-muted hover:text-ink hover:bg-sand rounded-lg transition-all"
         aria-label="Notifications"
       >
@@ -92,8 +106,11 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-border overflow-hidden z-50">
+      {open && createPortal(
+        <div
+          className="fixed z-[9999] w-80 min-w-[320px] bg-white rounded-xl shadow-lg border border-border overflow-hidden"
+          style={{ top: coords.top, right: coords.right }}
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-sand/50">
             <span className="text-sm font-semibold text-ink">Notifications</span>
             {unread > 0 && (
@@ -152,7 +169,8 @@ export default function NotificationBell() {
               );
             })}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

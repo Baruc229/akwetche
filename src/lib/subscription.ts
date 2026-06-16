@@ -45,6 +45,11 @@ export async function activatePremium(userId: number, provider: string, method: 
     update: { status: "active", provider, method, amount, currency, endDate, notifiedAt7Days: false, notifiedAt3Days: false, notifiedAtExpiry: false, weeklyReminderCount: 0 },
   });
 
+  await prisma.category.updateMany({
+    where: { userId, archived: true },
+    data: { archived: false },
+  });
+
   await prisma.user.update({
     where: { id: userId },
     data: { plan: "premium" },
@@ -63,6 +68,20 @@ export async function expireSubscription(subscriptionId: number) {
     where: { id: subscriptionId },
     data: { status: "expired" },
   });
+
+  const categories = await prisma.category.findMany({
+    where: { userId: sub.userId },
+    include: { _count: { select: { transactions: true } } },
+    orderBy: { transactions: { _count: "desc" } },
+  });
+
+  if (categories.length > 3) {
+    const toArchive = categories.slice(3).map(c => c.id);
+    await prisma.category.updateMany({
+      where: { id: { in: toArchive } },
+      data: { archived: true },
+    });
+  }
 
   await prisma.user.update({
     where: { id: sub.userId },
