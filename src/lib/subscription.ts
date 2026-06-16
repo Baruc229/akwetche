@@ -127,39 +127,70 @@ function buildInvoiceEmail(userName: string, amount: number, currency: string, p
   const providerLabel: Record<string, string> = { stripe: "Stripe", paypal: "PayPal", fedapay: "FedaPay" };
 
   return `
-    <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 16px">Bonjour ${userName},</p>
-    <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 24px">Merci pour votre souscription Premium. Voici votre facture :</p>
-    <table style="width:100%;border-collapse:collapse;margin:0 0 24px;font-size:14px">
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Référence</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-weight:600;text-align:right">${ref}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Date</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">${date}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Montant</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-weight:600;text-align:right">${amountFmt} ${currency}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Durée</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">30 jours</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Expire le</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">${expires}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Paiement</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">${(providerLabel as any)[provider] || provider} — ${(methodLabel as any)[method] || method}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 12px;color:#a8a29e">Statut</td>
-        <td style="padding:10px 12px;color:#059669;font-weight:600;text-align:right">Payé ✓</td>
-      </tr>
-    </table>
-    <p style="color:#888;font-size:13px;line-height:1.5;margin:0">Cette facture fait office de reçu de paiement. Conservez-la pour vos archives.</p>`;
+    <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 20px">Bonjour ${userName},</p>
+
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:0 0 24px">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <span style="color:#059669;font-size:14px;font-weight:600">&#10003; Paiement confirmé</span>
+          </td>
+          <td align="right">
+            <span style="display:inline-block;background:#059669;color:#ffffff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;text-transform:uppercase">Payé</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
+      <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr>
+          <td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #e7e5e4" colspan="2">
+            <span style="color:#a8a29e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Facture</span>
+            <span style="color:#1c1917;font-size:16px;font-weight:700;display:block;margin-top:2px">${ref}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e;width:40%">Date d'émission</td>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right">${date}</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Client</td>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:500">${userName}</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Forfait</td>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right">Akwetche Premium — 30 jours</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Valable jusqu'au</td>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right">${expires}</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Mode de paiement</td>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right">${(providerLabel as any)[provider] || provider} — ${(methodLabel as any)[method] || method}</td>
+        </tr>
+        <tr>
+          <td style="padding:14px 16px;background:#fafaf9;border-top:2px solid #d97706" colspan="2">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <span style="color:#a8a29e;font-size:12px;font-weight:500">Total TTC</span>
+                </td>
+                <td align="right">
+                  <span style="color:#d97706;font-size:20px;font-weight:800">${amountFmt} ${currency}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="color:#a8a29e;font-size:12px;line-height:1.5;margin:0;text-align:center">
+      Cette facture fait office de reçu de paiement.<br>
+      Conservez-la pour vos archives.
+    </p>`;
 }
 
 // Email notifications
