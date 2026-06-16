@@ -55,6 +55,13 @@ export async function activatePremium(userId: number, provider: string, method: 
     data: { plan: "premium" },
   });
 
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+    if (user?.email) {
+      const invoiceHtml = buildInvoiceEmail(user.name, amount, currency, provider, method, endDate);
+      await sendSubscriptionEmail(user.email, "Votre facture Akwetche Premium", invoiceHtml);
+    }
+  } catch {}
   await createNotification(userId, "subscription", "Abonnement Premium activé", "/dashboard/settings");
 }
 
@@ -101,6 +108,58 @@ export function getSubscriptionStatus(endDate: Date, status: string) {
   if (remaining <= 7) return { label: `Expire dans ${remaining} jour${remaining > 1 ? "s" : ""}`, variant: "warning" as const };
 
   return { label: "Actif", variant: "active" as const };
+}
+
+function generateInvoiceRef(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return `INV-${Date.now().toString(36).toUpperCase()}-${code}`;
+}
+
+function buildInvoiceEmail(userName: string, amount: number, currency: string, provider: string, method: string, endDate: Date): string {
+  const ref = generateInvoiceRef();
+  const date = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const expires = endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const amountFmt = amount.toLocaleString("fr-FR");
+
+  const methodLabel: Record<string, string> = { card: "Carte bancaire", paypal: "PayPal", mobile_money: "Mobile Money", stripe: "Carte bancaire" };
+  const providerLabel: Record<string, string> = { stripe: "Stripe", paypal: "PayPal", fedapay: "FedaPay" };
+
+  return `
+    <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 16px">Bonjour ${userName},</p>
+    <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 24px">Merci pour votre souscription Premium. Voici votre facture :</p>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 24px;font-size:14px">
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Référence</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-weight:600;text-align:right">${ref}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Date</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">${date}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Montant</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;font-weight:600;text-align:right">${amountFmt} ${currency}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Durée</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">30 jours</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Expire le</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">${expires}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#a8a29e">Paiement</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e7e5e4;color:#1c1917;text-align:right">${(providerLabel as any)[provider] || provider} — ${(methodLabel as any)[method] || method}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 12px;color:#a8a29e">Statut</td>
+        <td style="padding:10px 12px;color:#059669;font-weight:600;text-align:right">Payé ✓</td>
+      </tr>
+    </table>
+    <p style="color:#888;font-size:13px;line-height:1.5;margin:0">Cette facture fait office de reçu de paiement. Conservez-la pour vos archives.</p>`;
 }
 
 // Email notifications
