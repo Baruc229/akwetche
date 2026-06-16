@@ -39,6 +39,7 @@ export default function NotificationBell() {
   const [coords, setCoords] = useState({ top: 0, right: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -59,7 +60,10 @@ export default function NotificationBell() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const insideButton = ref.current?.contains(target);
+      const insidePortal = portalRef.current?.contains(target);
+      if (!insideButton && !insidePortal) {
         setOpen(false);
       }
     }
@@ -155,6 +159,7 @@ export default function NotificationBell() {
 
       {open && createPortal(
         <div
+          ref={portalRef}
           className="fixed z-[9999] w-80 min-w-[320px] bg-white rounded-xl shadow-lg border border-border overflow-hidden"
           style={{ top: coords.top, right: coords.right }}
         >
