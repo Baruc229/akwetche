@@ -3,7 +3,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faWallet, faChartBar, faBagShopping, faShield, faBolt,
-  faCheck, faUsers
+  faCheck
 } from '@fortawesome/free-solid-svg-icons';
 
 const features = [
@@ -23,7 +23,7 @@ const features = [
     icon: faBagShopping,
     title: "Activité commerciale",
     desc: "Gérez votre entreprise en un clin d'œil.",
-    points: ["Produits & stocks", "Ventes & factures", "Tableau de bord dédié"],
+    points: ["Produits & stocks", "Transactions commerciales", "Tableau de bord dédié"],
   },
   {
     icon: faShield,
@@ -92,21 +92,6 @@ export default function AuthFeaturePanel() {
           ))}
         </div>
 
-        {/* Statistiques */}
-        <div className="mt-10 pt-8 border-t border-white/10">
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { value: "+10k", label: "Utilisateurs" },
-              { value: "+50k", label: "Transactions" },
-              { value: "4.8", label: "Note ⭐" },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="text-white font-bold text-lg">{stat.value}</p>
-                <p className="text-white/40 text-[11px]">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
