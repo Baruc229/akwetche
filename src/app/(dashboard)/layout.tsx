@@ -160,7 +160,9 @@ export default function DashboardLayout({
             {user.name}
           </p>
         </div>
-        <NotificationBell />
+        <div className="hidden lg:block">
+          <NotificationBell />
+        </div>
       </div>
     </div>
 

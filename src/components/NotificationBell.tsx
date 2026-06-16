@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faCheck, faCrown, faBox, faCartShopping, faArrowTrendUp, faUserGear, faShield, faArrowsUpDown } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faCheck, faCrown, faBox, faCartShopping, faArrowTrendUp, faUserGear, faShield, faArrowsUpDown, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Notification = {
   id: number;
@@ -28,16 +29,18 @@ const iconMap: Record<string, any> = {
 };
 
 export default function NotificationBell() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [busyIds, setBusyIds] = useState<Set<number>>(new Set());
+  const [markingAll, setMarkingAll] = useState(false);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const fetchNotifications = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/notifications?limit=10");
       if (res.ok) {
@@ -45,9 +48,7 @@ export default function NotificationBell() {
         setNotifications(data.notifications);
         setUnread(data.unread);
       }
-    } catch {} finally {
-      setLoading(false);
-    }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -85,23 +86,55 @@ export default function NotificationBell() {
 
       setCoords({ top, right });
     }
-    fetchNotifications();
+    setLoading(true);
+    fetchNotifications().finally(() => setLoading(false));
     setOpen(true);
   }
 
   async function handleReadAll() {
-    await fetch("/api/notifications/read-all", { method: "POST" });
-    setNotifications(n => n.map(n => ({ ...n, read: true })));
-    setUnread(0);
+    setMarkingAll(true);
+    const prevUnread = unread;
+    const prevNotifs = [...notifications];
+    try {
+      const res = await fetch("/api/notifications/read-all", { method: "POST" });
+      if (!res.ok) throw new Error("Échec");
+      setNotifications(n => n.map(n => ({ ...n, read: true })));
+      setUnread(0);
+    } catch {
+      setUnread(prevUnread);
+      setNotifications(prevNotifs);
+    } finally {
+      setMarkingAll(false);
+    }
+  }
+
+  async function markAsRead(n: Notification) {
+    if (n.read) return;
+    setBusyIds(prev => new Set(prev).add(n.id));
+    const prev = { notifications: [...notifications], unread };
+    try {
+      const res = await fetch(`/api/notifications/${n.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ read: true }),
+      });
+      if (!res.ok) throw new Error("Échec");
+      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+      setUnread(prev => Math.max(0, prev - 1));
+    } catch {
+      setNotifications(prev.notifications);
+      setUnread(prev.unread);
+    } finally {
+      setBusyIds(prev => { const s = new Set(prev); s.delete(n.id); return s; });
+    }
   }
 
   async function handleClickNotif(n: Notification) {
-    if (!n.read) {
-      await fetch(`/api/notifications/${n.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ read: true }) });
-      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
-      setUnread(prev => Math.max(0, prev - 1));
-    }
+    await markAsRead(n);
     setOpen(false);
+    if (n.link) {
+      router.push(n.link);
+    }
   }
 
   return (
@@ -114,7 +147,7 @@ export default function NotificationBell() {
       >
         <FontAwesomeIcon icon={faBell} className="w-5 h-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full min-w-[18px] min-h-[18px]">
+          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full min-w-[18px] min-h-[18px] leading-none">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -128,8 +161,17 @@ export default function NotificationBell() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-sand/50">
             <span className="text-sm font-semibold text-ink">Notifications</span>
             {unread > 0 && (
-              <button onClick={handleReadAll} className="text-xs text-forest hover:text-forest-light font-medium transition-colors">
-                Tout marquer lu
+              <button
+                onClick={handleReadAll}
+                disabled={markingAll}
+                className="text-xs text-forest hover:text-forest-light font-medium transition-colors disabled:opacity-50"
+              >
+                {markingAll ? (
+                  <span className="flex items-center gap-1">
+                    <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" />
+                    Mise à jour...
+                  </span>
+                ) : "Tout marquer lu"}
               </button>
             )}
           </div>
@@ -147,38 +189,26 @@ export default function NotificationBell() {
 
             {notifications.map((n) => {
               const Icon = iconMap[n.type] || faBell;
+              const isBusy = busyIds.has(n.id);
               return (
                 <div key={n.id}>
-                  {n.link ? (
-                    <Link
-                      href={n.link}
-                      onClick={() => handleClickNotif(n)}
-                      className={`flex items-start gap-3 px-4 py-3 text-sm transition-colors hover:bg-sand/50 ${!n.read ? "bg-forest/5" : ""}`}
-                    >
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${!n.read ? "bg-forest/10 text-forest" : "bg-sand text-muted"}`}>
+                  <div
+                    onClick={() => !isBusy && handleClickNotif(n)}
+                    className={`flex items-start gap-3 px-4 py-3 text-sm transition-colors cursor-pointer hover:bg-sand/50 ${!n.read ? "bg-forest/5" : ""} ${isBusy ? "opacity-50" : ""}`}
+                  >
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${!n.read ? "bg-forest/10 text-forest" : "bg-sand text-muted"}`}>
+                      {isBusy ? (
+                        <FontAwesomeIcon icon={faSpinner} className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
                         <FontAwesomeIcon icon={Icon} className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-ink ${!n.read ? "font-medium" : ""}`}>{n.message}</p>
-                        <p className="text-xs text-muted mt-0.5">{timeAgo(n.createdAt)}</p>
-                      </div>
-                      {!n.read && <div className="w-2 h-2 rounded-full bg-forest shrink-0 mt-1.5" />}
-                    </Link>
-                  ) : (
-                    <div
-                      onClick={() => handleClickNotif(n)}
-                      className={`flex items-start gap-3 px-4 py-3 text-sm transition-colors cursor-pointer hover:bg-sand/50 ${!n.read ? "bg-forest/5" : ""}`}
-                    >
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${!n.read ? "bg-forest/10 text-forest" : "bg-sand text-muted"}`}>
-                        <FontAwesomeIcon icon={Icon} className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-ink ${!n.read ? "font-medium" : ""}`}>{n.message}</p>
-                        <p className="text-xs text-muted mt-0.5">{timeAgo(n.createdAt)}</p>
-                      </div>
-                      {!n.read && <div className="w-2 h-2 rounded-full bg-forest shrink-0 mt-1.5" />}
+                      )}
                     </div>
-                  )}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-ink ${!n.read ? "font-medium" : ""}`}>{n.message}</p>
+                      <p className="text-xs text-muted mt-0.5">{timeAgo(n.createdAt)}</p>
+                    </div>
+                    {!n.read && <div className="w-2 h-2 rounded-full bg-forest shrink-0 mt-1.5" />}
+                  </div>
                 </div>
               );
             })}
