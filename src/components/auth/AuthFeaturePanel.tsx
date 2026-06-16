@@ -53,12 +53,6 @@ export default function AuthFeaturePanel() {
       <div className="relative z-10 flex flex-col h-full">
         {/* Logo + marque */}
         <div className="mb-10">
-          <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
-              <FontAwesomeIcon icon={faWallet} className="w-5 h-5 text-[#C4862A]" />
-            </div>
-            <span className="text-white font-bold text-lg">Akwetche</span>
-          </div>
           <h2 className="text-3xl font-bold text-white leading-tight mb-3">
             Votre argent,<br />simplifié.
           </h2>
