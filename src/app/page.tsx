@@ -13,7 +13,9 @@ export default function LandingPage() {
  <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
  <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
   <Link href="/" className="flex items-center gap-2 shrink-0">
-  <img src="/akwetche.svg" alt="Akwetche" className="h-9 w-9" />
+  <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
+    <img src="/akwetche.svg" alt="Akwetche" className="w-5 h-5" />
+  </div>
   <span className="text-xl font-bold text-forest">
   Akwetche
   </span>
