@@ -14,7 +14,7 @@ export default function LandingPage() {
  <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
   <Link href="/" className="flex items-center gap-2 shrink-0">
   <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-    <img src="/icon.png" alt="Akwetche" className="w-5 h-5" />
+    <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
   </div>
   <span className="text-xl font-bold text-forest">
   Akwetche
