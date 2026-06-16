@@ -8,6 +8,7 @@ import { faArrowTrendUp, faPlus, faBagShopping, faXmark, faTrash, faSearch, faCa
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
+import PremiumLock from "@/components/subscription/PremiumLock";
 
 type Sale = {
   id: number;
@@ -52,6 +53,7 @@ export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [premiumLocked, setPremiumLocked] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [formProductId, setFormProductId] = useState("");
@@ -91,11 +93,11 @@ export default function SalesPage() {
   }
 
   useEffect(() => {
-    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
-      router.replace("/dashboard");
-      return;
-    }
-    loadData();
+    if (!user) return;
+    if (user.role !== "user") { setPremiumLocked(false); loadData(); return; }
+    if (user.subscription?.status === "active" || user.plan === "premium") { setPremiumLocked(false); loadData(); return; }
+    if (user.subscription?.status === "expired") { setPremiumLocked(true); return; }
+    router.replace("/dashboard");
   }, [user]);
 
   const periodBounds = useMemo(() => {
@@ -210,6 +212,8 @@ export default function SalesPage() {
     { value: "product", label: "Produit" },
     { value: "amount", label: "Montant" },
   ];
+
+  if (premiumLocked) return <PremiumLock />;
 
   return (
     <div className="space-y-6">

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok } from "@/lib/api";
+import { activatePremium } from "@/lib/subscription";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
@@ -58,11 +59,7 @@ export async function POST(req: NextRequest) {
   const capturedUserId = customId ? parseInt(customId) : null;
 
   if (capturedUserId && capturedUserId === userId) {
-    await prisma.subscription.upsert({
-      where: { userId },
-      update: { status: "active", provider: "paypal", method: "paypal" },
-      create: { userId, status: "active", provider: "paypal", method: "paypal", endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
-    });
+    await activatePremium(userId, "paypal", "paypal");
   }
 
   return ok({ status: "success" });

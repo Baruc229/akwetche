@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok, created } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(req: NextRequest) {
   try {
@@ -70,6 +71,9 @@ export async function POST(req: NextRequest) {
         stock: type === "in" ? product.stock + qty : Math.max(0, product.stock - qty),
       },
     });
+
+    const direction = type === "in" ? "Entrée" : "Sortie";
+    await createNotification(userId, "stock", `${direction} stock : ${qty} x ${product.name}`, "/dashboard/stock");
 
     return created({ movement });
   } catch {

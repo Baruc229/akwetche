@@ -9,21 +9,34 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
+type AdminSubHistory = {
+  id: number;
+  status: string;
+  provider: string;
+  method: string;
+  amount: number;
+  currency: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+};
+
 type UserData = {
- id: number;
- name: string;
- email: string;
- role: string;
- plan: string;
- status: string;
- initialBalance: number;
- currency: string;
- createdAt: string;
- emailVerified: string | null;
- loginAttempts: number;
- lockedUntil: string | null;
- _count: { transactions: number; products: number; sales: number; loginLogs: number };
- subscription: { status: string; amount: number; currency: string; endDate: string } | null;
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  plan: string;
+  status: string;
+  initialBalance: number;
+  currency: string;
+  createdAt: string;
+  emailVerified: string | null;
+  loginAttempts: number;
+  lockedUntil: string | null;
+  _count: { transactions: number; products: number; sales: number; loginLogs: number };
+  subscription: { status: string; amount: number; currency: string; endDate: string } | null;
+  subscriptionHistory?: AdminSubHistory[];
 };
 
 type LoginLog = {
@@ -112,15 +125,29 @@ export default function AdminPage() {
  finally { setAddingAdmin(false); }
  }
 
- async function changeRole(id: number, role: string) {
- await fetch("/api/admin/users", {
- method: "PATCH",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ id, role }),
- });
- setUsers(users.map(u => u.id === id ? { ...u, role } : u));
- if (selectedUser?.id === id) setSelectedUser({ ...selectedUser, role });
- }
+  async function loadUserHistory(u: UserData) {
+    try {
+      const res = await fetch(`/api/admin/users?id=${u.id}`);
+      const data = await res.json();
+      if (data.user) {
+        setSelectedUser({ ...u, subscriptionHistory: data.user.subscriptionHistory || [] });
+      } else {
+        setSelectedUser(u);
+      }
+    } catch {
+      setSelectedUser(u);
+    }
+  }
+
+  async function changeRole(id: number, role: string) {
+    await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, role }),
+    });
+    setUsers(users.map(u => u.id === id ? { ...u, role } : u));
+    if (selectedUser?.id === id) setSelectedUser({ ...selectedUser, role });
+  }
 
  async function deleteUser(id: number) {
  setConfirmDeleteUser(null);
@@ -151,15 +178,18 @@ export default function AdminPage() {
  URL.revokeObjectURL(link.href);
  }
 
- function getPlanBadge(u: UserData) {
- if (u.role !== "user") {
- return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-ochre-light text-forest px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faShield} className="w-2.5 h-2.5" />Admin</span>;
- }
- if (u.subscription?.status === "active" || u.plan === "premium") {
- return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-ochre-light text-ochre px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Premium</span>;
- }
- return <span className="inline-flex items-center text-[10px] font-medium bg-border text-muted px-1.5 py-0.5 rounded">Gratuit</span>;
- }
+  function getPlanBadge(u: UserData) {
+  if (u.role !== "user") {
+  return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-ochre-light text-forest px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faShield} className="w-2.5 h-2.5" />Admin</span>;
+  }
+  if (u.subscription?.status === "active") {
+  return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-ochre-light text-ochre px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Premium</span>;
+  }
+  if (u.subscription?.status === "expired") {
+  return <span className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-red-100 text-red-600 px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Expiré</span>;
+  }
+  return <span className="inline-flex items-center text-[10px] font-medium bg-border text-muted px-1.5 py-0.5 rounded">Gratuit</span>;
+  }
 
  function getStatusBadge(u: UserData) {
  if (u.lockedUntil && new Date(u.lockedUntil) > new Date()) {
@@ -313,9 +343,9 @@ export default function AdminPage() {
  </div>
  <div className="divide-y divide-border">
  {users.map((u) => (
- <div
- key={u.id}
- onClick={() => setSelectedUser(u)}
+          <div
+          key={u.id}
+          onClick={() => loadUserHistory(u)}
  className="p-4 hover:bg-sand transition-colors cursor-pointer"
  >
  <div className="flex items-start gap-3">
@@ -436,19 +466,58 @@ export default function AdminPage() {
  </div>
  </div>
 
- {selectedUser.subscription?.status === "active" && (
- <div className="bg-ochre-light rounded-xl p-3">
- <div className="flex items-center justify-between text-sm">
- <span className="text-ochre">Abonnement</span>
- <span className="font-semibold text-ochre">
- {selectedUser.subscription.amount} {selectedUser.subscription.currency}/mois
- </span>
- </div>
- <p className="text-xs text-ochre mt-1">
- Expire le {new Date(selectedUser.subscription.endDate).toLocaleDateString("fr-FR")}
- </p>
- </div>
- )}
+  {selectedUser.subscription && (
+  <>
+  <div className={`rounded-xl p-3 ${selectedUser.subscription.status === "active" ? "bg-ochre-light" : "bg-red-50"}`}>
+  <div className="flex items-center justify-between text-sm">
+  <span className={selectedUser.subscription.status === "active" ? "text-ochre" : "text-red-600"}>Abonnement</span>
+  <span className={`font-semibold ${selectedUser.subscription.status === "active" ? "text-ochre" : "text-red-600"}`}>
+  {selectedUser.subscription.amount} {selectedUser.subscription.currency}/mois
+  </span>
+  </div>
+  <div className="flex items-center gap-2 mt-1">
+  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+  selectedUser.subscription.status === "active"
+  ? "text-forest bg-forest/10"
+  : "text-red-600 bg-red-100"
+  }`}>
+  {selectedUser.subscription.status === "active" ? "Actif" : selectedUser.subscription.status === "expired" ? "Expiré" : "Annulé"}
+  </span>
+  <span className="text-xs text-muted">
+  Expire le {new Date(selectedUser.subscription.endDate).toLocaleDateString("fr-FR")}
+  </span>
+  </div>
+  {(selectedUser.subscriptionHistory && selectedUser.subscriptionHistory.length > 0) && (
+  <p className="text-[10px] text-muted mt-2">
+  {selectedUser.subscriptionHistory.length} abonnement(s) précédent(s)
+  </p>
+  )}
+  </div>
+
+  {selectedUser.subscriptionHistory && selectedUser.subscriptionHistory.length > 0 && (
+  <div className="rounded-xl bg-sand p-3">
+  <p className="text-xs font-semibold text-ink mb-2">Historique des abonnements</p>
+  <div className="space-y-2">
+  {selectedUser.subscriptionHistory.map((h) => (
+  <div key={h.id} className="flex items-center justify-between text-[11px]">
+  <div className="flex items-center gap-1.5">
+  <span className={`w-1.5 h-1.5 rounded-full ${
+  h.status === "active" ? "bg-forest" : "bg-muted"
+  }`} />
+  <span className="text-muted capitalize">{h.status}</span>
+  <span className="text-muted">—</span>
+  <span className="text-muted">{h.amount} {h.currency}</span>
+  </div>
+  <span className="text-muted">
+  {new Date(h.startDate).toLocaleDateString("fr-FR")} → {new Date(h.endDate).toLocaleDateString("fr-FR")}
+  </span>
+  </div>
+  ))}
+  </div>
+  </div>
+  )}
+  </>
+  )}
 
  <div className="text-xs text-muted space-y-1">
  <p>Solde de départ : {formatCurrency(selectedUser.initialBalance)}</p>

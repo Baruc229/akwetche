@@ -7,6 +7,9 @@ import { faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFrom
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
 import type { CurrencyCode } from "@/lib/currency";
+import ExpirationBanner from "@/components/subscription/ExpirationBanner";
+import ExpiredModal from "@/components/subscription/ExpiredModal";
+import NotificationBell from "@/components/NotificationBell";
 
 type UserData = {
  id: number;
@@ -20,7 +23,7 @@ type UserData = {
  status?: string;
  activityActivated?: boolean;
  emailVerified?: string | null;
- subscription?: { status: string; amount: number; currency: string; endDate: string } | null;
+  subscription?: { status: string; amount: number; currency: string; endDate: string; daysRemaining?: number; label?: string; variant?: string } | null;
 };
 
 type DashboardContextType = {
@@ -114,10 +117,13 @@ export default function DashboardLayout({
  );
  }
 
- if (!user) return null;
+  if (!user) return null;
 
- const isPremium = user?.plan === "premium" || user?.role !== "user";
- const isFreeLocked = user?.role === "user" && user?.plan !== "premium" && user?.subscription?.status !== "active";
+  const isPremium = user?.plan === "premium" || user?.role !== "user";
+  const isFreeLocked = user?.role === "user" && user?.plan !== "premium" && user?.subscription?.status !== "active";
+
+  const subStatus = user?.subscription;
+  const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);
 
  return (
  <DashboardContext.Provider
@@ -147,10 +153,15 @@ export default function DashboardLayout({
     </div>
 
     <div className="p-4 border-b border-border shrink-0">
-      <p className="text-sm text-muted">Connecté en tant que</p>
-      <p className="text-sm font-medium text-ink truncate">
-        {user.name}
-      </p>
+      <div className="flex items-center justify-between">
+        <div className="min-w-0">
+          <p className="text-sm text-muted">Connecté en tant que</p>
+          <p className="text-sm font-medium text-ink truncate">
+            {user.name}
+          </p>
+        </div>
+        <NotificationBell />
+      </div>
     </div>
 
     {/* Zone principale — navigation scrollable */}
@@ -297,11 +308,23 @@ export default function DashboardLayout({
         </div>
         <span className="text-xl font-bold text-forest">Akwetche</span>
       </Link>
+      <div className="ml-auto">
+        <NotificationBell />
+      </div>
     </header>
 
+    {subStatus && (
+      <ExpirationBanner
+        daysRemaining={subStatus.daysRemaining ?? 0}
+        status={subStatus.status}
+        label={subStatus.label ?? ""}
+        variant={(subStatus.variant as "active" | "warning" | "critical" | "expired") || "active"}
+      />
+    )}
     <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full pb-20 lg:pb-0">
       {children}
     </main>
+    {showExpiredModal && <ExpiredModal />}
 
     {/* Navigation inférieure (mobile) */}
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border lg:hidden safe-area-bottom">

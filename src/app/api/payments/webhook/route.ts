@@ -2,23 +2,10 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe, hasStripe, getWebhookSecret } from "@/lib/stripe";
 import { ok } from "@/lib/api";
+import { activatePremium } from "@/lib/subscription";
 
 async function activateSubscription(userId: number, provider: string, method: string) {
-  const existing = await prisma.subscription.findUnique({ where: { userId } });
-  const data = {
-    status: "active",
-    provider,
-    method,
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-  };
-
-  if (existing) {
-    await prisma.subscription.update({ where: { userId }, data });
-  } else {
-    await prisma.subscription.create({
-      data: { userId, ...data },
-    });
-  }
+  await activatePremium(userId, provider, method);
 }
 
 async function handleStripeWebhook(req: NextRequest) {

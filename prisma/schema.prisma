@@ -32,8 +32,11 @@ model User {
   stockMovements     StockMovement[]
   reports            Report[]
   subscription       Subscription?
+  subscriptionHistory SubscriptionHistory[]
   verificationTokens VerificationToken[]
   loginLogs          LoginLog[]
+  notifications      Notification[]        @relation("UserNotifications")
+  actedNotifications Notification[]        @relation("NotificationActor")
 }
 
 model VerificationToken {
@@ -65,6 +68,23 @@ model LoginLog {
   @@index([createdAt])
 }
 
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String   // "subscription", "product", "sale", "stock", "admin", "role", "system"
+  message   String
+  link      String   @default("")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    Int      // destinataire
+  actorId   Int?     // qui a fait l'action
+
+  user  User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
 model Subscription {
   id        Int      @id @default(autoincrement())
   status    String   @default("active") // "active", "cancelled", "expired"
@@ -74,11 +94,32 @@ model Subscription {
   currency  String   @default("XOF")
   startDate DateTime @default(now())
   endDate   DateTime
+  notifiedAt7Days  Boolean @default(false)
+  notifiedAt3Days  Boolean @default(false)
+  notifiedAtExpiry Boolean @default(false)
+  weeklyReminderCount Int  @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    Int      @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SubscriptionHistory {
+  id        Int      @id @default(autoincrement())
+  status    String
+  provider  String   @default("")
+  method    String   @default("")
+  amount    Float    @default(5000)
+  currency  String   @default("XOF")
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  userId    Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Category {

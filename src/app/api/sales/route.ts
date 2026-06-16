@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok, created } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(req: NextRequest) {
   try {
@@ -105,6 +106,8 @@ export async function POST(req: NextRequest) {
         date: new Date(),
       },
     });
+
+    await createNotification(userId, "sale", `Vente : ${qty} x ${product.name} — ${totalAmount.toLocaleString()} FCFA`, "/dashboard/sales");
 
     return created({ sale });
   } catch {

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, ok } from "@/lib/api";
+import { daysUntil, getSubscriptionStatus } from "@/lib/subscription";
 
 export async function GET() {
   const userId = await getAuthUserId();
@@ -19,5 +20,18 @@ export async function GET() {
   });
 
   if (!user) return unauthorized();
-  return ok({ user: { ...user, currency: user.currency || "auto" } });
+
+  let subscriptionStatus = null;
+  if (user.subscription) {
+    const remaining = daysUntil(user.subscription.endDate);
+    const status = getSubscriptionStatus(user.subscription.endDate, user.subscription.status);
+    subscriptionStatus = {
+      ...user.subscription,
+      daysRemaining: remaining,
+      label: status.label,
+      variant: status.variant,
+    };
+  }
+
+  return ok({ user: { ...user, currency: user.currency || "auto", subscription: subscriptionStatus } });
 }

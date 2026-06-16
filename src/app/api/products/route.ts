@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok, created } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   try {
@@ -45,6 +46,8 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+
+    await createNotification(userId, "product", `Produit ajouté : ${product.name}`, "/dashboard/products");
 
     return created({ product });
   } catch {

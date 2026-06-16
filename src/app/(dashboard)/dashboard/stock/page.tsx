@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBox, faPlus, faTriangleExclamation, faBoxArchive, faArrowsUpDown, faXmark, faRotateLeft, faEye } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
+import PremiumLock from "@/components/subscription/PremiumLock";
 
 type Product = {
   id: number;
@@ -40,6 +41,7 @@ export default function StockPage() {
   const [totalStockValue, setTotalStockValue] = useState(0);
   const [outOfStock, setOutOfStock] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [premiumLocked, setPremiumLocked] = useState(false);
   const [replenishProduct, setReplenishProduct] = useState<Product | null>(null);
   const [replenishQty, setReplenishQty] = useState("1");
   const [replenishNote, setReplenishNote] = useState("");
@@ -90,11 +92,11 @@ export default function StockPage() {
   }
 
   useEffect(() => {
-    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
-      router.replace("/dashboard");
-      return;
-    }
-    loadData();
+    if (!user) return;
+    if (user.role !== "user") { setPremiumLocked(false); loadData(); return; }
+    if (user.subscription?.status === "active" || user.plan === "premium") { setPremiumLocked(false); loadData(); return; }
+    if (user.subscription?.status === "expired") { setPremiumLocked(true); return; }
+    router.replace("/dashboard");
   }, [user]);
 
   async function handleReplenish(e: React.FormEvent) {
@@ -135,6 +137,8 @@ export default function StockPage() {
 
   const stats = computeProductStats(products, movements);
   const lowStockProducts = stats.filter(s => s.status === "low" || s.status === "out");
+
+  if (premiumLocked) return <PremiumLock />;
 
   return (
     <div className="space-y-6">

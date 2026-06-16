@@ -8,6 +8,7 @@ import { faBox, faPlus, faPen, faTrash, faArrowTrendUp, faXmark, faSearch } from
 import { formatCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
+import PremiumLock from "@/components/subscription/PremiumLock";
 
 type Product = {
   id: number;
@@ -26,6 +27,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [premiumLocked, setPremiumLocked] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [form, setForm] = useState({
@@ -55,11 +57,11 @@ export default function ProductsPage() {
   }
 
   useEffect(() => {
-    if (user && user.role === "user" && user.subscription?.status !== "active" && user.plan !== "premium") {
-      router.replace("/dashboard");
-      return;
-    }
-    loadProducts();
+    if (!user) return;
+    if (user.role !== "user") { setPremiumLocked(false); loadProducts(); return; }
+    if (user.subscription?.status === "active" || user.plan === "premium") { setPremiumLocked(false); loadProducts(); return; }
+    if (user.subscription?.status === "expired") { setPremiumLocked(true); return; }
+    router.replace("/dashboard");
   }, [user]);
 
   useEffect(() => {
@@ -161,6 +163,8 @@ export default function ProductsPage() {
       </div>
     );
   }
+
+  if (premiumLocked) return <PremiumLock />;
 
   return (
     <div className="space-y-6">
