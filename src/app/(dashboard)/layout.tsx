@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
 import type { CurrencyCode } from "@/lib/currency";
@@ -131,9 +131,7 @@ export default function DashboardLayout({
   >
     <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
       <Link href="/dashboard" className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-          <FontAwesomeIcon icon={faWallet} className="w-4 h-4 text-white" />
-        </div>
+        <img src="/akwetche.svg" alt="Akwetche" className="h-8 w-8" />
         <span className="text-lg font-bold text-forest">
           Akwetche
         </span>
@@ -292,9 +290,7 @@ export default function DashboardLayout({
         <FontAwesomeIcon icon={faBars} className="w-8 h-8" />
       </button>
       <Link href="/dashboard" className="flex items-center gap-2.5">
-        <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-          <FontAwesomeIcon icon={faWallet} className="w-4.5 h-4.5 text-white" />
-        </div>
+        <img src="/akwetche.svg" alt="Akwetche" className="h-9 w-9" />
         <span className="text-xl font-bold text-forest">Akwetche</span>
       </Link>
     </header>

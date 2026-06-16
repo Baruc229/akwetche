@@ -12,14 +12,12 @@ export default function LandingPage() {
  <div className="min-h-screen bg-sand">
  <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
  <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
- <Link href="/" className="flex items-center gap-2 shrink-0">
- <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
- <FontAwesomeIcon icon={faWallet} className="w-5 h-5 text-white" />
- </div>
- <span className="text-xl font-bold text-forest">
- Akwetche
- </span>
- </Link>
+  <Link href="/" className="flex items-center gap-2 shrink-0">
+  <img src="/akwetche.svg" alt="Akwetche" className="h-9 w-9" />
+  <span className="text-xl font-bold text-forest">
+  Akwetche
+  </span>
+  </Link>
  <div className="hidden md:flex items-center gap-3">
  <a href="/login" className="btn-secondary text-sm inline-flex items-center justify-center">
  Connexion

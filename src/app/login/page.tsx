@@ -58,9 +58,7 @@ export default function LoginPage() {
           </a>
 
           <div className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-              <FontAwesomeIcon icon={faWallet} className="w-4 h-4 text-white" />
-            </div>
+            <img src="/akwetche.svg" alt="Akwetche" className="h-8 w-8" />
             <span className="text-lg font-bold text-forest">Akwetche</span>
           </div>
 
