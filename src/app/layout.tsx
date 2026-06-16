@@ -16,9 +16,8 @@ export const metadata: Metadata = {
   title: "Akwetche - Votre assistant financier personnel",
   description:
     "Reprenez le contrôle de vos finances. Suivez vos dépenses, gérez votre budget et développez votre activité.",
-  icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png",
+  appleWebApp: {
+    title: "Akwetche",
   },
 };
 
