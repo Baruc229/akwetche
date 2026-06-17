@@ -888,7 +888,7 @@ export default function DashboardPage() {
    <div>
    <label className="block text-sm text-muted mb-1">Catégorie</label>
     <CustomSelect
-    options={categories.filter((c: any) => c.type === newTx.type).map((c: any) => ({ value: String(c.id), label: c.name, disabled: !limits?.isPremium && c.archived, disabledReason: "Premium" }))}
+    options={categories.filter((c: any) => c.type === newTx.type && (limits?.isPremium || !c.archived)).map((c: any) => ({ value: String(c.id), label: c.name }))}
     value={newTx.categoryId}
     onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
     placeholder="Sélectionner..."
