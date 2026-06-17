@@ -71,6 +71,7 @@ export default function TransactionsPage() {
   const [txError, setTxError] = useState("");
 
   const [categories, setCategories] = useState<any[]>([]);
+  const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
   const [limits, setLimits] = useState<{
     isPremium: boolean;
     incomeCount: number;
@@ -134,6 +135,7 @@ export default function TransactionsPage() {
       setTransactions(txData.transactions || []);
       setTotal(txData.total || 0);
       setCategories(catData.categories || []);
+      setActiveCategoryIds(catData.activeCategoryIds || []);
       setLimits(limitsData);
     } catch (e) {
       console.error(e);
@@ -234,11 +236,19 @@ export default function TransactionsPage() {
   const totalExpense = (summary.personal?.expense || 0) + (summary.activity?.expense || 0);
   const netBalance = totalIncome - totalExpense;
 
-  const categoryOptions = categories
-    .filter((c: any) => c.type === formData.type)
-    .sort((a: any, b: any) => a.id - b.id)
-    .filter((_: any, i: number, arr: any[]) => limits?.isPremium || i < 3)
-    .map((c: any) => ({ value: String(c.id), label: c.name }));
+  const categoryOptions = (() => {
+    const isPrem = limits?.isPremium || false;
+    const ofType = categories.filter((c: any) => c.type === formData.type).sort((a: any, b: any) => a.id - b.id);
+    if (isPrem) return ofType.map((c: any) => ({ value: String(c.id), label: c.name }));
+    const active = ofType.filter((c: any) => activeCategoryIds.includes(c.id));
+    const locked = ofType.filter((c: any) => !activeCategoryIds.includes(c.id));
+    if (locked.length === 0) return active.map((c: any) => ({ value: String(c.id), label: c.name }));
+    return [
+      ...active.map((c: any) => ({ value: String(c.id), label: c.name })),
+      { value: "__sep__", label: "Nécessitent Premium", separator: true },
+      ...locked.map((c: any) => ({ value: String(c.id), label: c.name, disabled: true, disabledReason: "Premium requis" })),
+    ];
+  })();
 
   const tabs = [
     { label: "Tout", filter: "all" as const, scope: "all" as const },

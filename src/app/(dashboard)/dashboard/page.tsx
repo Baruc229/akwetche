@@ -48,17 +48,18 @@ export default function DashboardPage() {
  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
  const [loading, setLoading] = useState(true);
  const [showModal, setShowModal] = useState(false);
- const [categories, setCategories] = useState<{ id: number; name: string; icon: string; type: string }[]>([]);
- const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal" });
- const [txError, setTxError] = useState("");
- const [limits, setLimits] = useState<{
- isPremium: boolean;
- incomeCount: number;
- expenseCount: number;
- maxFreeIncome: number;
- maxFreeExpense: number;
- } | null>(null);
- const [subLoading, setSubLoading] = useState(false);
+  const [categories, setCategories] = useState<{ id: number; name: string; icon: string; type: string }[]>([]);
+  const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
+  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal" });
+  const [txError, setTxError] = useState("");
+  const [limits, setLimits] = useState<{
+  isPremium: boolean;
+  incomeCount: number;
+  expenseCount: number;
+  maxFreeIncome: number;
+  maxFreeExpense: number;
+  } | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
 
  async function loadData() {
  try {
@@ -79,8 +80,9 @@ export default function DashboardPage() {
  setWeekPersonal(weekData.personal || null);
  setWeekActivity(weekData.activity || null);
  setRecentTransactions(txData.transactions || []);
- setCategories(catData.categories || []);
- setLimits(limitsData);
+  setCategories(catData.categories || []);
+  setActiveCategoryIds(catData.activeCategoryIds || []);
+  setLimits(limitsData);
  } catch (e) {
  console.error(e);
  } finally {
@@ -885,15 +887,27 @@ export default function DashboardPage() {
  />
  </div>
 
-   <div>
-   <label className="block text-sm text-muted mb-1">Catégorie</label>
-    <CustomSelect
-    options={categories.filter((c: any) => c.type === newTx.type).sort((a: any, b: any) => a.id - b.id).filter((_: any, i: number, arr: any[]) => limits?.isPremium || i < 3).map((c: any) => ({ value: String(c.id), label: c.name }))}
-    value={newTx.categoryId}
-    onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
-    placeholder="Sélectionner..."
-    />
-   </div>
+    <div>
+    <label className="block text-sm text-muted mb-1">Catégorie</label>
+     <CustomSelect
+     options={(() => {
+     const isPrem = limits?.isPremium || false;
+     const ofType = categories.filter((c: any) => c.type === newTx.type).sort((a: any, b: any) => a.id - b.id);
+     if (isPrem) return ofType.map((c: any) => ({ value: String(c.id), label: c.name }));
+     const active = ofType.filter((c: any) => activeCategoryIds.includes(c.id));
+     const locked = ofType.filter((c: any) => !activeCategoryIds.includes(c.id));
+     if (locked.length === 0) return active.map((c: any) => ({ value: String(c.id), label: c.name }));
+     return [
+     ...active.map((c: any) => ({ value: String(c.id), label: c.name })),
+     { value: "__sep__", label: "Nécessitent Premium", separator: true },
+     ...locked.map((c: any) => ({ value: String(c.id), label: c.name, disabled: true, disabledReason: "Premium requis" })),
+     ];
+     })()}
+     value={newTx.categoryId}
+     onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
+     placeholder="Sélectionner..."
+     />
+    </div>
 
  {limits && !limits.isPremium && user?.role === "user" && (
  <div className="p-3 bg-ochre-light rounded-xl">

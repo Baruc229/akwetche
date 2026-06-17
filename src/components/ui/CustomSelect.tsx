@@ -9,6 +9,7 @@ type Option = {
   label: string;
   disabled?: boolean;
   disabledReason?: string;
+  separator?: boolean;
 };
 
 type CustomSelectProps = {
@@ -98,14 +99,13 @@ export default function CustomSelect({
   }, [open, options.length]);
 
   useEffect(() => {
-    if (open && listRef.current && selectedIndex >= 0) {
-      const items = listRef.current.querySelectorAll<HTMLElement>("[role='option']");
-      const selectedEl = items[selectedIndex];
+    if (open && listRef.current && value) {
+      const selectedEl = listRef.current.querySelector<HTMLElement>(`[role='option'][data-selected="true"]`);
       if (selectedEl) {
         selectedEl.scrollIntoView({ block: "nearest" });
       }
     }
-  }, [open, selectedIndex]);
+  }, [open, value]);
 
   const handleOpen = useCallback(() => {
     if (disabled) return;
@@ -133,37 +133,53 @@ export default function CustomSelect({
             </button>
           </div>
           <div className="overflow-y-auto flex-1 py-2">
-            {options.length === 0 ? (
-              <div className="px-5 py-4 text-sm text-muted text-center">Aucune option</div>
-            ) : (
-              options.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="option"
-                  disabled={opt.disabled}
-                  onClick={() => !opt.disabled && handleSelect(opt.value)}
-                  className={`w-full text-left px-5 py-3.5 text-sm transition-colors min-h-[48px] ${
-                    opt.disabled
-                      ? "text-muted cursor-not-allowed"
-                      : opt.value === value
-                        ? "bg-ochre-light text-ochre font-medium"
-                        : "text-ink hover:bg-sand hover:text-forest"
-                  }`}
-                  title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
-                    {opt.disabled && (
-                      <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
-                        <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-                        {opt.disabledReason || "Premium"}
+              {options.length === 0 ? (
+                <div className="px-5 py-4 text-sm text-muted text-center">Aucune option</div>
+              ) : (
+                options.map((opt) =>
+                  opt.separator ? (
+                    <div
+                      key={opt.value}
+                      role="separator"
+                      aria-label={opt.label || "Separator"}
+                      className="flex items-center gap-2 px-5 py-2"
+                    >
+                      {opt.label && (
+                        <span className="text-[10px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">
+                          {opt.label}
+                        </span>
+                      )}
+                      <span className="flex-1 h-px bg-border" />
+                    </div>
+                  ) : (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      disabled={opt.disabled}
+                      onClick={() => !opt.disabled && handleSelect(opt.value)}
+                      className={`w-full text-left px-5 py-3.5 text-sm transition-colors min-h-[48px] ${
+                        opt.disabled
+                          ? "text-muted cursor-not-allowed"
+                          : opt.value === value
+                            ? "bg-ochre-light text-ochre font-medium"
+                            : "text-ink hover:bg-sand hover:text-forest"
+                      }`}
+                      title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
+                        {opt.disabled && (
+                          <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                            <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                            {opt.disabledReason || "Premium"}
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
-                </button>
-              ))
-            )}
+                    </button>
+                  )
+                )
+              )}
           </div>
         </div>
       </div>
@@ -209,35 +225,52 @@ export default function CustomSelect({
               {options.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-muted">Aucune option</div>
               ) : (
-                options.map((opt, i) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="option"
-                    data-focused={i === selectedIndex ? "true" : "false"}
-                    data-disabled={opt.disabled ? "true" : "false"}
-                    disabled={opt.disabled}
-                    onClick={() => !opt.disabled && handleSelect(opt.value)}
-                    className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
-                      opt.disabled
-                        ? "text-muted cursor-not-allowed"
-                        : opt.value === value
-                          ? "bg-ochre-light text-ochre font-medium"
-                          : "text-ink hover:bg-sand hover:text-forest"
-                    }`}
-                    title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
-                      {opt.disabled && (
-                        <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
-                          <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-                          {opt.disabledReason || "Premium"}
+                options.map((opt, i) =>
+                  opt.separator ? (
+                    <div
+                      key={opt.value}
+                      role="separator"
+                      aria-label={opt.label || "Separator"}
+                      className="flex items-center gap-2 px-4 py-2"
+                    >
+                      {opt.label && (
+                        <span className="text-[10px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">
+                          {opt.label}
                         </span>
                       )}
-                    </span>
-                  </button>
-                ))
+                      <span className="flex-1 h-px bg-border" />
+                    </div>
+                  ) : (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      data-focused={i === selectedIndex ? "true" : "false"}
+                      data-selected={opt.value === value ? "true" : "false"}
+                      data-disabled={opt.disabled ? "true" : "false"}
+                      disabled={opt.disabled}
+                      onClick={() => !opt.disabled && handleSelect(opt.value)}
+                      className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
+                        opt.disabled
+                          ? "text-muted cursor-not-allowed"
+                          : opt.value === value
+                            ? "bg-ochre-light text-ochre font-medium"
+                            : "text-ink hover:bg-sand hover:text-forest"
+                      }`}
+                      title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
+                        {opt.disabled && (
+                          <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                            <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                            {opt.disabledReason || "Premium"}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  )
+                )
               )}
             </div>
             {canScroll && (

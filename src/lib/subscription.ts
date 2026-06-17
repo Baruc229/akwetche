@@ -77,9 +77,8 @@ export async function expireSubscription(subscriptionId: number) {
   });
 
   const categories = await prisma.category.findMany({
-    where: { userId: sub.userId },
-    include: { _count: { select: { transactions: true } } },
-    orderBy: { transactions: { _count: "desc" } },
+    where: { userId: sub.userId, archived: false },
+    orderBy: { id: "asc" },
   });
 
   const incomeCategories = categories.filter((c) => c.type === "income");

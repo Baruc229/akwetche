@@ -6,11 +6,35 @@ export async function GET() {
   try {
     const userId = await requireAuth();
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: true,
+        subscription: { select: { status: true } },
+      },
+    });
+    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
+
     const categories = await prisma.category.findMany({
       where: { userId },
-      orderBy: { name: "asc" },
+      orderBy: [{ type: "asc" }, { id: "asc" }],
     });
-    return ok({ categories });
+
+    let activeCategoryIds: number[];
+    if (isPremium) {
+      activeCategoryIds = categories.filter((c) => !c.archived).map((c) => c.id);
+    } else {
+      const seen = { income: 0, expense: 0 };
+      activeCategoryIds = categories
+        .filter((c) => !c.archived)
+        .filter((c) => {
+          seen[c.type as "income" | "expense"]++;
+          return seen[c.type as "income" | "expense"] <= 3;
+        })
+        .map((c) => c.id);
+    }
+
+    return ok({ categories, activeCategoryIds, isPremium });
   } catch {
     return badRequest("Non autorisé");
   }

@@ -46,8 +46,9 @@ const ALL_FEATURES = [
 export default function SettingsPage() {
  const { user, setUser, currency: activeCurrency } = useDashboard();
  const router = useRouter();
- const [categories, setCategories] = useState<Category[]>([]);
- const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
  const [name, setName] = useState(user?.name || "");
  const [initialBalance, setInitialBalance] = useState(String(user?.initialBalance || "0"));
  const [initialBalanceActivity, setInitialBalanceActivity] = useState(String(user?.initialBalanceActivity || "0"));
@@ -120,14 +121,15 @@ export default function SettingsPage() {
  router.push("/payment");
  }
 
- async function loadCategories() {
- try {
- const res = await fetch("/api/categories");
- const data = await res.json();
- setCategories(data.categories || []);
- } catch (e) { console.error(e); }
- finally { setLoading(false); }
- }
+  async function loadCategories() {
+  try {
+  const res = await fetch("/api/categories");
+  const data = await res.json();
+  setCategories(data.categories || []);
+  setActiveCategoryIds(data.activeCategoryIds || []);
+  } catch (e) { console.error(e); }
+  finally { setLoading(false); }
+  }
 
  async function handleSaveProfile(e: React.FormEvent) {
  e.preventDefault();
@@ -152,7 +154,7 @@ export default function SettingsPage() {
   setCatError("");
   if (!newCatName.trim()) return;
   const limit = 3;
-  const activeByType = categories.filter((c) => !c.archived && c.type === newCatType).length;
+  const activeByType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length;
   if (isFree && activeByType >= limit) {
   setCatError(`Limite gratuite atteinte (${limit} catégories par type max). Passez à Premium pour en créer plus.`);
   return;
@@ -166,28 +168,34 @@ export default function SettingsPage() {
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify({ name: optimistic.name, type: optimistic.type, icon: "" }),
  });
- const data = await res.json();
- if (!res.ok) {
- setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
- setCatError(data.error || "Erreur");
- return;
- }
- setCategories((prev) => prev.map((c) => (c.id === optimistic.id ? data.category : c)));
- } catch {
- setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
- setCatError("Erreur");
- }
+  const data = await res.json();
+  if (!res.ok) {
+  setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
+  setCatError(data.error || "Erreur");
+  return;
+  }
+  setCategories((prev) => prev.map((c) => (c.id === optimistic.id ? data.category : c)));
+  if (data.category) setActiveCategoryIds((prev) => [...prev, data.category.id]);
+  } catch {
+  setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
+  setCatError("Erreur");
+  }
  }
 
- async function handleDeleteCategory(id: number) {
- setConfirmDeleteCat(null);
- const deleted = categories.find((c) => c.id === id);
- setCategories((prev) => prev.filter((c) => c.id !== id));
- const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
- if (!res.ok && deleted) {
- setCategories((prev) => [...prev, deleted].sort((a, b) => a.name.localeCompare(b.name)));
- }
- }
+  async function handleDeleteCategory(id: number) {
+  setConfirmDeleteCat(null);
+  const deleted = categories.find((c) => c.id === id);
+  setCategories((prev) => prev.filter((c) => c.id !== id));
+  const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+  if (!res.ok && deleted) {
+  setCategories((prev) => [...prev, deleted].sort((a, b) => a.name.localeCompare(b.name)));
+  return;
+  }
+  // Refresh activeCategoryIds (deleting may promote next category for free users)
+  const fresh = await fetch("/api/categories");
+  const freshData = await fresh.json();
+  if (freshData.activeCategoryIds) setActiveCategoryIds(freshData.activeCategoryIds);
+  }
 
  async function handleDeleteAccount() {
  setDeleteLoading(true);
@@ -248,7 +256,7 @@ export default function SettingsPage() {
   if (newPresets.length === 0) return;
   if (!isPremium) {
   const limit = 3;
-  const activeOfType = categories.filter((c) => !c.archived && c.type === type).length;
+  const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
   const available = Math.max(0, limit - activeOfType);
   if (available <= 0) return;
   newPresets = newPresets.slice(0, available);
@@ -262,20 +270,23 @@ export default function SettingsPage() {
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify({ categories: newPresets }),
  });
- const data = await res.json();
- if (!res.ok) {
- setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
- return;
- }
- setCategories((prev) =>
- prev.map((c) => {
- const match = data.categories.find((nc: Category) => nc.name === c.name && nc.type === c.type);
- return match ? match : c;
- })
- );
- } catch {
- setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
- }
+  const data = await res.json();
+  if (!res.ok) {
+  setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
+  return;
+  }
+  const replaced = (prev: Category[]) => prev.map((c) => {
+  const match = data.categories.find((nc: Category) => nc.name === c.name && nc.type === c.type);
+  return match ? match : c;
+  });
+  setCategories(replaced);
+  // Refresh activeCategoryIds
+  const newApi = await fetch("/api/categories");
+  const fresh = await newApi.json();
+  if (fresh.activeCategoryIds) setActiveCategoryIds(fresh.activeCategoryIds);
+  } catch {
+  setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
+  }
  }
 
  if (loading) {
@@ -494,20 +505,20 @@ export default function SettingsPage() {
   <FontAwesomeIcon icon={faTag} className="w-5 h-5 text-forest" />
   <h2 className="text-base font-semibold text-ink">Catégories</h2>
   </div>
-  {isFree && (
+  {!isPremium && (
   <div className="mb-4 p-4 bg-ochre-light rounded-xl border border-border space-y-3">
   <p className="text-sm text-ink">
   Vous êtes sur le plan <strong>Gratuit</strong>. Seules <strong>3 catégories par type</strong> (revenus / dépenses) sont actives.
-  Renouvelez votre abonnement Premium pour réactiver toutes vos catégories.
+  Les catégories supplémentaires nécessitent Premium.
   </p>
   <div className="flex items-center justify-between text-sm">
   <div>
   <span className="font-medium text-ochre">Revenus actifs</span>
-  <span className="ml-2 font-semibold text-ochre">{categories.filter(c => !c.archived && c.type === "income").length}/3</span>
+  <span className="ml-2 font-semibold text-ochre">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "income").length}/{categories.filter(c => c.type === "income").length}</span>
   </div>
   <div>
   <span className="font-medium text-ochre">Dépenses actives</span>
-  <span className="ml-2 font-semibold text-ochre">{categories.filter(c => !c.archived && c.type === "expense").length}/3</span>
+  <span className="ml-2 font-semibold text-ochre">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "expense").length}/{categories.filter(c => c.type === "expense").length}</span>
   </div>
   </div>
   <button
@@ -520,91 +531,96 @@ export default function SettingsPage() {
   </button>
   </div>
   )}
-  <div className="space-y-6">
-  <div>
+
+  {(["income", "expense"] as const).map((type) => {
+  const typeLabel = type === "income" ? "Revenus" : "Dépenses";
+  const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
+  const totalOfType = categories.filter(c => c.type === type).length;
+  const isTypeLocked = !isPremium && activeOfType >= 3;
+
+  return (
+  <div key={type} className="mb-6 last:mb-0">
   <div className="flex items-center justify-between mb-3">
-  <h3 className="text-sm font-medium text-ink">Revenus</h3>
-  {isPremium && <button onClick={() => addPresetCategories("income")} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>}
+  <div className="flex items-center gap-2">
+  <h3 className="text-sm font-medium text-ink">{typeLabel}</h3>
+  {!isPremium && (
+  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-ochre-light text-ochre" : "bg-sand text-muted"}`}>({activeOfType}/3 actives)</span>
+  )}
   </div>
-  {categories.filter(c => c.type === "income" && !c.archived).length === 0 ? (
-  <p className="text-sm text-muted">Aucune catégorie de revenu active</p>
+  <button onClick={() => addPresetCategories(type)} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>
+  </div>
+
+  {totalOfType === 0 ? (
+  <p className="text-sm text-muted">Aucune catégorie de {typeLabel.toLowerCase()}</p>
   ) : (
   <div className="flex flex-wrap gap-2">
-  {categories.filter(c => c.type === "income" && !c.archived).map((cat) => (
-  <div key={cat.id} className="flex items-center gap-1.5 bg-ochre-light text-forest-light px-3 py-1.5 rounded-xl text-sm">
-  {cat.name}
-  <button onClick={() => setConfirmDeleteCat(cat.id)} className="text-forest-light hover:text-red-500"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
-  </div>
-  ))}
-  </div>
+  {categories.filter(c => c.type === type).map((cat) => {
+  const isActive = activeCategoryIds.includes(cat.id);
+  return (
+  <div key={cat.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border ${
+  isActive
+  ? "bg-ochre-light text-forest border-transparent"
+  : cat.archived
+    ? "bg-sand text-muted border-border opacity-70"
+    : "bg-sand text-muted border-border"
+  }`}>
+  {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
+  <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
+  {isActive && (
+  <button
+  onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
+  className="text-forest hover:text-red-500 transition-colors ml-0.5"
+  title="Supprimer"
+  >
+  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+  </button>
   )}
-  {categories.filter(c => c.type === "income" && c.archived).length > 0 && (
-  <div className="mt-2">
-  <p className="text-xs text-muted mb-1.5">Archivées</p>
-  <div className="flex flex-wrap gap-2">
-  {categories.filter(c => c.type === "income" && c.archived).map((cat) => (
-  <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border">
-  <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-  {cat.name}
-  <span className="text-[10px] bg-border text-muted px-1.5 py-0.5 rounded">Archivée</span>
-  </div>
-  ))}
-  </div>
-  </div>
+  {!isActive && (
+  <span className="text-[10px] font-medium bg-white/60 text-muted px-1.5 py-0.5 rounded">
+  {cat.archived ? "Archivée" : "Premium"}
+  </span>
   )}
   </div>
-  <div>
-  <div className="flex items-center justify-between mb-3">
-  <h3 className="text-sm font-medium text-ink">Dépenses</h3>
-  {isPremium && <button onClick={() => addPresetCategories("expense")} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>}
-  </div>
-  {categories.filter(c => c.type === "expense" && !c.archived).length === 0 ? (
-  <p className="text-sm text-muted">Aucune catégorie de dépense active</p>
-  ) : (
-  <div className="flex flex-wrap gap-2">
-  {categories.filter(c => c.type === "expense" && !c.archived).map((cat) => (
-  <div key={cat.id} className="flex items-center gap-1.5 bg-ochre-light text-ochre px-3 py-1.5 rounded-xl text-sm">
-  {cat.name}
-  <button onClick={() => handleDeleteCategory(cat.id)} className="text-ochre hover:text-red-500"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
-  </div>
-  ))}
-  </div>
-  )}
-  {categories.filter(c => c.type === "expense" && c.archived).length > 0 && (
-  <div className="mt-2">
-  <p className="text-xs text-muted mb-1.5">Archivées</p>
-  <div className="flex flex-wrap gap-2">
-  {categories.filter(c => c.type === "expense" && c.archived).map((cat) => (
-  <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border">
-  <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-  {cat.name}
-  <span className="text-[10px] bg-border text-muted px-1.5 py-0.5 rounded">Archivée</span>
-  </div>
-  ))}
-  </div>
+  );
+  })}
   </div>
   )}
   </div>
+  );
+  })}
+
   <form onSubmit={handleAddCategory} className="flex items-end gap-2 pt-3 border-t border-border">
   <div className="flex-1">
   <label className="block text-xs text-muted mb-1">Nouvelle catégorie</label>
-  <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="input-field text-sm" placeholder="Nom" />
+  <input
+  type="text"
+  value={newCatName}
+  onChange={(e) => setNewCatName(e.target.value)}
+  className="input-field text-sm"
+  placeholder="Nom"
+  disabled={!isPremium && activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length >= 3}
+  />
   </div>
   <div>
-               <label className="block text-xs text-muted mb-1">Type</label>
-               <CustomSelect
-                 options={[
-                   { value: "expense", label: "Dépense" },
-                   { value: "income", label: "Revenu" },
-                 ]}
-                 value={newCatType}
-                 onChange={(v) => setNewCatType(v)}
-               />
+  <label className="block text-xs text-muted mb-1">Type</label>
+  <CustomSelect
+  options={[
+  { value: "expense", label: "Dépense" },
+  { value: "income", label: "Revenu" },
+  ]}
+  value={newCatType}
+  onChange={(v) => setNewCatType(v)}
+  />
   </div>
-  <button type="submit" className="btn-primary py-2.5 px-3 text-sm"><FontAwesomeIcon icon={faPlus} className="w-4 h-4" /></button>
+  <button
+  type="submit"
+  disabled={!isPremium && activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length >= 3}
+  className="btn-primary py-2.5 px-3 text-sm disabled:opacity-40"
+  >
+  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+  </button>
   </form>
   {catError && <p className="text-red-500 text-sm">{catError}</p>}
-  </div>
   </div>
 
  {/* RESET */}
