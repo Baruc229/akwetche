@@ -42,6 +42,7 @@ export default function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
+  const confirmPortalRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -65,7 +66,8 @@ export default function NotificationBell() {
       const target = e.target as Node;
       const insideButton = ref.current?.contains(target);
       const insidePortal = portalRef.current?.contains(target);
-      if (!insideButton && !insidePortal) {
+      const insideConfirm = confirmPortalRef.current?.contains(target);
+      if (!insideButton && !insidePortal && !insideConfirm) {
         setOpen(false);
         setConfirmDelete(null);
       }
@@ -249,16 +251,21 @@ export default function NotificationBell() {
         </div>,
         document.body
       )}
-      <ConfirmModal
-        open={confirmDelete !== null}
-        title="Supprimer cette notification ?"
-        message="Cette notification sera définitivement supprimée."
-        confirmLabel="Oui, supprimer"
-        cancelLabel="Annuler"
-        variant="danger"
-        onConfirm={() => handleDeleteNotification(confirmDelete!)}
-        onCancel={() => setConfirmDelete(null)}
-      />
+      {confirmDelete !== null && createPortal(
+        <div ref={confirmPortalRef}>
+          <ConfirmModal
+            open={confirmDelete !== null}
+            title="Supprimer cette notification ?"
+            message="Cette notification sera définitivement supprimée."
+            confirmLabel="Oui, supprimer"
+            cancelLabel="Annuler"
+            variant="danger"
+            onConfirm={() => handleDeleteNotification(confirmDelete!)}
+            onCancel={() => setConfirmDelete(null)}
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
