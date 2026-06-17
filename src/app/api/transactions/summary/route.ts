@@ -12,16 +12,16 @@ type ScopeSummary = {
   topCategories: { name: string; icon: string; amount: number; type: string }[];
 };
 
-function computeScopeSummary(transactions: { type: string; amount: number; category: { name: string; icon: string } }[], initialBalance: number): ScopeSummary {
+function computeScopeSummary(transactions: { type: string; amount: number; category: { name: string; icon: string } | null }[], initialBalance: number): ScopeSummary {
   const income = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const savings = income - expense;
 
   const byCategory: Record<string, { name: string; icon: string; amount: number; type: string }> = {};
   for (const t of transactions) {
-    const key = t.category.name;
+    const key = t.category?.name || "Non catégorisé";
     if (!byCategory[key]) {
-      byCategory[key] = { name: key, icon: t.category.icon, amount: 0, type: t.type };
+      byCategory[key] = { name: key, icon: t.category?.icon || "", amount: 0, type: t.type };
     }
     if (t.type === "income") {
       byCategory[key].amount += t.amount;
@@ -73,7 +73,10 @@ export async function GET(req: NextRequest) {
 
     const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
     if (!isPremium) {
-      where.category = { archived: false };
+      where.OR = [
+        { category: { archived: false } },
+        { categoryId: null },
+      ];
     }
 
     const allTransactions = await prisma.transaction.findMany({

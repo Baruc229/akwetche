@@ -109,24 +109,10 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json();
     const catId = parseInt(id);
 
-    try {
-      const deleted = await prisma.category.deleteMany({
-        where: { id: catId, userId },
-      });
-      if (deleted.count === 0) {
-        // Already deleted — try to archive instead
-        await prisma.category.updateMany({
-          where: { id: catId, userId },
-          data: { archived: true },
-        });
-      }
-    } catch {
-      // Foreign key: has transactions → archive
-      await prisma.category.updateMany({
-        where: { id: catId, userId },
-        data: { archived: true },
-      });
-    }
+    // Transactons with this category get categoryId = null (SetNull)
+    await prisma.category.deleteMany({
+      where: { id: catId, userId },
+    });
 
     return ok({ success: true });
   } catch {

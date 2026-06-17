@@ -706,7 +706,7 @@ export default function SettingsPage() {
 
  <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
  <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />
-  <ConfirmModal open={confirmDeleteCat !== null} title="Supprimer cette catégorie ?" message={confirmDeleteCat !== null && categories.find(c => c.id === confirmDeleteCat)?.archived ? "Cette catégorie archivée sera définitivement supprimée." : "La catégorie sera supprimée. Si elle contient des transactions, elle sera archivée à la place."} confirmLabel="Oui, supprimer" cancelLabel="Annuler" variant="warning" onConfirm={() => handleDeleteCategory(confirmDeleteCat!)} onCancel={() => setConfirmDeleteCat(null)} />
+  <ConfirmModal open={confirmDeleteCat !== null} title="Supprimer cette catégorie ?" message="Cette catégorie sera définitivement supprimée. Les transactions liées ne seront plus associées à une catégorie." confirmLabel="Oui, supprimer" cancelLabel="Annuler" variant="warning" onConfirm={() => handleDeleteCategory(confirmDeleteCat!)} onCancel={() => setConfirmDeleteCat(null)} />
  </div>
  );
 }

@@ -127,7 +127,7 @@ export default function HistoryPage() {
       result = result.filter(tx => tx.type === typeFilter);
     }
     if (categoryFilter !== "all") {
-      result = result.filter(tx => String(tx.category.id) === categoryFilter);
+      result = result.filter(tx => String(tx.category?.id ?? "") === categoryFilter);
     }
     if (search) {
       const q = search.toLowerCase();

@@ -553,7 +553,7 @@ export default function DashboardPage() {
  {tx.description}
  </p>
  <p className="text-xs text-muted">
- {tx.category?.name} · {formatDate(tx.date)}
+  {tx.category?.name || "Non catégorisé"} · {formatDate(tx.date)}
  {tx.scope === "activity" && (
  <span className="ml-1.5 text-ochre font-medium">· activité</span>
  )}

@@ -143,10 +143,10 @@ model Transaction {
   description String
   date        DateTime @default(now())
   scope       String   @default("personal") // "personal" or "activity"
-  categoryId  Int
+  categoryId  Int?
   userId      Int
 
-  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

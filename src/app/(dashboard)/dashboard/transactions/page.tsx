@@ -162,7 +162,7 @@ export default function TransactionsPage() {
       type: tx.type,
       amount: String(tx.amount),
       description: tx.description,
-      categoryId: String(tx.category.id),
+      categoryId: String(tx.category?.id ?? ""),
       date: tx.date ? new Date(tx.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       scope: tx.scope,
       note: "",
@@ -452,7 +452,7 @@ export default function TransactionsPage() {
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-ink whitespace-normal break-words">{tx.description}</p>
                             <p className="text-xs text-muted mt-0.5">
-                              {tx.category?.name}
+                              {tx.category?.name || "Non catégorisé"}
                               {tx.scope === "activity" && <span className="ml-1 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
                               {tx.scope === "personal" && <span className="ml-1 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
                             </p>
@@ -480,7 +480,7 @@ export default function TransactionsPage() {
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-ink truncate">{tx.description}</p>
                             <p className="text-xs text-muted">
-                              {tx.category?.name} · {formatDate(tx.date)}
+                              {tx.category?.name || "Non catégorisé"} · {formatDate(tx.date)}
                               {tx.scope === "activity" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
                               {tx.scope === "personal" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
                             </p>

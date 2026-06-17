@@ -66,7 +66,8 @@ export async function GET(req: NextRequest) {
       const expense = txns.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
       const byCat: Record<string, number> = {};
       txns.filter(t => t.type === "expense").forEach(t => {
-        byCat[t.category.name] = (byCat[t.category.name] || 0) + t.amount;
+        const name = t.category?.name || "Non catégorisé";
+        byCat[name] = (byCat[name] || 0) + t.amount;
       });
       return { income, expense, savings: income - expense, topCategories: byCat };
     };
