@@ -235,7 +235,9 @@ export default function TransactionsPage() {
   const netBalance = totalIncome - totalExpense;
 
   const categoryOptions = categories
-    .filter((c: any) => c.type === formData.type && (limits?.isPremium || !c.archived))
+    .filter((c: any) => c.type === formData.type)
+    .sort((a: any, b: any) => a.id - b.id)
+    .filter((_: any, i: number, arr: any[]) => limits?.isPremium || i < 3)
     .map((c: any) => ({ value: String(c.id), label: c.name }));
 
   const tabs = [
