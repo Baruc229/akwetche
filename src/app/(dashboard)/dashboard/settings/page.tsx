@@ -184,13 +184,26 @@ export default function SettingsPage() {
 
   async function handleDeleteCategory(id: number) {
   setConfirmDeleteCat(null);
+  setCatError("");
+  // Optimistic removal
+  setCategories((prev) => prev.filter((c) => c.id !== id));
   const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-  if (!res.ok) return;
-  // Reload everything from server to keep state in sync
+  if (!res.ok) {
+  // Rollback: reload from server
   const fresh = await fetch("/api/categories");
   const freshData = await fresh.json();
   setCategories(freshData.categories || []);
   setActiveCategoryIds(freshData.activeCategoryIds || []);
+  setCatError("Erreur lors de la suppression");
+  return;
+  }
+  // For free users, refresh to handle promotion (next category may become active)
+  if (!isPremium) {
+  const fresh = await fetch("/api/categories");
+  const freshData = await fresh.json();
+  setCategories(freshData.categories || []);
+  setActiveCategoryIds(freshData.activeCategoryIds || []);
+  }
   }
 
  async function handleDeleteAccount() {
