@@ -48,31 +48,31 @@ export default function ConfirmModal({
 
  return (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in">
- <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in">
- <div className="flex flex-col items-center text-center mb-5">
- <div className={`w-14 h-14 rounded-full ${v.icon} flex items-center justify-center mb-4`}>
- <FontAwesomeIcon icon={faTriangleExclamation} className={`w-7 h-7 ${v.iconColor}`} />
- </div>
- <h3 className="text-lg font-semibold text-ink">{title}</h3>
- <p className="text-sm text-muted mt-2 leading-relaxed">{message}</p>
- </div>
- <div className="flex gap-3">
- <button
- type="button"
- onClick={onCancel}
- className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-border text-muted hover:bg-sand transition-all"
- >
- {cancelLabel}
- </button>
- <button
- type="button"
- onClick={onConfirm}
- className={`flex-1 py-2.5 rounded-xl text-sm font-medium text-white shadow-sm transition-all ${v.button}`}
- >
- {confirmLabel}
- </button>
- </div>
- </div>
+  <div className="bg-white rounded-2xl p-5 w-full max-w-xs shadow-xl animate-scale-in">
+  <div className="flex flex-col items-center text-center mb-4">
+  <div className={`w-12 h-12 rounded-full ${v.icon} flex items-center justify-center mb-3`}>
+  <FontAwesomeIcon icon={faTriangleExclamation} className={`w-6 h-6 ${v.iconColor}`} />
+  </div>
+  <h3 className="text-base font-semibold text-ink">{title}</h3>
+  <p className="text-sm text-muted mt-1 leading-relaxed">{message}</p>
+  </div>
+  <div className="flex gap-2">
+  <button
+  type="button"
+  onClick={onCancel}
+  className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-border text-muted hover:bg-sand transition-all"
+  >
+  {cancelLabel}
+  </button>
+  <button
+  type="button"
+  onClick={onConfirm}
+  className={`flex-1 py-2.5 rounded-xl text-sm font-medium text-white shadow-sm transition-all ${v.button}`}
+  >
+  {confirmLabel}
+  </button>
+  </div>
+  </div>
  </div>
  );
 }

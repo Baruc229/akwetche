@@ -67,6 +67,7 @@ export default function NotificationBell() {
       const insidePortal = portalRef.current?.contains(target);
       if (!insideButton && !insidePortal) {
         setOpen(false);
+        setConfirmDelete(null);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -234,7 +235,7 @@ export default function NotificationBell() {
                     </div>
                     {!n.read && <div className="w-2 h-2 rounded-full bg-forest shrink-0 mt-1.5" />}
                     <button
-                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(n); }}
+                      onClick={(e) => { e.stopPropagation(); setOpen(false); setConfirmDelete(n); }}
                       className="shrink-0 text-muted hover:text-red-500 transition-colors mt-1 -mr-1"
                       title="Supprimer"
                     >

@@ -199,6 +199,7 @@ export default function SettingsPage() {
   setCatError("");
   // Optimistic removal
   setCategories((prev) => prev.filter((c) => c.id !== id));
+  setActiveCategoryIds((prev) => prev.filter((cid) => cid !== id));
   const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
   if (!res.ok) {
   // Rollback: reload from server
@@ -285,6 +286,7 @@ export default function SettingsPage() {
   }
   const optimism: Category[] = newPresets.map((p, i) => ({ id: Date.now() + i, name: p.name, icon: "", type: p.type, archived: false }));
   setCategories((prev) => [...prev, ...optimism]);
+  setActiveCategoryIds((prev) => [...prev, ...optimism.map(o => o.id)]);
  try {
  const res = await fetch("/api/categories/bulk", {
  method: "POST",
@@ -294,6 +296,7 @@ export default function SettingsPage() {
   const data = await res.json();
   if (!res.ok) {
   setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
+  setActiveCategoryIds((prev) => prev.filter(id => !optimism.some(o => o.id === id)));
   return;
   }
   const replaced = (prev: Category[]) => prev.map((c) => {
@@ -307,6 +310,7 @@ export default function SettingsPage() {
   if (fresh.activeCategoryIds) setActiveCategoryIds(fresh.activeCategoryIds);
   } catch {
   setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
+  setActiveCategoryIds((prev) => prev.filter(id => !optimism.some(o => o.id === id)));
   }
  }
 
