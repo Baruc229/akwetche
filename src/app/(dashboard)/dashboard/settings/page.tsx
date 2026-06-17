@@ -3,13 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { formatCurrency, resolveCurrency, setActiveCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
-type Category = { id: number; name: string; icon: string; type: string };
+type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
 
 const PRESET_CATEGORIES = {
  income: [
@@ -147,16 +147,18 @@ export default function SettingsPage() {
  } catch (e) { console.error(e); }
  }
 
- async function handleAddCategory(e: React.FormEvent) {
- e.preventDefault();
- setCatError("");
- if (!newCatName.trim()) return;
- if (isFree && categories.length >= 3 && !categories.some(c => c.name === newCatName.trim() && c.type === newCatType)) {
- setCatError("Limite gratuite atteinte (3 catégories max). Passez à Premium pour en créer plus.");
- return;
- }
- const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType };
- setCategories((prev) => [...prev, optimistic]);
+  async function handleAddCategory(e: React.FormEvent) {
+  e.preventDefault();
+  setCatError("");
+  if (!newCatName.trim()) return;
+  const limit = 3;
+  const activeByType = categories.filter((c) => !c.archived && c.type === newCatType).length;
+  if (isFree && activeByType >= limit) {
+  setCatError(`Limite gratuite atteinte (${limit} catégories par type max). Passez à Premium pour en créer plus.`);
+  return;
+  }
+  const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType, archived: false };
+  setCategories((prev) => [...prev, optimistic]);
  setNewCatName("");
  try {
  const res = await fetch("/api/categories", {
@@ -240,20 +242,20 @@ export default function SettingsPage() {
  } catch { setPasswordError("Erreur réseau"); }
  }
 
- async function addPresetCategories(type: "income" | "expense") {
- const presets = PRESET_CATEGORIES[type];
- let newPresets = presets.filter((p) => !categories.some((c) => c.name === p.name && c.type === p.type));
- if (newPresets.length === 0) return;
- if (!isPremium) {
- const freeLimit = 3;
- const currentCount = categories.length;
- const available = freeLimit - currentCount;
- if (available <= 0) return;
- newPresets = newPresets.slice(0, available);
- if (newPresets.length === 0) return;
- }
- const optimism: Category[] = newPresets.map((p, i) => ({ id: Date.now() + i, name: p.name, icon: "", type: p.type }));
- setCategories((prev) => [...prev, ...optimism]);
+  async function addPresetCategories(type: "income" | "expense") {
+  const presets = PRESET_CATEGORIES[type];
+  let newPresets = presets.filter((p) => !categories.some((c) => c.name === p.name && c.type === p.type));
+  if (newPresets.length === 0) return;
+  if (!isPremium) {
+  const limit = 3;
+  const activeOfType = categories.filter((c) => !c.archived && c.type === type).length;
+  const available = Math.max(0, limit - activeOfType);
+  if (available <= 0) return;
+  newPresets = newPresets.slice(0, available);
+  if (newPresets.length === 0) return;
+  }
+  const optimism: Category[] = newPresets.map((p, i) => ({ id: Date.now() + i, name: p.name, icon: "", type: p.type, archived: false }));
+  setCategories((prev) => [...prev, ...optimism]);
  try {
  const res = await fetch("/api/categories/bulk", {
  method: "POST",
@@ -486,89 +488,124 @@ export default function SettingsPage() {
  </form>
  </div>
 
- {/* CATEGORIES */}
- <div className="card p-6">
- <div className="flex items-center gap-3 mb-5">
- <FontAwesomeIcon icon={faTag} className="w-5 h-5 text-forest" />
- <h2 className="text-base font-semibold text-ink">Catégories</h2>
- </div>
- {isFree && (
- <div className="mb-4 p-3 bg-ochre-light rounded-xl border border-border">
- <div className="flex items-center justify-between text-sm">
- <span className="font-medium text-ochre">Limite plan gratuit</span>
- <span className="text-ochre font-semibold">{categories.length}/3 catégories</span>
- </div>
- <div className="w-full h-1.5 bg-ochre-light rounded-full mt-2 overflow-hidden">
- <div
- className={`h-full rounded-full transition-all ${categories.length >= 3 ? "bg-red-500" : "bg-ochre"}`}
- style={{ width: `${Math.min(100, (categories.length / 3) * 100)}%` }}
- />
- </div>
- {categories.length >= 3 && (
- <p className="text-xs text-red-600 mt-2">
- Limite de catégories atteinte. Passez à Premium pour en créer plus.
- </p>
- )}
- </div>
- )}
- <div className="space-y-6">
- <div>
- <div className="flex items-center justify-between mb-3">
- <h3 className="text-sm font-medium text-ink">Revenus</h3>
- <button onClick={() => addPresetCategories("income")} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>
- </div>
- {categories.filter(c => c.type === "income").length === 0 ? (
- <p className="text-sm text-muted">Aucune catégorie de revenu</p>
- ) : (
- <div className="flex flex-wrap gap-2">
- {categories.filter(c => c.type === "income").map((cat) => (
- <div key={cat.id} className="flex items-center gap-1.5 bg-ochre-light text-forest-light px-3 py-1.5 rounded-xl text-sm">
- {cat.name}
- <button onClick={() => setConfirmDeleteCat(cat.id)} className="text-forest-light hover:text-red-500"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
- </div>
- ))}
- </div>
- )}
- </div>
- <div>
- <div className="flex items-center justify-between mb-3">
- <h3 className="text-sm font-medium text-ink">Dépenses</h3>
- <button onClick={() => addPresetCategories("expense")} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>
- </div>
- {categories.filter(c => c.type === "expense").length === 0 ? (
- <p className="text-sm text-muted">Aucune catégorie de dépense</p>
- ) : (
- <div className="flex flex-wrap gap-2">
- {categories.filter(c => c.type === "expense").map((cat) => (
- <div key={cat.id} className="flex items-center gap-1.5 bg-ochre-light text-ochre px-3 py-1.5 rounded-xl text-sm">
- {cat.name}
- <button onClick={() => handleDeleteCategory(cat.id)} className="text-ochre hover:text-red-500"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
- </div>
- ))}
- </div>
- )}
- </div>
- <form onSubmit={handleAddCategory} className="flex items-end gap-2 pt-3 border-t border-border">
- <div className="flex-1">
- <label className="block text-xs text-muted mb-1">Nouvelle catégorie</label>
- <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="input-field text-sm" placeholder="Nom" />
- </div>
- <div>
-              <label className="block text-xs text-muted mb-1">Type</label>
-              <CustomSelect
-                options={[
-                  { value: "expense", label: "Dépense" },
-                  { value: "income", label: "Revenu" },
-                ]}
-                value={newCatType}
-                onChange={(v) => setNewCatType(v)}
-              />
- </div>
- <button type="submit" className="btn-primary py-2.5 px-3 text-sm"><FontAwesomeIcon icon={faPlus} className="w-4 h-4" /></button>
- </form>
- {catError && <p className="text-red-500 text-sm">{catError}</p>}
- </div>
- </div>
+  {/* CATEGORIES */}
+  <div className="card p-6">
+  <div className="flex items-center gap-3 mb-5">
+  <FontAwesomeIcon icon={faTag} className="w-5 h-5 text-forest" />
+  <h2 className="text-base font-semibold text-ink">Catégories</h2>
+  </div>
+  {isFree && (
+  <div className="mb-4 p-4 bg-ochre-light rounded-xl border border-border space-y-3">
+  <p className="text-sm text-ink">
+  Vous êtes sur le plan <strong>Gratuit</strong>. Seules <strong>3 catégories par type</strong> (revenus / dépenses) sont actives.
+  Renouvelez votre abonnement Premium pour réactiver toutes vos catégories.
+  </p>
+  <div className="flex items-center justify-between text-sm">
+  <div>
+  <span className="font-medium text-ochre">Revenus actifs</span>
+  <span className="ml-2 font-semibold text-ochre">{categories.filter(c => !c.archived && c.type === "income").length}/3</span>
+  </div>
+  <div>
+  <span className="font-medium text-ochre">Dépenses actives</span>
+  <span className="ml-2 font-semibold text-ochre">{categories.filter(c => !c.archived && c.type === "expense").length}/3</span>
+  </div>
+  </div>
+  <button
+  onClick={handleSubscribe}
+  className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm font-medium bg-forest text-white hover:bg-forest-light transition-all"
+  >
+  <FontAwesomeIcon icon={faCrown} className="w-4 h-4" />
+  Passer au Premium
+  <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
+  </button>
+  </div>
+  )}
+  <div className="space-y-6">
+  <div>
+  <div className="flex items-center justify-between mb-3">
+  <h3 className="text-sm font-medium text-ink">Revenus</h3>
+  {isPremium && <button onClick={() => addPresetCategories("income")} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>}
+  </div>
+  {categories.filter(c => c.type === "income" && !c.archived).length === 0 ? (
+  <p className="text-sm text-muted">Aucune catégorie de revenu active</p>
+  ) : (
+  <div className="flex flex-wrap gap-2">
+  {categories.filter(c => c.type === "income" && !c.archived).map((cat) => (
+  <div key={cat.id} className="flex items-center gap-1.5 bg-ochre-light text-forest-light px-3 py-1.5 rounded-xl text-sm">
+  {cat.name}
+  <button onClick={() => setConfirmDeleteCat(cat.id)} className="text-forest-light hover:text-red-500"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
+  </div>
+  ))}
+  </div>
+  )}
+  {categories.filter(c => c.type === "income" && c.archived).length > 0 && (
+  <div className="mt-2">
+  <p className="text-xs text-muted mb-1.5">Archivées</p>
+  <div className="flex flex-wrap gap-2">
+  {categories.filter(c => c.type === "income" && c.archived).map((cat) => (
+  <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border">
+  <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+  {cat.name}
+  <span className="text-[10px] bg-border text-muted px-1.5 py-0.5 rounded">Archivée</span>
+  </div>
+  ))}
+  </div>
+  </div>
+  )}
+  </div>
+  <div>
+  <div className="flex items-center justify-between mb-3">
+  <h3 className="text-sm font-medium text-ink">Dépenses</h3>
+  {isPremium && <button onClick={() => addPresetCategories("expense")} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>}
+  </div>
+  {categories.filter(c => c.type === "expense" && !c.archived).length === 0 ? (
+  <p className="text-sm text-muted">Aucune catégorie de dépense active</p>
+  ) : (
+  <div className="flex flex-wrap gap-2">
+  {categories.filter(c => c.type === "expense" && !c.archived).map((cat) => (
+  <div key={cat.id} className="flex items-center gap-1.5 bg-ochre-light text-ochre px-3 py-1.5 rounded-xl text-sm">
+  {cat.name}
+  <button onClick={() => handleDeleteCategory(cat.id)} className="text-ochre hover:text-red-500"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
+  </div>
+  ))}
+  </div>
+  )}
+  {categories.filter(c => c.type === "expense" && c.archived).length > 0 && (
+  <div className="mt-2">
+  <p className="text-xs text-muted mb-1.5">Archivées</p>
+  <div className="flex flex-wrap gap-2">
+  {categories.filter(c => c.type === "expense" && c.archived).map((cat) => (
+  <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border">
+  <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+  {cat.name}
+  <span className="text-[10px] bg-border text-muted px-1.5 py-0.5 rounded">Archivée</span>
+  </div>
+  ))}
+  </div>
+  </div>
+  )}
+  </div>
+  <form onSubmit={handleAddCategory} className="flex items-end gap-2 pt-3 border-t border-border">
+  <div className="flex-1">
+  <label className="block text-xs text-muted mb-1">Nouvelle catégorie</label>
+  <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="input-field text-sm" placeholder="Nom" />
+  </div>
+  <div>
+               <label className="block text-xs text-muted mb-1">Type</label>
+               <CustomSelect
+                 options={[
+                   { value: "expense", label: "Dépense" },
+                   { value: "income", label: "Revenu" },
+                 ]}
+                 value={newCatType}
+                 onChange={(v) => setNewCatType(v)}
+               />
+  </div>
+  <button type="submit" className="btn-primary py-2.5 px-3 text-sm"><FontAwesomeIcon icon={faPlus} className="w-4 h-4" /></button>
+  </form>
+  {catError && <p className="text-red-500 text-sm">{catError}</p>}
+  </div>
+  </div>
 
  {/* RESET */}
  <div className="card p-6 border border-red-200 bg-red-50/30">

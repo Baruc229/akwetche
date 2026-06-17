@@ -16,24 +16,28 @@ export async function GET() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [incomeCount, expenseCount, categoryCount] = await Promise.all([
+    const [incomeCount, expenseCount, incomeCatCount, expenseCatCount] = await Promise.all([
       prisma.transaction.count({
         where: { userId, type: "income", date: { gte: startOfMonth } },
       }),
       prisma.transaction.count({
         where: { userId, type: "expense", date: { gte: startOfMonth } },
       }),
-      prisma.category.count({ where: { userId, archived: false } }),
+      prisma.category.count({ where: { userId, type: "income", archived: false } }),
+      prisma.category.count({ where: { userId, type: "expense", archived: false } }),
     ]);
 
     return ok({
       isPremium,
       incomeCount,
       expenseCount,
-      categoryCount,
+      incomeCatCount,
+      expenseCatCount,
       maxFreeIncome: 5,
       maxFreeExpense: 5,
-      maxFreeCategories: 3,
+      maxFreeIncomeCategories: 3,
+      maxFreeExpenseCategories: 3,
+      maxFreeCategories: 6,
     });
   } catch {
     return badRequest("Erreur");

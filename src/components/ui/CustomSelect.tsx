@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faLock } from '@fortawesome/free-solid-svg-icons';
 
-type Option = { value: string; label: string };
+type Option = {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  disabledReason?: string;
+};
 
 type CustomSelectProps = {
   options: Option[];
@@ -14,6 +19,10 @@ type CustomSelectProps = {
   disabled?: boolean;
   className?: string;
 };
+
+const DROPDOWN_MAX_HEIGHT = 256;
+const OPTION_HEIGHT = 44;
+const GRADIENT_HEIGHT = 20;
 
 export default function CustomSelect({
   options,
@@ -26,13 +35,13 @@ export default function CustomSelect({
   const [open, setOpen] = useState(false);
   const [openUp, setOpenUp] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
+  const [canScroll, setCanScroll] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const selectedRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
-
+  const selectedIndex = options.findIndex((o) => o.value === value);
   const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 375;
 
   useEffect(() => {
@@ -50,7 +59,7 @@ export default function CustomSelect({
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") { setOpen(false); return; }
       if (!listRef.current) return;
-      const items = listRef.current.querySelectorAll<HTMLElement>("[role='option']");
+      const items = listRef.current.querySelectorAll<HTMLElement>("[role='option']:not([data-disabled='true'])");
       if (!items.length) return;
       const currentIndex = Array.from(items).findIndex((el) => el.dataset.focused === "true");
       let nextIndex = currentIndex;
@@ -78,35 +87,40 @@ export default function CustomSelect({
   useEffect(() => {
     if (open && dropdownRef.current && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      const dropdownH = Math.min(options.length * 48 + 16, isSmallScreen ? window.innerHeight * 0.6 : 320);
+      const contentHeight = options.length * OPTION_HEIGHT + 16;
+      const dropdownH = Math.min(contentHeight, DROPDOWN_MAX_HEIGHT);
       const spaceBelow = window.innerHeight - rect.bottom - 8;
       const spaceAbove = rect.top - 8;
       setOpenUp(spaceBelow < dropdownH && spaceAbove >= dropdownH);
+
+      setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
     }
-  }, [open, options.length, isSmallScreen]);
+  }, [open, options.length]);
 
   useEffect(() => {
-    if (open && selectedRef.current) {
-      selectedRef.current.scrollIntoView({ block: "nearest" });
+    if (open && listRef.current && selectedIndex >= 0) {
+      const items = listRef.current.querySelectorAll<HTMLElement>("[role='option']");
+      const selectedEl = items[selectedIndex];
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ block: "nearest" });
+      }
     }
-  }, [open]);
+  }, [open, selectedIndex]);
 
-  function handleOpen() {
+  const handleOpen = useCallback(() => {
     if (disabled) return;
     if (isSmallScreen) {
       setSearchMode(true);
     } else {
-      setOpen(!open);
+      setOpen((prev) => !prev);
     }
-  }
+  }, [disabled, isSmallScreen]);
 
-  function handleSelect(val: string) {
+  const handleSelect = useCallback((val: string) => {
     onChange(val);
     setOpen(false);
     setSearchMode(false);
-  }
-
-  const selectedIndex = options.findIndex((o) => o.value === value);
+  }, [onChange]);
 
   if (searchMode) {
     return (
@@ -122,19 +136,31 @@ export default function CustomSelect({
             {options.length === 0 ? (
               <div className="px-5 py-4 text-sm text-muted text-center">Aucune option</div>
             ) : (
-              options.map((opt, i) => (
+              options.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   role="option"
-                  onClick={() => handleSelect(opt.value)}
+                  disabled={opt.disabled}
+                  onClick={() => !opt.disabled && handleSelect(opt.value)}
                   className={`w-full text-left px-5 py-3.5 text-sm transition-colors min-h-[48px] ${
-                    opt.value === value
-                      ? "bg-ochre-light text-ochre font-medium"
-                      : "text-ink hover:bg-sand hover:text-forest"
+                    opt.disabled
+                      ? "text-muted cursor-not-allowed"
+                      : opt.value === value
+                        ? "bg-ochre-light text-ochre font-medium"
+                        : "text-ink hover:bg-sand hover:text-forest"
                   }`}
+                  title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
                 >
-                  {opt.label}
+                  <span className="flex items-center justify-between gap-2">
+                    <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
+                    {opt.disabled && (
+                      <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                        <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                        {opt.disabledReason || "Premium"}
+                      </span>
+                    )}
+                  </span>
                 </button>
               ))
             )}
@@ -150,7 +176,6 @@ export default function CustomSelect({
         type="button"
         onClick={handleOpen}
         disabled={disabled}
-        ref={selectedRef}
         className={`input-field flex items-center justify-between gap-2 w-full text-left ${
           !selected ? "text-muted" : "text-ink"
         } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
@@ -169,34 +194,56 @@ export default function CustomSelect({
           className={`absolute z-50 left-0 right-0 bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in ${
             openUp ? "bottom-full mb-1" : "top-full mt-1"
           }`}
-          style={{ maxHeight: isSmallScreen ? "60vh" : "320px" }}
+          style={{ maxHeight: `${DROPDOWN_MAX_HEIGHT}px` }}
         >
-          <div ref={listRef} className="overflow-y-auto h-full custom-scrollbar">
-            {options.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-muted">Aucune option</div>
-            ) : (
-              options.map((opt, i) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  role="option"
-                  data-focused={i === selectedIndex ? "true" : "false"}
-                  onClick={() => handleSelect(opt.value)}
-                  className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
-                    opt.value === value
-                      ? "bg-ochre-light text-ochre font-medium"
-                      : "text-ink hover:bg-sand hover:text-forest"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))
+          <div
+            ref={listRef}
+            className="overflow-y-auto custom-select-scrollbar"
+            style={{
+              maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
+              overscrollBehavior: "contain",
+              scrollbarWidth: "thin",
+              scrollbarColor: "#d4d0c8 #f5f3f0",
+            }}
+          >
+              {options.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-muted">Aucune option</div>
+              ) : (
+                options.map((opt, i) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="option"
+                    data-focused={i === selectedIndex ? "true" : "false"}
+                    data-disabled={opt.disabled ? "true" : "false"}
+                    disabled={opt.disabled}
+                    onClick={() => !opt.disabled && handleSelect(opt.value)}
+                    className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
+                      opt.disabled
+                        ? "text-muted cursor-not-allowed"
+                        : opt.value === value
+                          ? "bg-ochre-light text-ochre font-medium"
+                          : "text-ink hover:bg-sand hover:text-forest"
+                    }`}
+                    title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
+                      {opt.disabled && (
+                        <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                          <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                          {opt.disabledReason || "Premium"}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+            {canScroll && (
+              <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
             )}
           </div>
-          {options.length > 4 && (
-            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/90 to-transparent pointer-events-none" />
-          )}
-        </div>
       )}
     </div>
   );

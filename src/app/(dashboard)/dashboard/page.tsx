@@ -885,15 +885,15 @@ export default function DashboardPage() {
  />
  </div>
 
-  <div>
-  <label className="block text-sm text-muted mb-1">Catégorie</label>
-   <CustomSelect
-   options={categories.filter((c: any) => c.type === newTx.type).map((c: any) => ({ value: String(c.id), label: c.name }))}
-   value={newTx.categoryId}
-   onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
-   placeholder="Sélectionner..."
-   />
-  </div>
+   <div>
+   <label className="block text-sm text-muted mb-1">Catégorie</label>
+    <CustomSelect
+    options={categories.filter((c: any) => c.type === newTx.type).map((c: any) => ({ value: String(c.id), label: c.name, disabled: !limits?.isPremium && c.archived, disabledReason: "Premium" }))}
+    value={newTx.categoryId}
+    onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
+    placeholder="Sélectionner..."
+    />
+   </div>
 
  {limits && !limits.isPremium && user?.role === "user" && (
  <div className="p-3 bg-ochre-light rounded-xl">

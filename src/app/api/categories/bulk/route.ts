@@ -31,9 +31,13 @@ export async function POST(req: NextRequest) {
     );
 
     if (!isPremium) {
-      const currentCount = existing.filter(c => !c.archived).length;
-      if (currentCount + toCreate.length > 3) {
-        return badRequest("Limite gratuite atteinte (3 catégories max). Passez à Premium pour ajouter plus de catégories.");
+      const incomeExisting = existing.filter((c) => !c.archived && c.type === "income").length;
+      const expenseExisting = existing.filter((c) => !c.archived && c.type === "expense").length;
+      const incomeToAdd = toCreate.filter((c: { type: string }) => c.type === "income").length;
+      const expenseToAdd = toCreate.filter((c: { type: string }) => c.type === "expense").length;
+      const limit = 3;
+      if (incomeExisting + incomeToAdd > limit || expenseExisting + expenseToAdd > limit) {
+        return badRequest(`Limite gratuite atteinte (${limit} catégories par type max). Passez à Premium pour ajouter plus de catégories.`);
       }
     }
 

@@ -165,7 +165,7 @@ export default function LandingPage() {
  <ul className="space-y-3 mb-8">
  {[
  "5 transactions par type / mois",
- "3 catégories maximum",
+ "3 catégories par type (6 max)",
  "Budget personnel uniquement",
  "Bilans mensuels",
  ].map((f) => (

@@ -15,7 +15,7 @@ const PLANS = [
   icon: faStar,
  features: [
  "5 revenus et 5 dépenses par mois",
- "3 catégories maximum",
+ "3 catégories par type (6 max)",
  "Mode personnel uniquement",
  ],
  },

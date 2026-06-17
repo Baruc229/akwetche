@@ -236,7 +236,7 @@ export default function TransactionsPage() {
 
   const categoryOptions = categories
     .filter((c: any) => c.type === formData.type)
-    .map((c: any) => ({ value: String(c.id), label: c.name }));
+    .map((c: any) => ({ value: String(c.id), label: c.name, disabled: !limits?.isPremium && c.archived, disabledReason: "Premium" }));
 
   const tabs = [
     { label: "Tout", filter: "all" as const, scope: "all" as const },

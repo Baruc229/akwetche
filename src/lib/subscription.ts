@@ -82,8 +82,15 @@ export async function expireSubscription(subscriptionId: number) {
     orderBy: { transactions: { _count: "desc" } },
   });
 
-  if (categories.length > 3) {
-    const toArchive = categories.slice(3).map(c => c.id);
+  const incomeCategories = categories.filter((c) => c.type === "income");
+  const expenseCategories = categories.filter((c) => c.type === "expense");
+
+  const toArchive = [
+    ...incomeCategories.slice(3).map((c) => c.id),
+    ...expenseCategories.slice(3).map((c) => c.id),
+  ];
+
+  if (toArchive.length > 0) {
     await prisma.category.updateMany({
       where: { id: { in: toArchive } },
       data: { archived: true },

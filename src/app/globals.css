@@ -238,3 +238,18 @@ body {
     height: 100vh;
   }
 }
+
+/* CustomSelect fine scrollbar */
+.custom-select-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-select-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-select-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4d0c8;
+  border-radius: 8px;
+}
+.custom-select-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #b8b2a8;
+}

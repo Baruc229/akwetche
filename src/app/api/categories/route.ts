@@ -6,17 +6,8 @@ export async function GET() {
   try {
     const userId = await requireAuth();
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true, subscription: { select: { status: true } } },
-    });
-    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
-
-    const where: Record<string, unknown> = { userId };
-    if (!isPremium) where.archived = false;
-
     const categories = await prisma.category.findMany({
-      where,
+      where: { userId },
       orderBy: { name: "asc" },
     });
     return ok({ categories });
@@ -44,9 +35,16 @@ export async function POST(req: NextRequest) {
     const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
 
     if (!isPremium) {
-      const categoryCount = await prisma.category.count({ where: { userId, archived: false } });
-      if (categoryCount >= 3) {
-        return badRequest("Limite gratuite atteinte (3 catégories max). Passez à Premium pour ajouter plus de catégories.");
+      const activeByType = await prisma.category.groupBy({
+        by: ["type"],
+        where: { userId, archived: false },
+        _count: { id: true },
+      });
+      const incomeActive = activeByType.find((g) => g.type === "income")?._count.id ?? 0;
+      const expenseActive = activeByType.find((g) => g.type === "expense")?._count.id ?? 0;
+      const limit = 3;
+      if ((type === "income" && incomeActive >= limit) || (type === "expense" && expenseActive >= limit)) {
+        return badRequest(`Limite gratuite atteinte (${limit} catégories par type max). Passez à Premium pour ajouter plus de catégories.`);
       }
     }
 
