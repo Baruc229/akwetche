@@ -32,7 +32,7 @@ const CATEGORY_COLORS = [
 ];
 
 export default function TransactionsPage() {
-  const { user } = useDashboard();
+  const { user, commercialMode } = useDashboard();
   const router = useRouter();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -254,8 +254,10 @@ export default function TransactionsPage() {
     { label: "Tout", filter: "all" as const, scope: "all" as const },
     { label: "Revenus", filter: "income" as const, scope: "all" as const },
     { label: "Dépenses", filter: "expense" as const, scope: "all" as const },
-    { label: "Personnel", filter: "all" as const, scope: "personal" as const },
-    { label: "Activité", filter: "all" as const, scope: "activity" as const },
+    ...(commercialMode ? [
+      { label: "Personnel", filter: "all" as const, scope: "personal" as const },
+      { label: "Activité", filter: "all" as const, scope: "activity" as const },
+    ] : []),
   ];
 
   function handleTabClick(tab: { label: string; filter: string; scope: string }) {
@@ -535,7 +537,7 @@ export default function TransactionsPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-forest text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Personnel</button>
-                  <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Activité</button>
+                  {commercialMode && <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Activité</button>}
                 </div>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
@@ -597,7 +599,7 @@ export default function TransactionsPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex gap-2">
                 <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-forest text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Personnel</button>
-                <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Activité</button>
+                {commercialMode && <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Activité</button>}
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
