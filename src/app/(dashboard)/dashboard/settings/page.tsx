@@ -184,17 +184,13 @@ export default function SettingsPage() {
 
   async function handleDeleteCategory(id: number) {
   setConfirmDeleteCat(null);
-  const deleted = categories.find((c) => c.id === id);
-  setCategories((prev) => prev.filter((c) => c.id !== id));
   const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-  if (!res.ok && deleted) {
-  setCategories((prev) => [...prev, deleted].sort((a, b) => a.name.localeCompare(b.name)));
-  return;
-  }
-  // Refresh activeCategoryIds (deleting may promote next category for free users)
+  if (!res.ok) return;
+  // Reload everything from server to keep state in sync
   const fresh = await fetch("/api/categories");
   const freshData = await fresh.json();
-  if (freshData.activeCategoryIds) setActiveCategoryIds(freshData.activeCategoryIds);
+  setCategories(freshData.categories || []);
+  setActiveCategoryIds(freshData.activeCategoryIds || []);
   }
 
  async function handleDeleteAccount() {
@@ -566,15 +562,13 @@ export default function SettingsPage() {
   }`}>
   {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
   <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
-  {isActive && (
   <button
   onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
-  className="text-forest hover:text-red-500 transition-colors ml-0.5"
+  className={`hover:text-red-500 transition-colors ml-0.5 ${isActive ? "text-forest" : "text-muted"}`}
   title="Supprimer"
   >
   <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
   </button>
-  )}
   {!isActive && (
   <span className="text-[10px] font-medium bg-white/60 text-muted px-1.5 py-0.5 rounded">
   {cat.archived ? "Archivée" : "Premium"}
