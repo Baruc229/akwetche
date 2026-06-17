@@ -89,14 +89,44 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const userId = await requireAuth();
+    const { id, archived } = await req.json();
+    await prisma.category.updateMany({
+      where: { id: parseInt(id), userId },
+      data: { archived },
+    });
+    return ok({ success: true });
+  } catch {
+    return badRequest("Erreur lors de la mise à jour");
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const userId = await requireAuth();
     const { id } = await req.json();
+    const catId = parseInt(id);
 
-    await prisma.category.deleteMany({
-      where: { id: parseInt(id), userId },
-    });
+    try {
+      const deleted = await prisma.category.deleteMany({
+        where: { id: catId, userId },
+      });
+      if (deleted.count === 0) {
+        // Already deleted — try to archive instead
+        await prisma.category.updateMany({
+          where: { id: catId, userId },
+          data: { archived: true },
+        });
+      }
+    } catch {
+      // Foreign key: has transactions → archive
+      await prisma.category.updateMany({
+        where: { id: catId, userId },
+        data: { archived: true },
+      });
+    }
 
     return ok({ success: true });
   } catch {

@@ -182,6 +182,15 @@ export default function SettingsPage() {
   }
  }
 
+  async function handleRestoreCategory(id: number) {
+  const res = await fetch("/api/categories", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, archived: false }) });
+  if (!res.ok) return;
+  const fresh = await fetch("/api/categories");
+  const freshData = await fresh.json();
+  setCategories(freshData.categories || []);
+  setActiveCategoryIds(freshData.activeCategoryIds || []);
+  }
+
   async function handleDeleteCategory(id: number) {
   setConfirmDeleteCat(null);
   setCatError("");
@@ -559,19 +568,17 @@ export default function SettingsPage() {
   <button onClick={() => addPresetCategories(type)} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>
   </div>
 
-  {totalOfType === 0 ? (
+  {categories.filter(c => !c.archived && c.type === type).length === 0 ? (
   <p className="text-sm text-muted">Aucune catégorie de {typeLabel.toLowerCase()}</p>
   ) : (
   <div className="flex flex-wrap gap-2">
-  {categories.filter(c => c.type === type).map((cat) => {
+  {categories.filter(c => !c.archived && c.type === type).map((cat) => {
   const isActive = activeCategoryIds.includes(cat.id);
   return (
   <div key={cat.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border ${
   isActive
   ? "bg-ochre-light text-forest border-transparent"
-  : cat.archived
-    ? "bg-sand text-muted border-border opacity-70"
-    : "bg-sand text-muted border-border"
+  : "bg-sand text-muted border-border"
   }`}>
   {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
   <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
@@ -583,14 +590,46 @@ export default function SettingsPage() {
   <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
   </button>
   {!isActive && (
-  <span className="text-[10px] font-medium bg-white/60 text-muted px-1.5 py-0.5 rounded">
-  {cat.archived ? "Archivée" : "Premium"}
-  </span>
+  <span className="text-[10px] font-medium bg-white/60 text-muted px-1.5 py-0.5 rounded">Premium</span>
   )}
   </div>
   );
   })}
   </div>
+  )}
+
+  {/* Archived categories for this type */}
+  {categories.filter(c => c.archived && c.type === type).length > 0 && (
+  <details className="mt-2 group">
+  <summary className="text-xs text-muted cursor-pointer hover:text-ink transition-colors list-none flex items-center gap-1.5">
+  <span className="text-[10px] font-medium bg-border text-muted px-1.5 py-0.5 rounded">
+  {categories.filter(c => c.archived && c.type === type).length} archivée{(categories.filter(c => c.archived && c.type === type).length) > 1 ? "s" : ""}
+  </span>
+  <svg className={`w-3 h-3 transition-transform group-open:rotate-90`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+  </summary>
+  <div className="flex flex-wrap gap-2 mt-2">
+  {categories.filter(c => c.archived && c.type === type).map((cat) => (
+  <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border opacity-70">
+  <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />
+  <span className="opacity-70">{cat.name}</span>
+  <button
+  onClick={(e) => { e.stopPropagation(); handleRestoreCategory(cat.id); }}
+  className="text-muted hover:text-forest transition-colors ml-0.5"
+  title="Restaurer"
+  >
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+  </button>
+  <button
+  onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
+  className="text-muted hover:text-red-500 transition-colors"
+  title="Supprimer définitivement"
+  >
+  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+  </button>
+  </div>
+  ))}
+  </div>
+  </details>
   )}
   </div>
   );
@@ -667,7 +706,7 @@ export default function SettingsPage() {
 
  <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
  <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />
- <ConfirmModal open={confirmDeleteCat !== null} title="Supprimer cette catégorie ?" message="Les transactions liées ne seront pas supprimées." confirmLabel="Oui, supprimer" cancelLabel="Annuler" variant="warning" onConfirm={() => handleDeleteCategory(confirmDeleteCat!)} onCancel={() => setConfirmDeleteCat(null)} />
+  <ConfirmModal open={confirmDeleteCat !== null} title="Supprimer cette catégorie ?" message={confirmDeleteCat !== null && categories.find(c => c.id === confirmDeleteCat)?.archived ? "Cette catégorie archivée sera définitivement supprimée." : "La catégorie sera supprimée. Si elle contient des transactions, elle sera archivée à la place."} confirmLabel="Oui, supprimer" cancelLabel="Annuler" variant="warning" onConfirm={() => handleDeleteCategory(confirmDeleteCat!)} onCancel={() => setConfirmDeleteCat(null)} />
  </div>
  );
 }
