@@ -4,17 +4,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowTrendUp, faArrowTrendDown, faPiggyBank, faBagShopping, faWallet, faArrowUpRightFromSquare, faBox, faTriangleExclamation, faDownload, faChartBar, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-
-const CATEGORY_COLORS = [
- '#4A90D9',
- '#9B59B6',
- '#E74C6F',
- '#1ABC9C',
- '#E67E22',
- '#3498DB',
- '#8E44AD',
- '#16A085',
-];
+import { CATEGORY_COLORS } from "@/lib/colors";
 
 type StatsBlock = {
  income: number; expense: number; savings: number; topCategories: Record<string, number>;
@@ -51,9 +41,13 @@ export default function ReportsPage() {
  const [data, setData] = useState<ReportData | null>(null);
  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- setLoading(true);
- fetch(`/api/reports?type=${period}`)
+  useEffect(() => {
+    document.title = "Bilans — Akwetche";
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/reports?type=${period}`)
  .then((res) => res.json())
  .then(setData)
  .finally(() => setLoading(false));

@@ -6,18 +6,8 @@ import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faArrowTrendUp, faArrowTrendDown, faPlus, faCircleExclamation, faBriefcase, faUser, faArrowRight, faClock, faBagShopping, faPiggyBank, faTriangleExclamation, faCrown, faChartBar, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
-
-const CATEGORY_COLORS = [
- '#4A90D9',
- '#9B59B6',
- '#E74C6F',
- '#1ABC9C',
- '#E67E22',
- '#3498DB',
- '#8E44AD',
- '#16A085',
-];
 
 type ScopeSummary = {
  income: number;
@@ -60,6 +50,7 @@ export default function DashboardPage() {
   maxFreeExpense: number;
   } | null>(null);
   const [subLoading, setSubLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
  async function loadData() {
  try {
@@ -83,16 +74,18 @@ export default function DashboardPage() {
   setCategories(catData.categories || []);
   setActiveCategoryIds(catData.activeCategoryIds || []);
   setLimits(limitsData);
- } catch (e) {
- console.error(e);
- } finally {
- setLoading(false);
- }
+  } catch (e) {
+  setLoadError("Impossible de charger les données. Vérifiez votre connexion.");
+  console.error(e);
+  } finally {
+  setLoading(false);
+  }
  }
 
- useEffect(() => {
- loadData();
- }, []);
+  useEffect(() => {
+    document.title = "Dashboard — Akwetche";
+    loadData();
+  }, []);
 
  async function handleSubscribe() {
  router.push("/payment");
@@ -193,8 +186,17 @@ export default function DashboardPage() {
  </button>
  </div>
 
- {/* Bannière configuration catégories */}
- {categories.length === 0 && (
+  {/* Erreur chargement */}
+  {loadError && (
+  <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+  <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+  <p className="text-sm text-red-700 flex-1">{loadError}</p>
+  <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+  </div>
+  )}
+
+  {/* Bannière configuration catégories */}
+  {categories.length === 0 && (
  <div className="bg-ochre-light border border-border rounded-2xl p-5 animate-fade-in">
  <div className="flex items-start gap-3">
  <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-ochre shrink-0 mt-0.5" />

@@ -47,6 +47,7 @@ export default function StockPage() {
   const [replenishNote, setReplenishNote] = useState("");
   const [replenishError, setReplenishError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   function computeProductStats(products: Product[], movements: Movement[]): ProductStats[] {
     const soldMap: Record<number, number> = {};
@@ -85,11 +86,16 @@ export default function StockPage() {
       setOutOfStock(stockData.outOfStock || []);
       setProducts(prodData.products || []);
     } catch (e) {
+      setLoadError("Impossible de charger le stock.");
       console.error(e);
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    document.title = "Stock — Akwetche";
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -149,6 +155,14 @@ export default function StockPage() {
         </div>
       </div>
 
+      {loadError && (
+      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+      <p className="text-sm text-red-700 flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-5">
           <p className="stat-label">Valeur totale du stock</p>
@@ -203,6 +217,14 @@ export default function StockPage() {
 
       <div className="card overflow-hidden">
         <h2 className="text-sm font-semibold text-ink p-4 pb-3">Produits</h2>
+        {stats.length === 0 ? (
+        <div className="text-center py-12 text-muted">
+        <FontAwesomeIcon icon={faBox} className="w-10 h-10 mx-auto mb-3 opacity-50" />
+        <p className="text-sm">Aucun produit pour le moment</p>
+        <p className="text-xs mt-1">Ajoutez des produits dans la section Produits.</p>
+        </div>
+        ) : (
+        <>
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -282,6 +304,8 @@ export default function StockPage() {
             );
           })}
         </div>
+      </>
+      )}
       </div>
 
       <div className="card">

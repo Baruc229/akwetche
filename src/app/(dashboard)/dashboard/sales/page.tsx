@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowTrendUp, faPlus, faBagShopping, faXmark, faTrash, faSearch, faCalendarDays, faCrown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowTrendUp, faPlus, faBagShopping, faXmark, faTrash, faSearch, faCalendarDays, faCrown, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -73,6 +73,7 @@ export default function SalesPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<Sale | null>(null);
   const [deleteMsg, setDeleteMsg] = useState("");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function loadData() {
     setLoading(true);
@@ -86,11 +87,16 @@ export default function SalesPage() {
       setSales(salesData.sales || []);
       setProducts(prodData.products || []);
     } catch (e) {
+      setLoadError("Impossible de charger les ventes.");
       console.error(e);
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    document.title = "Ventes — Akwetche";
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -228,6 +234,14 @@ export default function SalesPage() {
           Nouvelle vente
         </button>
       </div>
+
+      {loadError && (
+      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+      <p className="text-sm text-red-700 flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

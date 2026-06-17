@@ -4,8 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faCalendarDays, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CATEGORY_COLORS } from "@/lib/colors";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -25,11 +26,6 @@ type ScopeSummary = {
   savings: number;
   balance: number;
 };
-
-const CATEGORY_COLORS = [
-  '#4A90D9', '#9B59B6', '#E74C6F', '#1ABC9C',
-  '#E67E22', '#3498DB', '#8E44AD', '#16A085',
-];
 
 export default function TransactionsPage() {
   const { user, commercialMode } = useDashboard();
@@ -81,6 +77,7 @@ export default function TransactionsPage() {
   } | null>(null);
 
   const [confirmDeleteTx, setConfirmDeleteTx] = useState<number | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -138,11 +135,16 @@ export default function TransactionsPage() {
       setActiveCategoryIds(catData.activeCategoryIds || []);
       setLimits(limitsData);
     } catch (e) {
+      setLoadError("Impossible de charger les transactions.");
       console.error(e);
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    document.title = "Transactions — Akwetche";
+  }, []);
 
   useEffect(() => {
     loadTransactions();
@@ -216,7 +218,7 @@ export default function TransactionsPage() {
       await fetch(`/api/transactions/${id}`, { method: "DELETE" });
       loadTransactions();
       loadSummary();
-    } catch { /* ignore */ }
+    } catch { setLoadError("Erreur lors de la suppression."); }
   }
 
   function handleSort(field: string) {
@@ -410,6 +412,15 @@ export default function TransactionsPage() {
           </button>
         ))}
       </div>
+
+      {/* Erreur chargement */}
+      {loadError && (
+      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+      <p className="text-sm text-red-700 flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -653,7 +664,7 @@ export default function TransactionsPage() {
       )}
 
       {/* FAB mobile */}
-      <button onClick={openAddModal} className="fixed bottom-20 right-4 z-40 lg:hidden w-14 h-14 bg-forest text-white rounded-full shadow-lg flex items-center justify-center hover:bg-forest-light transition-colors animate-fade-in">
+      <button onClick={openAddModal} aria-label="Nouvelle transaction" className="fixed bottom-20 right-4 z-40 lg:hidden w-14 h-14 bg-forest text-white rounded-full shadow-lg flex items-center justify-center hover:bg-forest-light transition-colors animate-fade-in">
         <FontAwesomeIcon icon={faPlus} className="w-6 h-6" />
       </button>
 

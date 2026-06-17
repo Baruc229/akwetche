@@ -62,7 +62,8 @@ export default function SettingsPage() {
  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
  const [deleteLoading, setDeleteLoading] = useState(false);
  const [resetLoading, setResetLoading] = useState(false);
- const [resetDone, setResetDone] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
  const [subscription, setSubscription] = useState<{ status: string; amount: number; currency: string; endDate: string } | null>(null);
  const [subLoading, setSubLoading] = useState(false);
  const [subError, setSubError] = useState("");
@@ -105,10 +106,11 @@ export default function SettingsPage() {
  else if (user) setCurrency("auto");
  }, [user?.currency, user]);
 
- useEffect(() => {
- loadCategories();
- loadSubscription();
- }, []);
+  useEffect(() => {
+    document.title = "Paramètres — Akwetche";
+    loadCategories();
+    loadSubscription();
+  }, []);
 
  async function loadSubscription() {
  try {
@@ -128,7 +130,7 @@ export default function SettingsPage() {
   const data = await res.json();
   setCategories(data.categories || []);
   setActiveCategoryIds(data.activeCategoryIds || []);
-  } catch (e) { console.error(e); }
+  } catch (e) { setLoadError("Impossible de charger les catégories."); console.error(e); }
   finally { setLoading(false); }
   }
 
@@ -245,9 +247,9 @@ export default function SettingsPage() {
  loadCategories();
  setInitialBalance("0");
  setInitialBalanceActivity("0");
- } catch (e) { console.error(e); }
- finally { setResetLoading(false); }
- }
+  } catch (e) { setLoadError("Erreur lors de la réinitialisation."); console.error(e); }
+  finally { setResetLoading(false); }
+  }
 
  async function handleChangePassword(e: React.FormEvent) {
  e.preventDefault();
@@ -334,12 +336,20 @@ export default function SettingsPage() {
 
  return (
  <div className="space-y-6 max-w-2xl">
- <div>
- <h1 className="text-2xl font-bold text-ink">Paramètres</h1>
- <p className="text-muted text-sm mt-0.5">Gérez votre profil et vos paramètres</p>
- </div>
+  <div>
+  <h1 className="text-2xl font-bold text-ink">Paramètres</h1>
+  <p className="text-muted text-sm mt-0.5">Gérez votre profil et vos paramètres</p>
+  </div>
 
- {/* PLAN CARD */}
+  {loadError && (
+  <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+  <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+  <p className="text-sm text-red-700 flex-1">{loadError}</p>
+  <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+  </div>
+  )}
+
+  {/* PLAN CARD */}
  <div className="card overflow-hidden">
  {isAdmin ? (
  <div className="p-6 bg-sand">

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBox, faPlus, faPen, faTrash, faArrowTrendUp, faXmark, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faBox, faPlus, faPen, faTrash, faArrowTrendUp, faXmark, faSearch, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -42,6 +42,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function loadProducts() {
     setLoading(true);
@@ -50,11 +51,16 @@ export default function ProductsPage() {
       const data = await res.json();
       setProducts(data.products || []);
     } catch (e) {
+      setLoadError("Impossible de charger les produits.");
       console.error(e);
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    document.title = "Produits — Akwetche";
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -180,6 +186,14 @@ export default function ProductsPage() {
           Ajouter un produit
         </button>
       </div>
+
+      {loadError && (
+      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+      <p className="text-sm text-red-700 flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      </div>
+      )}
 
       {products.length === 0 && !search ? (
         <div className="card text-center py-12 text-muted">

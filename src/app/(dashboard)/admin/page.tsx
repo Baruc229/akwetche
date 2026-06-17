@@ -79,11 +79,15 @@ export default function AdminPage() {
  const [logsLoading, setLogsLoading] = useState(false);
 
  useEffect(() => {
- if (user && user.role === "user") router.push("/dashboard");
- }, [user, router]);
+  document.title = "Administration — Akwetche";
+  }, []);
 
  useEffect(() => {
- Promise.all([
+  if (user && user.role === "user") router.push("/dashboard");
+  }, [user, router]);
+
+ useEffect(() => {
+  Promise.all([
  fetch("/api/admin/users").then(r => r.json()),
  fetch("/api/admin/stats").then(r => r.json()),
  ]).then(([usersData, statsData]) => {

@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowTrendUp, faArrowTrendDown, faDownload, faSearch, faFilePdf, faCalendarDays, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowTrendUp, faArrowTrendDown, faDownload, faSearch, faFilePdf, faCalendarDays, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
-
-const CATEGORY_COLORS = ['#4A90D9', '#9B59B6', '#E74C6F', '#1ABC9C', '#E67E22', '#3498DB', '#8E44AD', '#16A085'];
 
 type Transaction = {
   id: number;
@@ -37,6 +36,7 @@ export default function HistoryPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   function getPeriodDates() {
     const now = new Date();
@@ -89,11 +89,15 @@ export default function HistoryPage() {
       setTransactions(txData.transactions || []);
       setCategories(catData.categories || []);
     } catch {
-      /* ignore */
+      setLoadError("Impossible de charger l'historique.");
     } finally {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    document.title = "Historique — Akwetche";
+  }, []);
 
   useEffect(() => {
     if (period !== "custom" || (customStart && customEnd)) {
@@ -252,6 +256,14 @@ export default function HistoryPage() {
           </button>
         </div>
       </div>
+
+      {loadError && (
+      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+      <p className="text-sm text-red-700 flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      </div>
+      )}
 
       <div className="card p-4 space-y-3">
         <div className="flex items-center justify-between">
