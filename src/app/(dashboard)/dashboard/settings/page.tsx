@@ -56,8 +56,9 @@ export default function SettingsPage() {
  const [saved, setSaved] = useState(false);
  const [newCatName, setNewCatName] = useState("");
  const [newCatType, setNewCatType] = useState("expense");
- const [catError, setCatError] = useState("");
- const [showResetModal, setShowResetModal] = useState(false);
+  const [catError, setCatError] = useState("");
+  const [presetLoading, setPresetLoading] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
  const [deleteLoading, setDeleteLoading] = useState(false);
  const [resetLoading, setResetLoading] = useState(false);
@@ -273,6 +274,7 @@ export default function SettingsPage() {
  }
 
   async function addPresetCategories(type: "income" | "expense") {
+  if (presetLoading) return;
   const presets = PRESET_CATEGORIES[type];
   let newPresets = presets.filter((p) => !categories.some((c) => c.name === p.name && c.type === p.type));
   if (newPresets.length === 0) return;
@@ -287,6 +289,7 @@ export default function SettingsPage() {
   const optimism: Category[] = newPresets.map((p, i) => ({ id: Date.now() + i, name: p.name, icon: "", type: p.type, archived: false }));
   setCategories((prev) => [...prev, ...optimism]);
   setActiveCategoryIds((prev) => [...prev, ...optimism.map(o => o.id)]);
+  setPresetLoading(true);
  try {
  const res = await fetch("/api/categories/bulk", {
  method: "POST",
@@ -297,6 +300,7 @@ export default function SettingsPage() {
   if (!res.ok) {
   setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
   setActiveCategoryIds((prev) => prev.filter(id => !optimism.some(o => o.id === id)));
+  setPresetLoading(false);
   return;
   }
   const replaced = (prev: Category[]) => prev.map((c) => {
@@ -304,13 +308,19 @@ export default function SettingsPage() {
   return match ? match : c;
   });
   setCategories(replaced);
-  // Refresh activeCategoryIds
+  // Flush activeCategoryIds with real IDs before server refresh
+  const realIds = (data.categories as Category[]).map((c) => c.id);
+  const optIds = optimism.map((o) => o.id);
+  setActiveCategoryIds((prev) => [...prev.filter((id) => !optIds.includes(id)), ...realIds]);
+  // Refresh activeCategoryIds from server for consistency
   const newApi = await fetch("/api/categories");
   const fresh = await newApi.json();
   if (fresh.activeCategoryIds) setActiveCategoryIds(fresh.activeCategoryIds);
   } catch {
   setCategories((prev) => prev.filter((c) => !optimism.some((o) => o.id === c.id)));
   setActiveCategoryIds((prev) => prev.filter(id => !optimism.some(o => o.id === id)));
+  } finally {
+  setPresetLoading(false);
   }
  }
 
@@ -572,7 +582,7 @@ export default function SettingsPage() {
   <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-ochre-light text-ochre" : "bg-sand text-muted"}`}>({activeOfType}/3 actives)</span>
   )}
   </div>
-  <button onClick={() => addPresetCategories(type)} className="text-xs text-forest hover:text-forest font-medium">+ Catégories par défaut</button>
+  <button onClick={() => addPresetCategories(type)} disabled={presetLoading} className="text-xs text-forest hover:text-forest font-medium disabled:opacity-40">+ Catégories par défaut</button>
   </div>
 
   {categories.filter(c => !c.archived && c.type === type).length === 0 ? (

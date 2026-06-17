@@ -48,7 +48,7 @@ export default function ConfirmModal({
 
  return (
   <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/40 animate-fade-in">
-  <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in">
+  <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in">
   <div className="flex flex-col items-center text-center mb-5">
   <div className={`w-14 h-14 rounded-full ${v.icon} flex items-center justify-center mb-4`}>
   <FontAwesomeIcon icon={faTriangleExclamation} className={`w-7 h-7 ${v.iconColor}`} />
