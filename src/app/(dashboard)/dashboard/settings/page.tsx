@@ -161,6 +161,7 @@ export default function SettingsPage() {
   }
   const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType, archived: false };
   setCategories((prev) => [...prev, optimistic]);
+  setActiveCategoryIds((prev) => [...prev, optimistic.id]);
  setNewCatName("");
  try {
  const res = await fetch("/api/categories", {
@@ -171,13 +172,15 @@ export default function SettingsPage() {
   const data = await res.json();
   if (!res.ok) {
   setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
+  setActiveCategoryIds((prev) => prev.filter(id => id !== optimistic.id));
   setCatError(data.error || "Erreur");
   return;
   }
   setCategories((prev) => prev.map((c) => (c.id === optimistic.id ? data.category : c)));
-  if (data.category) setActiveCategoryIds((prev) => [...prev, data.category.id]);
+  if (data.category) setActiveCategoryIds((prev) => [...prev.filter(id => id !== optimistic.id), data.category.id]);
   } catch {
   setCategories((prev) => prev.filter((c) => c.id !== optimistic.id));
+  setActiveCategoryIds((prev) => prev.filter(id => id !== optimistic.id));
   setCatError("Erreur");
   }
  }

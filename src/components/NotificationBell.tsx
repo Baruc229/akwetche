@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faCheck, faCrown, faBox, faCartShopping, faArrowTrendUp, faUserGear, faShield, faArrowsUpDown, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faCheck, faCrown, faBox, faCartShopping, faArrowTrendUp, faUserGear, faShield, faArrowsUpDown, faSpinner, faXmark } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ConfirmModal from "@/components/ConfirmModal";
 
 type Notification = {
   id: number;
@@ -36,6 +37,7 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const [busyIds, setBusyIds] = useState<Set<number>>(new Set());
   const [markingAll, setMarkingAll] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Notification | null>(null);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -141,6 +143,24 @@ export default function NotificationBell() {
     }
   }
 
+  async function handleDeleteNotification(n: Notification) {
+    setConfirmDelete(null);
+    setBusyIds(prev => new Set(prev).add(n.id));
+    const prevNotifs = [...notifications];
+    const prevUnread = unread;
+    if (!n.read) setUnread(prev => Math.max(0, prev - 1));
+    setNotifications(prev => prev.filter(x => x.id !== n.id));
+    try {
+      const res = await fetch(`/api/notifications/${n.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Échec");
+    } catch {
+      setNotifications(prevNotifs);
+      setUnread(prevUnread);
+    } finally {
+      setBusyIds(prev => { const s = new Set(prev); s.delete(n.id); return s; });
+    }
+  }
+
   return (
     <div ref={ref} className="relative inline-flex">
       <button
@@ -213,6 +233,13 @@ export default function NotificationBell() {
                       <p className="text-xs text-muted mt-0.5">{timeAgo(n.createdAt)}</p>
                     </div>
                     {!n.read && <div className="w-2 h-2 rounded-full bg-forest shrink-0 mt-1.5" />}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(n); }}
+                      className="shrink-0 text-muted hover:text-red-500 transition-colors mt-1 -mr-1"
+                      title="Supprimer"
+                    >
+                      <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               );
@@ -221,6 +248,16 @@ export default function NotificationBell() {
         </div>,
         document.body
       )}
+      <ConfirmModal
+        open={confirmDelete !== null}
+        title="Supprimer cette notification ?"
+        message="Cette notification sera définitivement supprimée."
+        confirmLabel="Oui, supprimer"
+        cancelLabel="Annuler"
+        variant="danger"
+        onConfirm={() => handleDeleteNotification(confirmDelete!)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }

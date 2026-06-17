@@ -16,6 +16,7 @@ export async function POST(_req: NextRequest) {
       prisma.product.deleteMany({ where: { userId } }),
       prisma.category.deleteMany({ where: { userId } }),
       prisma.report.deleteMany({ where: { userId } }),
+      prisma.notification.deleteMany({ where: { userId } }),
       prisma.user.update({
         where: { id: userId },
         data: { initialBalance: 0, initialBalanceActivity: 0 },
