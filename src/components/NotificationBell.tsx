@@ -249,19 +249,16 @@ export default function NotificationBell() {
         </div>,
         document.body
       )}
-      {confirmDelete !== null && createPortal(
-        <ConfirmModal
-          open={confirmDelete !== null}
-          title="Supprimer cette notification ?"
-          message="Cette notification sera définitivement supprimée."
-          confirmLabel="Oui, supprimer"
-          cancelLabel="Annuler"
-          variant="danger"
-          onConfirm={() => handleDeleteNotification(confirmDelete!)}
-          onCancel={() => setConfirmDelete(null)}
-        />,
-        document.body
-      )}
+      <ConfirmModal
+        open={confirmDelete !== null}
+        title="Supprimer cette notification ?"
+        message="Cette notification sera définitivement supprimée."
+        confirmLabel="Oui, supprimer"
+        cancelLabel="Annuler"
+        variant="danger"
+        onConfirm={() => handleDeleteNotification(confirmDelete!)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }
