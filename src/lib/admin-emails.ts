@@ -20,7 +20,7 @@ function buildAdminEmailHtml(type: AdminEventType, data: Record<string, unknown>
 
   const rows = Object.entries(data)
     .map(([key, val]) => {
-      const k = key === "userName" ? "Nom" : key === "userEmail" ? "Email" : key === "date" ? "Date" : key === "amount" ? "Montant" : key === "currency" ? "Devise" : key;
+      const k = key === "userName" ? "Nom" : key === "userEmail" ? "Email" : key === "date" ? "Date" : key === "amount" ? "Montant" : key === "currency" ? "Devise" : key === "countryCode" ? "Pays" : key === "phone" ? "Téléphone" : key === "baseCurrency" ? "Devise du compte" : key;
       return `<tr><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e;width:40%">${k}</td><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:500">${String(val)}</td></tr>`;
     })
     .join("");
@@ -51,7 +51,10 @@ function buildDigestEmailHtml(events: { type: AdminEventType; data: Record<strin
     .map((ev) => {
       const label = eventLabel(ev.type);
       const details = Object.entries(ev.data)
-        .map(([k, v]) => `${k === "userName" ? "Nom" : k === "userEmail" ? "Email" : k === "date" ? "Date" : k}: ${v}`)
+        .map(([k, v]) => {
+          const label = k === "userName" ? "Nom" : k === "userEmail" ? "Email" : k === "date" ? "Date" : k === "amount" ? "Montant" : k === "currency" ? "Devise" : k === "countryCode" ? "Pays" : k === "phone" ? "Téléphone" : k === "baseCurrency" ? "Devise" : k;
+          return `${label}: ${v}`;
+        })
         .join(" | ");
       return `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;font-size:14px"><span style="display:inline-block;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:8px">${label}</span>${details}</td></tr>`;
     })
@@ -88,7 +91,7 @@ function formatDate(d: Date): string {
 
 export async function notifyAdmin(
   type: AdminEventType,
-  payload: { userName: string; userEmail: string; amount?: number; currency?: string },
+  payload: { userName: string; userEmail: string; amount?: number; currency?: string; countryCode?: string; phone?: string; baseCurrency?: string },
 ) {
   const admin = await getAdmin();
   if (!admin?.email) return;
@@ -100,6 +103,9 @@ export async function notifyAdmin(
   };
   if (payload.amount !== undefined) data.amount = payload.amount;
   if (payload.currency !== undefined) data.currency = payload.currency;
+  if (payload.countryCode !== undefined) data.countryCode = payload.countryCode;
+  if (payload.phone !== undefined) data.phone = payload.phone;
+  if (payload.baseCurrency !== undefined) data.baseCurrency = payload.baseCurrency;
 
   if (admin.adminNotificationPref === "instant") {
     const subject = `[Akwetche] ${eventLabel(type)}`;

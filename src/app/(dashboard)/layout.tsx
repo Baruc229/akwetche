@@ -12,20 +12,23 @@ import ExpiredModal from "@/components/subscription/ExpiredModal";
 import NotificationBell from "@/components/NotificationBell";
 
 type UserData = {
- id: number;
- name: string;
- email: string;
- initialBalance: number;
- initialBalanceActivity?: number;
- role?: string;
- currency?: string;
- plan?: string;
- status?: string;
- activityActivated?: boolean;
+  id: number;
+  name: string;
+  email: string;
+  initialBalance: number;
+  initialBalanceActivity?: number;
+  role?: string;
+  currency?: string;
+  baseCurrency?: string;
+  countryCode?: string | null;
+  phone?: string | null;
+  plan?: string;
+  status?: string;
+  activityActivated?: boolean;
   emailVerified?: string | null;
   adminNotificationPref?: string;
   onboardingCompleted?: boolean;
-   subscription?: { status: string; amount: number; currency: string; endDate: string; daysRemaining?: number; label?: string; variant?: string } | null;
+  subscription?: { status: string; amount: number; currency: string; endDate: string; daysRemaining?: number; label?: string; variant?: string } | null;
 };
 
 type DashboardContextType = {
@@ -83,7 +86,7 @@ export default function DashboardLayout({
  }
  localStorage.setItem("akwetche_session", "true");
  setUser(data.user);
- setActiveCurrency(resolveCurrency(data.user?.currency));
+  setActiveCurrency(resolveCurrency(data.user?.currency || data.user?.baseCurrency));
  const isPremium = data.user.plan === "premium" || data.user.role !== "user";
  if (isPremium) {
  const saved = localStorage.getItem("akwetche_commercial");

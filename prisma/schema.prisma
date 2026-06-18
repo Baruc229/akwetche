@@ -17,7 +17,10 @@ model User {
   initialBalance Float @default(0)
   initialBalanceActivity Float @default(0)
   role      String   @default("user") // "super_admin", "admin", "user"
-  currency  String   @default("auto")
+  currency        String   @default("XOF") // displayCurrency — modifiable dans paramètres
+  baseCurrency    String   @default("XOF") // devise figée à l'inscription
+  countryCode     String?                  // BJ, TG, BF, CI, FR, BE
+  phone           String?                  // numéro de téléphone
   emailVerified DateTime?
   loginAttempts Int      @default(0)
   lockedUntil   DateTime?

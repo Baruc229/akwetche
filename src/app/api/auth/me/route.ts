@@ -12,7 +12,8 @@ export async function GET() {
     select: {
       id: true, name: true, email: true,
       initialBalance: true, initialBalanceActivity: true,
-      role: true, currency: true,
+      role: true, currency: true, baseCurrency: true,
+      countryCode: true, phone: true,
       emailVerified: true, plan: true, status: true,
       activityActivated: true,
       adminNotificationPref: true, onboardingCompleted: true,
@@ -34,5 +35,13 @@ export async function GET() {
     };
   }
 
-  return ok({ user: { ...user, currency: user.currency || "auto", adminNotificationPref: user.adminNotificationPref || "instant", subscription: subscriptionStatus } });
+  return ok({
+    user: {
+      ...user,
+      currency: user.currency || user.baseCurrency || "XOF",
+      baseCurrency: user.baseCurrency || "XOF",
+      adminNotificationPref: user.adminNotificationPref || "instant",
+      subscription: subscriptionStatus,
+    },
+  });
 }

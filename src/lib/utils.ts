@@ -1,5 +1,5 @@
-export { formatCurrency, formatDualCurrency, detectCurrency, formatEUR, formatXOF, toEUR, toXOF, resolveCurrency, setActiveCurrency } from "./currency";
-export type { CurrencyCode, CurrencyPref } from "./currency";
+export { formatCurrency, formatDualCurrency, detectCurrency, formatEUR, formatXOF, toEUR, toXOF, resolveCurrency, setActiveCurrency, getCountryByCode, getCountryName, validatePhone, getCurrencyForCountry, convertAmount, getPhonePrefix, ALLOWED_COUNTRIES, ALLOWED_COUNTRY_CODES, COUNTRY_OPTIONS, COUNTRY_CONFIG, roundByCurrency } from "./currency";
+export type { CurrencyCode, CountryCode, CountryInfo } from "./currency";
 
 export function formatDate(date: Date | string): string {
   return new Intl.DateTimeFormat("fr-FR", {

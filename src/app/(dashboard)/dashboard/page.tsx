@@ -972,7 +972,7 @@ export default function DashboardPage() {
   )}
 
   {showOnboarding && (
-    <OnboardingModal onClose={completeOnboarding} />
+    <OnboardingModal onClose={completeOnboarding} currency={user?.baseCurrency} />
   )}
   </div>
   );

@@ -12,7 +12,9 @@ export async function GET(req: NextRequest) {
 
   const record = await prisma.verificationToken.findUnique({
     where: { token },
-    include: { user: true },
+    include: {
+      user: { select: { id: true, name: true, email: true, emailVerified: true, countryCode: true, phone: true, baseCurrency: true, plan: true } },
+    },
   });
 
   if (!record || record.type !== "email_verification") {
@@ -32,7 +34,13 @@ export async function GET(req: NextRequest) {
     data: { emailVerified: new Date(), status: "active" },
   });
 
-  notifyAdmin("new_registration", { userName: record.user.name || record.user.email, userEmail: record.user.email });
+  notifyAdmin("new_registration", {
+    userName: record.user.name || record.user.email,
+    userEmail: record.user.email,
+    countryCode: record.user.countryCode || undefined,
+    phone: record.user.phone || undefined,
+    baseCurrency: record.user.baseCurrency || "XOF",
+  });
 
   await prisma.verificationToken.delete({ where: { id: record.id } });
 

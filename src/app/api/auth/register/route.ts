@@ -4,6 +4,7 @@ import { hashPassword, generateEmailToken, generateToken } from "@/lib/auth";
 import { badRequest, created } from "@/lib/api";
 import { sendEmail, verificationEmailHtml } from "@/lib/email";
 import { cookies } from "next/headers";
+import { getCountryByCode, getCurrencyForCountry, validatePhone, ALLOWED_COUNTRY_CODES } from "@/lib/currency";
 
 const registerAttempts = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 3;
@@ -35,14 +36,23 @@ export async function POST(req: NextRequest) {
       return badRequest("Trop de tentatives. Réessayez dans une minute.");
     }
 
-    const { name, email, password, initialBalance, currency, plan } = await req.json();
+    const { name, email, password, initialBalance, countryCode, phone, plan } = await req.json();
 
-    if (!name || !email || !password || !plan) {
-      return badRequest("Tous les champs sont requis");
+    if (!name || !email || !password || !plan || !countryCode) {
+      return badRequest("Tous les champs sont requis (nom, email, mot de passe, pays, plan)");
     }
 
     if (!["free", "premium"].includes(plan)) {
       return badRequest("Plan invalide");
+    }
+
+    if (!ALLOWED_COUNTRY_CODES.includes(countryCode)) {
+      return badRequest("Ce pays n'est pas encore supporté. Pays autorisés : Bénin, Togo, Burkina Faso, Côte d'Ivoire, France, Belgique.");
+    }
+
+    if (phone && !validatePhone(countryCode, phone)) {
+      const country = getCountryByCode(countryCode);
+      return badRequest(`Format de téléphone invalide pour ${country?.name}. Exemple : ${country?.phoneExample}`);
     }
 
     if (password.length < 8) {
@@ -54,6 +64,8 @@ export async function POST(req: NextRequest) {
       return badRequest("Cet email est déjà utilisé");
     }
 
+    const baseCurrency = getCurrencyForCountry(countryCode);
+
     const hashed = await hashPassword(password);
     const user = await prisma.user.create({
       data: {
@@ -63,7 +75,10 @@ export async function POST(req: NextRequest) {
         plan,
         status: "inactive",
         initialBalance: initialBalance || 0,
-        currency: currency || "auto",
+        countryCode,
+        phone: phone || null,
+        baseCurrency,
+        currency: baseCurrency,
       },
     });
 

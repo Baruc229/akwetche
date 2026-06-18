@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
       where: { id: parseInt(singleId) },
       select: {
         id: true, name: true, email: true, role: true, plan: true, status: true,
-        initialBalance: true, currency: true, createdAt: true,
+        initialBalance: true, currency: true, baseCurrency: true,
+        countryCode: true, phone: true, createdAt: true,
         emailVerified: true, loginAttempts: true, lockedUntil: true,
         _count: { select: { transactions: true, products: true, sales: true, loginLogs: true } },
         subscription: { select: { status: true, amount: true, currency: true, endDate: true } },
@@ -32,7 +33,8 @@ export async function GET(req: NextRequest) {
   const users = await prisma.user.findMany({
     select: {
       id: true, name: true, email: true, role: true, plan: true, status: true,
-      initialBalance: true, currency: true, createdAt: true,
+      initialBalance: true, currency: true, baseCurrency: true,
+      countryCode: true, phone: true, createdAt: true,
       emailVerified: true, loginAttempts: true, lockedUntil: true,
       _count: { select: { transactions: true, products: true, sales: true, loginLogs: true } },
       subscription: { select: { status: true, amount: true, currency: true, endDate: true } },

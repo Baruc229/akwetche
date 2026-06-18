@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, validatePhone, COUNTRY_OPTIONS } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -49,10 +49,11 @@ export default function SettingsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
- const [name, setName] = useState(user?.name || "");
- const [initialBalance, setInitialBalance] = useState(String(user?.initialBalance || "0"));
- const [initialBalanceActivity, setInitialBalanceActivity] = useState(String(user?.initialBalanceActivity || "0"));
- const [currency, setCurrency] = useState(user?.currency || "auto");
+  const [name, setName] = useState(user?.name || "");
+  const [initialBalance, setInitialBalance] = useState(String(user?.initialBalance || "0"));
+  const [initialBalanceActivity, setInitialBalanceActivity] = useState(String(user?.initialBalanceActivity || "0"));
+  const [currency, setCurrency] = useState(user?.currency || user?.baseCurrency || "XOF");
+  const [phone, setPhone] = useState(user?.phone || "");
  const [saved, setSaved] = useState(false);
  const [newCatName, setNewCatName] = useState("");
  const [newCatType, setNewCatType] = useState("expense");
@@ -137,18 +138,18 @@ export default function SettingsPage() {
  async function handleSaveProfile(e: React.FormEvent) {
  e.preventDefault();
  try {
- const res = await fetch("/api/user", {
- method: "PUT",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ name, initialBalance: parseFloat(initialBalance), initialBalanceActivity: parseFloat(initialBalanceActivity), currency }),
- });
- const data = await res.json();
- if (res.ok) {
- setUser(data.user);
- setActiveCurrency(resolveCurrency(data.user?.currency));
- setSaved(true);
- setTimeout(() => setSaved(false), 2000);
- }
+  const res = await fetch("/api/user", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, initialBalance: parseFloat(initialBalance), initialBalanceActivity: parseFloat(initialBalanceActivity), currency, phone }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    setUser(data.user);
+    setActiveCurrency(resolveCurrency(data.user?.currency));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
  } catch (e) { console.error(e); }
  }
 
@@ -493,22 +494,39 @@ export default function SettingsPage() {
  <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
  </div>
  )}
- <div>
-              <label className="block text-sm text-muted mb-1">Devise préférée</label>
-              <div className="relative">
-                <FontAwesomeIcon icon={faGlobe} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-                <CustomSelect
-                  options={[
-                    { value: "auto", label: "Automatique" },
-                    { value: "XOF", label: "FCFA (Franc CFA)" },
-                    { value: "EUR", label: "EUR (Euro)" },
-                  ]}
-                  value={currency}
-                  onChange={(v) => setCurrency(v)}
-                  className="pl-10"
-                />
-              </div>
- </div>
+  {user?.countryCode && (
+  <div>
+    <label className="block text-sm text-muted mb-1">Pays</label>
+    <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
+      <FontAwesomeIcon icon={faGlobe} className="w-4 h-4 shrink-0" />
+      <span>{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
+      <span className="text-xs text-muted ml-auto">Non modifiable</span>
+    </div>
+    <p className="text-xs text-muted mt-1">Devise du compte : <strong>{user?.baseCurrency || "XOF"}</strong></p>
+  </div>
+  )}
+  <div>
+    <label className="block text-sm text-muted mb-1">Téléphone</label>
+    <input
+      type="tel"
+      value={phone}
+      onChange={(e) => setPhone(e.target.value)}
+      className="input-field"
+      placeholder="+229XXXXXXXX"
+    />
+  </div>
+  <div>
+    <label className="block text-sm text-muted mb-1">Devise d'affichage</label>
+    <CustomSelect
+      options={[
+        { value: "XOF", label: "FCFA (Franc CFA)" },
+        { value: "EUR", label: "EUR (Euro)" },
+      ]}
+      value={currency}
+      onChange={(v) => setCurrency(v)}
+    />
+    <p className="text-xs text-muted mt-1">Les montants seront convertis et affichés dans cette devise</p>
+  </div>
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
  {saved ? "Enregistré ✓" : "Enregistrer"}

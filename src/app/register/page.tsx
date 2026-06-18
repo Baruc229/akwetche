@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
 import AuthFeaturePanel from "@/components/auth/AuthFeaturePanel";
+import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix } from "@/lib/currency";
 
 const PLANS = [
  {
@@ -40,14 +41,18 @@ const PLANS = [
 export default function RegisterPage() {
  const [step, setStep] = useState<"plan" | "form" | "done">("plan");
  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
- const [name, setName] = useState("");
- const [email, setEmail] = useState("");
- const [password, setPassword] = useState("");
- const [initialBalance, setInitialBalance] = useState("");
- const [currency, setCurrency] = useState("XOF");
- const [showPassword, setShowPassword] = useState(false);
- const [error, setError] = useState("");
- const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [initialBalance, setInitialBalance] = useState("");
+  const [countryCode, setCountryCode] = useState("BJ");
+  const [phone, setPhone] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const detectedCurrency = getCurrencyForCountry(countryCode);
+  const phonePrefix = getPhonePrefix(countryCode);
 
  async function handleSubmit(e: React.FormEvent) {
  e.preventDefault();
@@ -55,18 +60,19 @@ export default function RegisterPage() {
  setLoading(true);
 
  try {
- const res = await fetch("/api/auth/register", {
- method: "POST",
- headers: { "Content-Type": "application/json" },
- body: JSON.stringify({
- name,
- email,
- password,
- plan: selectedPlan,
- initialBalance: initialBalance ? parseFloat(initialBalance) : 0,
- currency,
- }),
- });
+  const res = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      email,
+      password,
+      plan: selectedPlan,
+      initialBalance: initialBalance ? parseFloat(initialBalance) : 0,
+      countryCode,
+      phone: phone || undefined,
+    }),
+  });
 
  const data = await res.json();
  if (!res.ok) {
@@ -303,25 +309,44 @@ export default function RegisterPage() {
   min="0"
   />
   <p className="text-xs text-muted mt-1">
-  Combien possédez-vous actuellement ?
+  Montant en {detectedCurrency === "XOF" ? "FCFA" : "EUR"} (ex: 150000)
   </p>
   </div>
 
   <div>
   <label className="block text-sm font-medium text-ink mb-1.5">
-  Devise
+  Pays de résidence
   </label>
   <CustomSelect
-          options={[
-            { value: "XOF", label: "FCFA (Franc CFA)" },
-            { value: "EUR", label: "EUR (Euro)" },
-          ]}
-          value={currency}
-          onChange={(v) => setCurrency(v)}
-          placeholder="Choisissez votre devise"
-        />
+    options={COUNTRY_OPTIONS}
+    value={countryCode}
+    onChange={(v) => setCountryCode(v)}
+    placeholder="Sélectionnez votre pays"
+  />
   <p className="text-xs text-muted mt-1">
-  Tous les montants seront affichés dans cette devise
+  Devise : <strong>{detectedCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
+  </p>
+  </div>
+
+  <div>
+  <label className="block text-sm font-medium text-ink mb-1.5">
+  Téléphone (optionnel)
+  </label>
+  <div className="relative">
+  <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+  <input
+    type="tel"
+    value={phone}
+    onChange={(e) => {
+      const val = e.target.value;
+      if (val === "" || val.startsWith("+")) setPhone(val);
+    }}
+    placeholder={`${phonePrefix}XXXXXXXX`}
+    className="input-field pl-10"
+  />
+  </div>
+  <p className="text-xs text-muted mt-1">
+  Indicatif : {phonePrefix} — Saisissez le numéro avec l&apos;indicatif
   </p>
   </div>
 

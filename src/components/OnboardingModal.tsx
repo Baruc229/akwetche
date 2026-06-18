@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSun, faArrowTrendUp, faArrowTrendDown } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from "next/navigation";
 
-export default function OnboardingModal({ onClose }: { onClose: () => void }) {
+export default function OnboardingModal({ onClose, currency }: { onClose: () => void; currency?: string }) {
   const router = useRouter();
 
   return (
@@ -19,6 +19,11 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
             Suivez vos revenus et dépenses en toute simplicité. Créez vos premières catégories
             pour commencer à organiser vos finances.
           </p>
+          {currency && (
+            <p className="text-xs text-muted mt-3 bg-sand rounded-xl px-3 py-2">
+              Compte en <strong>{currency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
+            </p>
+          )}
         </div>
 
         <div className="space-y-2 mb-6">

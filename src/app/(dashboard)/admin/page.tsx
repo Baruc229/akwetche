@@ -5,7 +5,7 @@ import { useDashboard } from "../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faChartLine, faTrash, faShield, faDollarSign, faBagShopping, faFileLines, faCreditCard, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faStar, faEnvelope, faCalendarDays, faLock, faUnlock, faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getCountryByCode, getCountryName } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -30,6 +30,9 @@ type UserData = {
   status: string;
   initialBalance: number;
   currency: string;
+  baseCurrency?: string;
+  countryCode?: string | null;
+  phone?: string | null;
   createdAt: string;
   emailVerified: string | null;
   loginAttempts: number;
@@ -57,9 +60,13 @@ type Stats = {
  totalRevenue: number;
  activeSubscriptions: number;
  usersToday: number;
- loginAttemptsToday: number;
- failedLoginsToday: number;
- recentLogs: LoginLog[];
+  loginAttemptsToday: number;
+  failedLoginsToday: number;
+  recentLogs: LoginLog[];
+  usersByCountry?: { countryCode: string | null; _count: number }[];
+  usersByCurrency?: { baseCurrency: string; _count: number }[];
+  revenueByCurrency?: { XOF: number; EUR: number };
+  subscriptionRevenue?: number;
 };
 
 export default function AdminPage() {
@@ -269,6 +276,50 @@ export default function AdminPage() {
   </div>
   )}
 
+  {stats?.usersByCountry && stats.usersByCountry.length > 0 && (
+  <div className="card p-5">
+    <h2 className="text-sm font-semibold text-ink mb-3">Répartition par pays</h2>
+    <div className="flex flex-wrap gap-3">
+      {stats.usersByCountry.map((c) => (
+        <div key={c.countryCode || "unknown"} className="bg-sand rounded-xl px-3 py-2 text-center min-w-[80px]">
+          <p className="text-lg font-bold text-ink">{c._count}</p>
+          <p className="text-[10px] text-muted">{getCountryName(c.countryCode || "") || "Inconnu"}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+  )}
+
+  {stats?.usersByCurrency && stats.usersByCurrency.length > 0 && (
+  <div className="card p-5">
+    <h2 className="text-sm font-semibold text-ink mb-3">Répartition par devise</h2>
+    <div className="flex flex-wrap gap-3">
+      {stats.usersByCurrency.map((c) => (
+        <div key={c.baseCurrency} className="bg-sand rounded-xl px-3 py-2 text-center min-w-[80px]">
+          <p className="text-lg font-bold text-ink">{c._count}</p>
+          <p className="text-[10px] text-muted">{c.baseCurrency}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+  )}
+
+  {stats?.revenueByCurrency && (
+  <div className="card p-5">
+    <h2 className="text-sm font-semibold text-ink mb-3">Revenus par devise</h2>
+    <div className="flex flex-wrap gap-3">
+      <div className="bg-sand rounded-xl px-3 py-2 text-center min-w-[120px]">
+        <p className="text-lg font-bold text-ink">{formatCurrency(stats.revenueByCurrency.XOF, "XOF")}</p>
+        <p className="text-[10px] text-muted">Ventes XOF</p>
+      </div>
+      <div className="bg-sand rounded-xl px-3 py-2 text-center min-w-[120px]">
+        <p className="text-lg font-bold text-ink">{formatCurrency(stats.revenueByCurrency.EUR, "EUR")}</p>
+        <p className="text-[10px] text-muted">Ventes EUR</p>
+      </div>
+    </div>
+  </div>
+  )}
+
   {user?.role === "super_admin" && (
   <div className="card p-5">
     <div className="flex items-center justify-between">
@@ -412,11 +463,13 @@ export default function AdminPage() {
  {getPlanBadge(u)}
  {getStatusBadge(u)}
  </div>
- <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted">
- <span className="flex items-center gap-1"><FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />{formatDate(u.createdAt)}</span>
- <span className="flex items-center gap-1"><FontAwesomeIcon icon={faFileLines} className="w-3 h-3" />{u._count.transactions} tx</span>
- <span className="flex items-center gap-1"><FontAwesomeIcon icon={faRightToBracket} className="w-3 h-3" />{u._count.loginLogs} logs</span>
- </div>
+  <div className="flex items-center gap-3 mt-1.5 text-[10px] text-muted">
+  <span className="flex items-center gap-1"><FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />{formatDate(u.createdAt)}</span>
+  <span className="flex items-center gap-1"><FontAwesomeIcon icon={faFileLines} className="w-3 h-3" />{u._count.transactions} tx</span>
+  <span className="flex items-center gap-1"><FontAwesomeIcon icon={faRightToBracket} className="w-3 h-3" />{u._count.loginLogs} logs</span>
+  {u.countryCode && <span className="flex items-center gap-1">{getCountryByCode(u.countryCode)?.name || u.countryCode}</span>}
+  <span className="flex items-center gap-1">{u.baseCurrency || u.currency || "XOF"}</span>
+  </div>
  </div>
  <div className="flex items-center gap-2 shrink-0">
  {user?.role === "super_admin" && u.id !== user.id && (
@@ -569,13 +622,16 @@ export default function AdminPage() {
   </>
   )}
 
- <div className="text-xs text-muted space-y-1">
- <p>Solde de départ : {formatCurrency(selectedUser.initialBalance)}</p>
- {selectedUser.loginAttempts > 0 && <p>Tentatives de connexion échouées : {selectedUser.loginAttempts}</p>}
- {selectedUser.lockedUntil && new Date(selectedUser.lockedUntil) > new Date() && (
- <p className="text-red-500">Compte verrouillé jusqu'au {new Date(selectedUser.lockedUntil).toLocaleString("fr-FR")}</p>
- )}
- </div>
+  <div className="text-xs text-muted space-y-1">
+  <p>Solde de départ : {formatCurrency(selectedUser.initialBalance)}</p>
+  <p>Devise de base : {selectedUser.baseCurrency || selectedUser.currency || "XOF"}</p>
+  {selectedUser.countryCode && <p>Pays : {getCountryName(selectedUser.countryCode)}</p>}
+  {selectedUser.phone && <p>Téléphone : {selectedUser.phone}</p>}
+  {selectedUser.loginAttempts > 0 && <p>Tentatives de connexion échouées : {selectedUser.loginAttempts}</p>}
+  {selectedUser.lockedUntil && new Date(selectedUser.lockedUntil) > new Date() && (
+  <p className="text-red-500">Compte verrouillé jusqu'au {new Date(selectedUser.lockedUntil).toLocaleString("fr-FR")}</p>
+  )}
+  </div>
  </div>
  </div>
  </div>

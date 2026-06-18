@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const monthEnd = getEndOfMonth(now);
   const label = monthStart.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
-  const [totalUsers, newUsers, totalPremium, newPremium, subsActive, totalTransactions, txVolume] = await Promise.all([
+  const [totalUsers, newUsers, totalPremium, newPremium, subsActive, totalTransactions, txVolume, usersByCountry, usersByCurrency] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: monthStart, lte: monthEnd } } }),
     prisma.user.count({ where: { plan: "premium" } }),
@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
     prisma.subscription.count({ where: { status: "active" } }),
     prisma.transaction.count({ where: { date: { gte: monthStart, lte: monthEnd } } }),
     prisma.transaction.aggregate({ where: { date: { gte: monthStart, lte: monthEnd } }, _sum: { amount: true } }),
+    prisma.user.groupBy({ by: ["countryCode"], _count: true, orderBy: { _count: { countryCode: "desc" } } }),
+    prisma.user.groupBy({ by: ["baseCurrency"], _count: true, orderBy: { _count: { baseCurrency: "desc" } } }),
   ]);
 
   const admins = await prisma.user.findMany({
@@ -35,6 +37,20 @@ export async function GET(req: NextRequest) {
   if (admins.length === 0) {
     return Response.json({ ok: false, error: "No admin found" });
   }
+
+  const countryRows = usersByCountry
+    .filter((c) => c.countryCode)
+    .map((c) => {
+      const name = c.countryCode === "BJ" ? "Bénin" : c.countryCode === "TG" ? "Togo" : c.countryCode === "BF" ? "Burkina Faso" : c.countryCode === "CI" ? "Côte d'Ivoire" : c.countryCode === "FR" ? "France" : c.countryCode === "BE" ? "Belgique" : c.countryCode || "Inconnu";
+      return `<tr><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">${name}</td><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:600">${c._count}</td></tr>`;
+    })
+    .join("");
+
+  const currencyRows = usersByCurrency
+    .map((c) =>
+      `<tr><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">${c.baseCurrency}</td><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:600">${c._count}</td></tr>`
+    )
+    .join("");
 
   const content = `
     <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 20px">Bonjour Administrateur,</p>
@@ -58,6 +74,24 @@ export async function GET(req: NextRequest) {
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Abonnements actifs</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#d97706;text-align:right;font-weight:600">${subsActive}</td></tr>
       </table>
     </div>
+
+    ${countryRows ? `
+    <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
+      <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #059669" colspan="2"><span style="color:#059669;font-size:13px;font-weight:700">Répartition par pays</span></td></tr>
+        ${countryRows}
+      </table>
+    </div>
+    ` : ""}
+
+    ${currencyRows ? `
+    <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
+      <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #059669" colspan="2"><span style="color:#059669;font-size:13px;font-weight:700">Répartition par devise</span></td></tr>
+        ${currencyRows}
+      </table>
+    </div>
+    ` : ""}
 
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
