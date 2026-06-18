@@ -76,10 +76,14 @@ function buildDigestEmailHtml(events: { type: AdminEventType; data: Record<strin
 }
 
 async function getAdmin() {
-  return prisma.user.findFirst({
-    where: { role: "super_admin" },
-    select: { id: true, email: true, name: true, adminNotificationPref: true },
-  });
+  try {
+    return prisma.user.findFirst({
+      where: { role: "super_admin" },
+      select: { id: true, email: true, name: true },
+    });
+  } catch {
+    return null;
+  }
 }
 
 function formatDate(d: Date): string {
@@ -101,42 +105,40 @@ export async function notifyAdmin(
   if (payload.amount !== undefined) data.amount = payload.amount;
   if (payload.currency !== undefined) data.currency = payload.currency;
 
-  if (admin.adminNotificationPref === "instant") {
-    const subject = `[Akwetche] ${eventLabel(type)}`;
-    const html = buildAdminEmailHtml(type, data);
-    await sendEmail({ to: admin.email, subject, html: emailLayout(subject, html) });
-    await createNotification(admin.id, "admin", `${eventLabel(type)} — ${payload.userName} (${payload.userEmail})`, "/dashboard/admin");
-  } else {
-    await prisma.pendingAdminEmail.create({
-      data: { type, data: JSON.stringify(data) },
-    });
-  }
+  const subject = `[Akwetche] ${eventLabel(type)}`;
+  const html = buildAdminEmailHtml(type, data);
+  await sendEmail({ to: admin.email, subject, html: emailLayout(subject, html) });
+  await createNotification(admin.id, "admin", `${eventLabel(type)} — ${payload.userName} (${payload.userEmail})`, "/dashboard/admin");
 }
 
 export async function sendAdminDigest() {
-  const admin = await getAdmin();
-  if (!admin?.email) return;
+  try {
+    const admin = await getAdmin();
+    if (!admin?.email) return;
 
-  const pending = await prisma.pendingAdminEmail.findMany({
-    where: { sentAt: null },
-    orderBy: { createdAt: "asc" },
-  });
+    const pending = await prisma.pendingAdminEmail.findMany({
+      where: { sentAt: null },
+      orderBy: { createdAt: "asc" },
+    });
 
-  if (pending.length === 0) return;
+    if (pending.length === 0) return;
 
-  const events = pending.map((p) => ({
-    type: p.type as AdminEventType,
-    data: JSON.parse(p.data) as Record<string, unknown>,
-  }));
+    const events = pending.map((p) => ({
+      type: p.type as AdminEventType,
+      data: JSON.parse(p.data) as Record<string, unknown>,
+    }));
 
-  const subject = `[Akwetche] Résumé quotidien — ${events.length} événement${events.length > 1 ? "s" : ""}`;
-  const html = buildDigestEmailHtml(events);
-  await sendEmail({ to: admin.email, subject, html: emailLayout(subject, html) });
+    const subject = `[Akwetche] Résumé quotidien — ${events.length} événement${events.length > 1 ? "s" : ""}`;
+    const html = buildDigestEmailHtml(events);
+    await sendEmail({ to: admin.email, subject, html: emailLayout(subject, html) });
 
-  await prisma.pendingAdminEmail.updateMany({
-    where: { id: { in: pending.map((p) => p.id) } },
-    data: { sentAt: new Date() },
-  });
+    await prisma.pendingAdminEmail.updateMany({
+      where: { id: { in: pending.map((p) => p.id) } },
+      data: { sentAt: new Date() },
+    });
 
-  await createNotification(admin.id, "admin", `Résumé quotidien envoyé — ${events.length} événement${events.length > 1 ? "s" : ""}`, "/dashboard/admin");
+    await createNotification(admin.id, "admin", `Résumé quotidien envoyé — ${events.length} événement${events.length > 1 ? "s" : ""}`, "/dashboard/admin");
+  } catch {
+    // Table PendingAdminEmail pas encore créée — ignorer silencieusement
+  }
 }

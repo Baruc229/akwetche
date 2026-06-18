@@ -90,7 +90,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading && user && !user.onboardingCompleted && categories.length === 0) {
+    if (!loading && user && user.onboardingCompleted === false && categories.length === 0) {
       setShowOnboarding(true);
     }
   }, [loading, user, categories]);
