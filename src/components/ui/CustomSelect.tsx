@@ -7,6 +7,7 @@ import { faChevronDown, faLock } from '@fortawesome/free-solid-svg-icons';
 type Option = {
   value: string;
   label: string;
+  icon?: string;
   disabled?: boolean;
   disabledReason?: string;
   separator?: boolean;
@@ -167,22 +168,23 @@ export default function CustomSelect({
                       }`}
                       title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
                     >
-                      <span className="flex items-center justify-between gap-2">
-                        <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
-                        {opt.disabled && (
-                          <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
-                            <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-                            {opt.disabledReason || "Premium"}
-                          </span>
-                        )}
+                      <span className="flex items-center gap-2 min-w-0">
+                        {opt.icon && <img src={opt.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
+                        <span className={`truncate ${opt.disabled ? "opacity-50" : ""}`}>{opt.label}</span>
                       </span>
-                    </button>
-                  )
+                      {opt.disabled && (
+                        <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                          <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                          {opt.disabledReason || "Premium"}
+                        </span>
+                      )}
+                  </button>
                 )
-              )}
-          </div>
+              )
+            )}
         </div>
       </div>
+    </div>
     );
   }
 
@@ -196,7 +198,10 @@ export default function CustomSelect({
           !selected ? "text-muted" : "text-ink"
         } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
       >
-        <span className="truncate">{selected ? selected.label : placeholder}</span>
+        <span className="truncate flex items-center gap-2 min-w-0">
+          {selected?.icon && <img src={selected.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
+        </span>
         <FontAwesomeIcon
           icon={faChevronDown}
           className={`w-3.5 h-3.5 text-muted transition-transform duration-200 shrink-0 ${
@@ -259,19 +264,20 @@ export default function CustomSelect({
                       }`}
                       title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
                     >
-                      <span className="flex items-center justify-between gap-2">
-                        <span className={opt.disabled ? "opacity-50" : ""}>{opt.label}</span>
-                        {opt.disabled && (
-                          <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
-                            <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-                            {opt.disabledReason || "Premium"}
-                          </span>
-                        )}
+                      <span className="flex items-center gap-2 min-w-0">
+                        {opt.icon && <img src={opt.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
+                        <span className={`truncate ${opt.disabled ? "opacity-50" : ""}`}>{opt.label}</span>
                       </span>
-                    </button>
-                  )
+                      {opt.disabled && (
+                        <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                          <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                          {opt.disabledReason || "Premium"}
+                        </span>
+                      )}
+                  </button>
                 )
-              )}
+              )
+            )}
             </div>
             {canScroll && (
               <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />

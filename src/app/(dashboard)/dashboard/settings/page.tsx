@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getCountryFlag, getPhonePrefix, COUNTRY_OPTIONS } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getFlagUrl, getPhonePrefix, COUNTRY_OPTIONS } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -55,7 +55,12 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState(user?.currency || user?.baseCurrency || "XOF");
   const [phone, setPhone] = useState(user?.phone || "");
   const [countryCode, setCountryCode] = useState(user?.countryCode || "");
- const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    if (countryCode && !user?.countryCode) {
+      setPhone(getPhonePrefix(countryCode));
+    }
+  }, [countryCode]);
+  const [saved, setSaved] = useState(false);
  const [newCatName, setNewCatName] = useState("");
  const [newCatType, setNewCatType] = useState("expense");
   const [catError, setCatError] = useState("");
@@ -506,7 +511,7 @@ export default function SettingsPage() {
     <label className="block text-sm text-muted mb-1">Pays</label>
     {user?.countryCode ? (
     <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
-      <span className="text-lg shrink-0">{getCountryFlag(user.countryCode)}</span>
+      <img src={getFlagUrl(user.countryCode)} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />
       <span>{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
       <span className="text-xs text-muted ml-auto">Non modifiable</span>
     </div>
@@ -516,8 +521,6 @@ export default function SettingsPage() {
       value={countryCode}
       onChange={(v) => {
         setCountryCode(v);
-        const prefix = getPhonePrefix(v);
-        if (!phone) setPhone(prefix);
       }}
       placeholder="Sélectionnez votre pays"
     />
@@ -529,9 +532,21 @@ export default function SettingsPage() {
     <input
       type="tel"
       value={phone}
-      onChange={(e) => setPhone(e.target.value)}
+      onChange={(e) => {
+        const val = e.target.value;
+        if (countryCode) {
+          const prefix = getPhonePrefix(countryCode);
+          if (val.startsWith(prefix)) {
+            setPhone(val);
+          } else {
+            setPhone(prefix);
+          }
+        } else {
+          setPhone(val);
+        }
+      }}
       className="input-field"
-      placeholder="+229XXXXXXXX"
+      placeholder={countryCode ? `${getPhonePrefix(countryCode)} XX XX XX XX` : "+229XXXXXXXX"}
     />
   </div>
   <div>

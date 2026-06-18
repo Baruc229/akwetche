@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -53,6 +53,10 @@ export default function RegisterPage() {
 
   const detectedCurrency = getCurrencyForCountry(countryCode);
   const phonePrefix = getPhonePrefix(countryCode);
+
+  useEffect(() => {
+    setPhone(phonePrefix);
+  }, [countryCode]);
 
  async function handleSubmit(e: React.FormEvent) {
  e.preventDefault();
@@ -339,14 +343,18 @@ export default function RegisterPage() {
     value={phone}
     onChange={(e) => {
       const val = e.target.value;
-      if (val === "" || val.startsWith("+")) setPhone(val);
+      if (val.startsWith(phonePrefix)) {
+        setPhone(val);
+      } else {
+        setPhone(phonePrefix);
+      }
     }}
-    placeholder={`${phonePrefix}XXXXXXXX`}
+    placeholder={`${phonePrefix} XX XX XX XX`}
     className="input-field pl-10"
   />
   </div>
   <p className="text-xs text-muted mt-1">
-  Indicatif : {phonePrefix} — Saisissez le numéro avec l&apos;indicatif
+  Indicatif <strong>{phonePrefix}</strong> automatique — Saisissez les chiffres après
   </p>
   </div>
 

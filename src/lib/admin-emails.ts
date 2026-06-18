@@ -1,8 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
+import { ALLOWED_COUNTRIES } from "@/lib/currency";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+function countryHtml(code: string): string {
+  const c = ALLOWED_COUNTRIES.find((x) => x.code === code);
+  if (!c) return code;
+  return `<img src="https://flagcdn.com/w20/${code.toLowerCase()}.png" alt="" style="width:18px;height:18px;border-radius:2px;vertical-align:middle;margin-right:4px;object-fit:cover" /> ${c.name}`;
+}
 
 type AdminEventType = "new_registration" | "new_subscription" | "subscription_expired";
 
@@ -21,7 +28,8 @@ function buildAdminEmailHtml(type: AdminEventType, data: Record<string, unknown>
   const rows = Object.entries(data)
     .map(([key, val]) => {
       const k = key === "userName" ? "Nom" : key === "userEmail" ? "Email" : key === "date" ? "Date" : key === "amount" ? "Montant" : key === "currency" ? "Devise" : key === "countryCode" ? "Pays" : key === "phone" ? "Téléphone" : key === "baseCurrency" ? "Devise du compte" : key;
-      return `<tr><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e;width:40%">${k}</td><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:500">${String(val)}</td></tr>`;
+      const display = key === "countryCode" ? countryHtml(String(val)) : String(val);
+      return `<tr><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e;width:40%">${k}</td><td style="padding:8px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:500">${display}</td></tr>`;
     })
     .join("");
 
@@ -53,7 +61,8 @@ function buildDigestEmailHtml(events: { type: AdminEventType; data: Record<strin
       const details = Object.entries(ev.data)
         .map(([k, v]) => {
           const label = k === "userName" ? "Nom" : k === "userEmail" ? "Email" : k === "date" ? "Date" : k === "amount" ? "Montant" : k === "currency" ? "Devise" : k === "countryCode" ? "Pays" : k === "phone" ? "Téléphone" : k === "baseCurrency" ? "Devise" : k;
-          return `${label}: ${v}`;
+          const display = k === "countryCode" ? countryHtml(String(v)) : String(v);
+          return `${label}: ${display}`;
         })
         .join(" | ");
       return `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;font-size:14px"><span style="display:inline-block;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:8px">${label}</span>${details}</td></tr>`;
