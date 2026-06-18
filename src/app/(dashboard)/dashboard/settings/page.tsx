@@ -53,9 +53,9 @@ export default function SettingsPage() {
   const [name, setName] = useState(user?.name || "");
   const [initialBalance, setInitialBalance] = useState(String(user?.initialBalance || "0"));
   const [initialBalanceActivity, setInitialBalanceActivity] = useState(String(user?.initialBalanceActivity || "0"));
-  const [currency, setCurrency] = useState(user?.currency || user?.baseCurrency || "XOF");
-  const [phone, setPhone] = useState(user?.phone || "");
   const [countryCode, setCountryCode] = useState(user?.countryCode || "");
+  const baseCurrency = user?.baseCurrency || getCountryByCode(countryCode)?.currency || "XOF";
+  const [phone, setPhone] = useState(user?.phone || "");
   useEffect(() => {
     if (countryCode && !user?.countryCode) {
       setPhone(getPhonePrefix(countryCode));
@@ -109,11 +109,7 @@ export default function SettingsPage() {
  }
  }, []);
 
- useEffect(() => {
- if (user?.currency) setCurrency(user.currency);
- else if (user) setCurrency("auto");
- }, [user?.currency, user]);
-
+  
   useEffect(() => {
     document.title = "Paramètres — Akwetche";
     loadCategories();
@@ -152,7 +148,7 @@ export default function SettingsPage() {
       name,
       initialBalance: parseFloat(initialBalance),
       initialBalanceActivity: parseFloat(initialBalanceActivity),
-      currency,
+      currency: baseCurrency,
       phone,
       ...(countryCode && !user?.countryCode ? { countryCode } : {}),
     }),
@@ -526,7 +522,7 @@ export default function SettingsPage() {
       placeholder="Sélectionnez votre pays"
     />
     )}
-    <p className="text-xs text-muted mt-1">Devise du compte : <strong>{user?.baseCurrency || "XOF"}</strong></p>
+    <p className="text-xs text-muted mt-1">Devise du compte : <strong>{baseCurrency}</strong></p>
   </div>
   <div>
     <label className="block text-sm text-muted mb-1">Téléphone</label>
@@ -552,15 +548,10 @@ export default function SettingsPage() {
   </div>
   <div>
     <label className="block text-sm text-muted mb-1">Devise d'affichage</label>
-    <CustomSelect
-      options={[
-        { value: "XOF", label: "FCFA (Franc CFA)" },
-        { value: "EUR", label: "EUR (Euro)" },
-      ]}
-      value={currency}
-      onChange={(v) => setCurrency(v)}
-    />
-    <p className="text-xs text-muted mt-1">Les montants seront convertis et affichés dans cette devise</p>
+    <div className="input-field bg-sand text-muted cursor-not-allowed opacity-80 flex items-center gap-2">
+      <span>{baseCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</span>
+      <span className="text-xs text-muted ml-auto">Auto — basé sur le pays</span>
+    </div>
   </div>
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
