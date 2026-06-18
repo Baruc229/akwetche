@@ -5,6 +5,7 @@ export type CountryCode = "BJ" | "TG" | "BF" | "CI" | "FR" | "BE";
 export interface CountryInfo {
   code: CountryCode;
   name: string;
+  flag: string;
   phonePrefix: string;
   phonePattern: RegExp;
   phoneExample: string;
@@ -15,6 +16,7 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
   BJ: {
     code: "BJ",
     name: "Bénin",
+    flag: "🇧🇯",
     phonePrefix: "+229",
     phonePattern: /^\+229\d{8}$/,
     phoneExample: "+22961234567",
@@ -23,6 +25,7 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
   TG: {
     code: "TG",
     name: "Togo",
+    flag: "🇹🇬",
     phonePrefix: "+228",
     phonePattern: /^\+228\d{8}$/,
     phoneExample: "+22890123456",
@@ -31,6 +34,7 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
   BF: {
     code: "BF",
     name: "Burkina Faso",
+    flag: "🇧🇫",
     phonePrefix: "+226",
     phonePattern: /^\+226\d{8}$/,
     phoneExample: "+22670123456",
@@ -39,6 +43,7 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
   CI: {
     code: "CI",
     name: "Côte d'Ivoire",
+    flag: "🇨🇮",
     phonePrefix: "+225",
     phonePattern: /^\+225\d{8}$/,
     phoneExample: "+22501020304",
@@ -47,6 +52,7 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
   FR: {
     code: "FR",
     name: "France",
+    flag: "🇫🇷",
     phonePrefix: "+33",
     phonePattern: /^\+33\d{9}$/,
     phoneExample: "+33612345678",
@@ -55,6 +61,7 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
   BE: {
     code: "BE",
     name: "Belgique",
+    flag: "🇧🇪",
     phonePrefix: "+32",
     phonePattern: /^\+32\d{8,9}$/,
     phoneExample: "+32470123456",
@@ -217,7 +224,16 @@ export function formatPhoneForDisplay(phone: string): string {
   return phone;
 }
 
+export function getCountryFlag(code: string): string {
+  return COUNTRY_CONFIG[code as CountryCode]?.flag ?? "";
+}
+
+export function getCountryFlagDisplay(code: string): string {
+  const c = COUNTRY_CONFIG[code as CountryCode];
+  return c ? `${c.flag} ${c.name}` : code;
+}
+
 export const COUNTRY_OPTIONS = ALLOWED_COUNTRIES.map((c) => ({
   value: c.code,
-  label: `${c.name} (${c.phonePrefix})`,
+  label: `${c.flag} ${c.name} (${c.phonePrefix})`,
 }));

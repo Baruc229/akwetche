@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, validatePhone, COUNTRY_OPTIONS } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getCountryFlag, getPhonePrefix, COUNTRY_OPTIONS } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -54,6 +54,7 @@ export default function SettingsPage() {
   const [initialBalanceActivity, setInitialBalanceActivity] = useState(String(user?.initialBalanceActivity || "0"));
   const [currency, setCurrency] = useState(user?.currency || user?.baseCurrency || "XOF");
   const [phone, setPhone] = useState(user?.phone || "");
+  const [countryCode, setCountryCode] = useState(user?.countryCode || "");
  const [saved, setSaved] = useState(false);
  const [newCatName, setNewCatName] = useState("");
  const [newCatType, setNewCatType] = useState("expense");
@@ -141,7 +142,14 @@ export default function SettingsPage() {
   const res = await fetch("/api/user", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, initialBalance: parseFloat(initialBalance), initialBalanceActivity: parseFloat(initialBalanceActivity), currency, phone }),
+    body: JSON.stringify({
+      name,
+      initialBalance: parseFloat(initialBalance),
+      initialBalanceActivity: parseFloat(initialBalanceActivity),
+      currency,
+      phone,
+      ...(countryCode && !user?.countryCode ? { countryCode } : {}),
+    }),
   });
   const data = await res.json();
   if (res.ok) {
@@ -494,17 +502,28 @@ export default function SettingsPage() {
  <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
  </div>
  )}
-  {user?.countryCode && (
   <div>
     <label className="block text-sm text-muted mb-1">Pays</label>
+    {user?.countryCode ? (
     <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
-      <FontAwesomeIcon icon={faGlobe} className="w-4 h-4 shrink-0" />
+      <span className="text-lg shrink-0">{getCountryFlag(user.countryCode)}</span>
       <span>{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
       <span className="text-xs text-muted ml-auto">Non modifiable</span>
     </div>
+    ) : (
+    <CustomSelect
+      options={COUNTRY_OPTIONS}
+      value={countryCode}
+      onChange={(v) => {
+        setCountryCode(v);
+        const prefix = getPhonePrefix(v);
+        if (!phone) setPhone(prefix);
+      }}
+      placeholder="Sélectionnez votre pays"
+    />
+    )}
     <p className="text-xs text-muted mt-1">Devise du compte : <strong>{user?.baseCurrency || "XOF"}</strong></p>
   </div>
-  )}
   <div>
     <label className="block text-sm text-muted mb-1">Téléphone</label>
     <input

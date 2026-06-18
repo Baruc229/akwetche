@@ -3,8 +3,9 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSun, faArrowTrendUp, faArrowTrendDown } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from "next/navigation";
+import { getCountryFlag } from "@/lib/currency";
 
-export default function OnboardingModal({ onClose, currency }: { onClose: () => void; currency?: string }) {
+export default function OnboardingModal({ onClose, currency, countryCode }: { onClose: () => void; currency?: string; countryCode?: string | null }) {
   const router = useRouter();
 
   return (
@@ -21,6 +22,7 @@ export default function OnboardingModal({ onClose, currency }: { onClose: () => 
           </p>
           {currency && (
             <p className="text-xs text-muted mt-3 bg-sand rounded-xl px-3 py-2">
+              {countryCode && <span className="mr-1">{getCountryFlag(countryCode)}</span>}
               Compte en <strong>{currency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
             </p>
           )}

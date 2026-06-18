@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { badRequest, ok } from "@/lib/api";
 import { notifyAdmin } from "@/lib/admin-emails";
+import { getCountryFlagDisplay } from "@/lib/currency";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -34,10 +35,11 @@ export async function GET(req: NextRequest) {
     data: { emailVerified: new Date(), status: "active" },
   });
 
+  const userCountry = record.user.countryCode;
   notifyAdmin("new_registration", {
     userName: record.user.name || record.user.email,
     userEmail: record.user.email,
-    countryCode: record.user.countryCode || undefined,
+    countryCode: userCountry ? getCountryFlagDisplay(userCountry) : undefined,
     phone: record.user.phone || undefined,
     baseCurrency: record.user.baseCurrency || "XOF",
   });
