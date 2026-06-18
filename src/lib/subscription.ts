@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
+import { notifyAdmin } from "@/lib/admin-emails";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -60,6 +61,7 @@ export async function activatePremium(userId: number, provider: string, method: 
     if (user?.email) {
       const invoiceHtml = buildInvoiceEmail(user.name, amount, currency, provider, method, endDate);
       await sendSubscriptionEmail(user.email, "Votre facture Akwetche Premium", invoiceHtml);
+      await notifyAdmin("new_subscription", { userName: user.name || user.email, userEmail: user.email, amount, currency });
     }
   } catch {}
   await createNotification(userId, "subscription", "Abonnement Premium activé", "/dashboard/settings");

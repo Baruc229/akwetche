@@ -22,8 +22,10 @@ type UserData = {
  plan?: string;
  status?: string;
  activityActivated?: boolean;
- emailVerified?: string | null;
-  subscription?: { status: string; amount: number; currency: string; endDate: string; daysRemaining?: number; label?: string; variant?: string } | null;
+  emailVerified?: string | null;
+  adminNotificationPref?: string;
+  onboardingCompleted?: boolean;
+   subscription?: { status: string; amount: number; currency: string; endDate: string; daysRemaining?: number; label?: string; variant?: string } | null;
 };
 
 type DashboardContextType = {

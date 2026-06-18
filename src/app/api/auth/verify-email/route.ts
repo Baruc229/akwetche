@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { badRequest, ok } from "@/lib/api";
+import { notifyAdmin } from "@/lib/admin-emails";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -30,6 +31,8 @@ export async function GET(req: NextRequest) {
     where: { id: record.userId },
     data: { emailVerified: new Date(), status: "active" },
   });
+
+  notifyAdmin("new_registration", { userName: record.user.name || record.user.email, userEmail: record.user.email });
 
   await prisma.verificationToken.delete({ where: { id: record.id } });
 

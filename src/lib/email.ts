@@ -1,4 +1,4 @@
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BREVO_API_KEY = process.env.RESEND_API_KEY || process.env.BREVO_API_KEY;
 const FROM_EMAIL = process.env.EMAIL_FROM || "Akwetche <noreply@brevo.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 

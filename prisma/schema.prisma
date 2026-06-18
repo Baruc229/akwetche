@@ -35,8 +35,10 @@ model User {
   subscriptionHistory SubscriptionHistory[]
   verificationTokens VerificationToken[]
   loginLogs          LoginLog[]
-  notifications      Notification[]        @relation("UserNotifications")
-  actedNotifications Notification[]        @relation("NotificationActor")
+  notifications           Notification[]              @relation("UserNotifications")
+  actedNotifications       Notification[]              @relation("NotificationActor")
+  adminNotificationPref    String                      @default("instant") // "instant" ou "digest"
+  onboardingCompleted      Boolean                     @default(false)
 }
 
 model VerificationToken {
@@ -83,6 +85,16 @@ model Notification {
 
   @@index([userId, read])
   @@index([createdAt])
+}
+
+model PendingAdminEmail {
+  id        Int      @id @default(autoincrement())
+  type      String   // "new_registration", "new_subscription", "subscription_expired"
+  data      String   // JSON string — contextual data about the event
+  createdAt DateTime @default(now())
+  sentAt    DateTime?
+
+  @@index([sentAt])
 }
 
 model Subscription {

@@ -8,6 +8,7 @@ import { faWallet, faArrowTrendUp, faArrowTrendDown, faPlus, faCircleExclamation
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
+import OnboardingModal from "@/components/OnboardingModal";
 
 type ScopeSummary = {
  income: number;
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
   const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal" });
   const [txError, setTxError] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [limits, setLimits] = useState<{
   isPremium: boolean;
   incomeCount: number;
@@ -86,6 +88,21 @@ export default function DashboardPage() {
     document.title = "Dashboard — Akwetche";
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!loading && user && !user.onboardingCompleted && categories.length === 0) {
+      setShowOnboarding(true);
+    }
+  }, [loading, user, categories]);
+
+  async function completeOnboarding() {
+    setShowOnboarding(false);
+    await fetch("/api/user", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ onboardingCompleted: true }),
+    });
+  }
 
  async function handleSubscribe() {
  router.push("/payment");
@@ -952,7 +969,11 @@ export default function DashboardPage() {
  </form>
  </div>
  </div>
- )}
- </div>
- );
+  )}
+
+  {showOnboarding && (
+    <OnboardingModal onClose={completeOnboarding} />
+  )}
+  </div>
+  );
 }

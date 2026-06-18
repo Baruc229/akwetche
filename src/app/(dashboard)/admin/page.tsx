@@ -77,6 +77,8 @@ export default function AdminPage() {
  const [allLogs, setAllLogs] = useState<LoginLog[]>([]);
  const [showAllLogs, setShowAllLogs] = useState(false);
  const [logsLoading, setLogsLoading] = useState(false);
+ const [notifPref, setNotifPref] = useState(user?.adminNotificationPref || "instant");
+ const [savingNotif, setSavingNotif] = useState(false);
 
  useEffect(() => {
   document.title = "Administration — Akwetche";
@@ -261,13 +263,57 @@ export default function AdminPage() {
  </div>
 
  {stats && stats.failedLoginsToday > 0 && (
- <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
- <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0" />
- <span>{stats.failedLoginsToday} tentative(s) échouée(s) aujourd'hui sur {stats.loginAttemptsToday} totales</span>
- </div>
- )}
+  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+  <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0" />
+  <span>{stats.failedLoginsToday} tentative(s) échouée(s) aujourd'hui sur {stats.loginAttemptsToday} totales</span>
+  </div>
+  )}
 
- <div className="card overflow-hidden">
+  {user?.role === "super_admin" && (
+  <div className="card p-5">
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="text-sm font-semibold text-ink">Notifications administrateur</h2>
+        <p className="text-xs text-muted mt-0.5">Recevez les alertes en temps réel ou en résumé quotidien</p>
+      </div>
+      <div className="flex items-center gap-2 bg-sand rounded-xl p-1">
+        <button
+          onClick={async () => {
+            setSavingNotif(true);
+            setNotifPref("instant");
+            await fetch("/api/user", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ adminNotificationPref: "instant" }),
+            });
+            setSavingNotif(false);
+          }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${notifPref === "instant" ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+        >
+          Instantané
+        </button>
+        <button
+          onClick={async () => {
+            setSavingNotif(true);
+            setNotifPref("digest");
+            await fetch("/api/user", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ adminNotificationPref: "digest" }),
+            });
+            setSavingNotif(false);
+          }}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${notifPref === "digest" ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+        >
+          Résumé quotidien
+        </button>
+      </div>
+    </div>
+    {savingNotif && <p className="text-xs text-muted mt-2">Enregistrement...</p>}
+  </div>
+  )}
+
+  <div className="card overflow-hidden">
  <div className="p-4 border-b border-border">
  <div className="flex items-center justify-between">
  <h2 className="text-sm font-semibold text-ink">Historique des connexions</h2>

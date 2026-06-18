@@ -15,6 +15,7 @@ export async function GET() {
       role: true, currency: true,
       emailVerified: true, plan: true, status: true,
       activityActivated: true,
+      adminNotificationPref: true, onboardingCompleted: true,
       subscription: { select: { status: true, amount: true, currency: true, endDate: true } },
     },
   });
@@ -33,5 +34,5 @@ export async function GET() {
     };
   }
 
-  return ok({ user: { ...user, currency: user.currency || "auto", subscription: subscriptionStatus } });
+  return ok({ user: { ...user, currency: user.currency || "auto", adminNotificationPref: user.adminNotificationPref || "instant", subscription: subscriptionStatus } });
 }

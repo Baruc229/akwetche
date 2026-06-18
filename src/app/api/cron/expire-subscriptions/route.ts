@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { daysUntil, expireSubscription, sendExpiryReminderEmail, sendWeeklyRenewalReminderEmail } from "@/lib/subscription";
+import { notifyAdmin } from "@/lib/admin-emails";
 
 const CRON_SECRET = process.env.CRON_SECRET || "change-me-in-production";
 
@@ -36,6 +37,12 @@ export async function GET(req: NextRequest) {
         });
         results.push(`Sent expiry notification to ${user.email}`);
       }
+    }
+
+    // Notifier l'admin
+    const userForAdmin = await getUser(sub.userId);
+    if (userForAdmin) {
+      notifyAdmin("subscription_expired", { userName: userForAdmin.name || userForAdmin.email || "", userEmail: userForAdmin.email || "" });
     }
   }
 
