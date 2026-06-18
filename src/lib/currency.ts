@@ -1,3 +1,5 @@
+import * as flagSvgs from "country-flag-icons/string/3x2";
+
 export type CurrencyCode = "EUR" | "XOF";
 
 export type CountryCode = "BJ" | "TG" | "BF" | "CI" | "FR" | "BE";
@@ -235,5 +237,6 @@ export function getCountryFlagDisplay(code: string): string {
 
 export const COUNTRY_OPTIONS = ALLOWED_COUNTRIES.map((c) => ({
   value: c.code,
-  label: `${c.name} (${c.phonePrefix})`,
+  label: c.name,
+  icon: `data:image/svg+xml,${encodeURIComponent((flagSvgs as Record<string, string>)[c.code] || "")}`,
 }));
