@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getCountryFlag, getPhonePrefix, COUNTRY_OPTIONS } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getFlagUrl, getPhonePrefix, COUNTRY_OPTIONS } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
+import FlagImg from "@/components/ui/FlagImg";
 
 type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
 
@@ -511,7 +512,7 @@ export default function SettingsPage() {
     <label className="block text-sm text-muted mb-1">Pays</label>
     {user?.countryCode ? (
     <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
-      <span className="text-lg shrink-0">{getCountryFlag(user.countryCode)}</span>
+      <FlagImg code={user.countryCode} />
       <span>{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
       <span className="text-xs text-muted ml-auto">Non modifiable</span>
     </div>

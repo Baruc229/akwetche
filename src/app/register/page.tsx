@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
+import FlagImg from "@/components/ui/FlagImg";
 import AuthFeaturePanel from "@/components/auth/AuthFeaturePanel";
-import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix, validatePhone, getCountryFlag } from "@/lib/currency";
+import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix, validatePhone } from "@/lib/currency";
 
 const PLANS = [
  {
@@ -326,7 +327,7 @@ export default function RegisterPage() {
     <p className="text-red-500 text-xs mt-1">{fieldErrors.country}</p>
   )}
   <p className="text-xs text-muted mt-1">
-    {getCountryFlag(countryCode)} Devise : <strong>{detectedCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
+    <FlagImg code={countryCode} className="w-4 h-4 rounded-sm inline-block align-middle mr-1" /> Devise : <strong>{detectedCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
   </p>
   </div>
 

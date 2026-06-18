@@ -5,9 +5,10 @@ import { useDashboard } from "../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUsers, faChartLine, faTrash, faShield, faDollarSign, faBagShopping, faFileLines, faCreditCard, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faStar, faEnvelope, faCalendarDays, faLock, faUnlock, faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, formatDate, getCountryByCode, getCountryName, getCountryFlag } from "@/lib/utils";
+import { formatCurrency, formatDate, getCountryByCode, getCountryName } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
+import FlagImg from "@/components/ui/FlagImg";
 
 type AdminSubHistory = {
   id: number;
@@ -283,7 +284,7 @@ export default function AdminPage() {
       {stats.usersByCountry.map((c) => (
         <div key={c.countryCode || "unknown"} className="bg-sand rounded-xl px-3 py-2 text-center min-w-[80px]">
           <p className="text-lg font-bold text-ink">{c._count}</p>
-          <p className="text-[10px] text-muted"><span className="mr-1">{getCountryFlag(c.countryCode || "")}</span>{getCountryName(c.countryCode || "") || "Inconnu"}</p>
+          <p className="text-[10px] text-muted"><FlagImg code={c.countryCode || ""} className="w-4 h-4 rounded-sm inline-block mr-1" />{getCountryName(c.countryCode || "") || "Inconnu"}</p>
         </div>
       ))}
     </div>
@@ -467,7 +468,7 @@ export default function AdminPage() {
   <span className="flex items-center gap-1"><FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />{formatDate(u.createdAt)}</span>
   <span className="flex items-center gap-1"><FontAwesomeIcon icon={faFileLines} className="w-3 h-3" />{u._count.transactions} tx</span>
   <span className="flex items-center gap-1"><FontAwesomeIcon icon={faRightToBracket} className="w-3 h-3" />{u._count.loginLogs} logs</span>
-  {u.countryCode && <span className="flex items-center gap-1"><span className="text-base">{getCountryFlag(u.countryCode)}</span> {getCountryByCode(u.countryCode)?.name || u.countryCode}</span>}
+  {u.countryCode && <span className="flex items-center gap-1"><FlagImg code={u.countryCode} /> {getCountryByCode(u.countryCode)?.name || u.countryCode}</span>}
   <span className="flex items-center gap-1">{u.baseCurrency || u.currency || "XOF"}</span>
   </div>
  </div>
@@ -625,7 +626,7 @@ export default function AdminPage() {
   <div className="text-xs text-muted space-y-1">
   <p>Solde de départ : {formatCurrency(selectedUser.initialBalance)}</p>
   <p>Devise de base : {selectedUser.baseCurrency || selectedUser.currency || "XOF"}</p>
-  {selectedUser.countryCode && <p><span className="text-base">{getCountryFlag(selectedUser.countryCode)}</span> Pays : {getCountryName(selectedUser.countryCode)}</p>}
+  {selectedUser.countryCode && <p><FlagImg code={selectedUser.countryCode} className="w-5 h-5 rounded-sm inline-block align-middle mr-1" /> Pays : {getCountryName(selectedUser.countryCode)}</p>}
   {selectedUser.phone && <p>Téléphone : {selectedUser.phone}</p>}
   {selectedUser.loginAttempts > 0 && <p>Tentatives de connexion échouées : {selectedUser.loginAttempts}</p>}
   {selectedUser.lockedUntil && new Date(selectedUser.lockedUntil) > new Date() && (

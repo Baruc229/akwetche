@@ -18,8 +18,8 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
     name: "Bénin",
     flag: "🇧🇯",
     phonePrefix: "+229",
-    phonePattern: /^\+229\d{8}$/,
-    phoneExample: "+22961234567",
+    phonePattern: /^\+22901\d{8}$/,
+    phoneExample: "+2290197000000",
     currency: "XOF",
   },
   TG: {
@@ -45,8 +45,8 @@ export const COUNTRY_CONFIG: Record<CountryCode, CountryInfo> = {
     name: "Côte d'Ivoire",
     flag: "🇨🇮",
     phonePrefix: "+225",
-    phonePattern: /^\+225\d{8}$/,
-    phoneExample: "+22501020304",
+    phonePattern: /^\+225\d{10}$/,
+    phoneExample: "+2250701020304",
     currency: "XOF",
   },
   FR: {
@@ -233,7 +233,12 @@ export function getCountryFlagDisplay(code: string): string {
   return c ? `${c.flag} ${c.name}` : code;
 }
 
+export function getFlagUrl(code: string, size: number = 24): string {
+  return `https://flagcdn.com/w${size}/${code.toLowerCase()}.png`;
+}
+
 export const COUNTRY_OPTIONS = ALLOWED_COUNTRIES.map((c) => ({
   value: c.code,
   label: `${c.flag} ${c.name} (${c.phonePrefix})`,
+  icon: getFlagUrl(c.code, 24),
 }));
