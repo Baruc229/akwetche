@@ -45,13 +45,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-border text-muted hover:bg-sand transition-all"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-border text-muted hover:bg-sand transition-all cursor-pointer"
           >
             Plus tard
           </button>
           <button
             onClick={() => router.push("/dashboard/settings")}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-forest hover:bg-forest shadow-sm transition-all"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-forest hover:bg-forest shadow-sm transition-all cursor-pointer"
           >
             Créer mes catégories
           </button>
