@@ -5,10 +5,20 @@ import { ALLOWED_COUNTRIES } from "@/lib/currency";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+const FLAG_SVGS: Record<string, string> = {
+  BJ: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><polygon points="0,0 3,0 3,0.67 0,0.67" fill="#008751"/><polygon points="0,0.67 3,0.67 3,1.33 0,1.33" fill="#FCD116"/><polygon points="0,1.33 3,1.33 3,2 0,2" fill="#E8112D"/></svg>',
+  TG: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><polygon points="0,0 3,0 3,0.4 0,0.4" fill="#006A4E"/><polygon points="0,0.4 3,0.4 3,0.8 0,0.8" fill="#FFCE00"/><polygon points="0,0.8 3,0.8 3,1.2 0,1.2" fill="#006A4E"/><polygon points="0,1.2 3,1.2 3,1.6 0,1.6" fill="#FFCE00"/><polygon points="0,1.6 3,1.6 3,2 0,2" fill="#006A4E"/><polygon points="0,0 1.2,0 1.2,1.2 0,1.2" fill="#D21034"/><polygon points="0.6,0.15 0.66,0.5 0.86,0.5 0.7,0.65 0.76,0.95 0.6,0.8 0.44,0.95 0.5,0.65 0.34,0.5 0.54,0.5" fill="#FFF"/></svg>',
+  BF: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><polygon points="0,0 3,0 3,1 0,1" fill="#EF2B2D"/><polygon points="0,1 3,1 3,2 0,2" fill="#009460"/><polygon points="1.5,0.15 1.65,0.7 2.2,0.7 1.75,1 1.9,1.6 1.5,1.25 1.1,1.6 1.25,1 0.8,0.7 1.35,0.7" fill="#FCD116"/></svg>',
+  CI: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><polygon points="0,0 1,0 1,2 0,2" fill="#FF8200"/><polygon points="1,0 2,0 2,2 1,2" fill="#FFF"/><polygon points="2,0 3,0 3,2 2,2" fill="#009E60"/></svg>',
+  FR: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><polygon points="0,0 1,0 1,2 0,2" fill="#0055A4"/><polygon points="1,0 2,0 2,2 1,2" fill="#FFF"/><polygon points="2,0 3,0 3,2 2,2" fill="#EF4135"/></svg>',
+  BE: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><polygon points="0,0 1,0 1,2 0,2" fill="#000"/><polygon points="1,0 2,0 2,2 1,2" fill="#FAE042"/><polygon points="2,0 3,0 3,2 2,2" fill="#ED2939"/></svg>',
+};
+
 function countryHtml(code: string): string {
   const c = ALLOWED_COUNTRIES.find((x) => x.code === code);
   if (!c) return code;
-  return `<img src="https://flagcdn.com/w20/${code.toLowerCase()}.png" alt="${c.flag}" style="width:18px;height:18px;border-radius:2px;vertical-align:middle;margin-right:4px;object-fit:cover" onerror="this.style.display='none'" /> ${c.name}`;
+  const svg = FLAG_SVGS[code] || "";
+  return `${svg} ${c.name}`;
 }
 
 type AdminEventType = "new_registration" | "new_subscription" | "subscription_expired";

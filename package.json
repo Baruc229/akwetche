@@ -27,6 +27,7 @@
     "@stripe/stripe-js": "^9.8.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.10.0",
+    "country-flag-icons": "^1.6.17",
     "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",
