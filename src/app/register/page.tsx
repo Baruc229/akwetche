@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
 import AuthFeaturePanel from "@/components/auth/AuthFeaturePanel";
-import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix } from "@/lib/currency";
+import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix, validatePhone, getCountryFlag } from "@/lib/currency";
 
 const PLANS = [
  {
@@ -49,6 +49,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ country?: string; phone?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const detectedCurrency = getCurrencyForCountry(countryCode);
@@ -59,9 +60,17 @@ export default function RegisterPage() {
   }, [countryCode]);
 
  async function handleSubmit(e: React.FormEvent) {
- e.preventDefault();
- setError("");
- setLoading(true);
+  e.preventDefault();
+  setError("");
+
+  const errs: { country?: string; phone?: string } = {};
+  if (!countryCode) errs.country = "Veuillez sélectionner un pays";
+  if (!phone || phone === phonePrefix) errs.phone = "Veuillez saisir votre numéro de téléphone";
+  else if (!validatePhone(countryCode, phone)) errs.phone = "Format de numéro invalide pour ce pays";
+  setFieldErrors(errs);
+  if (Object.keys(errs).length > 0) return;
+
+  setLoading(true);
 
  try {
   const res = await fetch("/api/auth/register", {
@@ -74,7 +83,7 @@ export default function RegisterPage() {
       plan: selectedPlan,
       initialBalance: initialBalance ? parseFloat(initialBalance) : 0,
       countryCode,
-      phone: phone || undefined,
+      phone,
     }),
   });
 
@@ -302,6 +311,61 @@ export default function RegisterPage() {
 
   <div>
   <label className="block text-sm font-medium text-ink mb-1.5">
+    Pays de résidence <span className="text-red-500">*</span>
+  </label>
+  <CustomSelect
+    options={COUNTRY_OPTIONS}
+    value={countryCode}
+    onChange={(v) => {
+      setCountryCode(v);
+      setFieldErrors((prev) => ({ ...prev, country: undefined }));
+    }}
+    placeholder="Sélectionnez votre pays"
+  />
+  {fieldErrors.country && (
+    <p className="text-red-500 text-xs mt-1">{fieldErrors.country}</p>
+  )}
+  <p className="text-xs text-muted mt-1">
+    {getCountryFlag(countryCode)} Devise : <strong>{detectedCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
+  </p>
+  </div>
+
+  <div>
+  <label className="block text-sm font-medium text-ink mb-1.5">
+    Téléphone <span className="text-red-500">*</span>
+  </label>
+  <div className="relative">
+  <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+  <input
+    type="tel"
+    value={phone}
+    onChange={(e) => {
+      const val = e.target.value;
+      if (val.startsWith(phonePrefix)) {
+        setPhone(val);
+        if (val.length > phonePrefix.length) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            phone: validatePhone(countryCode, val) ? undefined : "Format de numéro invalide",
+          }));
+        } else {
+          setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+        }
+      } else {
+        setPhone(phonePrefix);
+      }
+    }}
+    placeholder={`${phonePrefix} XX XX XX XX`}
+    className={`input-field pl-10 ${fieldErrors.phone ? "border-red-500" : ""}`}
+  />
+  </div>
+  {fieldErrors.phone && (
+    <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>
+  )}
+  </div>
+
+  <div>
+  <label className="block text-sm font-medium text-ink mb-1.5">
   Solde initial (optionnel)
   </label>
   <input
@@ -314,47 +378,6 @@ export default function RegisterPage() {
   />
   <p className="text-xs text-muted mt-1">
   Montant en {detectedCurrency === "XOF" ? "FCFA" : "EUR"} (ex: 150000)
-  </p>
-  </div>
-
-  <div>
-  <label className="block text-sm font-medium text-ink mb-1.5">
-  Pays de résidence
-  </label>
-  <CustomSelect
-    options={COUNTRY_OPTIONS}
-    value={countryCode}
-    onChange={(v) => setCountryCode(v)}
-    placeholder="Sélectionnez votre pays"
-  />
-  <p className="text-xs text-muted mt-1">
-  Devise : <strong>{detectedCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
-  </p>
-  </div>
-
-  <div>
-  <label className="block text-sm font-medium text-ink mb-1.5">
-  Téléphone (optionnel)
-  </label>
-  <div className="relative">
-  <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-  <input
-    type="tel"
-    value={phone}
-    onChange={(e) => {
-      const val = e.target.value;
-      if (val.startsWith(phonePrefix)) {
-        setPhone(val);
-      } else {
-        setPhone(phonePrefix);
-      }
-    }}
-    placeholder={`${phonePrefix} XX XX XX XX`}
-    className="input-field pl-10"
-  />
-  </div>
-  <p className="text-xs text-muted mt-1">
-  Indicatif <strong>{phonePrefix}</strong> automatique — Saisissez les chiffres après
   </p>
   </div>
 

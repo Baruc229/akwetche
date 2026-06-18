@@ -8,7 +8,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 function countryHtml(code: string): string {
   const c = ALLOWED_COUNTRIES.find((x) => x.code === code);
   if (!c) return code;
-  return `<img src="https://flagcdn.com/w20/${code.toLowerCase()}.png" alt="" style="width:18px;height:18px;border-radius:2px;vertical-align:middle;margin-right:4px;object-fit:cover" /> ${c.name}`;
+  return `${c.flag} ${c.name}`;
 }
 
 type AdminEventType = "new_registration" | "new_subscription" | "subscription_expired";

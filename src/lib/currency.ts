@@ -233,12 +233,7 @@ export function getCountryFlagDisplay(code: string): string {
   return c ? `${c.flag} ${c.name}` : code;
 }
 
-export function getFlagUrl(code: string, size: number = 24): string {
-  return `https://flagcdn.com/w${size}/${code.toLowerCase()}.png`;
-}
-
 export const COUNTRY_OPTIONS = ALLOWED_COUNTRIES.map((c) => ({
   value: c.code,
-  label: `${c.name} (${c.phonePrefix})`,
-  icon: getFlagUrl(c.code, 24),
+  label: `${c.flag} ${c.name} (${c.phonePrefix})`,
 }));

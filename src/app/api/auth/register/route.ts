@@ -38,19 +38,19 @@ export async function POST(req: NextRequest) {
 
     const { name, email, password, initialBalance, countryCode, phone, plan } = await req.json();
 
-    if (!name || !email || !password || !plan || !countryCode) {
-      return badRequest("Tous les champs sont requis (nom, email, mot de passe, pays, plan)");
-    }
-
-    if (!["free", "premium"].includes(plan)) {
-      return badRequest("Plan invalide");
+    if (!name || !email || !password || !plan || !countryCode || !phone) {
+      return badRequest("Tous les champs sont requis (nom, email, mot de passe, pays, téléphone, plan)");
     }
 
     if (!ALLOWED_COUNTRY_CODES.includes(countryCode)) {
       return badRequest("Ce pays n'est pas encore supporté. Pays autorisés : Bénin, Togo, Burkina Faso, Côte d'Ivoire, France, Belgique.");
     }
 
-    if (phone && !validatePhone(countryCode, phone)) {
+    if (!["free", "premium"].includes(plan)) {
+      return badRequest("Plan invalide");
+    }
+
+    if (!validatePhone(countryCode, phone)) {
       const country = getCountryByCode(countryCode);
       return badRequest(`Format de téléphone invalide pour ${country?.name}. Exemple : ${country?.phoneExample}`);
     }
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         status: "inactive",
         initialBalance: initialBalance || 0,
         countryCode,
-        phone: phone || null,
+        phone,
         baseCurrency,
         currency: baseCurrency,
       },
