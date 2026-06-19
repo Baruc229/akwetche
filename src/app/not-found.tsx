@@ -1,6 +1,22 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function NotFound() {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => {
+        if (res.ok) setIsLoggedIn(true);
+        else setIsLoggedIn(false);
+      })
+      .catch(() => setIsLoggedIn(false));
+  }, []);
+
+  const href = isLoggedIn === true ? "/dashboard" : "/";
+
   return (
     <div className="min-h-screen bg-sand flex items-center justify-center px-4">
       <div className="text-center max-w-md">
@@ -14,10 +30,10 @@ export default function NotFound() {
         <h1 className="text-6xl font-bold text-forest mb-2">404</h1>
         <p className="text-stone text-lg mb-8">Page introuvable</p>
         <Link
-          href="/"
+          href={href}
           className="inline-flex items-center justify-center bg-forest text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-forest-dark transition-colors"
         >
-          Retour à l'accueil
+          {isLoggedIn === true ? "Retour au tableau de bord" : "Retour à l'accueil"}
         </Link>
       </div>
     </div>

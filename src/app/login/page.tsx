@@ -28,7 +28,7 @@ export default function LoginPage() {
  if (!res.ok) {
  setError(data.error || "Erreur de connexion");
  } else {
- window.location.href = "/dashboard";
+  window.location.replace("/dashboard");
  }
  } catch {
  setError("Erreur de connexion au serveur");
