@@ -396,8 +396,25 @@ export default function SettingsPage() {
 
  if (loading) {
  return (
- <div className="flex items-center justify-center h-64">
- <div className="w-8 h-8 border-2 border-forest border-t-transparent rounded-full animate-spin" />
+ <div className="space-y-6 max-w-2xl animate-pulse">
+  <div className="space-y-2">
+   <div className="h-7 w-28 bg-stone/30 rounded-lg" />
+   <div className="h-4 w-52 bg-stone/20 rounded-lg" />
+  </div>
+  <div className="card p-6 space-y-4">
+   <div className="flex items-center gap-3">
+    <div className="w-12 h-12 bg-stone/30 rounded-2xl" />
+    <div className="space-y-2 flex-1"><div className="h-5 w-32 bg-stone/30 rounded-lg" /><div className="h-4 w-48 bg-stone/20 rounded-lg" /></div>
+   </div>
+   <div className="h-px bg-border" />
+   <div className="space-y-2"><div className="h-4 w-full bg-stone/20 rounded-lg" /><div className="h-4 w-3/4 bg-stone/20 rounded-lg" /></div>
+   <div className="h-10 w-full bg-stone/20 rounded-xl" />
+  </div>
+  <div className="card p-6 space-y-4">
+   <div className="h-5 w-36 bg-stone/30 rounded-lg" />
+   <div className="h-10 w-full bg-stone/20 rounded-xl" />
+   <div className="h-10 w-full bg-stone/20 rounded-xl" />
+  </div>
  </div>
  );
  }

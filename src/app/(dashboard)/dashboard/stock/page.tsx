@@ -138,7 +138,26 @@ export default function StockPage() {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-forest border-t-transparent rounded-full animate-spin" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-40 bg-stone/30 rounded-lg" />
+            <div className="h-4 w-24 bg-stone/20 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="card p-5 space-y-2"><div className="h-3 w-28 bg-stone/30 rounded-lg" /><div className="h-7 w-24 bg-stone/20 rounded-lg" /></div>
+          <div className="card p-5 space-y-2"><div className="h-3 w-28 bg-stone/30 rounded-lg" /><div className="h-7 w-24 bg-stone/20 rounded-lg" /></div>
+          <div className="card p-5 space-y-2"><div className="h-3 w-28 bg-stone/30 rounded-lg" /><div className="h-7 w-24 bg-stone/20 rounded-lg" /></div>
+        </div>
+        <div className="card p-4 space-y-3">
+          <div className="h-4 w-full bg-stone/20 rounded-lg" />
+          <div className="h-4 w-full bg-stone/20 rounded-lg" />
+          <div className="h-4 w-3/4 bg-stone/20 rounded-lg" />
+        </div>
+      </div>
+    );
   }
 
   const stats = computeProductStats(products, movements);

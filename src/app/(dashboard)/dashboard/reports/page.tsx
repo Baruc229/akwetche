@@ -57,13 +57,30 @@ export default function ReportsPage() {
  window.print();
  }
 
- if (loading) {
- return (
- <div className="flex items-center justify-center h-64">
- <div className="w-8 h-8 border-2 border-forest border-t-transparent rounded-full animate-spin" />
- </div>
- );
- }
+  if (loading) {
+  return (
+  <div className="space-y-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-7 w-24 bg-stone/30 rounded-lg" />
+        <div className="h-4 w-44 bg-stone/20 rounded-lg" />
+      </div>
+      <div className="h-10 w-44 bg-stone/30 rounded-xl" />
+    </div>
+    <div className="flex gap-2">
+      <div className="h-8 w-28 bg-stone/20 rounded-xl" />
+      <div className="h-8 w-28 bg-stone/20 rounded-xl" />
+      <div className="h-8 w-28 bg-stone/20 rounded-xl" />
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="bg-ochre-light/50 rounded-xl p-3 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-6 w-24 bg-stone/20 rounded-lg" /></div>
+      <div className="bg-ochre-light/50 rounded-xl p-3 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-6 w-24 bg-stone/20 rounded-lg" /></div>
+      <div className="bg-ochre-light/50 rounded-xl p-3 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-6 w-24 bg-stone/20 rounded-lg" /></div>
+      <div className="bg-ochre-light/50 rounded-xl p-3 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-6 w-24 bg-stone/20 rounded-lg" /></div>
+    </div>
+  </div>
+  );
+  }
 
  const periods = [
  { value: "weekly", label: "Cette semaine" },

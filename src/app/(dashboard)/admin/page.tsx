@@ -237,8 +237,22 @@ export default function AdminPage() {
 
  if (loading) {
  return (
- <div className="flex items-center justify-center h-64">
- <div className="w-8 h-8 border-2 border-forest border-t-transparent rounded-full animate-spin" />
+ <div className="space-y-6 animate-pulse">
+  <div className="space-y-2">
+   <div className="h-7 w-32 bg-stone/30 rounded-lg" />
+   <div className="h-4 w-44 bg-stone/20 rounded-lg" />
+  </div>
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+   <div className="card p-4 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-16 bg-stone/20 rounded-lg" /></div>
+   <div className="card p-4 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-16 bg-stone/20 rounded-lg" /></div>
+   <div className="card p-4 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-16 bg-stone/20 rounded-lg" /></div>
+   <div className="card p-4 space-y-2"><div className="h-3 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-16 bg-stone/20 rounded-lg" /></div>
+  </div>
+  <div className="card p-4 space-y-3">
+   <div className="h-4 w-full bg-stone/20 rounded-lg" />
+   <div className="h-4 w-full bg-stone/20 rounded-lg" />
+   <div className="h-4 w-3/4 bg-stone/20 rounded-lg" />
+  </div>
  </div>
  );
  }
