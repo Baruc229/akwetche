@@ -140,13 +140,40 @@ export default function DashboardPage() {
  }
  }
 
- if (loading) {
- return (
- <div className="flex items-center justify-center h-64">
- <div className="w-8 h-8 border-2 border-forest border-t-transparent rounded-full animate-spin" />
- </div>
- );
- }
+  if (loading) {
+  return (
+  <div className="space-y-5 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-6 w-44 bg-stone/30 rounded-lg" />
+        <div className="h-4 w-32 bg-stone/20 rounded-lg" />
+      </div>
+      <div className="h-10 w-40 bg-stone/30 rounded-xl hidden sm:block" />
+    </div>
+    <div className="bg-forest/20 rounded-2xl p-6 space-y-3">
+      <div className="h-4 w-32 bg-white/20 rounded-lg" />
+      <div className="h-8 w-48 bg-white/20 rounded-lg" />
+      <div className="flex gap-4">
+        <div className="h-4 w-24 bg-white/20 rounded-lg" />
+        <div className="h-4 w-24 bg-white/20 rounded-lg" />
+      </div>
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="card p-4 space-y-2"><div className="h-4 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-28 bg-stone/20 rounded-lg" /></div>
+      <div className="card p-4 space-y-2"><div className="h-4 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-28 bg-stone/20 rounded-lg" /></div>
+      <div className="card p-4 space-y-2 col-span-2 sm:col-span-1"><div className="h-4 w-20 bg-stone/30 rounded-lg" /><div className="h-7 w-28 bg-stone/20 rounded-lg" /></div>
+    </div>
+    <div className="card p-5 space-y-3">
+      <div className="h-4 w-40 bg-stone/30 rounded-lg" />
+      <div className="space-y-2">
+        <div className="h-4 w-full bg-stone/20 rounded-lg" />
+        <div className="h-4 w-3/4 bg-stone/20 rounded-lg" />
+        <div className="h-4 w-1/2 bg-stone/20 rounded-lg" />
+      </div>
+    </div>
+  </div>
+  );
+  }
 
  const weekExpenses = (weekPersonal?.topCategories ?? []).filter(c => c.type === "expense");
  const weekActivityExpenses = (weekActivity?.topCategories ?? []).filter(c => c.type === "expense");
