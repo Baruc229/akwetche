@@ -30,7 +30,7 @@ export async function POST() {
 
   await sendEmail({
     to: user.email,
-    subject: "Confirmez votre email — Financier",
+    subject: "Confirmez votre email — Akwetche",
     html: verificationEmailHtml(token),
   });
 
