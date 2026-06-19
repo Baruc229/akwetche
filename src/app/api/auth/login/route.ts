@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       await prisma.loginLog.create({
-        data: { ip, userAgent, success: false, reason: "user_not_found" },
+        data: { ip, userAgent, success: false, reason: `user_not_found:${email}` },
       });
       return badRequest("Email ou mot de passe incorrect");
     }

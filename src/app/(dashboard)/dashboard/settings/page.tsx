@@ -585,7 +585,7 @@ export default function SettingsPage() {
       value={currency}
       onChange={(v) => setCurrency(v)}
     />
-    <p className="text-xs text-muted mt-1">Auto-détectée depuis le pays. Modifiable si besoin.</p>
+    <p className="text-xs text-muted mt-1">Choisissez la devise d'affichage.</p>
   </div>
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />

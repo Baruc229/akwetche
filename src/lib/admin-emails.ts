@@ -113,7 +113,12 @@ export async function notifyAdmin(
   payload: { userName: string; userEmail: string; amount?: number; currency?: string; countryCode?: string; phone?: string; baseCurrency?: string },
 ) {
   const admin = await getAdmin();
-  if (!admin?.email) return;
+  if (!admin?.email) {
+    console.warn("[notifyAdmin] No admin email found — skipping notification");
+    return;
+  }
+
+  console.log(`[notifyAdmin] ${type} — ${payload.userName} (${payload.userEmail}) → admin: ${admin.email} (mode: ${admin.adminNotificationPref || "instant"})`);
 
   const data: Record<string, unknown> = {
     userName: payload.userName,
@@ -129,12 +134,18 @@ export async function notifyAdmin(
   if (admin.adminNotificationPref === "instant") {
     const subject = `[Akwetche] ${eventLabel(type)}`;
     const html = buildAdminEmailHtml(type, data);
-    await sendEmail({ to: admin.email, subject, html: emailLayout(subject, html) });
+    const result = await sendEmail({ to: admin.email, subject, html: emailLayout(subject, html) });
+    if (result?.error) {
+      console.error(`[notifyAdmin] Email send failed:`, result.error);
+    } else {
+      console.log(`[notifyAdmin] Email sent successfully`);
+    }
     await createNotification(admin.id, "admin", `${eventLabel(type)} — ${payload.userName} (${payload.userEmail})`, "/dashboard/admin");
   } else {
     await prisma.pendingAdminEmail.create({
       data: { type, data: JSON.stringify(data) },
     });
+    console.log(`[notifyAdmin] Queued for digest`);
   }
 }
 

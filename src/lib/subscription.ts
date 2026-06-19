@@ -63,7 +63,9 @@ export async function activatePremium(userId: number, provider: string, method: 
       await sendSubscriptionEmail(user.email, "Votre facture Akwetche Premium", invoiceHtml);
       await notifyAdmin("new_subscription", { userName: user.name || user.email, userEmail: user.email, amount, currency });
     }
-  } catch {}
+  } catch (err) {
+    console.error("[activatePremium] Notification error:", err);
+  }
   await createNotification(userId, "subscription", "Abonnement Premium activé", "/dashboard/settings");
 }
 

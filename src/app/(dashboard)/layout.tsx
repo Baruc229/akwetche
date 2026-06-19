@@ -5,8 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
-import { resolveCurrency, setActiveCurrency } from "@/lib/currency";
-import type { CurrencyCode } from "@/lib/currency";
+import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
 import ExpiredModal from "@/components/subscription/ExpiredModal";
 import NotificationBell from "@/components/NotificationBell";
@@ -87,6 +86,7 @@ export default function DashboardLayout({
  localStorage.setItem("akwetche_session", "true");
  setUser(data.user);
   setActiveCurrency(resolveCurrency(data.user?.currency || data.user?.baseCurrency));
+  setActiveBaseCurrency((data.user?.baseCurrency || "XOF") as CurrencyCode);
  const isPremium = data.user.plan === "premium" || data.user.role !== "user";
  if (isPremium) {
  const saved = localStorage.getItem("akwetche_commercial");

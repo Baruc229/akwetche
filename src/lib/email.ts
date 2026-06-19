@@ -1,5 +1,5 @@
-const BREVO_API_KEY = process.env.RESEND_API_KEY || process.env.BREVO_API_KEY;
-const FROM_EMAIL = process.env.EMAIL_FROM || "Akwetche <noreply@brevo.com>";
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.EMAIL_FROM || "Akwetche <noreply@akwetche.app>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export function emailLayout(title: string, content: string): string {
@@ -49,37 +49,45 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  if (!BREVO_API_KEY) {
-    console.warn("BREVO_API_KEY not set — email not sent");
-    return { error: "BREVO_API_KEY not configured" };
+  if (!RESEND_API_KEY) {
+    console.warn("[sendEmail] RESEND_API_KEY not set — email not sent");
+    return { error: "RESEND_API_KEY not configured" };
   }
+
+  console.log(`[sendEmail] Sending "${subject}" to ${to}...`);
 
   const [name, email] = FROM_EMAIL.match(/^(.*?)\s*<(.+)>$/)?.slice(1) ?? [
     "Akwetche",
     FROM_EMAIL,
   ];
 
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": BREVO_API_KEY,
-    },
-    body: JSON.stringify({
-      sender: { name, email },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
-    }),
-  });
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: [to],
+        subject,
+        html,
+      }),
+    });
 
-  if (!res.ok) {
     const body = await res.text();
-    console.error("Brevo error:", body);
-    return { error: body };
-  }
+    if (!res.ok) {
+      console.error(`[sendEmail] Resend error (${res.status}):`, body);
+      return { error: body };
+    }
 
-  return await res.json();
+    console.log(`[sendEmail] Success:`, body);
+    return JSON.parse(body);
+  } catch (err) {
+    console.error(`[sendEmail] Network error:`, err);
+    return { error: String(err) };
+  }
 }
 
 export function verificationEmailHtml(token: string): string {

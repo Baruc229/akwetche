@@ -166,6 +166,7 @@ export function toXOF(amountEUR: number): number {
 }
 
 let _activeCurrency: CurrencyCode | null = null;
+let _activeBaseCurrency: CurrencyCode | null = null;
 
 export function setActiveCurrency(c: CurrencyCode) {
   _activeCurrency = c;
@@ -176,14 +177,27 @@ export function detectCurrency(): CurrencyCode {
   return "XOF";
 }
 
+export function setActiveBaseCurrency(c: CurrencyCode) {
+  _activeBaseCurrency = c;
+}
+
+export function detectBaseCurrency(): CurrencyCode | null {
+  return _activeBaseCurrency;
+}
+
 export function resolveCurrency(pref?: string | null): CurrencyCode {
   if (pref === "EUR" || pref === "XOF") return pref;
   return detectCurrency();
 }
 
-export function formatCurrency(amount: number, currency?: CurrencyCode): string {
+export function formatCurrency(amount: number, currency?: CurrencyCode, baseCurrency?: CurrencyCode): string {
   if (!currency) currency = detectCurrency();
-  return currency === "EUR" ? formatEUR(amount) : formatXOF(amount);
+  if (baseCurrency === undefined) baseCurrency = detectBaseCurrency() ?? undefined;
+  let displayAmount = amount;
+  if (baseCurrency && baseCurrency !== currency) {
+    displayAmount = convertAmount(amount, baseCurrency, currency);
+  }
+  return currency === "EUR" ? formatEUR(displayAmount) : formatXOF(displayAmount);
 }
 
 export function formatDualCurrency(amount: number, currency?: CurrencyCode): { primary: string; secondary: string } {

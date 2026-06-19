@@ -96,15 +96,15 @@ export default function AdminPage() {
   if (user && user.role === "user") router.push("/dashboard");
   }, [user, router]);
 
- useEffect(() => {
-  Promise.all([
- fetch("/api/admin/users").then(r => r.json()),
- fetch("/api/admin/stats").then(r => r.json()),
- ]).then(([usersData, statsData]) => {
- setUsers(usersData.users || []);
- setStats(statsData);
- }).finally(() => setLoading(false));
- }, []);
+  useEffect(() => {
+   Promise.all([
+  fetch("/api/admin/users").then(r => r.ok ? r.json() : { users: [] }),
+  fetch("/api/admin/stats").then(r => r.ok ? r.json() : null),
+  ]).then(([usersData, statsData]) => {
+  setUsers(usersData.users || []);
+  setStats(statsData);
+  }).finally(() => setLoading(false));
+  }, []);
 
  async function loadAllLogs() {
  setLogsLoading(true);
@@ -385,11 +385,11 @@ export default function AdminPage() {
  ? <FontAwesomeIcon icon={faCircleCheck} className="w-3.5 h-3.5 text-forest shrink-0" />
  : <FontAwesomeIcon icon={faCircleXmark} className="w-3.5 h-3.5 text-red-400 shrink-0" />
  }
- <span className="text-ink font-medium truncate">{log.user?.email || "Inconnu"}</span>
+ <span className="text-ink font-medium truncate">{log.user?.email || (log.reason.startsWith("user_not_found:") ? log.reason.slice("user_not_found:".length) : "Inconnu")}</span>
  <span className="text-muted truncate hidden sm:inline">{log.ip}</span>
  </div>
  <div className="flex items-center gap-2 sm:gap-3 text-muted shrink-0 ml-5 sm:ml-0">
- <span className="text-muted">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason === "user_not_found" ? "Utilisateur introuvable" : log.reason}</span>
+ <span className="text-muted">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason.startsWith("user_not_found") ? "Utilisateur introuvable" : log.reason}</span>
  <span className="text-muted">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
  </div>
  </div>
@@ -401,10 +401,10 @@ export default function AdminPage() {
  ? <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-forest shrink-0" />
  : <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-red-400 shrink-0" />
  }
- <span className="text-ink font-medium truncate">{log.user?.email || "Inconnu"}</span>
+ <span className="text-ink font-medium truncate">{log.user?.email || (log.reason.startsWith("user_not_found:") ? log.reason.slice("user_not_found:".length) : "Inconnu")}</span>
  </div>
  <div className="flex items-center gap-2 sm:gap-3 text-muted shrink-0 ml-5 sm:ml-0 flex-wrap">
- <span className="text-muted">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason === "user_not_found" ? "Utilisateur introuvable" : log.reason}</span>
+ <span className="text-muted">{log.reason === "success" ? "Succès" : log.reason === "invalid_password" ? "Mot de passe incorrect" : log.reason === "account_locked" ? "Compte verrouillé" : log.reason.startsWith("user_not_found") ? "Utilisateur introuvable" : log.reason}</span>
  {log.ip && <span className="text-muted hidden sm:inline">{log.ip}</span>}
  <span className="text-muted">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
  </div>
