@@ -83,8 +83,9 @@ export default function AdminPage() {
  const [addingAdmin, setAddingAdmin] = useState(false);
  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
  const [allLogs, setAllLogs] = useState<LoginLog[]>([]);
- const [showAllLogs, setShowAllLogs] = useState(false);
- const [logsLoading, setLogsLoading] = useState(false);
+  const [showAllLogs, setShowAllLogs] = useState(false);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [clearingLogs, setClearingLogs] = useState(false);
  const [notifPref, setNotifPref] = useState(user?.adminNotificationPref || "instant");
  const [savingNotif, setSavingNotif] = useState(false);
 
@@ -106,16 +107,27 @@ export default function AdminPage() {
   }).finally(() => setLoading(false));
   }, []);
 
- async function loadAllLogs() {
- setLogsLoading(true);
- try {
- const res = await fetch("/api/admin/login-logs");
- const data = await res.json();
- setAllLogs(data.logs || []);
- setShowAllLogs(true);
- } catch {}
- finally { setLogsLoading(false); }
- }
+  async function loadAllLogs() {
+  setLogsLoading(true);
+  try {
+  const res = await fetch("/api/admin/login-logs");
+  const data = await res.json();
+  setAllLogs(data.logs || []);
+  setShowAllLogs(true);
+  } catch {}
+  finally { setLogsLoading(false); }
+  }
+
+  async function clearLogs() {
+  if (!confirm("Vider tout l'historique des connexions ?")) return;
+  setClearingLogs(true);
+  try {
+  await fetch("/api/admin/login-logs", { method: "DELETE" });
+  setAllLogs([]);
+  setStats(prev => prev ? { ...prev, recentLogs: [], loginAttemptsToday: 0, failedLoginsToday: 0 } : null);
+  } catch {}
+  finally { setClearingLogs(false); }
+  }
 
  async function handleCreateAdmin(e: React.FormEvent) {
  e.preventDefault();
@@ -367,15 +379,24 @@ export default function AdminPage() {
 
   <div className="card overflow-hidden">
  <div className="p-4 border-b border-border">
- <div className="flex items-center justify-between">
- <h2 className="text-sm font-semibold text-ink">Historique des connexions</h2>
- <button
- onClick={() => showAllLogs ? setShowAllLogs(false) : loadAllLogs()}
- className="text-xs text-forest hover:text-forest font-medium"
- >
- {showAllLogs ? "Masquer" : logsLoading ? "Chargement..." : "Voir tout"}
- </button>
- </div>
+  <div className="flex items-center justify-between">
+  <h2 className="text-sm font-semibold text-ink">Historique des connexions</h2>
+  <div className="flex items-center gap-2">
+  <button
+  onClick={clearLogs}
+  disabled={clearingLogs}
+  className="text-xs text-red-500 hover:text-red-600 font-medium disabled:opacity-50"
+  >
+  {clearingLogs ? "..." : "Vider"}
+  </button>
+  <button
+  onClick={() => showAllLogs ? setShowAllLogs(false) : loadAllLogs()}
+  className="text-xs text-forest hover:text-forest font-medium"
+  >
+  {showAllLogs ? "Masquer" : logsLoading ? "Chargement..." : "Voir tout"}
+  </button>
+  </div>
+  </div>
  </div>
  <div className="divide-y divide-border max-h-96 overflow-y-auto">
  {(stats?.recentLogs || []).map((log) => (

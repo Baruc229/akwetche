@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   });
 
   const userCountry = record.user.countryCode;
-  notifyAdmin("new_registration", {
+  await notifyAdmin("new_registration", {
     userName: record.user.name || record.user.email,
     userEmail: record.user.email,
     countryCode: userCountry || undefined,
