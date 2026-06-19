@@ -719,57 +719,95 @@ export default function DashboardPage() {
  const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
  const biggestExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
 
- return (
- <>
- {/* Tableau comparatif */}
- <div className="overflow-x-auto rounded-xl border border-border bg-white mb-4">
- <table className="w-full text-sm whitespace-nowrap">
- <thead>
- <tr className="bg-ochre-light">
- <th className="text-left px-4 py-2.5 font-semibold text-forest"></th>
- <th className="text-right px-4 py-2.5 font-semibold text-forest">Perso</th>
- {showActivity && <th className="text-right px-4 py-2.5 font-semibold text-ochre">Activité</th>}
- <th className="text-right px-4 py-2.5 font-semibold text-ink">Total</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-border">
- <tr>
- <td className="px-4 py-2.5 text-muted">Revenus</td>
- <td className="text-right px-4 py-2.5 font-medium text-forest-light">{formatCurrency(monthPersonal?.income || 0)}</td>
- {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</td>}
- <td className="text-right px-4 py-2.5 font-semibold text-ink">{formatCurrency(totalIncome)}</td>
- </tr>
- <tr>
- <td className="px-4 py-2.5 text-muted">Dépenses</td>
- <td className="text-right px-4 py-2.5 font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</td>
- {showActivity && <td className="text-right px-4 py-2.5 font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</td>}
- <td className="text-right px-4 py-2.5 font-semibold text-ink">{formatCurrency(totalExpense)}</td>
- </tr>
- <tr className="bg-ochre-light">
- <td className="px-4 py-2.5 text-ink font-medium">Résultat</td>
- <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
- {showActivity && <td className="text-right px-4 py-2.5 font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>}
- <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(totalSaved)}</td>
- </tr>
- <tr>
- <td className="px-4 py-2.5 text-muted">Taux d'épargne</td>
- <td className="text-right px-4 py-2.5 font-medium text-ink">
- {monthPersonal?.income ? `${personalRate.toFixed(0)}%` : "-"}
- </td>
- {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ink">
- {monthActivity?.income ? `${activityRate.toFixed(0)}%` : "-"}
- </td>}
- <td className="text-right px-4 py-2.5 font-semibold text-ink">{savingsRate.toFixed(0)}%</td>
- </tr>
- <tr>
- <td className="px-4 py-2.5 text-muted">Disponible</td>
- <td className="text-right px-4 py-2.5 font-medium text-ink">{formatCurrency(monthPersonal?.balance || 0)}</td>
- {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ink">{formatCurrency(monthActivity?.balance || 0)}</td>}
- <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(totalBalance)}</td>
- </tr>
- </tbody>
- </table>
- </div>
+  return (
+  <>
+  {/* Tableau comparatif — Desktop */}
+  <div className="hidden sm:block rounded-xl border border-border bg-white mb-4 overflow-x-auto">
+  <table className="w-full text-sm">
+  <thead>
+  <tr className="bg-ochre-light">
+  <th className="text-left px-4 py-2.5 font-semibold text-forest"></th>
+  <th className="text-right px-4 py-2.5 font-semibold text-forest">Perso</th>
+  {showActivity && <th className="text-right px-4 py-2.5 font-semibold text-ochre">Activité</th>}
+  <th className="text-right px-4 py-2.5 font-semibold text-ink">Total</th>
+  </tr>
+  </thead>
+  <tbody className="divide-y divide-border">
+  <tr>
+  <td className="px-4 py-2.5 text-muted">Revenus</td>
+  <td className="text-right px-4 py-2.5 font-medium text-forest-light">{formatCurrency(monthPersonal?.income || 0)}</td>
+  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</td>}
+  <td className="text-right px-4 py-2.5 font-semibold text-ink">{formatCurrency(totalIncome)}</td>
+  </tr>
+  <tr>
+  <td className="px-4 py-2.5 text-muted">Dépenses</td>
+  <td className="text-right px-4 py-2.5 font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</td>
+  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</td>}
+  <td className="text-right px-4 py-2.5 font-semibold text-ink">{formatCurrency(totalExpense)}</td>
+  </tr>
+  <tr className="bg-ochre-light">
+  <td className="px-4 py-2.5 text-ink font-medium">Résultat</td>
+  <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
+  {showActivity && <td className="text-right px-4 py-2.5 font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>}
+  <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(totalSaved)}</td>
+  </tr>
+  <tr>
+  <td className="px-4 py-2.5 text-muted">Taux d'épargne</td>
+  <td className="text-right px-4 py-2.5 font-medium text-ink">
+  {monthPersonal?.income ? `${personalRate.toFixed(0)}%` : "-"}
+  </td>
+  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ink">
+  {monthActivity?.income ? `${activityRate.toFixed(0)}%` : "-"}
+  </td>}
+  <td className="text-right px-4 py-2.5 font-semibold text-ink">{savingsRate.toFixed(0)}%</td>
+  </tr>
+  <tr>
+  <td className="px-4 py-2.5 text-muted">Disponible</td>
+  <td className="text-right px-4 py-2.5 font-medium text-ink">{formatCurrency(monthPersonal?.balance || 0)}</td>
+  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ink">{formatCurrency(monthActivity?.balance || 0)}</td>}
+  <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(totalBalance)}</td>
+  </tr>
+  </tbody>
+  </table>
+  </div>
+
+  {/* Fiches récap — Mobile */}
+  <div className="sm:hidden space-y-3 mb-4">
+    {showPersonal && (
+      <div className="bg-white rounded-xl border border-border p-4">
+        <h4 className="text-xs font-semibold text-forest uppercase tracking-wider mb-3">👤 Personnel</h4>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-medium text-forest-light">{formatCurrency(monthPersonal?.income || 0)}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</span></div>
+          <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Taux d'épargne</span><span className="font-medium text-ink">{monthPersonal?.income ? `${personalRate.toFixed(0)}%` : "-"}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Disponible</span><span className="font-semibold text-ink">{formatCurrency(monthPersonal?.balance || 0)}</span></div>
+        </div>
+      </div>
+    )}
+    {showActivity && (
+      <div className="bg-white rounded-xl border border-border p-4">
+        <h4 className="text-xs font-semibold text-ochre uppercase tracking-wider mb-3">💼 Activité</h4>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</span></div>
+          <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Taux d'épargne</span><span className="font-medium text-ink">{monthActivity?.income ? `${activityRate.toFixed(0)}%` : "-"}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Disponible</span><span className="font-semibold text-ink">{formatCurrency(monthActivity?.balance || 0)}</span></div>
+        </div>
+      </div>
+    )}
+    <div className="bg-ochre-light rounded-xl border border-border p-4">
+      <h4 className="text-xs font-semibold text-ink uppercase tracking-wider mb-3">📊 Total</h4>
+      <div className="space-y-2 text-sm">
+        <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-semibold text-ink">{formatCurrency(totalIncome)}</span></div>
+        <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-semibold text-ink">{formatCurrency(totalExpense)}</span></div>
+        <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-forest">{formatCurrency(totalSaved)}</span></div>
+        <div className="flex justify-between"><span className="text-muted">Taux d'épargne</span><span className="font-semibold text-ink">{savingsRate.toFixed(0)}%</span></div>
+        <div className="flex justify-between"><span className="text-muted">Disponible</span><span className="font-bold text-forest">{formatCurrency(totalBalance)}</span></div>
+      </div>
+    </div>
+  </div>
 
  {/* Phrase explicative détaillée */}
  <div className="text-sm text-ink leading-relaxed space-y-3">
