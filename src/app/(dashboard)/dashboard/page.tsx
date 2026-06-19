@@ -827,7 +827,7 @@ export default function DashboardPage() {
   <div className="bg-white rounded-xl p-4 border border-border space-y-2">
   <h4 className="font-semibold text-ink text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faBagShopping} className="w-3 h-3 mr-1" /> Activité</h4>
   <p className="text-muted">
-  Côté activité, vous avez généré <strong className="text-forest-light">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-ochre">{formatCurrency(monthActivity!.expense)}</strong> de dépenses liées à votre commerce.
+  Côté activité, vous avez généré <strong className="text-forest-light">{formatCurrency(monthActivity!.income)} </strong>de chiffre d&apos;affaires pour <strong className="text-ochre">{formatCurrency(monthActivity!.expense)} </strong>de dépenses liées à votre commerce.
  Votre bénéfice d&apos;activité est de <strong className="text-forest">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
  {monthActivity!.income > 0 ? <span>, soit une marge de <strong className="text-ochre">{activityRate.toFixed(0)}%</strong></span> : null}.
  Capital d&apos;activité de départ : <strong className="text-ink">{formatCurrency(monthActivity!.initialBalance)}</strong>, solde activité actuel : <strong className="text-forest">{formatCurrency(monthActivity!.balance)}</strong>.
@@ -858,7 +858,7 @@ export default function DashboardPage() {
   <div className="bg-white rounded-xl p-4 border border-border space-y-2">
   <h4 className="font-semibold text-ink text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faBagShopping} className="w-3 h-3 mr-1" /> Activité</h4>
   <p className="text-muted">
-  Votre activité a généré <strong className="text-forest-light">{formatCurrency(monthActivity!.income)}</strong> de ventes pour <strong className="text-ochre">{formatCurrency(monthActivity!.expense)}</strong> de dépenses professionnelles.
+  Votre activité a généré <strong className="text-forest-light">{formatCurrency(monthActivity!.income)} </strong>de ventes pour <strong className="text-ochre">{formatCurrency(monthActivity!.expense)} </strong>de dépenses professionnelles.
  Le bénéfice net de votre activité est de <strong className="text-forest">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
  {monthActivity!.income > 0 ? <span>, soit une marge bénéficiaire de <strong className="text-ochre">{activityRate.toFixed(0)}%</strong></span> : null}.
  Capital de départ : <strong className="text-ink">{formatCurrency(monthActivity!.initialBalance)}</strong>, solde actuel : <strong className="text-forest">{formatCurrency(monthActivity!.balance)}</strong>.
