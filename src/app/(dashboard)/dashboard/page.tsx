@@ -721,6 +721,7 @@ export default function DashboardPage() {
 
   return (
   <>
+  {commercialMode && <>
   {/* Tableau comparatif — Desktop */}
   <div className="hidden sm:block rounded-xl border border-border bg-white mb-4 overflow-x-auto">
   <table className="w-full text-sm">
@@ -808,6 +809,7 @@ export default function DashboardPage() {
       </div>
     </div>
   </div>
+  </>}
 
  {/* Phrase explicative détaillée */}
  <div className="text-sm text-ink leading-relaxed space-y-3">
