@@ -696,9 +696,8 @@ export default function DashboardPage() {
  )}
  </div>
 
- {/* Synthèse — Explication facile */}
- {(monthPersonal && (monthPersonal.income + monthPersonal.expense > 0)) ||
- (commercialMode && monthActivity && (monthActivity.income + monthActivity.expense > 0)) ? (
+  {/* Synthèse — Comparaison Perso / Activité (utile seulement en mode commercial) */}
+  {commercialMode && monthActivity && (monthActivity.income + monthActivity.expense > 0) ? (
  <div className="bg-sand border border-border rounded-2xl p-5 animate-fade-in">
  <div className="flex items-center gap-2 mb-4">
  <FontAwesomeIcon icon={faPiggyBank} className="w-5 h-5 text-forest" />
