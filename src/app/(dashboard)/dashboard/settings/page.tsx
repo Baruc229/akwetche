@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
@@ -54,8 +54,10 @@ export default function SettingsPage() {
   const [initialBalance, setInitialBalance] = useState(String(user?.initialBalance || "0"));
   const [initialBalanceActivity, setInitialBalanceActivity] = useState(String(user?.initialBalanceActivity || "0"));
   const [countryCode, setCountryCode] = useState(user?.countryCode || "");
-  const baseCurrency = user?.baseCurrency || getCountryByCode(countryCode)?.currency || "XOF";
+  const [currency, setCurrency] = useState(user?.currency || user?.baseCurrency || getCountryByCode(user?.countryCode || "")?.currency || "XOF");
   const [phone, setPhone] = useState(user?.phone || "");
+  const [nameError, setNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   useEffect(() => {
     if (countryCode && !user?.countryCode) {
       setPhone(getPhonePrefix(countryCode));
@@ -138,30 +140,40 @@ export default function SettingsPage() {
   finally { setLoading(false); }
   }
 
- async function handleSaveProfile(e: React.FormEvent) {
- e.preventDefault();
- try {
-  const res = await fetch("/api/user", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name,
-      initialBalance: parseFloat(initialBalance),
-      initialBalanceActivity: parseFloat(initialBalanceActivity),
-      currency: baseCurrency,
-      phone,
-      ...(countryCode && !user?.countryCode ? { countryCode } : {}),
-    }),
-  });
-  const data = await res.json();
-  if (res.ok) {
-    setUser(data.user);
-    setActiveCurrency(resolveCurrency(data.user?.currency));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSaveProfile(e: React.FormEvent) {
+  e.preventDefault();
+  setNameError("");
+  setPhoneError("");
+
+  const nameErr = validateName(name);
+  if (nameErr) { setNameError(nameErr); return; }
+  if (phone && countryCode) {
+    const phoneErr = validatePhoneMessage(countryCode, phone);
+    if (phoneErr) { setPhoneError(phoneErr); return; }
   }
- } catch (e) { console.error(e); }
- }
+
+  try {
+   const res = await fetch("/api/user", {
+     method: "PUT",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({
+       name,
+       initialBalance: parseFloat(initialBalance),
+       initialBalanceActivity: parseFloat(initialBalanceActivity),
+       currency,
+       phone,
+       ...(countryCode ? { countryCode } : {}),
+     }),
+   });
+   const data = await res.json();
+   if (res.ok) {
+     setUser(data.user);
+     setActiveCurrency(resolveCurrency(data.user?.currency));
+     setSaved(true);
+     setTimeout(() => setSaved(false), 2000);
+   }
+  } catch (e) { console.error(e); }
+  }
 
   async function handleAddCategory(e: React.FormEvent) {
   e.preventDefault();
@@ -488,10 +500,20 @@ export default function SettingsPage() {
  <h2 className="text-base font-semibold text-ink">Profil</h2>
  </div>
  <form onSubmit={handleSaveProfile} className="space-y-4">
- <div>
- <label className="block text-sm text-muted mb-1">Nom</label>
- <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input-field" required />
- </div>
+  <div>
+  <label className="block text-sm text-muted mb-1">Nom</label>
+  <input
+    type="text"
+    value={name}
+    onChange={(e) => {
+      setName(e.target.value);
+      setNameError("");
+    }}
+    className={`input-field ${nameError ? "border-red-500" : ""}`}
+    required
+  />
+  {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
+  </div>
  <div>
  <label className="block text-sm text-muted mb-1">Argent de départ</label>
  <input type="number" value={initialBalance} onChange={(e) => setInitialBalance(e.target.value)} className="input-field" min="0" />
@@ -506,7 +528,7 @@ export default function SettingsPage() {
  )}
   <div>
     <label className="block text-sm text-muted mb-1">Pays</label>
-    {user?.countryCode ? (
+    {user?.countryCode && !isAdmin ? (
     <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
       <FlagImg code={user.countryCode} />
       <span>{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
@@ -518,11 +540,12 @@ export default function SettingsPage() {
       value={countryCode}
       onChange={(v) => {
         setCountryCode(v);
+        setCurrency(getCountryByCode(v)?.currency || "XOF");
       }}
       placeholder="Sélectionnez votre pays"
     />
     )}
-    <p className="text-xs text-muted mt-1">Devise du compte : <strong>{baseCurrency}</strong></p>
+    <p className="text-xs text-muted mt-1">Devise du compte : <strong>{getCountryByCode(countryCode)?.currency || currency}</strong></p>
   </div>
   <div>
     <label className="block text-sm text-muted mb-1">Téléphone</label>
@@ -535,6 +558,11 @@ export default function SettingsPage() {
           const prefix = getPhonePrefix(countryCode);
           if (val.startsWith(prefix)) {
             setPhone(val);
+            if (val.length > prefix.length) {
+              setPhoneError(validatePhoneMessage(countryCode, val) || "");
+            } else {
+              setPhoneError("");
+            }
           } else {
             setPhone(prefix);
           }
@@ -542,16 +570,22 @@ export default function SettingsPage() {
           setPhone(val);
         }
       }}
-      className="input-field"
+      className={`input-field ${phoneError ? "border-red-500" : ""}`}
       placeholder={countryCode ? `${getPhonePrefix(countryCode)} XX XX XX XX` : "+229XXXXXXXX"}
     />
+    {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
   </div>
   <div>
     <label className="block text-sm text-muted mb-1">Devise d'affichage</label>
-    <div className="input-field bg-sand text-muted cursor-not-allowed opacity-80 flex items-center gap-2">
-      <span>{baseCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</span>
-      <span className="text-xs text-muted ml-auto">Auto — basé sur le pays</span>
-    </div>
+    <CustomSelect
+      options={[
+        { value: "XOF", label: "FCFA (Franc CFA)" },
+        { value: "EUR", label: "EUR (Euro)" },
+      ]}
+      value={currency}
+      onChange={(v) => setCurrency(v)}
+    />
+    <p className="text-xs text-muted mt-1">Auto-détectée depuis le pays. Modifiable si besoin.</p>
   </div>
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />

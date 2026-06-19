@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
 import AuthFeaturePanel from "@/components/auth/AuthFeaturePanel";
-import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix, validatePhone } from "@/lib/currency";
+import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix, validatePhoneMessage, validateName } from "@/lib/currency";
 
 const PLANS = [
  {
@@ -49,7 +49,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{ country?: string; phone?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ country?: string; phone?: string; name?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const detectedCurrency = getCurrencyForCountry(countryCode);
@@ -63,10 +63,12 @@ export default function RegisterPage() {
   e.preventDefault();
   setError("");
 
-  const errs: { country?: string; phone?: string } = {};
+  const errs: { country?: string; phone?: string; name?: string } = {};
+  const nameErr = validateName(name);
+  if (nameErr) errs.name = nameErr;
   if (!countryCode) errs.country = "Veuillez sélectionner un pays";
-  if (!phone || phone === phonePrefix) errs.phone = "Veuillez saisir votre numéro de téléphone";
-  else if (!validatePhone(countryCode, phone)) errs.phone = "Format de numéro invalide pour ce pays";
+  const phoneErr = validatePhoneMessage(countryCode, phone);
+  if (phoneErr) errs.phone = phoneErr;
   setFieldErrors(errs);
   if (Object.keys(errs).length > 0) return;
 
@@ -253,14 +255,20 @@ export default function RegisterPage() {
   <div className="relative">
   <FontAwesomeIcon icon={faUser} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
   <input
-  type="text"
-  value={name}
-  onChange={(e) => setName(e.target.value)}
-  placeholder="Votre nom"
-  className="input-field pl-10"
-  required
+    type="text"
+    value={name}
+    onChange={(e) => {
+      setName(e.target.value);
+      setFieldErrors((prev) => ({ ...prev, name: undefined }));
+    }}
+    placeholder="Votre nom"
+    className={`input-field pl-10 ${fieldErrors.name ? "border-red-500" : ""}`}
+    required
   />
   </div>
+  {fieldErrors.name && (
+    <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
+  )}
   </div>
 
   <div>
@@ -346,7 +354,7 @@ export default function RegisterPage() {
         if (val.length > phonePrefix.length) {
           setFieldErrors((prev) => ({
             ...prev,
-            phone: validatePhone(countryCode, val) ? undefined : "Format de numéro invalide",
+            phone: validatePhoneMessage(countryCode, val) ?? undefined,
           }));
         } else {
           setFieldErrors((prev) => ({ ...prev, phone: undefined }));

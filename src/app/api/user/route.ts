@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok } from "@/lib/api";
-import { ALLOWED_COUNTRY_CODES, getCurrencyForCountry, getPhonePrefix, validatePhone, getCountryByCode } from "@/lib/currency";
+import { ALLOWED_COUNTRY_CODES, getCurrencyForCountry, getPhonePrefix, validatePhone, validatePhoneMessage, validateName, getCountryByCode } from "@/lib/currency";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -13,26 +13,36 @@ export async function PUT(req: NextRequest) {
 
     const updateData: Record<string, unknown> = {};
 
-    if (name !== undefined) updateData.name = name;
+    if (name !== undefined) {
+      const nameErr = validateName(name);
+      if (nameErr) return badRequest(nameErr);
+      updateData.name = name;
+    }
     if (initialBalance !== undefined) updateData.initialBalance = parseFloat(initialBalance);
     if (initialBalanceActivity !== undefined) updateData.initialBalanceActivity = parseFloat(initialBalanceActivity);
     if (currency !== undefined) updateData.currency = currency || "XOF";
-    if (phone !== undefined) updateData.phone = phone;
+    if (phone !== undefined) {
+      if (phone && current.countryCode && !validatePhone(current.countryCode, phone)) {
+        const phoneErr = validatePhoneMessage(current.countryCode, phone);
+        return badRequest(phoneErr || "Format de téléphone invalide");
+      }
+      updateData.phone = phone;
+    }
     if (adminNotificationPref !== undefined) updateData.adminNotificationPref = adminNotificationPref;
+
+    const isAdmin = current.role === "super_admin" || current.role === "admin";
 
     if (countryCode !== undefined) {
       if (!ALLOWED_COUNTRY_CODES.includes(countryCode)) {
         return badRequest("Ce pays n'est pas supporté");
       }
-      if (current.countryCode && current.countryCode !== countryCode) {
+      if (current.countryCode && current.countryCode !== countryCode && !isAdmin) {
         return badRequest("Le pays ne peut plus être modifié une fois défini");
       }
       updateData.countryCode = countryCode;
       const deducedCurrency = getCurrencyForCountry(countryCode);
-      if (!current.baseCurrency) {
-        updateData.baseCurrency = deducedCurrency;
-      }
-      if (!current.currency || current.currency === "auto") {
+      updateData.baseCurrency = deducedCurrency;
+      if (!updateData.currency || updateData.currency === "auto") {
         updateData.currency = deducedCurrency;
       }
       if (!current.phone && phone === undefined) {

@@ -4,7 +4,7 @@ import { hashPassword, generateEmailToken, generateToken } from "@/lib/auth";
 import { badRequest, created } from "@/lib/api";
 import { sendEmail, verificationEmailHtml } from "@/lib/email";
 import { cookies } from "next/headers";
-import { getCountryByCode, getCurrencyForCountry, validatePhone, ALLOWED_COUNTRY_CODES } from "@/lib/currency";
+import { getCountryByCode, getCurrencyForCountry, validatePhone, validatePhoneMessage, validateName, ALLOWED_COUNTRY_CODES } from "@/lib/currency";
 
 const registerAttempts = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 3;
@@ -46,13 +46,16 @@ export async function POST(req: NextRequest) {
       return badRequest("Ce pays n'est pas encore supporté. Pays autorisés : Bénin, Togo, Burkina Faso, Côte d'Ivoire, France, Belgique.");
     }
 
+    const nameErr = validateName(name);
+    if (nameErr) return badRequest(nameErr);
+
     if (!["free", "premium"].includes(plan)) {
       return badRequest("Plan invalide");
     }
 
     if (!validatePhone(countryCode, phone)) {
-      const country = getCountryByCode(countryCode);
-      return badRequest(`Format de téléphone invalide pour ${country?.name}. Exemple : ${country?.phoneExample}`);
+      const phoneErr = validatePhoneMessage(countryCode, phone);
+      return badRequest(phoneErr || `Format de téléphone invalide pour ${getCountryByCode(countryCode)?.name}.`);
     }
 
     if (password.length < 8) {

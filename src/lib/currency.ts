@@ -89,6 +89,53 @@ export function validatePhone(countryCode: string, phone: string): boolean {
   return country.phonePattern.test(phone);
 }
 
+const PHONE_EXPECTED: Record<string, { min: number; max: number }> = {
+  BJ: { min: 10, max: 10 },
+  TG: { min: 8, max: 8 },
+  BF: { min: 8, max: 8 },
+  CI: { min: 10, max: 10 },
+  FR: { min: 9, max: 9 },
+  BE: { min: 8, max: 9 },
+};
+
+export function validatePhoneMessage(countryCode: string, phone: string): string | null {
+  const country = getCountryByCode(countryCode);
+  if (!country) return "Pays invalide";
+
+  const prefix = country.phonePrefix;
+  if (!phone || phone === prefix) return "Veuillez saisir votre numéro";
+  if (!phone.startsWith(prefix)) return null;
+
+  const digits = phone.slice(prefix.length);
+  const expected = PHONE_EXPECTED[countryCode];
+
+  if (digits.length < expected.min) {
+    const missing = expected.min - digits.length;
+    return `Il manque ${missing} chiffre${missing > 1 ? "s" : ""}`;
+  }
+
+  if (digits.length > expected.max) {
+    const extra = digits.length - expected.max;
+    return `${extra} chiffre${extra > 1 ? "s" : ""} en trop`;
+  }
+
+  if (!country.phonePattern.test(phone)) {
+    if (countryCode === "BJ") return "Doit commencer par 01 après +229. Exemple : +2290197000000";
+    if (countryCode === "FR") return "Doit commencer par 06 ou 07 après +33. Exemple : +33612345678";
+    return `Format invalide. Exemple : ${country.phoneExample}`;
+  }
+
+  return null;
+}
+
+export const NAME_PATTERN = /^[\p{L}' \-]{3,}$/u;
+
+export function validateName(name: string): string | null {
+  if (!name || name.trim().length < 3) return "Le nom doit contenir au moins 3 caractères";
+  if (!NAME_PATTERN.test(name.trim())) return "Le nom ne doit contenir que des lettres, espaces, tirets et apostrophes";
+  return null;
+}
+
 export function getCurrencyForCountry(countryCode: string): CurrencyCode {
   return COUNTRY_CONFIG[countryCode as CountryCode]?.currency ?? "XOF";
 }
