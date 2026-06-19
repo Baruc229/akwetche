@@ -194,13 +194,13 @@ export default function DashboardPage() {
  {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
  </p>
  </div>
- <button
- onClick={() => setShowModal(true)}
- className="btn-primary flex items-center gap-2 text-sm self-start sm:self-auto"
- >
- <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
- Nouvelle transaction
- </button>
+  <button
+  onClick={() => setShowModal(true)}
+  className="btn-primary hidden sm:flex items-center gap-2 text-sm self-start sm:self-auto"
+  >
+  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+  Nouvelle transaction
+  </button>
  </div>
 
   {/* Erreur chargement */}
@@ -970,6 +970,15 @@ export default function DashboardPage() {
  </div>
  </div>
   )}
+
+  {/* FAB mobile */}
+  <button
+  onClick={() => setShowModal(true)}
+  className="sm:hidden fixed bottom-24 right-5 z-50 w-14 h-14 bg-forest text-white rounded-full shadow-lg flex items-center justify-center hover:bg-forest-dark transition-all active:scale-95"
+  aria-label="Nouvelle transaction"
+  >
+  <FontAwesomeIcon icon={faPlus} className="w-6 h-6" />
+  </button>
 
   {showOnboarding && (
     <OnboardingModal onClose={completeOnboarding} currency={user?.baseCurrency} countryCode={user?.countryCode} />
