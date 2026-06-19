@@ -1,4 +1,4 @@
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const BREVO_API_KEY = process.env.BREVO_API_KEY || process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.EMAIL_FROM || "Akwetche <noreply@akwetche.app>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -49,9 +49,9 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  if (!RESEND_API_KEY) {
-    console.warn("[sendEmail] RESEND_API_KEY not set — email not sent");
-    return { error: "RESEND_API_KEY not configured" };
+  if (!BREVO_API_KEY) {
+    console.warn("[sendEmail] BREVO_API_KEY not set — email not sent");
+    return { error: "BREVO_API_KEY not configured" };
   }
 
   console.log(`[sendEmail] Sending "${subject}" to ${to}...`);
@@ -62,28 +62,28 @@ export async function sendEmail({
   ];
 
   try {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "api-key": BREVO_API_KEY,
       },
       body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [to],
+        sender: { name, email },
+        to: [{ email: to }],
         subject,
-        html,
+        htmlContent: html,
       }),
     });
 
     const body = await res.text();
     if (!res.ok) {
-      console.error(`[sendEmail] Resend error (${res.status}):`, body);
+      console.error(`[sendEmail] Brevo error (${res.status}):`, body);
       return { error: body };
     }
 
-    console.log(`[sendEmail] Success:`, body);
-    return JSON.parse(body);
+    console.log(`[sendEmail] Success`);
+    try { return JSON.parse(body); } catch { return body; }
   } catch (err) {
     console.error(`[sendEmail] Network error:`, err);
     return { error: String(err) };
