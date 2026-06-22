@@ -304,7 +304,7 @@ export default function DashboardPage() {
         </div>
         <div className="min-w-0">
           <p className="text-xs font-medium text-white/50 uppercase tracking-wider">Argent disponible</p>
-          <p className="text-4xl md:text-5xl font-bold tracking-tight mt-1">{formatCurrency(totalBalance)}</p>
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mt-1 break-all">{formatCurrency(totalBalance)}</p>
         </div>
       </div>
 
@@ -323,7 +323,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Mini stat cards en ligne */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="min-w-0 overflow-hidden bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
           <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">Revenus</p>
           <p className="text-sm font-bold mt-1 truncate">{formatCurrency(totalIncome)}</p>
@@ -332,7 +332,7 @@ export default function DashboardPage() {
           <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">Dépenses</p>
           <p className="text-sm font-bold mt-1 truncate">{formatCurrency(totalExpense)}</p>
         </div>
-        <div className="min-w-0 overflow-hidden bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+        <div className="col-span-2 sm:col-span-1 min-w-0 overflow-hidden bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
           <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">Épargne</p>
           <p className="text-sm font-bold mt-1 truncate">{savingsRate.toFixed(0)}%</p>
         </div>
