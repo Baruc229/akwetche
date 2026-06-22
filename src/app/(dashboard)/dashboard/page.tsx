@@ -937,8 +937,8 @@ export default function DashboardPage() {
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <span className="text-xs text-muted">Top catégories&nbsp;:</span>
               {monthPersonal!.topCategories.slice(0, 3).map(c => (
-                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium max-w-[140px]">
-                  <span className="truncate">{c.name}</span>&nbsp;<span className="text-muted font-normal shrink-0">{formatCurrency(Math.abs(c.amount))}</span>
+                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium">
+                  {c.name}&nbsp;<span className="text-muted font-normal shrink-0">{formatCurrency(Math.abs(c.amount))}</span>
                 </span>
               ))}
             </div>
@@ -962,8 +962,8 @@ export default function DashboardPage() {
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <span className="text-xs text-muted">Top catégories&nbsp;:</span>
               {monthActivity!.topCategories.slice(0, 3).map(c => (
-                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium max-w-[140px]">
-                  <span className="truncate">{c.name}</span>&nbsp;<span className="text-muted font-normal shrink-0">{formatCurrency(Math.abs(c.amount))}</span>
+                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium">
+                  {c.name}&nbsp;<span className="text-muted font-normal shrink-0">{formatCurrency(Math.abs(c.amount))}</span>
                 </span>
               ))}
             </div>
