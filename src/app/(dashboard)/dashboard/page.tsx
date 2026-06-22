@@ -221,7 +221,13 @@ export default function DashboardPage() {
  {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
  </p>
  </div>
-  {/* Le bouton Nouvelle transaction est dans la hero card */}
+   <button
+   onClick={() => setShowModal(true)}
+   className="btn-primary hidden sm:flex items-center gap-2 text-sm self-start sm:self-auto"
+   >
+   <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+   Nouvelle transaction
+   </button>
  </div>
 
   {/* Erreur chargement */}
@@ -811,7 +817,6 @@ export default function DashboardPage() {
       const showPersonal = monthPersonal && monthPersonal.income + monthPersonal.expense > 0;
       const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
       const personalRate = monthPersonal && monthPersonal.income > 0 ? (monthPersonal.savings / monthPersonal.income) * 100 : 0;
-      const activityRate = monthActivity && monthActivity.income > 0 ? (monthActivity.savings / monthActivity.income) * 100 : 0;
       const tIncome = (monthPersonal?.income || 0) + (monthActivity?.income || 0);
       const tExpense = (monthPersonal?.expense || 0) + (monthActivity?.expense || 0);
       const tSaved = Math.max(0, (monthPersonal?.savings || 0)) + Math.max(0, (monthActivity?.savings || 0));
@@ -842,9 +847,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Tableau comparatif quand les deux scopes sont actifs */}
-        {commercialMode && showPersonal && showActivity && (
-        <div className="rounded-xl border border-border overflow-hidden mb-3">
+        {/* Tableau comparatif Perso / Activité / Total (desktop) */}
+        {showPersonal && showActivity && (
+        <>
+        <div className="hidden sm:block rounded-xl border border-border overflow-hidden mb-4">
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -869,7 +875,7 @@ export default function DashboardPage() {
                 <td className="text-right px-4 py-2 font-bold text-ink">{formatCurrency(tExpense)}</td>
               </tr>
               <tr className="bg-ochre-light/30">
-                <td className="px-4 py-2 font-medium text-ink">Résultat</td>
+                <td className="text-left px-4 py-2 font-medium text-ink">Résultat</td>
                 <td className="text-right px-4 py-2 font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
                 <td className="text-right px-4 py-2 font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
                 <td className="text-right px-4 py-2 font-bold text-forest">{formatCurrency(tSaved)}</td>
@@ -878,9 +884,45 @@ export default function DashboardPage() {
           </table>
         </div>
         </div>
+
+        {/* Fiches récap — Mobile */}
+        <div className="sm:hidden space-y-3 mb-4">
+          {showPersonal && (
+            <div className="bg-white rounded-xl border border-border p-4">
+              <p className="text-xs font-semibold text-forest uppercase tracking-wider mb-3">Personnel</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-medium text-forest">{formatCurrency(monthPersonal?.income || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</span></div>
+                <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Taux</span><span className="font-semibold text-ink">{monthPersonal?.income ? `${personalRate.toFixed(0)}%` : "-"}</span></div>
+              </div>
+            </div>
+          )}
+          {showActivity && (
+            <div className="bg-white rounded-xl border border-border p-4">
+              <p className="text-xs font-semibold text-ochre uppercase tracking-wider mb-3">Activité</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</span></div>
+                <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</span></div>
+                <div className="flex justify-between"><span className="text-muted">Taux</span><span className="font-semibold text-ink">{monthActivity?.income ? `${((Math.max(0, monthActivity?.savings || 0) / monthActivity!.income) * 100).toFixed(0)}%` : "-"}</span></div>
+              </div>
+            </div>
+          )}
+          <div className="bg-ochre-light/30 rounded-xl border border-border p-4">
+            <p className="text-xs font-semibold text-ink uppercase tracking-wider mb-3">Total</p>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-semibold text-ink">{formatCurrency(tIncome)}</span></div>
+              <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-semibold text-ink">{formatCurrency(tExpense)}</span></div>
+              <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-forest">{formatCurrency(tSaved)}</span></div>
+              <div className="flex justify-between"><span className="text-muted">Taux</span><span className="font-bold text-ink">{sRate.toFixed(0)}%</span></div>
+            </div>
+          </div>
+        </div>
+        </>
         )}
 
-        {/* Phrase bilan concise */}
+        {/* Phrase bilan — une seule ligne */}
         <div className="flex items-start gap-2.5 p-3.5 bg-sand rounded-xl">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
             sRate >= 20 ? "bg-forest/10" : sRate >= 5 ? "bg-ochre/10" : "bg-red-50"
@@ -890,14 +932,19 @@ export default function DashboardPage() {
             }`} />
           </div>
           <p className="text-sm text-muted leading-relaxed">
-            {showPersonal && showActivity
-              ? `Bilan mensuel : **${formatCurrency(tIncome)}** reçus, **${formatCurrency(tExpense)}** dépensés, **${formatCurrency(tSaved)}** épargnés (${sRate.toFixed(0)}%).`
-              : showPersonal
-                ? `Bilan personnel : **${formatCurrency(tIncome)}** reçus, **${formatCurrency(tExpense)}** dépensés, **${formatCurrency(tSaved)}** épargnés (${sRate.toFixed(0)}%).`
-                : `Bilan activité : **${formatCurrency(tIncome)}** de CA, **${formatCurrency(tExpense)}** de charges, **${formatCurrency(tSaved)}** de bénéfice.`
-            }
-            {bExpense && ` Plus grosse dépense : **${bExpense.name}** (${formatCurrency(Math.abs(bExpense.amount))}).`}
-            {sRate < 5 && showPersonal ? ` Votre taux d'épargne est faible (${sRate.toFixed(0)}%), surveillez vos dépenses.` : sRate >= 20 ? ` Excellent taux d'épargne (${sRate.toFixed(0)}%), continuez ainsi !` : ""}
+            <span>Bilan mensuel&nbsp;: </span>
+            <strong className="text-ink">{formatCurrency(tIncome)}</strong><span> reçus, </span>
+            <strong className="text-ink">{formatCurrency(tExpense)}</strong><span> dépensés, </span>
+            <strong className="text-ink">{formatCurrency(tSaved)}</strong><span> épargnés ({sRate.toFixed(0)}%).</span>
+            {bExpense && (
+              <span> Plus grosse dépense&nbsp;: <strong className="text-ink">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))}).</span>
+            )}
+            {sRate < 5 && showPersonal && (
+              <span className="text-ochre"> Votre taux d&apos;épargne est faible ({sRate.toFixed(0)}%), surveillez vos dépenses.</span>
+            )}
+            {sRate >= 20 && (
+              <span className="text-forest"> Excellent taux d&apos;épargne ({sRate.toFixed(0)}%), continuez ainsi&nbsp;!</span>
+            )}
           </p>
         </div>
       </>
