@@ -922,30 +922,83 @@ export default function DashboardPage() {
         </>
         )}
 
-        {/* Phrase bilan — une seule ligne */}
-        <div className="flex items-start gap-2.5 p-3.5 bg-sand rounded-xl">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-            sRate >= 20 ? "bg-forest/10" : sRate >= 5 ? "bg-ochre/10" : "bg-red-50"
-          }`}>
-            <FontAwesomeIcon icon={faChartBar} className={`w-4 h-4 ${
-              sRate >= 20 ? "text-forest" : sRate >= 5 ? "text-ochre" : "text-red-500"
-            }`} />
+        {/* Blocs descriptifs par scope (Premium) */}
+        {(limits?.isPremium || user?.role !== "user") && (showPersonal || showActivity) && (
+        <>
+          {showPersonal && (
+          <div className="bg-white border border-border rounded-xl p-4 mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-forest/10 flex items-center justify-center shrink-0">
+                <FontAwesomeIcon icon={faWallet} className="w-3.5 h-3.5 text-forest" />
+              </div>
+              <span className="text-xs font-semibold text-forest uppercase tracking-wider">Personnel</span>
+            </div>
+            <p className="text-sm text-muted leading-relaxed">
+              Sur le plan personnel, vous avez reçu <strong className="text-ink">{formatCurrency(monthPersonal!.income)}</strong> en revenus et dépensé <strong className="text-ink">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
+              Capital initial&nbsp;: <strong className="text-ink">{formatCurrency(monthPersonal!.initialBalance)}</strong>, solde actuel&nbsp;: <strong className="text-ink">{formatCurrency(monthPersonal!.balance)}</strong>.
+              Taux d&apos;épargne&nbsp;: <strong className="text-ink">{personalRate.toFixed(0)}%</strong>.
+            </p>
+            {monthPersonal!.topCategories && monthPersonal!.topCategories.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              <span className="text-xs text-muted">Top catégories&nbsp;:</span>
+              {monthPersonal!.topCategories.slice(0, 4).map(c => (
+                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium">
+                  {c.name}&nbsp;<span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+                </span>
+              ))}
+            </div>
+            )}
           </div>
-          <p className="text-sm text-muted leading-relaxed">
-            <span>Bilan mensuel&nbsp;: </span>
-            <strong className="text-ink">{formatCurrency(tIncome)}</strong><span> reçus, </span>
-            <strong className="text-ink">{formatCurrency(tExpense)}</strong><span> dépensés, </span>
-            <strong className="text-ink">{formatCurrency(tSaved)}</strong><span> épargnés ({sRate.toFixed(0)}%).</span>
+          )}
+          {showActivity && (
+          <div className="bg-white border border-border rounded-xl p-4 mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-ochre/10 flex items-center justify-center shrink-0">
+                <FontAwesomeIcon icon={faBriefcase} className="w-3.5 h-3.5 text-ochre" />
+              </div>
+              <span className="text-xs font-semibold text-ochre uppercase tracking-wider">Activité</span>
+            </div>
+            <p className="text-sm text-muted leading-relaxed">
+              Côté activité, vous avez réalisé <strong className="text-ink">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-ink">{formatCurrency(monthActivity!.expense)}</strong> de charges.
+              Bénéfice&nbsp;: <strong className="text-ink">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
+              {monthActivity!.income > 0 && <span> (marge de <strong className="text-ink">{((Math.max(0, monthActivity!.savings) / monthActivity!.income) * 100).toFixed(0)}%</strong>)</span>}.
+            </p>
+            {monthActivity!.topCategories && monthActivity!.topCategories.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              <span className="text-xs text-muted">Top catégories&nbsp;:</span>
+              {monthActivity!.topCategories.slice(0, 4).map(c => (
+                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium">
+                  {c.name}&nbsp;<span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+                </span>
+              ))}
+            </div>
+            )}
+          </div>
+          )}
+        </>
+        )}
+
+        {/* Bilan mensuel */}
+        <div className="flex items-center gap-2.5 p-4 bg-gradient-to-r from-forest/[0.03] to-ochre/[0.03] rounded-xl border border-border">
+          <div className="flex-1 text-sm text-muted leading-relaxed">
+            <span className="font-semibold text-ink">Bilan mensuel&nbsp;: </span>
+            <span className="text-forest font-medium">+{formatCurrency(tIncome)}</span>
+            <span className="text-muted/50"> reçus · </span>
+            <span className="text-ochre font-medium">-{formatCurrency(tExpense)}</span>
+            <span className="text-muted/50"> dépensés · </span>
+            <span className="text-forest font-medium">={formatCurrency(tSaved)}</span>
+            <span className="text-muted/50"> épargnés · </span>
+            <span className="text-ink font-semibold">{sRate.toFixed(0)}%</span>
             {bExpense && (
-              <span> Plus grosse dépense&nbsp;: <strong className="text-ink">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))}).</span>
+              <span className="text-muted/50"> · Grosse dépense&nbsp;: <strong className="text-ink">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))})</span>
             )}
             {sRate < 5 && showPersonal && (
-              <span className="text-ochre"> Votre taux d&apos;épargne est faible ({sRate.toFixed(0)}%), surveillez vos dépenses.</span>
+              <span className="text-ochre"> · Taux faible ({sRate.toFixed(0)}%), surveillez vos dépenses</span>
             )}
             {sRate >= 20 && (
-              <span className="text-forest"> Excellent taux d&apos;épargne ({sRate.toFixed(0)}%), continuez ainsi&nbsp;!</span>
+              <span className="text-forest"> · Excellent taux ({sRate.toFixed(0)}%)</span>
             )}
-          </p>
+          </div>
         </div>
       </>
       );
