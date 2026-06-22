@@ -679,47 +679,42 @@ export default function DashboardPage() {
   </button>
   </div>
   ) : (
-  <div className="space-y-1.5">
+  <div className="space-y-1">
   {recentTransactions.map((tx, i) => {
   const isIncome = tx.type === "income";
   return (
   <div
   key={tx.id}
-  className="group flex items-center justify-between p-3 rounded-xl hover:bg-sand transition-all duration-200 animate-slide-in"
+  className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl hover:bg-sand transition-all duration-200 animate-slide-in"
   style={{ animationDelay: `${i * 50}ms` }}
   >
-  <div className="flex items-center gap-3 min-w-0">
   <div
-  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
   isIncome ? "bg-forest/10" : "bg-ochre/10"
   }`}
   >
   <FontAwesomeIcon
   icon={isIncome ? faArrowTrendUp : faArrowTrendDown}
-  className={`w-4 h-4 ${isIncome ? "text-forest" : "text-ochre"}`}
+  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isIncome ? "text-forest" : "text-ochre"}`}
   />
   </div>
-  <div className="min-w-0">
+  <div className="flex-1 min-w-0">
+  <div className="flex items-start justify-between gap-2">
   <p className="text-sm font-medium text-ink truncate">
   {tx.description}
   </p>
-  <p className="text-xs text-muted flex items-center gap-1.5 mt-0.5">
-  <span>{tx.category?.name || "Non catégorisé"}</span>
-  <span className="w-1 h-1 rounded-full bg-border" />
-  <span>{formatDate(tx.date)}</span>
-  {tx.scope === "activity" && (
-  <>
-  <span className="w-1 h-1 rounded-full bg-border" />
-  <span className="text-ochre font-medium">Activité</span>
-  </>
-  )}
-  </p>
-  </div>
-  </div>
-  <div className={`text-sm font-bold tabular-nums shrink-0 ml-3 ${isIncome ? "text-forest" : "text-ochre"}`}>
-  <span className={isIncome ? "" : ""}>
+  <span className={`text-sm font-bold tabular-nums shrink-0 whitespace-nowrap ${isIncome ? "text-forest" : "text-ochre"}`}>
   {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}
   </span>
+  </div>
+  <p className="text-xs text-muted truncate mt-0.5">
+  {tx.category?.name || "Non catégorisé"}
+  <span className="text-muted/40 mx-1">·</span>
+  {formatDate(tx.date)}
+  {tx.scope === "activity" && (
+  <><span className="text-muted/40 mx-1">·</span><span className="text-ochre font-medium">Activité</span></>
+  )}
+  </p>
   </div>
   </div>
   );
