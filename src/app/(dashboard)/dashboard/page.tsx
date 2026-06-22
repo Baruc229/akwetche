@@ -324,17 +324,17 @@ export default function DashboardPage() {
 
       {/* Mini stat cards en ligne */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
-          <p className="text-[10px] text-white/50 uppercase tracking-wider">Revenus</p>
-          <p className="text-sm font-bold mt-1">{formatCurrency(totalIncome)}</p>
+        <div className="min-w-0 overflow-hidden bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">Revenus</p>
+          <p className="text-sm font-bold mt-1 truncate">{formatCurrency(totalIncome)}</p>
         </div>
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
-          <p className="text-[10px] text-white/50 uppercase tracking-wider">Dépenses</p>
-          <p className="text-sm font-bold mt-1">{formatCurrency(totalExpense)}</p>
+        <div className="min-w-0 overflow-hidden bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">Dépenses</p>
+          <p className="text-sm font-bold mt-1 truncate">{formatCurrency(totalExpense)}</p>
         </div>
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
-          <p className="text-[10px] text-white/50 uppercase tracking-wider">Épargne</p>
-          <p className="text-sm font-bold mt-1">{savingsRate.toFixed(0)}%</p>
+        <div className="min-w-0 overflow-hidden bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">Épargne</p>
+          <p className="text-sm font-bold mt-1 truncate">{savingsRate.toFixed(0)}%</p>
         </div>
       </div>
     </div>
@@ -588,7 +588,7 @@ export default function DashboardPage() {
         </div>
         <div>
           <p className="text-xs text-muted">Plus grosse dépense</p>
-          <p className="text-lg font-bold text-ink">
+          <p className="text-lg font-bold text-ink truncate">
             {biggestExpense ? biggestExpense.name : "—"}
           </p>
         </div>
@@ -630,18 +630,18 @@ export default function DashboardPage() {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
-          <p className="text-xs text-muted uppercase tracking-wider">Chiffre d&apos;affaires</p>
-          <p className="text-xl font-bold text-ochre mt-1">{formatCurrency(activitySummary.income)}</p>
+        <div className="min-w-0 overflow-hidden bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
+          <p className="text-xs text-muted uppercase tracking-wider truncate">Chiffre d&apos;affaires</p>
+          <p className="text-xl font-bold text-ochre mt-1 truncate">{formatCurrency(activitySummary.income)}</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
-          <p className="text-xs text-muted uppercase tracking-wider">Bénéfice</p>
-          <p className="text-xl font-bold text-forest mt-1">{formatCurrency(Math.max(0, activitySummary.savings))}</p>
+        <div className="min-w-0 overflow-hidden bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
+          <p className="text-xs text-muted uppercase tracking-wider truncate">Bénéfice</p>
+          <p className="text-xl font-bold text-forest mt-1 truncate">{formatCurrency(Math.max(0, activitySummary.savings))}</p>
           <p className="text-[10px] text-muted mt-0.5">après dépenses</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
-          <p className="text-xs text-muted uppercase tracking-wider">Marge</p>
-          <p className="text-xl font-bold text-ink mt-1">
+        <div className="min-w-0 overflow-hidden bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
+          <p className="text-xs text-muted uppercase tracking-wider truncate">Marge</p>
+          <p className="text-xl font-bold text-ink mt-1 truncate">
             {activitySummary.income > 0 ? ((Math.max(0, activitySummary.savings) / activitySummary.income) * 100).toFixed(0) : 0}%
           </p>
         </div>
@@ -829,21 +829,21 @@ export default function DashboardPage() {
       <>
         {/* 4 KPI cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          <div className="bg-forest/[0.04] rounded-xl p-3.5 text-center">
-            <p className="text-[10px] text-muted uppercase tracking-wider">Revenus</p>
-            <p className="text-base font-bold text-forest mt-0.5">{formatCurrency(tIncome)}</p>
+          <div className="min-w-0 overflow-hidden bg-forest/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider truncate">Revenus</p>
+            <p className="text-base font-bold text-forest mt-0.5 truncate">{formatCurrency(tIncome)}</p>
           </div>
-          <div className="bg-ochre/[0.04] rounded-xl p-3.5 text-center">
-            <p className="text-[10px] text-muted uppercase tracking-wider">Dépenses</p>
-            <p className="text-base font-bold text-ochre mt-0.5">{formatCurrency(tExpense)}</p>
+          <div className="min-w-0 overflow-hidden bg-ochre/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider truncate">Dépenses</p>
+            <p className="text-base font-bold text-ochre mt-0.5 truncate">{formatCurrency(tExpense)}</p>
           </div>
-          <div className="bg-forest/[0.04] rounded-xl p-3.5 text-center">
-            <p className="text-[10px] text-muted uppercase tracking-wider">Épargne</p>
-            <p className="text-base font-bold text-forest mt-0.5">{formatCurrency(tSaved)}</p>
+          <div className="min-w-0 overflow-hidden bg-forest/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider truncate">Épargne</p>
+            <p className="text-base font-bold text-forest mt-0.5 truncate">{formatCurrency(tSaved)}</p>
           </div>
-          <div className="bg-ochre/[0.04] rounded-xl p-3.5 text-center">
-            <p className="text-[10px] text-muted uppercase tracking-wider">Taux</p>
-            <p className="text-base font-bold text-ink mt-0.5">{sRate.toFixed(0)}%</p>
+          <div className="min-w-0 overflow-hidden bg-ochre/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider truncate">Taux</p>
+            <p className="text-base font-bold text-ink mt-0.5 truncate">{sRate.toFixed(0)}%</p>
           </div>
         </div>
 
@@ -934,16 +934,16 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-forest uppercase tracking-wider">Personnel</span>
             </div>
             <p className="text-sm text-muted leading-relaxed">
-              Sur le plan personnel, vous avez reçu <strong className="text-ink">{formatCurrency(monthPersonal!.income)}</strong> en revenus et dépensé <strong className="text-ink">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
+              Sur le plan personnel, vous avez reçu <strong className="text-ink">{formatCurrency(monthPersonal!.income)}</strong>&nbsp;en revenus et dépensé <strong className="text-ink">{formatCurrency(monthPersonal!.expense)}</strong>&nbsp;ce mois-ci.
               Capital initial&nbsp;: <strong className="text-ink">{formatCurrency(monthPersonal!.initialBalance)}</strong>, solde actuel&nbsp;: <strong className="text-ink">{formatCurrency(monthPersonal!.balance)}</strong>.
               Taux d&apos;épargne&nbsp;: <strong className="text-ink">{personalRate.toFixed(0)}%</strong>.
             </p>
             {monthPersonal!.topCategories && monthPersonal!.topCategories.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <span className="text-xs text-muted">Top catégories&nbsp;:</span>
-              {monthPersonal!.topCategories.slice(0, 4).map(c => (
-                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium">
-                  {c.name}&nbsp;<span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+              {monthPersonal!.topCategories.slice(0, 3).map(c => (
+                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium max-w-[140px]">
+                  <span className="truncate">{c.name}</span>&nbsp;<span className="text-muted font-normal shrink-0">{formatCurrency(Math.abs(c.amount))}</span>
                 </span>
               ))}
             </div>
@@ -959,16 +959,16 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-ochre uppercase tracking-wider">Activité</span>
             </div>
             <p className="text-sm text-muted leading-relaxed">
-              Côté activité, vous avez réalisé <strong className="text-ink">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-ink">{formatCurrency(monthActivity!.expense)}</strong> de charges.
+              Côté activité, vous avez réalisé <strong className="text-ink">{formatCurrency(monthActivity!.income)}</strong>&nbsp;de chiffre d&apos;affaires pour <strong className="text-ink">{formatCurrency(monthActivity!.expense)}</strong>&nbsp;de charges.
               Bénéfice&nbsp;: <strong className="text-ink">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
               {monthActivity!.income > 0 && <span> (marge de <strong className="text-ink">{((Math.max(0, monthActivity!.savings) / monthActivity!.income) * 100).toFixed(0)}%</strong>)</span>}.
             </p>
             {monthActivity!.topCategories && monthActivity!.topCategories.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <span className="text-xs text-muted">Top catégories&nbsp;:</span>
-              {monthActivity!.topCategories.slice(0, 4).map(c => (
-                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium">
-                  {c.name}&nbsp;<span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+              {monthActivity!.topCategories.slice(0, 3).map(c => (
+                <span key={c.name} className="inline-flex items-center gap-1 bg-sand rounded-lg px-2.5 py-1 text-xs text-ink font-medium max-w-[140px]">
+                  <span className="truncate">{c.name}</span>&nbsp;<span className="text-muted font-normal shrink-0">{formatCurrency(Math.abs(c.amount))}</span>
                 </span>
               ))}
             </div>
@@ -979,7 +979,7 @@ export default function DashboardPage() {
         )}
 
         {/* Bilan mensuel */}
-        <div className="flex items-center gap-2.5 p-4 bg-gradient-to-r from-forest/[0.03] to-ochre/[0.03] rounded-xl border border-border">
+        <div className="flex flex-wrap items-center gap-2.5 p-4 bg-gradient-to-r from-forest/[0.03] to-ochre/[0.03] rounded-xl border border-border">
           <div className="flex-1 text-sm text-muted leading-relaxed">
             <span className="font-semibold text-ink">Bilan mensuel&nbsp;: </span>
             <span className="text-forest font-medium">+{formatCurrency(tIncome)}</span>
