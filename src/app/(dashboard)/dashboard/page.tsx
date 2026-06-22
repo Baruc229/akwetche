@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faArrowTrendUp, faArrowTrendDown, faPlus, faCircleExclamation, faBriefcase, faUser, faArrowRight, faClock, faBagShopping, faPiggyBank, faTriangleExclamation, faCrown, faChartBar, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faWallet, faArrowTrendUp, faArrowTrendDown, faPlus, faCircleExclamation, faBriefcase, faUser, faArrowRight, faClock, faBagShopping, faPiggyBank, faTriangleExclamation, faCrown, faChartBar, faXmark, faArrowsUpDown, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -221,13 +221,7 @@ export default function DashboardPage() {
  {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
  </p>
  </div>
-  <button
-  onClick={() => setShowModal(true)}
-  className="btn-primary hidden sm:flex items-center gap-2 text-sm self-start sm:self-auto"
-  >
-  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-  Nouvelle transaction
-  </button>
+  {/* Le bouton Nouvelle transaction est dans la hero card */}
  </div>
 
   {/* Erreur chargement */}
@@ -289,25 +283,56 @@ export default function DashboardPage() {
  </div>
  )}
 
- {/* Argent disponible aujourd'hui */}
- <div className="bg-forest rounded-2xl p-6 text-white shadow-lg animate-fade-in">
- <div className="flex items-center gap-2 mb-1">
- <FontAwesomeIcon icon={faWallet} className="w-5 h-5 text-sand" />
- <p className="text-sm text-sand font-medium">Argent disponible</p>
- </div>
- <p className="text-3xl font-bold mt-1">{formatCurrency(totalBalance)}</p>
- <div className="mt-3 flex items-center gap-4 text-sm text-sand">
- <span className="flex items-center gap-1">
- <FontAwesomeIcon icon={faArrowTrendUp} className="w-3.5 h-3.5" />
- +{formatCurrency(totalIncome)} reçus
- </span>
- <span className="flex items-center gap-1">
- <FontAwesomeIcon icon={faArrowTrendDown} className="w-3.5 h-3.5" />
- -{formatCurrency(totalExpense)} dépensés
- </span>
- </div>
+  {/* Hero card — Argent disponible */}
+  <div className="relative overflow-hidden bg-gradient-to-br from-forest via-[#1E4D35] to-[#2A6347] rounded-2xl p-6 md:p-8 text-white shadow-lg animate-fade-in">
+    {/* Décorations de fond */}
+    <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.04]" />
+    <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/[0.04]" />
+    <div className="absolute top-1/3 right-1/4 w-20 h-20 rounded-full bg-white/[0.02]" />
 
- </div>
+    <div className="relative z-10">
+      {/* En-tête avec montant */}
+      <div className="flex items-start gap-4 mb-5">
+        <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">
+          <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-white/50 uppercase tracking-wider">Argent disponible</p>
+          <p className="text-4xl md:text-5xl font-bold tracking-tight mt-1">{formatCurrency(totalBalance)}</p>
+        </div>
+      </div>
+
+      {/* Pills Revenus / Dépenses */}
+      <div className="flex flex-wrap items-center gap-2.5 mb-5 pb-5 border-b border-white/10">
+        <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-1.5 text-sm font-medium">
+          <FontAwesomeIcon icon={faArrowTrendUp} className="w-3.5 h-3.5 text-green-300" />
+          <span>+{formatCurrency(totalIncome)}</span>
+          <span className="text-white/50 text-xs font-normal">reçus</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-1.5 text-sm font-medium">
+          <FontAwesomeIcon icon={faArrowTrendDown} className="w-3.5 h-3.5 text-red-300" />
+          <span>-{formatCurrency(totalExpense)}</span>
+          <span className="text-white/50 text-xs font-normal">dépensés</span>
+        </span>
+      </div>
+
+      {/* Mini stat cards en ligne */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider">Revenus</p>
+          <p className="text-sm font-bold mt-1">{formatCurrency(totalIncome)}</p>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider">Dépenses</p>
+          <p className="text-sm font-bold mt-1">{formatCurrency(totalExpense)}</p>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider">Épargne</p>
+          <p className="text-sm font-bold mt-1">{savingsRate.toFixed(0)}%</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
  {/* Jauge limites Free */}
  {limits && !limits.isPremium && user?.role === "user" && (
@@ -380,506 +405,506 @@ export default function DashboardPage() {
  </div>
  )}
 
- {/* Grille : Où est passé mon argent + Projection */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
- {/* Où est passé mon argent */}
- <div className="card p-5 animate-fade-in">
- <h2 className="text-sm font-semibold text-ink mb-1">Où est passé mon argent ?</h2>
- <p className="text-xs text-muted mb-4">Cette semaine</p>
- {weekExpenses.length === 0 && (!commercialMode || weekActivityExpenses.length === 0) ? (
- <p className="text-sm text-muted text-center py-6">Aucune dépense cette semaine</p>
- ) : (
- <div className="space-y-4">
- {weekExpenses.length > 0 && (
- <div>
- {commercialMode && <p className="text-xs font-semibold text-forest mb-2 uppercase tracking-wider">Personnel</p>}
-  <div className="space-y-3">
-  {weekExpenses.slice(0, 5).map((cat, i) => {
-  const absAmount = Math.abs(cat.amount);
-  const pct = totalWeekExpense > 0 ? (absAmount / totalWeekExpense) * 100 : 0;
-  const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-  return (
-  <div key={cat.name}>
-  <div className="flex justify-between text-sm mb-1">
-  <span className="text-ink flex items-center gap-1.5">
-  <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
-  {cat.name}
-  </span>
-  <span className="text-muted font-medium">{pct.toFixed(0)}% ({formatCurrency(absAmount)})</span>
+  {/* Grille : Répartition dépenses + Projection */}
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  {/* Répartition des dépenses */}
+  <div className="card p-5 animate-fade-in">
+  <div className="flex items-center gap-2 mb-1">
+    <div className="w-2 h-2 rounded-full bg-forest shrink-0" />
+    <h2 className="text-sm font-semibold text-ink">Répartition des dépenses</h2>
   </div>
-  <div className="h-2 bg-border rounded-full overflow-hidden">
-  <div className="h-full rounded-full transition-all duration-500"
-  style={{ width: `${pct}%`, backgroundColor: color }} />
+  <p className="text-xs text-muted mb-4">Cette semaine</p>
+  {weekExpenses.length === 0 && (!commercialMode || weekActivityExpenses.length === 0) ? (
+  <div className="text-center py-8">
+    <div className="w-12 h-12 bg-sand rounded-2xl flex items-center justify-center mx-auto mb-3">
+      <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-muted" />
+    </div>
+    <p className="text-sm text-muted">Aucune dépense cette semaine</p>
   </div>
-  </div>
-  );
-  })}
- </div>
- </div>
- )}
- {commercialMode && weekActivityExpenses.length > 0 && (
- <div>
- <p className="text-xs font-semibold text-ochre mb-2 uppercase tracking-wider">Activité</p>
-  <div className="space-y-3">
-  {weekActivityExpenses.slice(0, 5).map((cat, i) => {
-  const absAmount = Math.abs(cat.amount);
-  const pct = totalWeekActivityExpense > 0 ? (absAmount / totalWeekActivityExpense) * 100 : 0;
-  const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-  return (
-  <div key={cat.name}>
-  <div className="flex justify-between text-sm mb-1">
-  <span className="text-ink flex items-center gap-1.5">
-  <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
-  {cat.name}
-  </span>
-  <span className="text-muted font-medium">{pct.toFixed(0)}% ({formatCurrency(absAmount)})</span>
-  </div>
-  <div className="h-2 bg-border rounded-full overflow-hidden">
-  <div className="h-full rounded-full transition-all duration-500"
-  style={{ width: `${pct}%`, backgroundColor: color }} />
+  ) : (
+  <div className="space-y-4">
+  {weekExpenses.length > 0 && (
+  <div>
+  {commercialMode && (
+    <div className="flex items-center gap-1.5 mb-3">
+      <span className="w-2 h-2 rounded-full bg-forest" />
+      <span className="text-xs font-semibold text-forest uppercase tracking-wider">Personnel</span>
+    </div>
+  )}
+   <div className="space-y-3">
+   {weekExpenses.slice(0, 5).map((cat, i) => {
+   const absAmount = Math.abs(cat.amount);
+   const pct = totalWeekExpense > 0 ? (absAmount / totalWeekExpense) * 100 : 0;
+   const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+   return (
+   <div key={cat.name}>
+   <div className="flex justify-between text-sm mb-1.5">
+   <span className="text-ink flex items-center gap-2">
+   <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
+   {cat.name}
+   </span>
+   <span className="text-muted font-medium tabular-nums">{pct.toFixed(0)}% <span className="text-muted/60">{formatCurrency(absAmount)}</span></span>
+   </div>
+   <div className="h-2.5 bg-sand rounded-full overflow-hidden">
+   <div
+    className="h-full rounded-full transition-all duration-700 ease-out"
+    style={{ width: `${pct}%`, backgroundColor: color }}
+   />
+   </div>
+   </div>
+   );
+   })}
   </div>
   </div>
-  );
-  })}
- </div>
- </div>
- )}
- </div>
- )}
- </div>
-
- {/* Projection fin de mois */}
- <div className="card p-5 animate-fade-in">
- <h2 className="text-sm font-semibold text-ink mb-1">Projection</h2>
- <p className="text-xs text-muted mb-4">Si vous continuez à ce rythme</p>
- <div className="bg-sand rounded-xl p-4 text-center">
- <p className="text-sm text-muted">Il vous restera environ</p>
- <p className={`text-2xl font-bold mt-1 ${projectedRemaining >= 0 ? "text-forest" : "text-red-500"}`}>
- {formatCurrency(Math.max(0, projectedRemaining))}
- </p>
- <p className="text-xs text-muted mt-1">à la fin du mois ({daysLeft} jours restants)</p>
- </div>
- <div className="mt-3 flex items-center justify-between text-sm">
- <span className="text-muted">Dépense moyenne / jour</span>
- <span className="font-medium text-ink">{formatCurrency(dailyAvgExpense)}</span>
- </div>
- {projectedRemaining < 0 && (
- <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 rounded-xl">
- <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
- <p className="text-xs text-red-600">Attention : vous dépensez plus que vous ne possédez.</p>
- </div>
- )}
- </div>
- </div>
-
- {/* Ce mois-ci — version humaine */}
- {(personalSummary || activitySummary) && (
- <div className="card p-5 animate-fade-in">
- <h2 className="text-sm font-semibold text-ink mb-1">Ce mois-ci</h2>
- <p className="text-xs text-muted mb-4">Résumé de votre mois en un coup d&apos;œil</p>
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div className="bg-ochre-light rounded-xl p-4">
- <p className="text-xs text-forest-light font-medium">Vous avez reçu</p>
- <p className="text-lg font-bold text-forest-light mt-1">{formatCurrency(totalIncome)}</p>
- </div>
- <div className="bg-ochre-light rounded-xl p-4">
- <p className="text-xs text-ochre font-medium">Vous avez dépensé</p>
- <p className="text-lg font-bold text-ochre mt-1">{formatCurrency(totalExpense)}</p>
- </div>
- <div className="bg-ochre-light rounded-xl p-4">
- <p className="text-xs text-forest font-medium">Il vous reste</p>
- <p className="text-lg font-bold text-forest mt-1">{formatCurrency(Math.max(0, totalBalance))}</p>
- </div>
- </div>
- <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
- {biggestExpense && (
- <div className="bg-white border border-border rounded-xl p-3 flex items-center gap-3">
- <div className="w-9 h-9 rounded-xl bg-ochre-light flex items-center justify-center">
- <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-ochre" />
- </div>
- <div>
- <p className="text-xs text-muted">Votre plus grosse dépense</p>
- <p className="text-sm font-semibold text-ink">{biggestExpense.name} ({formatCurrency(Math.abs(biggestExpense.amount))})</p>
- </div>
- </div>
- )}
- <div className="bg-white border border-border rounded-xl p-3 flex items-center gap-3">
- <div className="w-9 h-9 rounded-xl bg-ochre-light flex items-center justify-center">
- <FontAwesomeIcon icon={faPiggyBank} className="w-4 h-4 text-forest" />
- </div>
- <div>
- <p className="text-xs text-muted">Taux d&apos;épargne</p>
- <p className="text-sm font-semibold text-ink">{savingsRate.toFixed(0)}% ({formatCurrency(totalSavings)} mis de côté)</p>
- </div>
- </div>
- </div>
- </div>
- )}
-
- {/* Section Activité — résumé quotidien */}
- {commercialMode && activitySummary && (activitySummary.income + activitySummary.expense > 0) && (
- <div className="card p-5 animate-fade-in border-l-4 border-l-ochre">
- <div className="flex items-center gap-2 mb-1">
- <FontAwesomeIcon icon={faBriefcase} className="w-4 h-4 text-ochre" />
- <h2 className="text-sm font-semibold text-ink">Mon activité aujourd&apos;hui</h2>
- </div>
- <p className="text-xs text-muted mb-3">Votre activité commerciale</p>
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
- <div className="bg-ochre-light rounded-xl p-4">
- <p className="text-xs text-ochre font-medium">Ce mois-ci</p>
- <p className="text-base font-bold text-ochre mt-1">{formatCurrency(activitySummary.income)}</p>
- <p className="text-xs text-muted">chiffre d&apos;affaires</p>
- </div>
- <div className="bg-ochre-light rounded-xl p-4">
- <p className="text-xs text-forest-light font-medium">Bénéfice</p>
- <p className="text-base font-bold text-forest-light mt-1">{formatCurrency(Math.max(0, activitySummary.savings))}</p>
- <p className="text-xs text-muted">après dépenses</p>
- </div>
- <div className="bg-sand rounded-xl p-4">
- <p className="text-xs text-muted font-medium">Marge</p>
- <p className="text-base font-bold text-ink mt-1">
- {activitySummary.income > 0 ? ((Math.max(0, activitySummary.savings) / activitySummary.income) * 100).toFixed(0) : 0}%
- </p>
- <p className="text-xs text-muted">de bénéfice</p>
- </div>
- </div>
- </div>
- )}
-
- {/* Transactions récentes + Liens rapides */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
- <div className="card p-5 animate-fade-in">
- <div className="flex items-center justify-between mb-4">
- <h2 className="text-sm font-semibold text-ink">
- Dernières opérations
- </h2>
- <a
- href="/dashboard/transactions"
- className="flex items-center gap-1 text-xs text-forest hover:text-forest font-medium"
- >
- Voir tout
- <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
- </a>
- </div>
- {recentTransactions.length === 0 ? (
- <div className="text-center py-8 text-muted">
- <FontAwesomeIcon icon={faClock} className="w-8 h-8 mx-auto mb-2 opacity-50" />
- <p className="text-sm">Aucune opération pour le moment</p>
- <button
- onClick={() => setShowModal(true)}
- className="text-forest text-sm font-medium mt-2 hover:text-forest"
- >
- Ajouter une transaction
- </button>
- </div>
- ) : (
- <div className="space-y-2">
- {recentTransactions.map((tx, i) => (
- <div
- key={tx.id}
- className="flex items-center justify-between p-3 rounded-xl hover:bg-sand transition-colors animate-slide-in"
- style={{ animationDelay: `${i * 50}ms` }}
- >
- <div className="flex items-center gap-3">
- <div
- className={`w-9 h-9 rounded-xl flex items-center justify-center ${
- tx.type === "income"
- ? "bg-ochre-light"
- : "bg-ochre-light"
- }`}
- >
- {tx.type === "income" ? (
- <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-forest-light" />
- ) : (
- <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-ochre" />
- )}
- </div>
- <div>
- <p className="text-sm font-medium text-ink">
- {tx.description}
- </p>
- <p className="text-xs text-muted">
-  {tx.category?.name || "Non catégorisé"} · {formatDate(tx.date)}
- {tx.scope === "activity" && (
- <span className="ml-1.5 text-ochre font-medium">· activité</span>
- )}
- </p>
- </div>
- </div>
- <span
- className={`text-sm font-semibold ${
- tx.type === "income"
- ? "text-forest-light"
- : "text-ochre"
- }`}
- >
- {tx.type === "income" ? "+" : "-"}
- {formatCurrency(tx.amount)}
- </span>
- </div>
- ))}
- </div>
- )}
- </div>
-
- {/* Rappel catégories */}
- {categories.length === 0 && (
- <div className="bg-ochre-light border border-border rounded-2xl p-5 animate-fade-in">
- <div className="flex items-start gap-3">
- <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-ochre flex-shrink-0 mt-0.5" />
- <div>
- <p className="text-sm font-medium text-ochre">
- Configurez vos catégories
- </p>
- <p className="text-sm text-ochre mt-1">
- Avant d&apos;ajouter des transactions, créez des catégories de
- dépenses et revenus dans les paramètres.
- </p>
- <a
- href="/dashboard/settings"
- className="inline-flex items-center gap-1 text-sm font-medium text-ochre hover:text-ochre mt-2"
- >
- Aller aux paramètres
- <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
- </a>
- </div>
- </div>
- </div>
- )}
-
- {categories.length > 0 && (
- <div className="card p-5 animate-fade-in">
- <h2 className="text-sm font-semibold text-ink mb-3">Liens rapides</h2>
- <div className="space-y-2">
- <a
- href="/dashboard/transactions"
- className="flex items-center gap-3 p-3 rounded-xl hover:bg-sand transition-colors"
- >
- <div className="w-9 h-9 rounded-xl bg-border flex items-center justify-center">
- <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 text-muted" />
- </div>
- <div>
- <p className="text-sm font-medium text-ink">Voir tout l&apos;historique</p>
- <p className="text-xs text-muted">Consultez et filtrez toutes vos opérations</p>
- </div>
- </a>
- {commercialMode && (
- <>
- <a
- href="/dashboard/products"
- className="flex items-center gap-3 p-3 rounded-xl hover:bg-sand transition-colors"
- >
- <div className="w-9 h-9 rounded-xl bg-ochre-light flex items-center justify-center">
- <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4 text-ochre" />
- </div>
- <div>
- <p className="text-sm font-medium text-ink">Gérer mes produits</p>
- <p className="text-xs text-muted">Ajoutez ou modifiez votre catalogue</p>
- </div>
- </a>
- <a
- href="/dashboard/sales"
- className="flex items-center gap-3 p-3 rounded-xl hover:bg-sand transition-colors"
- >
- <div className="w-9 h-9 rounded-xl bg-ochre-light flex items-center justify-center">
- <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-forest-light" />
- </div>
- <div>
- <p className="text-sm font-medium text-ink">Enregistrer une vente</p>
- <p className="text-xs text-muted">Suivez votre chiffre d&apos;affaires</p>
- </div>
- </a>
- </>
- )}
- </div>
- </div>
- )}
- </div>
-
-  {/* Synthèse — D'où proviennent les revenus */}
-  {(monthPersonal && (monthPersonal.income + monthPersonal.expense > 0)) ||
-  (commercialMode && monthActivity && (monthActivity.income + monthActivity.expense > 0)) ? (
- <div className="bg-sand border border-border rounded-2xl p-5 animate-fade-in">
- <div className="flex items-center gap-2 mb-4">
- <FontAwesomeIcon icon={faPiggyBank} className="w-5 h-5 text-forest" />
- <h2 className="text-sm font-semibold text-ink">En résumé</h2>
- </div>
-
- {(() => {
- const showPersonal = monthPersonal && monthPersonal.income + monthPersonal.expense > 0;
- const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
- const personalRate = monthPersonal && monthPersonal.income > 0 ? (monthPersonal.savings / monthPersonal.income) * 100 : 0;
- const activityRate = monthActivity && monthActivity.income > 0 ? (monthActivity.savings / monthActivity.income) * 100 : 0;
- const totalIncome = (monthPersonal?.income || 0) + (monthActivity?.income || 0);
- const totalExpense = (monthPersonal?.expense || 0) + (monthActivity?.expense || 0);
- const totalSaved = Math.max(0, (monthPersonal?.savings || 0)) + Math.max(0, (monthActivity?.savings || 0));
- const totalBalance = (monthPersonal?.balance || 0) + (monthActivity?.balance || 0);
- const savingsRate = totalIncome > 0 ? (totalSaved / totalIncome) * 100 : 0;
-
- const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
- const biggestExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
-
-  return (
-  <>
-  {commercialMode && <>
-  {/* Tableau comparatif — Desktop */}
-  <div className="hidden sm:block rounded-xl border border-border bg-white mb-4 overflow-x-auto">
-  <table className="w-full text-sm">
-  <thead>
-  <tr className="bg-ochre-light">
-  <th className="text-left px-4 py-2.5 font-semibold text-forest"></th>
-  <th className="text-right px-4 py-2.5 font-semibold text-forest">Perso</th>
-  {showActivity && <th className="text-right px-4 py-2.5 font-semibold text-ochre">Activité</th>}
-  <th className="text-right px-4 py-2.5 font-semibold text-ink">Total</th>
-  </tr>
-  </thead>
-  <tbody className="divide-y divide-border">
-  <tr>
-  <td className="px-4 py-2.5 text-muted">Revenus</td>
-  <td className="text-right px-4 py-2.5 font-medium text-forest-light">{formatCurrency(monthPersonal?.income || 0)}</td>
-  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</td>}
-  <td className="text-right px-4 py-2.5 font-semibold text-ink">{formatCurrency(totalIncome)}</td>
-  </tr>
-  <tr>
-  <td className="px-4 py-2.5 text-muted">Dépenses</td>
-  <td className="text-right px-4 py-2.5 font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</td>
-  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</td>}
-  <td className="text-right px-4 py-2.5 font-semibold text-ink">{formatCurrency(totalExpense)}</td>
-  </tr>
-  <tr className="bg-ochre-light">
-  <td className="px-4 py-2.5 text-ink font-medium">Résultat</td>
-  <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
-  {showActivity && <td className="text-right px-4 py-2.5 font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>}
-  <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(totalSaved)}</td>
-  </tr>
-  <tr>
-  <td className="px-4 py-2.5 text-muted">Taux d'épargne</td>
-  <td className="text-right px-4 py-2.5 font-medium text-ink">
-  {monthPersonal?.income ? `${personalRate.toFixed(0)}%` : "-"}
-  </td>
-  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ink">
-  {monthActivity?.income ? `${activityRate.toFixed(0)}%` : "-"}
-  </td>}
-  <td className="text-right px-4 py-2.5 font-semibold text-ink">{savingsRate.toFixed(0)}%</td>
-  </tr>
-  <tr>
-  <td className="px-4 py-2.5 text-muted">Disponible</td>
-  <td className="text-right px-4 py-2.5 font-medium text-ink">{formatCurrency(monthPersonal?.balance || 0)}</td>
-  {showActivity && <td className="text-right px-4 py-2.5 font-medium text-ink">{formatCurrency(monthActivity?.balance || 0)}</td>}
-  <td className="text-right px-4 py-2.5 font-bold text-forest">{formatCurrency(totalBalance)}</td>
-  </tr>
-  </tbody>
-  </table>
+  )}
+  {commercialMode && weekActivityExpenses.length > 0 && (
+  <div>
+  <div className="flex items-center gap-1.5 mb-3">
+    <span className="w-2 h-2 rounded-full bg-ochre" />
+    <span className="text-xs font-semibold text-ochre uppercase tracking-wider">Activité</span>
+  </div>
+   <div className="space-y-3">
+   {weekActivityExpenses.slice(0, 5).map((cat, i) => {
+   const absAmount = Math.abs(cat.amount);
+   const pct = totalWeekActivityExpense > 0 ? (absAmount / totalWeekActivityExpense) * 100 : 0;
+   const color = CATEGORY_COLORS[(i + 3) % CATEGORY_COLORS.length];
+   return (
+   <div key={cat.name}>
+   <div className="flex justify-between text-sm mb-1.5">
+   <span className="text-ink flex items-center gap-2">
+   <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
+   {cat.name}
+   </span>
+   <span className="text-muted font-medium tabular-nums">{pct.toFixed(0)}% <span className="text-muted/60">{formatCurrency(absAmount)}</span></span>
+   </div>
+   <div className="h-2.5 bg-sand rounded-full overflow-hidden">
+   <div
+    className="h-full rounded-full transition-all duration-700 ease-out"
+    style={{ width: `${pct}%`, backgroundColor: color }}
+   />
+   </div>
+   </div>
+   );
+   })}
+  </div>
+  </div>
+  )}
+  </div>
+  )}
   </div>
 
-  {/* Fiches récap — Mobile */}
-  <div className="sm:hidden space-y-3 mb-4">
-    {showPersonal && (
-      <div className="bg-white rounded-xl border border-border p-4">
-        <h4 className="text-xs font-semibold text-forest uppercase tracking-wider mb-3">👤 Personnel</h4>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-medium text-forest-light">{formatCurrency(monthPersonal?.income || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</span></div>
-          <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Taux d'épargne</span><span className="font-medium text-ink">{monthPersonal?.income ? `${personalRate.toFixed(0)}%` : "-"}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Disponible</span><span className="font-semibold text-ink">{formatCurrency(monthPersonal?.balance || 0)}</span></div>
-        </div>
+  {/* Projection fin de mois */}
+  <div className="card p-5 animate-fade-in">
+  <div className="flex items-center gap-2 mb-1">
+    <div className="w-2 h-2 rounded-full bg-ochre shrink-0" />
+    <h2 className="text-sm font-semibold text-ink">Projection</h2>
+  </div>
+  <p className="text-xs text-muted mb-4">Estimation si vous continuez à ce rythme</p>
+
+  <div className="bg-gradient-to-br from-sand to-sand/80 rounded-xl p-5 text-center">
+    <p className="text-xs text-muted mb-1">Solde estimé en fin de mois</p>
+    <p className={`text-3xl font-bold tracking-tight ${projectedRemaining >= 0 ? "text-forest" : "text-red-500"}`}>
+      {formatCurrency(projectedRemaining)}
+    </p>
+
+    {/* Barre de progression budget */}
+    <div className="mt-4 space-y-1.5">
+      <div className="flex justify-between text-xs text-muted">
+        <span>Dépensé</span>
+        <span>{formatCurrency(totalExpense)}</span>
       </div>
-    )}
-    {showActivity && (
-      <div className="bg-white rounded-xl border border-border p-4">
-        <h4 className="text-xs font-semibold text-ochre uppercase tracking-wider mb-3">💼 Activité</h4>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</span></div>
-          <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Taux d'épargne</span><span className="font-medium text-ink">{monthActivity?.income ? `${activityRate.toFixed(0)}%` : "-"}</span></div>
-          <div className="flex justify-between"><span className="text-muted">Disponible</span><span className="font-semibold text-ink">{formatCurrency(monthActivity?.balance || 0)}</span></div>
-        </div>
+      <div className="h-3 bg-white rounded-full overflow-hidden border border-border">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${projectedRemaining >= 0 ? "bg-forest" : "bg-red-500"}`}
+          style={{ width: `${Math.min(100, (totalExpense / Math.max(1, totalExpense + Math.max(0, projectedRemaining))) * 100)}%` }}
+        />
       </div>
-    )}
-    <div className="bg-ochre-light rounded-xl border border-border p-4">
-      <h4 className="text-xs font-semibold text-ink uppercase tracking-wider mb-3">📊 Total</h4>
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between"><span className="text-muted">Revenus</span><span className="font-semibold text-ink">{formatCurrency(totalIncome)}</span></div>
-        <div className="flex justify-between"><span className="text-muted">Dépenses</span><span className="font-semibold text-ink">{formatCurrency(totalExpense)}</span></div>
-        <div className="flex justify-between border-t border-border pt-2"><span className="text-ink font-medium">Résultat</span><span className="font-bold text-forest">{formatCurrency(totalSaved)}</span></div>
-        <div className="flex justify-between"><span className="text-muted">Taux d'épargne</span><span className="font-semibold text-ink">{savingsRate.toFixed(0)}%</span></div>
-        <div className="flex justify-between"><span className="text-muted">Disponible</span><span className="font-bold text-forest">{formatCurrency(totalBalance)}</span></div>
+      <div className="flex justify-between text-xs text-muted">
+        <span>Restant</span>
+        <span>{formatCurrency(Math.max(0, projectedRemaining))}</span>
       </div>
     </div>
   </div>
-  </>}
 
- {/* Phrase explicative détaillée */}
- <div className="text-sm text-ink leading-relaxed space-y-3">
- {showPersonal && showActivity ? (
- <>
- <div className="bg-white rounded-xl p-4 border border-border space-y-2">
-<h4 className="font-semibold text-ink text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faWallet} className="w-3 h-3 mr-1" /> Personnel</h4>
-  <p className="text-muted">
-  Sur le plan personnel, vous avez reçu <strong className="text-forest-light">{formatCurrency(monthPersonal!.income)}</strong> et dépensé <strong className="text-ochre">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
-  Votre capital de départ était de <strong className="text-ink">{formatCurrency(monthPersonal!.initialBalance)}</strong>, ce qui porte votre solde personnel à <strong className="text-forest">{formatCurrency(monthPersonal!.balance)}</strong>.
-  Votre taux d&apos;épargne personnel est de <strong className="text-ink">{personalRate.toFixed(0)}%</strong>
- {personalRate < 5 ? <span className="text-ochre"> — attention, vous dépensez presque tous vos revenus personnels</span> : personalRate >= 20 ? <span className="text-forest"> — bravo, vous épargnez plus de 20% !</span> : <span> — un bon équilibre</span>}.
- </p>
+  <div className="mt-4 flex items-center justify-between text-sm px-1">
+    <span className="text-muted">Dépense moyenne / jour</span>
+    <span className="font-semibold text-ink tabular-nums">{formatCurrency(dailyAvgExpense)}</span>
   </div>
-  <div className="bg-white rounded-xl p-4 border border-border space-y-2">
-  <h4 className="font-semibold text-ink text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faBagShopping} className="w-3 h-3 mr-1" /> Activité</h4>
-  <p className="text-muted">
-  Côté activité, vous avez généré <strong className="text-forest-light">{formatCurrency(monthActivity!.income)} </strong>de chiffre d&apos;affaires pour <strong className="text-ochre">{formatCurrency(monthActivity!.expense)} </strong>de dépenses liées à votre commerce.
- Votre bénéfice d&apos;activité est de <strong className="text-forest">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
- {monthActivity!.income > 0 ? <span>, soit une marge de <strong className="text-ochre">{activityRate.toFixed(0)}%</strong></span> : null}.
- Capital d&apos;activité de départ : <strong className="text-ink">{formatCurrency(monthActivity!.initialBalance)}</strong>, solde activité actuel : <strong className="text-forest">{formatCurrency(monthActivity!.balance)}</strong>.
- </p>
- </div>
- <div className="bg-ochre-light rounded-xl p-4 border border-border space-y-1">
- <h4 className="font-semibold text-forest text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faChartBar} className="w-3 h-3 mr-1" /> Synthèse globale</h4>
- <p className="text-ink">
- Au total (personnel + activité), vous avez gagné <strong>{formatCurrency(totalIncome)}</strong>, dépensé <strong>{formatCurrency(totalExpense)}</strong>, et mis de côté <strong>{formatCurrency(totalSaved)}</strong> soit un taux d&apos;épargne global de <strong>{savingsRate.toFixed(0)}%</strong>.
- Vos deux budgets combinés vous laissent <strong className="text-forest">{formatCurrency(totalBalance)}</strong> de disponible.
- </p>
- </div>
- </>
- ) : showPersonal ? (
- <>
- <div className="bg-white rounded-xl p-4 border border-border space-y-2">
-<h4 className="font-semibold text-ink text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faWallet} className="w-3 h-3 mr-1" /> Personnel</h4>
-  <p className="text-muted">
-  Ce mois-ci, vous avez reçu <strong className="text-forest-light">{formatCurrency(monthPersonal!.income)}</strong> et dépensé <strong className="text-ochre">{formatCurrency(monthPersonal!.expense)}</strong>.
- Vous partiez de <strong className="text-ink">{formatCurrency(monthPersonal!.initialBalance)}</strong>, il vous reste donc <strong className="text-forest">{formatCurrency(monthPersonal!.balance)}</strong>.
- Vous avez épargné <strong>{formatCurrency(Math.max(0, monthPersonal!.savings))}</strong> soit <strong>{personalRate.toFixed(0)}%</strong> de vos revenus
- {personalRate < 5 ? <span className="text-ochre"> — faites attention, vous dépensez la quasi-totalité de ce que vous gagnez</span> : personalRate >= 20 ? <span className="text-forest"> — bravo, une excellente maîtrise de vos finances !</span> : <span> — un rythme soutenable</span>}.
- </p>
- </div>
- </>
- ) : (
+  <div className="flex items-center justify-between text-sm px-1 mt-1.5">
+    <span className="text-muted">Jours restants</span>
+    <span className="font-semibold text-ink tabular-nums">{daysLeft} jour{daysLeft > 1 ? "s" : ""}</span>
+  </div>
+
+  {projectedRemaining < 0 && (
+  <div className="mt-4 flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-100 rounded-xl">
+    <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-red-500" />
+    </div>
+    <div>
+      <p className="text-xs font-semibold text-red-700">Attention</p>
+      <p className="text-xs text-red-600 mt-0.5">Vous dépensez plus que votre budget disponible.</p>
+    </div>
+  </div>
+  )}
+  </div>
+  </div>
+
+  {/* Indicateurs clés */}
+  {(personalSummary || activitySummary) && (
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in">
+    <div className="card p-5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-forest/10 flex items-center justify-center">
+          <FontAwesomeIcon icon={faPiggyBank} className="w-5 h-5 text-forest" />
+        </div>
+        <div>
+          <p className="text-xs text-muted">Taux d&apos;épargne</p>
+          <p className="text-lg font-bold text-ink">{savingsRate.toFixed(0)}%</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-2 bg-border rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${
+              savingsRate >= 20 ? "bg-forest" : savingsRate >= 5 ? "bg-ochre" : "bg-red-500"
+            }`}
+            style={{ width: `${Math.min(100, savingsRate)}%` }}
+          />
+        </div>
+        <span className="text-xs text-muted shrink-0">{formatCurrency(totalSavings)}</span>
+      </div>
+    </div>
+
+    <div className="card p-5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-ochre/10 flex items-center justify-center">
+          <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-ochre" />
+        </div>
+        <div>
+          <p className="text-xs text-muted">Plus grosse dépense</p>
+          <p className="text-lg font-bold text-ink">
+            {biggestExpense ? biggestExpense.name : "—"}
+          </p>
+        </div>
+      </div>
+      <p className="text-xs text-muted">
+        {biggestExpense
+          ? `${formatCurrency(Math.abs(biggestExpense.amount))} · ${biggestExpense.type === "expense" ? "dépense" : "revenu"}`
+          : "Aucune dépense ce mois-ci"}
+      </p>
+    </div>
+
+    <div className="card p-5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-forest/10 flex items-center justify-center">
+          <FontAwesomeIcon icon={faWallet} className="w-5 h-5 text-forest" />
+        </div>
+        <div>
+          <p className="text-xs text-muted">Dépense moyenne / jour</p>
+          <p className="text-lg font-bold text-ink">{formatCurrency(dailyAvgExpense)}</p>
+        </div>
+      </div>
+      <p className="text-xs text-muted">{daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""} ce mois</p>
+    </div>
+  </div>
+  )}
+
+  {/* Section Activité — résumé commercial */}
+  {commercialMode && activitySummary && (activitySummary.income + activitySummary.expense > 0) && (
+  <div className="relative overflow-hidden bg-gradient-to-br from-white via-white to-ochre-light/30 rounded-2xl p-5 border border-ochre/20 shadow-sm animate-fade-in">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-ochre/5 rounded-full -mr-10 -mt-10" />
+    <div className="relative z-10">
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-ochre/10 flex items-center justify-center">
+          <FontAwesomeIcon icon={faBriefcase} className="w-5 h-5 text-ochre" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-ink">Mon activité</h2>
+          <p className="text-xs text-muted">Résumé commercial du mois</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
+          <p className="text-xs text-muted uppercase tracking-wider">Chiffre d&apos;affaires</p>
+          <p className="text-xl font-bold text-ochre mt-1">{formatCurrency(activitySummary.income)}</p>
+        </div>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
+          <p className="text-xs text-muted uppercase tracking-wider">Bénéfice</p>
+          <p className="text-xl font-bold text-forest mt-1">{formatCurrency(Math.max(0, activitySummary.savings))}</p>
+          <p className="text-[10px] text-muted mt-0.5">après dépenses</p>
+        </div>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ochre/10">
+          <p className="text-xs text-muted uppercase tracking-wider">Marge</p>
+          <p className="text-xl font-bold text-ink mt-1">
+            {activitySummary.income > 0 ? ((Math.max(0, activitySummary.savings) / activitySummary.income) * 100).toFixed(0) : 0}%
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  )}
+
+  {/* Transactions récentes + Liens rapides */}
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+  <div className="card p-5 animate-fade-in">
+  <div className="flex items-center justify-between mb-4">
+  <h2 className="text-sm font-semibold text-ink">
+  Dernières opérations
+  </h2>
+  <a
+  href="/dashboard/transactions"
+  className="inline-flex items-center gap-1 text-xs font-medium text-forest hover:text-forest-light transition-colors"
+  >
+  Voir tout
+  <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
+  </a>
+  </div>
+  {recentTransactions.length === 0 ? (
+  <div className="text-center py-8">
+  <div className="w-12 h-12 bg-sand rounded-2xl flex items-center justify-center mx-auto mb-3">
+  <FontAwesomeIcon icon={faClock} className="w-5 h-5 text-muted" />
+  </div>
+  <p className="text-sm text-muted">Aucune opération pour le moment</p>
+  <button
+  onClick={() => setShowModal(true)}
+  className="text-forest text-sm font-medium mt-2 hover:text-forest-light underline underline-offset-2"
+  >
+  Ajouter une transaction
+  </button>
+  </div>
+  ) : (
+  <div className="space-y-1.5">
+  {recentTransactions.map((tx, i) => {
+  const isIncome = tx.type === "income";
+  return (
+  <div
+  key={tx.id}
+  className="group flex items-center justify-between p-3 rounded-xl hover:bg-sand transition-all duration-200 animate-slide-in"
+  style={{ animationDelay: `${i * 50}ms` }}
+  >
+  <div className="flex items-center gap-3 min-w-0">
+  <div
+  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+  isIncome ? "bg-forest/10" : "bg-ochre/10"
+  }`}
+  >
+  <FontAwesomeIcon
+  icon={isIncome ? faArrowTrendUp : faArrowTrendDown}
+  className={`w-4 h-4 ${isIncome ? "text-forest" : "text-ochre"}`}
+  />
+  </div>
+  <div className="min-w-0">
+  <p className="text-sm font-medium text-ink truncate">
+  {tx.description}
+  </p>
+  <p className="text-xs text-muted flex items-center gap-1.5 mt-0.5">
+  <span>{tx.category?.name || "Non catégorisé"}</span>
+  <span className="w-1 h-1 rounded-full bg-border" />
+  <span>{formatDate(tx.date)}</span>
+  {tx.scope === "activity" && (
   <>
-  <div className="bg-white rounded-xl p-4 border border-border space-y-2">
-  <h4 className="font-semibold text-ink text-xs uppercase tracking-wider"><FontAwesomeIcon icon={faBagShopping} className="w-3 h-3 mr-1" /> Activité</h4>
-  <p className="text-muted">
-  Votre activité a généré <strong className="text-forest-light">{formatCurrency(monthActivity!.income)} </strong>de ventes pour <strong className="text-ochre">{formatCurrency(monthActivity!.expense)} </strong>de dépenses professionnelles.
- Le bénéfice net de votre activité est de <strong className="text-forest">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
- {monthActivity!.income > 0 ? <span>, soit une marge bénéficiaire de <strong className="text-ochre">{activityRate.toFixed(0)}%</strong></span> : null}.
- Capital de départ : <strong className="text-ink">{formatCurrency(monthActivity!.initialBalance)}</strong>, solde actuel : <strong className="text-forest">{formatCurrency(monthActivity!.balance)}</strong>.
- </p>
- </div>
- </>
- )}
- {biggestExpense && (
- <div className="flex items-start gap-2 p-3 bg-sand rounded-xl">
- <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-ochre flex-shrink-0 mt-0.5" />
- <p className="text-sm text-muted">
- Votre plus grosse dépense toutes catégories confondues : <strong className="text-ink">{biggestExpense.name} ({formatCurrency(Math.abs(biggestExpense.amount))})</strong>
- </p>
- </div>
- )}
- </div>
- </>
- );
- })()}
- </div>
- ) : null}
+  <span className="w-1 h-1 rounded-full bg-border" />
+  <span className="text-ochre font-medium">Activité</span>
+  </>
+  )}
+  </p>
+  </div>
+  </div>
+  <div className={`text-sm font-bold tabular-nums shrink-0 ml-3 ${isIncome ? "text-forest" : "text-ochre"}`}>
+  <span className={isIncome ? "" : ""}>
+  {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}
+  </span>
+  </div>
+  </div>
+  );
+  })}
+  </div>
+  )}
+  </div>
+
+  {/* Rappel catégories / Liens rapides */}
+  {categories.length === 0 ? (
+  <div className="card p-5 animate-fade-in border-l-4 border-l-ochre">
+  <div className="flex items-start gap-3">
+  <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center shrink-0">
+  <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-ochre" />
+  </div>
+  <div>
+  <p className="text-sm font-semibold text-ink">
+  Configurez vos catégories
+  </p>
+  <p className="text-sm text-muted mt-1 leading-relaxed">
+  Avant d&apos;ajouter des transactions, créez des catégories de dépenses et revenus dans les paramètres.
+  </p>
+  <a
+  href="/dashboard/settings"
+  className="inline-flex items-center gap-1.5 text-sm font-medium text-ochre hover:text-ochre-light mt-3 transition-colors"
+  >
+  Aller aux paramètres
+  <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
+  </a>
+  </div>
+  </div>
+  </div>
+  ) : (
+  <div className="card p-5 animate-fade-in">
+  <h2 className="text-sm font-semibold text-ink mb-4">Liens rapides</h2>
+  <div className="space-y-2.5">
+  <a
+  href="/dashboard/transactions"
+  className="group flex items-center gap-4 p-3.5 rounded-xl border border-border hover:border-forest/20 hover:bg-forest/[0.02] transition-all"
+  >
+  <div className="w-10 h-10 rounded-xl bg-forest/10 flex items-center justify-center group-hover:bg-forest/20 transition-colors">
+  <FontAwesomeIcon icon={faArrowsUpDown} className="w-4 h-4 text-forest" />
+  </div>
+  <div className="flex-1">
+  <p className="text-sm font-medium text-ink group-hover:text-forest transition-colors">Voir tout l&apos;historique</p>
+  <p className="text-xs text-muted">Consultez et filtrez toutes vos opérations</p>
+  </div>
+  <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-muted group-hover:text-forest transition-colors" />
+  </a>
+  {commercialMode && (
+  <>
+  <a
+  href="/dashboard/products"
+  className="group flex items-center gap-4 p-3.5 rounded-xl border border-border hover:border-ochre/20 hover:bg-ochre/[0.02] transition-all"
+  >
+  <div className="w-10 h-10 rounded-xl bg-ochre/10 flex items-center justify-center group-hover:bg-ochre/20 transition-colors">
+  <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4 text-ochre" />
+  </div>
+  <div className="flex-1">
+  <p className="text-sm font-medium text-ink group-hover:text-ochre transition-colors">Gérer mes produits</p>
+  <p className="text-xs text-muted">Ajoutez ou modifiez votre catalogue</p>
+  </div>
+  <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-muted group-hover:text-ochre transition-colors" />
+  </a>
+  <a
+  href="/dashboard/sales"
+  className="group flex items-center gap-4 p-3.5 rounded-xl border border-border hover:border-ochre/20 hover:bg-ochre/[0.02] transition-all"
+  >
+  <div className="w-10 h-10 rounded-xl bg-ochre/10 flex items-center justify-center group-hover:bg-ochre/20 transition-colors">
+  <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-ochre" />
+  </div>
+  <div className="flex-1">
+  <p className="text-sm font-medium text-ink group-hover:text-ochre transition-colors">Enregistrer une vente</p>
+  <p className="text-xs text-muted">Suivez votre chiffre d&apos;affaires</p>
+  </div>
+  <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-muted group-hover:text-ochre transition-colors" />
+  </a>
+  </>
+  )}
+  </div>
+  </div>
+  )}
+  </div>
+
+  {/* Synthèse du mois */}
+  {(monthPersonal && (monthPersonal.income + monthPersonal.expense > 0)) ||
+  (commercialMode && monthActivity && (monthActivity.income + monthActivity.expense > 0)) ? (
+  <div className="card p-5 animate-fade-in">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-2 h-2 rounded-full bg-forest shrink-0" />
+      <h2 className="text-sm font-semibold text-ink">Synthèse du mois</h2>
+    </div>
+
+    {(() => {
+      const showPersonal = monthPersonal && monthPersonal.income + monthPersonal.expense > 0;
+      const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
+      const personalRate = monthPersonal && monthPersonal.income > 0 ? (monthPersonal.savings / monthPersonal.income) * 100 : 0;
+      const activityRate = monthActivity && monthActivity.income > 0 ? (monthActivity.savings / monthActivity.income) * 100 : 0;
+      const tIncome = (monthPersonal?.income || 0) + (monthActivity?.income || 0);
+      const tExpense = (monthPersonal?.expense || 0) + (monthActivity?.expense || 0);
+      const tSaved = Math.max(0, (monthPersonal?.savings || 0)) + Math.max(0, (monthActivity?.savings || 0));
+      const tBalance = (monthPersonal?.balance || 0) + (monthActivity?.balance || 0);
+      const sRate = tIncome > 0 ? (tSaved / tIncome) * 100 : 0;
+      const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
+      const bExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
+
+      return (
+      <>
+        {/* 4 KPI cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <div className="bg-forest/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider">Revenus</p>
+            <p className="text-base font-bold text-forest mt-0.5">{formatCurrency(tIncome)}</p>
+          </div>
+          <div className="bg-ochre/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider">Dépenses</p>
+            <p className="text-base font-bold text-ochre mt-0.5">{formatCurrency(tExpense)}</p>
+          </div>
+          <div className="bg-forest/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider">Épargne</p>
+            <p className="text-base font-bold text-forest mt-0.5">{formatCurrency(tSaved)}</p>
+          </div>
+          <div className="bg-ochre/[0.04] rounded-xl p-3.5 text-center">
+            <p className="text-[10px] text-muted uppercase tracking-wider">Taux</p>
+            <p className="text-base font-bold text-ink mt-0.5">{sRate.toFixed(0)}%</p>
+          </div>
+        </div>
+
+        {/* Tableau comparatif quand les deux scopes sont actifs */}
+        {commercialMode && showPersonal && showActivity && (
+        <div className="rounded-xl border border-border overflow-hidden mb-3">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-sand">
+                <th className="text-left px-4 py-2.5 font-semibold text-muted"></th>
+                <th className="text-right px-4 py-2.5 font-semibold text-forest">Perso</th>
+                <th className="text-right px-4 py-2.5 font-semibold text-ochre">Activité</th>
+                <th className="text-right px-4 py-2.5 font-semibold text-ink">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              <tr>
+                <td className="px-4 py-2 text-muted">Revenus</td>
+                <td className="text-right px-4 py-2 font-medium text-forest">{formatCurrency(monthPersonal?.income || 0)}</td>
+                <td className="text-right px-4 py-2 font-medium text-ochre">{formatCurrency(monthActivity?.income || 0)}</td>
+                <td className="text-right px-4 py-2 font-bold text-ink">{formatCurrency(tIncome)}</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-muted">Dépenses</td>
+                <td className="text-right px-4 py-2 font-medium text-ochre">{formatCurrency(monthPersonal?.expense || 0)}</td>
+                <td className="text-right px-4 py-2 font-medium text-red-500">{formatCurrency(monthActivity?.expense || 0)}</td>
+                <td className="text-right px-4 py-2 font-bold text-ink">{formatCurrency(tExpense)}</td>
+              </tr>
+              <tr className="bg-ochre-light/30">
+                <td className="px-4 py-2 font-medium text-ink">Résultat</td>
+                <td className="text-right px-4 py-2 font-bold text-forest">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
+                <td className="text-right px-4 py-2 font-bold text-ochre">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
+                <td className="text-right px-4 py-2 font-bold text-forest">{formatCurrency(tSaved)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+        )}
+
+        {/* Phrase bilan concise */}
+        <div className="flex items-start gap-2.5 p-3.5 bg-sand rounded-xl">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+            sRate >= 20 ? "bg-forest/10" : sRate >= 5 ? "bg-ochre/10" : "bg-red-50"
+          }`}>
+            <FontAwesomeIcon icon={faChartBar} className={`w-4 h-4 ${
+              sRate >= 20 ? "text-forest" : sRate >= 5 ? "text-ochre" : "text-red-500"
+            }`} />
+          </div>
+          <p className="text-sm text-muted leading-relaxed">
+            {showPersonal && showActivity
+              ? `Bilan mensuel : **${formatCurrency(tIncome)}** reçus, **${formatCurrency(tExpense)}** dépensés, **${formatCurrency(tSaved)}** épargnés (${sRate.toFixed(0)}%).`
+              : showPersonal
+                ? `Bilan personnel : **${formatCurrency(tIncome)}** reçus, **${formatCurrency(tExpense)}** dépensés, **${formatCurrency(tSaved)}** épargnés (${sRate.toFixed(0)}%).`
+                : `Bilan activité : **${formatCurrency(tIncome)}** de CA, **${formatCurrency(tExpense)}** de charges, **${formatCurrency(tSaved)}** de bénéfice.`
+            }
+            {bExpense && ` Plus grosse dépense : **${bExpense.name}** (${formatCurrency(Math.abs(bExpense.amount))}).`}
+            {sRate < 5 && showPersonal ? ` Votre taux d'épargne est faible (${sRate.toFixed(0)}%), surveillez vos dépenses.` : sRate >= 20 ? ` Excellent taux d'épargne (${sRate.toFixed(0)}%), continuez ainsi !` : ""}
+          </p>
+        </div>
+      </>
+      );
+    })()}
+  </div>
+  ) : null}
 
  {/* Nouvelle transaction — Modal */}
  {showModal && (
