@@ -1,109 +1,59 @@
 @import "tailwindcss";
 
-:root {
-  --color-primary: #1E4D35;
-  --color-primary-light: #2A6347;
-  --color-accent: #C4862A;
-  --color-accent-light: #F5E6CC;
-  --color-bg: #FAF7F2;
-  --color-surface: #ffffff;
-  --color-text: #1A1A18;
-  --color-text-muted: #6B6560;
-  --color-border: #E8E2D9;
-  --color-danger: #ef4444;
-  --color-success: #16a34a;
-}
-
 @theme inline {
-  --color-primary: #1E4D35;
-  --color-primary-light: #2A6347;
-  --color-accent: #C4862A;
-  --color-accent-light: #F5E6CC;
-  --color-bg: #FAF7F2;
-  --color-surface: #ffffff;
-  --color-text: #1A1A18;
-  --color-text-muted: #6B6560;
-  --color-border: #E8E2D9;
-  --color-danger: #ef4444;
-  --color-success: #16a34a;
+  --color-green-deep: #1C3A2F;
+  --color-green: #1C3A2F;
+  --color-gold: #C9A84C;
+  --color-gold-pale: #F7F0D6;
+  --color-bg: #F2EDE4;
+  --color-bg-card: #FFFFFF;
+  --color-red: #B94A3E;
+  --color-red-pale: #FCECEA;
+  --color-red-soft: #E07A72;
+  --color-teal: #3A8C68;
+  --color-text-1: #1A1A1A;
+  --color-text-3: #9BA89D;
+  --color-border: #E0D8CC;
+  --color-white-6: rgba(255,255,255,0.06);
 
-  --color-forest: #1E4D35;
-  --color-forest-light: #2A6347;
-  --color-ochre: #C4862A;
-  --color-ochre-light: #F5E6CC;
-  --color-sand: #FAF7F2;
-  --color-ink: #1A1A18;
-  --color-muted: #6B6560;
-  --color-border: #E8E2D9;
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-display: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* backward-compat aliases */
+  --color-forest: #1C3A2F;
+  --color-forest-light: #1C3A2F;
+  --color-ochre: #C9A84C;
+  --color-ochre-light: #F7F0D6;
+  --color-sand: #F2EDE4;
+  --color-ink: #1A1A1A;
+  --color-muted: #9BA89D;
+  --color-primary: #1C3A2F;
+  --color-primary-light: #1C3A2F;
+  --color-accent: #C9A84C;
+  --color-accent-light: #F7F0D6;
+  --color-surface: #FFFFFF;
+  --color-text: #1A1A1A;
+  --color-text-muted: #9BA89D;
+  --color-danger: #B94A3E;
+  --color-success: #3A8C68;
 }
 
 body {
   background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  color: var(--color-text-1);
+  font-family: var(--font-sans);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  font-family: var(--font-sans);
 }
 
 .card {
-  background: var(--color-surface);
-  border-radius: 16px;
+  background: var(--color-bg-card);
+  border-radius: 18px;
   border: 1px solid var(--color-border);
-  transition: all 0.2s ease;
-}
-
-.card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.btn-primary {
-  background: var(--color-primary);
-  color: white;
-  padding: 0.625rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background: var(--color-primary-light);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(30, 77, 53, 0.3);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  padding: 0.625rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 500;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.btn-secondary:hover {
-  background: rgba(30, 77, 53, 0.05);
-}
-
-.input-field {
-  width: 100%;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-surface);
-  transition: all 0.2s;
-  outline: none;
-  font-size: 0.95rem;
-}
-
-.input-field:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(30, 77, 53, 0.1);
 }
 
 .stat-value {
@@ -114,7 +64,11 @@ body {
 
 .stat-label {
   font-size: 0.875rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-3);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes fadeIn {

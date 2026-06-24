@@ -1,10 +1,10 @@
 export const CATEGORY_COLORS = [
-  '#4A90D9',
-  '#9B59B6',
-  '#E74C6F',
-  '#1ABC9C',
-  '#E67E22',
-  '#3498DB',
-  '#8E44AD',
-  '#16A085',
+  '#C9A84C', // gold
+  '#3A8C68', // teal
+  '#B94A3E', // red
+  '#7A9E7E', // sage
+  '#D4A96A', // warm gold
+  '#8BA89D', // muted teal
+  '#C4A088', // clay
+  '#6B8F7B', // forest muted
 ];
