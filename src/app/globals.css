@@ -127,6 +127,61 @@ select.field-input {
   margin-bottom: 6px;
 }
 
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  background: #1C3A2F;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.btn-primary:hover {
+  background: #1C3A2F;
+  opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  background: transparent;
+  color: #1C3A2F;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 15px;
+  border: 1.5px solid #1C3A2F;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 150ms ease, opacity 150ms ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(28,58,47,0.05);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;

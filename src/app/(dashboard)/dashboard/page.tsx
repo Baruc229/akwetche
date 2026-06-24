@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -213,7 +213,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="hidden sm:inline-flex items-center gap-2 bg-[#1C3A2F] text-white px-4 py-2.5 rounded-xl text-sm font-medium font-[family-name:var(--font-inter)] hover:bg-[#1C3A2F]/90 transition-colors self-start sm:self-auto"
+          className="btn-primary hidden sm:flex self-start sm:self-auto"
         >
           <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
           Nouvelle transaction
@@ -331,7 +331,6 @@ export default function DashboardPage() {
             const tIncome = (monthPersonal?.income || 0) + (monthActivity?.income || 0);
             const tExpense = (monthPersonal?.expense || 0) + (monthActivity?.expense || 0);
             const tSaved = Math.max(0, (monthPersonal?.savings || 0)) + Math.max(0, (monthActivity?.savings || 0));
-            const tBalance = (monthPersonal?.balance || 0) + (monthActivity?.balance || 0);
             const sRate = tIncome > 0 ? (tSaved / tIncome) * 100 : 0;
             const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
             const bExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
@@ -365,61 +364,117 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Tableau comparatif Perso / Activité / Total */}
+                {/* Tableau comparatif Perso / Activité / Total avec scroll horizontal */}
                 {showPersonal && showActivity && (
-                  <div className="rounded-xl border border-[#E0D8CC] overflow-hidden mb-4">
-                    <table className="w-full text-sm">
+                  <div className="overflow-x-auto rounded-xl border border-[#E0D8CC] mb-4">
+                    <table className="w-full text-sm min-w-[360px]">
                       <thead>
                         <tr className="bg-[#F2EDE4]">
-                          <th className="text-left px-4 py-2.5 font-semibold text-[#9BA89D] font-[family-name:var(--font-inter)]"></th>
-                          <th className="text-right px-4 py-2.5 font-semibold text-[#1C3A2F] font-[family-name:var(--font-inter)]">Perso</th>
-                          <th className="text-right px-4 py-2.5 font-semibold text-[#C9A84C] font-[family-name:var(--font-inter)]">Activité</th>
-                          <th className="text-right px-4 py-2.5 font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)]">Total</th>
+                          <th className="text-left px-4 py-2.5 font-semibold text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap"></th>
+                          <th className="text-right px-4 py-2.5 font-semibold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">Perso</th>
+                          <th className="text-right px-4 py-2.5 font-semibold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">Activité</th>
+                          <th className="text-right px-4 py-2.5 font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Total</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E0D8CC]">
                         <tr>
-                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)]">Revenus</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#1C3A2F] font-[family-name:var(--font-inter)]">{formatCurrency(monthPersonal?.income || 0)}</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#C9A84C] font-[family-name:var(--font-inter)]">{formatCurrency(monthActivity?.income || 0)}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)]">{formatCurrency(tIncome)}</td>
+                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Revenus</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.income || 0)}</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.income || 0)}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tIncome)}</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)]">Dépenses</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)]">{formatCurrency(monthPersonal?.expense || 0)}</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)]">{formatCurrency(monthActivity?.expense || 0)}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)]">{formatCurrency(tExpense)}</td>
+                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Dépenses</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.expense || 0)}</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.expense || 0)}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tExpense)}</td>
                         </tr>
-                        <tr className="bg-[#F7F0D6]/30">
-                          <td className="text-left px-4 py-2 font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)]">Résultat</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)]">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#C9A84C] font-[family-name:var(--font-inter)]">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)]">{formatCurrency(tSaved)}</td>
+                        <tr className="bg-[#F7F0D6]">
+                          <td className="text-left px-4 py-2 font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Résultat</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tSaved)}</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
                 )}
 
+                {/* Blocs descriptifs Premium */}
+                {(limits?.isPremium || user?.role !== "user") && (showPersonal || showActivity) && (
+                  <>
+                    {showPersonal && (
+                      <div className="bg-white border border-[#E0D8CC] rounded-xl p-4 mb-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-7 h-7 rounded-lg bg-[#1C3A2F]/10 flex items-center justify-center shrink-0">
+                            <FontAwesomeIcon icon={faUser} className="w-3.5 h-3.5 text-[#1C3A2F]" />
+                          </div>
+                          <span className="text-xs font-semibold text-[#1C3A2F] uppercase tracking-wider font-[family-name:var(--font-inter)]">Personnel</span>
+                        </div>
+                        <p className="text-sm text-[#9BA89D] leading-relaxed font-[family-name:var(--font-inter)]">
+                          Sur le plan personnel, vous avez reçu <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.income)}</strong> en revenus et dépensé <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
+                          Capital initial : <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.initialBalance)}</strong>, solde actuel : <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.balance)}</strong>.
+                          Taux d&apos;épargne : <strong className="text-[#1A1A1A]">{personalRate.toFixed(0)}%</strong>.
+                        </p>
+                        {monthPersonal!.topCategories && monthPersonal!.topCategories.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                            <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Top catégories :</span>
+                            {monthPersonal!.topCategories.slice(0, 3).map((c: any) => (
+                              <span key={c.name} className="inline-flex items-center gap-1 bg-[#F2EDE4] rounded-lg px-2.5 py-1 text-xs text-[#1A1A1A] font-medium font-[family-name:var(--font-inter)]">
+                                {c.name} <span className="text-[#9BA89D] font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {showActivity && (
+                      <div className="bg-white border border-[#E0D8CC] rounded-xl p-4 mb-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-7 h-7 rounded-lg bg-[#C9A84C]/15 flex items-center justify-center shrink-0">
+                            <FontAwesomeIcon icon={faBriefcase} className="w-3.5 h-3.5 text-[#C9A84C]" />
+                          </div>
+                          <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider font-[family-name:var(--font-inter)]">Activité</span>
+                        </div>
+                        <p className="text-sm text-[#9BA89D] leading-relaxed font-[family-name:var(--font-inter)]">
+                          Côté activité, vous avez réalisé <strong className="text-[#1A1A1A]">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-[#1A1A1A]">{formatCurrency(monthActivity!.expense)}</strong> de charges.
+                          Bénéfice : <strong className="text-[#1A1A1A]">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
+                          {monthActivity!.income > 0 && <> (marge de <strong className="text-[#1A1A1A]">{((Math.max(0, monthActivity!.savings) / monthActivity!.income) * 100).toFixed(0)}%</strong>)</>}.
+                        </p>
+                        {monthActivity!.topCategories && monthActivity!.topCategories.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                            <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Top catégories :</span>
+                            {monthActivity!.topCategories.slice(0, 3).map((c: any) => (
+                              <span key={c.name} className="inline-flex items-center gap-1 bg-[#F2EDE4] rounded-lg px-2.5 py-1 text-xs text-[#1A1A1A] font-medium font-[family-name:var(--font-inter)]">
+                                {c.name} <span className="text-[#9BA89D] font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
                 {/* Bilan mensuel */}
                 <div className="p-4 bg-[#F2EDE4] rounded-xl">
-                  <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">
-                    <span className="font-semibold text-[#1A1A1A]">Bilan mensuel : </span>
+                  <p className="text-sm text-[#1A1A1A] font-[family-name:var(--font-inter)] leading-relaxed">
+                    <span className="font-semibold">Bilan mensuel : </span>
                     <span className="text-[#3A8C68] font-medium">+{formatCurrency(tIncome)}</span>
-                    <span className="text-[#9BA89D]/50"> reçus · </span>
+                    <span className="text-[#9BA89D]"> reçus · </span>
                     <span className="text-[#B94A3E] font-medium">-{formatCurrency(tExpense)}</span>
-                    <span className="text-[#9BA89D]/50"> dépensés · </span>
+                    <span className="text-[#9BA89D]"> dépensés · </span>
                     <span className="text-[#1C3A2F] font-medium">={formatCurrency(tSaved)}</span>
-                    <span className="text-[#9BA89D]/50"> épargnés · </span>
-                    <span className="text-[#1A1A1A] font-semibold">{sRate.toFixed(0)}%</span>
+                    <span className="text-[#9BA89D]"> épargnés · </span>
+                    <span className="font-semibold">{sRate.toFixed(0)}%</span>
                     {bExpense && (
-                      <span className="text-[#9BA89D]/50"> · Grosse dépense : <strong className="text-[#1A1A1A]">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))})</span>
+                      <span className="text-[#9BA89D]"> · Grosse dépense : <strong className="text-[#1A1A1A]">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))})</span>
                     )}
                     {sRate < 5 && showPersonal && (
                       <span className="text-[#C9A84C]"> · Taux faible ({sRate.toFixed(0)}%), surveillez vos dépenses</span>
                     )}
                     {sRate >= 20 && (
-                      <span className="text-[#3A8C68]"> · Excellent taux ({sRate.toFixed(0)}%)</span>
+                      <span className="text-[#3A8C68] font-medium"> · Excellent taux ({sRate.toFixed(0)}%)</span>
                     )}
                   </p>
                 </div>
@@ -519,7 +574,7 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Catégorie</label>
+                <label className="field-label">Catégorie</label>
                 <CustomSelect
                   options={(() => {
                     const isPrem = limits?.isPremium || false;
@@ -573,7 +628,7 @@ export default function DashboardPage() {
                   (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense)
                 );
                 return (
-                  <button type="submit" disabled={!!atLimit} className="w-full py-3 bg-[#1C3A2F] text-white rounded-xl font-medium text-sm font-[family-name:var(--font-inter)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1C3A2F]/90 transition-colors">
+                  <button type="submit" disabled={!!atLimit} className="btn-primary w-full">
                     Ajouter
                   </button>
                 );
