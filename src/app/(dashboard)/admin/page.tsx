@@ -684,19 +684,19 @@ export default function AdminPage() {
  </div>
  <form onSubmit={handleCreateAdmin} className="space-y-4">
  <div>
- <label className="block text-sm font-medium text-ink mb-1">Nom</label>
+  <label className="field-label">Nom</label>
  <input type="text" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="input-field" required />
  </div>
  <div>
- <label className="block text-sm font-medium text-ink mb-1">Email</label>
+  <label className="field-label">Email</label>
  <input type="email" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} className="input-field" required />
  </div>
  <div>
- <label className="block text-sm font-medium text-ink mb-1">Mot de passe</label>
+  <label className="field-label">Mot de passe</label>
  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" required minLength={6} />
  </div>
   <div>
-  <label className="block text-sm font-medium text-ink mb-1">Rôle</label>
+  <label className="field-label">Rôle</label>
   <CustomSelect
   options={[{ value: "admin", label: "Admin" }, { value: "super_admin", label: "Super admin" }]}
   value={newAdmin.role}

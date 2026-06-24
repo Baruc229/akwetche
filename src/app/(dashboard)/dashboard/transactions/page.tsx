@@ -559,23 +559,23 @@ export default function TransactionsPage() {
                   <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-forest-light text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Revenu</button>
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Montant</label>
+                  <label className="field-label">Montant</label>
                   <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field" placeholder="Ex: 5000" required min="1" />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Description</label>
+                  <label className="field-label">Description</label>
                   <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="Ex: Achat alimentation" required />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Catégorie</label>
+                  <label className="field-label">Catégorie</label>
                   <CustomSelect options={categoryOptions} value={formData.categoryId} onChange={(v) => setFormData({ ...formData, categoryId: v })} placeholder="Sélectionner..." />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Date</label>
+                  <label className="field-label">Date</label>
                   <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                  <label className="field-label">Note (optionnelle)</label>
                   <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
                 </div>
                 {!editTx && limits && !limits.isPremium && user?.role === "user" && (

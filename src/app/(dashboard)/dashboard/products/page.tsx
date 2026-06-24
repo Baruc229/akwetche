@@ -330,27 +330,27 @@ export default function ProductsPage() {
             <div className="p-5">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-muted mb-1">Nom du produit *</label>
-                  <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-field" required />
-                </div>
-                <div>
-                  <label className="block text-sm text-muted mb-1">Description (optionnelle)</label>
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-field resize-none" rows={2} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm text-muted mb-1">Prix d'achat</label>
-                    <input type="number" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="input-field" min="0" step="0.01" />
+                    <label className="field-label">Nom du produit *</label>
+                    <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-field" required />
                   </div>
                   <div>
-                    <label className="block text-sm text-muted mb-1">Prix de vente</label>
-                    <input type="number" value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: e.target.value })} className="input-field" min="0" step="0.01" />
+                    <label className="field-label">Description (optionnelle)</label>
+                    <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-field resize-none" rows={2} />
                   </div>
-                </div>
-                {!editProduct && (
-                  <div>
-                    <label className="block text-sm text-muted mb-1">Stock initial</label>
-                    <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="input-field" min="0" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="field-label">Prix d'achat</label>
+                      <input type="number" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="input-field" min="0" step="0.01" />
+                    </div>
+                    <div>
+                      <label className="field-label">Prix de vente</label>
+                      <input type="number" value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: e.target.value })} className="input-field" min="0" step="0.01" />
+                    </div>
+                  </div>
+                  {!editProduct && (
+                    <div>
+                      <label className="field-label">Stock initial</label>
+                      <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="input-field" min="0" />
                   </div>
                 )}
                 {salePriceNum > 0 && (
@@ -384,26 +384,26 @@ export default function ProductsPage() {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm text-muted mb-1">Nom du produit *</label>
+                <label className="field-label">Nom du produit *</label>
                 <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-field" required />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Description (optionnelle)</label>
+                <label className="field-label">Description (optionnelle)</label>
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-field resize-none" rows={2} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-muted mb-1">Prix d'achat</label>
+                  <label className="field-label">Prix d'achat</label>
                   <input type="number" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="input-field" min="0" step="0.01" />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Prix de vente</label>
+                  <label className="field-label">Prix de vente</label>
                   <input type="number" value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: e.target.value })} className="input-field" min="0" step="0.01" />
                 </div>
               </div>
               {!editProduct && (
                 <div>
-                  <label className="block text-sm text-muted mb-1">Stock initial</label>
+                  <label className="field-label">Stock initial</label>
                   <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="input-field" min="0" />
                 </div>
               )}

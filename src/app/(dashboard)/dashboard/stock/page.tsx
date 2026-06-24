@@ -370,15 +370,15 @@ export default function StockPage() {
             <div className="p-5">
               <form onSubmit={handleReplenish} className="space-y-4">
                 <div>
-                  <label className="block text-sm text-muted mb-1">Produit</label>
+                  <label className="field-label">Produit</label>
                   <p className="text-sm font-medium text-ink bg-sand rounded-xl px-3 py-2.5">{replenishProduct.name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Quantité</label>
+                  <label className="field-label">Quantité</label>
                   <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
                 </div>
                 <div>
-                  <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                  <label className="field-label">Note (optionnelle)</label>
                   <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="Ex: Livraison fournisseur" />
                 </div>
                 {replenishError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{replenishError}</p>}

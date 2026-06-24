@@ -320,6 +320,115 @@ export default function DashboardPage() {
         onAdd={() => setShowModal(true)}
       />
 
+      {/* Synthèse globale du mois */}
+      {(monthPersonal && (monthPersonal.income + monthPersonal.expense > 0)) ||
+      (commercialMode && monthActivity && (monthActivity.income + monthActivity.expense > 0)) ? (
+        <div className="bg-white rounded-[18px] p-5">
+          {(() => {
+            const showPersonal = monthPersonal && monthPersonal.income + monthPersonal.expense > 0;
+            const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
+            const personalRate = monthPersonal && monthPersonal.income > 0 ? (monthPersonal.savings / monthPersonal.income) * 100 : 0;
+            const tIncome = (monthPersonal?.income || 0) + (monthActivity?.income || 0);
+            const tExpense = (monthPersonal?.expense || 0) + (monthActivity?.expense || 0);
+            const tSaved = Math.max(0, (monthPersonal?.savings || 0)) + Math.max(0, (monthActivity?.savings || 0));
+            const tBalance = (monthPersonal?.balance || 0) + (monthActivity?.balance || 0);
+            const sRate = tIncome > 0 ? (tSaved / tIncome) * 100 : 0;
+            const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
+            const bExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
+
+            return (
+              <>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-[#C9A84C] shrink-0" />
+                  <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+                    Synthèse du mois
+                  </h2>
+                </div>
+
+                {/* 4 KPI cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
+                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Revenus</p>
+                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5 tabular-nums">{formatCurrency(tIncome)}</p>
+                  </div>
+                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
+                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Dépenses</p>
+                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5 tabular-nums">{formatCurrency(tExpense)}</p>
+                  </div>
+                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
+                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Épargne</p>
+                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#3A8C68] mt-0.5 tabular-nums">{formatCurrency(tSaved)}</p>
+                  </div>
+                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
+                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Taux</p>
+                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5">{sRate.toFixed(0)}%</p>
+                  </div>
+                </div>
+
+                {/* Tableau comparatif Perso / Activité / Total */}
+                {showPersonal && showActivity && (
+                  <div className="rounded-xl border border-[#E0D8CC] overflow-hidden mb-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#F2EDE4]">
+                          <th className="text-left px-4 py-2.5 font-semibold text-[#9BA89D] font-[family-name:var(--font-inter)]"></th>
+                          <th className="text-right px-4 py-2.5 font-semibold text-[#1C3A2F] font-[family-name:var(--font-inter)]">Perso</th>
+                          <th className="text-right px-4 py-2.5 font-semibold text-[#C9A84C] font-[family-name:var(--font-inter)]">Activité</th>
+                          <th className="text-right px-4 py-2.5 font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)]">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E0D8CC]">
+                        <tr>
+                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)]">Revenus</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#1C3A2F] font-[family-name:var(--font-inter)]">{formatCurrency(monthPersonal?.income || 0)}</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#C9A84C] font-[family-name:var(--font-inter)]">{formatCurrency(monthActivity?.income || 0)}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)]">{formatCurrency(tIncome)}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)]">Dépenses</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)]">{formatCurrency(monthPersonal?.expense || 0)}</td>
+                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)]">{formatCurrency(monthActivity?.expense || 0)}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)]">{formatCurrency(tExpense)}</td>
+                        </tr>
+                        <tr className="bg-[#F7F0D6]/30">
+                          <td className="text-left px-4 py-2 font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)]">Résultat</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)]">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#C9A84C] font-[family-name:var(--font-inter)]">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
+                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)]">{formatCurrency(tSaved)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Bilan mensuel */}
+                <div className="p-4 bg-[#F2EDE4] rounded-xl">
+                  <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">
+                    <span className="font-semibold text-[#1A1A1A]">Bilan mensuel : </span>
+                    <span className="text-[#3A8C68] font-medium">+{formatCurrency(tIncome)}</span>
+                    <span className="text-[#9BA89D]/50"> reçus · </span>
+                    <span className="text-[#B94A3E] font-medium">-{formatCurrency(tExpense)}</span>
+                    <span className="text-[#9BA89D]/50"> dépensés · </span>
+                    <span className="text-[#1C3A2F] font-medium">={formatCurrency(tSaved)}</span>
+                    <span className="text-[#9BA89D]/50"> épargnés · </span>
+                    <span className="text-[#1A1A1A] font-semibold">{sRate.toFixed(0)}%</span>
+                    {bExpense && (
+                      <span className="text-[#9BA89D]/50"> · Grosse dépense : <strong className="text-[#1A1A1A]">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))})</span>
+                    )}
+                    {sRate < 5 && showPersonal && (
+                      <span className="text-[#C9A84C]"> · Taux faible ({sRate.toFixed(0)}%), surveillez vos dépenses</span>
+                    )}
+                    {sRate >= 20 && (
+                      <span className="text-[#3A8C68]"> · Excellent taux ({sRate.toFixed(0)}%)</span>
+                    )}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      ) : null}
+
       {/* Modal Nouvelle transaction */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
@@ -385,12 +494,12 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Montant</label>
+                <label className="field-label">Montant</label>
                 <input
                   type="number"
                   value={newTx.amount}
                   onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                  className="w-full px-4 py-3 border border-[#E0D8CC] rounded-xl bg-white outline-none text-sm focus:border-[#1C3A2F] transition-colors font-[family-name:var(--font-inter)]"
+                  className="field-input"
                   placeholder="Ex: 5000"
                   required
                   min="1"
@@ -398,12 +507,12 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Description</label>
+                <label className="field-label">Description</label>
                 <input
                   type="text"
                   value={newTx.description}
                   onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
-                  className="w-full px-4 py-3 border border-[#E0D8CC] rounded-xl bg-white outline-none text-sm focus:border-[#1C3A2F] transition-colors font-[family-name:var(--font-inter)]"
+                  className="field-input"
                   placeholder="Ex: Achat alimentation"
                   required
                 />

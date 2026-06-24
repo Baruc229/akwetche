@@ -563,7 +563,7 @@ export default function SettingsPage() {
  </div>
  <form onSubmit={handleSaveProfile} className="space-y-4">
   <div>
-  <label className="block text-sm text-muted mb-1">Nom</label>
+  <label className="field-label">Nom</label>
   <input
     type="text"
     value={name}
@@ -577,19 +577,19 @@ export default function SettingsPage() {
   {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
   </div>
  <div>
- <label className="block text-sm text-muted mb-1">Argent de départ</label>
+  <label className="field-label">Argent de départ</label>
   <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseBalanceRef.current = bc !== dc ? convertAmount(v, dc, bc) : v; }} className="input-field" min="0" step="any" />
  <p className="text-xs text-muted mt-1">Ce que vous aviez avant de commencer.</p>
  </div>
  {isPremium && (
  <div>
- <label className="block text-sm text-muted mb-1">Argent de départ (activité)</label>
+  <label className="field-label">Argent de départ (activité)</label>
   <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseActivityRef.current = bc !== dc ? convertAmount(v, dc, bc) : v; }} className="input-field" min="0" step="any" />
  <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
  </div>
  )}
   <div>
-    <label className="block text-sm text-muted mb-1">Pays</label>
+    <label className="field-label">Pays</label>
     {user?.countryCode && !isAdmin ? (
     <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
       <FlagImg code={user.countryCode} />
@@ -610,7 +610,7 @@ export default function SettingsPage() {
     <p className="text-xs text-muted mt-1">Devise du compte : <strong>{getCountryByCode(countryCode)?.currency || currency}</strong></p>
   </div>
   <div>
-    <label className="block text-sm text-muted mb-1">Téléphone</label>
+    <label className="field-label">Téléphone</label>
     <input
       type="tel"
       value={phone}
@@ -638,7 +638,7 @@ export default function SettingsPage() {
     {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
   </div>
   <div>
-    <label className="block text-sm text-muted mb-1">Devise d'affichage</label>
+    <label className="field-label">Devise d'affichage</label>
     <CustomSelect
       options={[
         { value: "XOF", label: "FCFA (Franc CFA)" },
@@ -664,16 +664,16 @@ export default function SettingsPage() {
  </div>
  <form onSubmit={handleChangePassword} className="space-y-4">
  <div>
- <label className="block text-sm text-muted mb-1">Mot de passe actuel</label>
+  <label className="field-label">Mot de passe actuel</label>
  <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field" required />
  </div>
  <div>
- <label className="block text-sm text-muted mb-1">Nouveau mot de passe</label>
+  <label className="field-label">Nouveau mot de passe</label>
  <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field" minLength={8} required />
  <p className="text-xs text-muted mt-1">Minimum 8 caractères.</p>
  </div>
  <div>
- <label className="block text-sm text-muted mb-1">Confirmer le nouveau mot de passe</label>
+  <label className="field-label">Confirmer le nouveau mot de passe</label>
  <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field" minLength={8} required />
  </div>
  {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
