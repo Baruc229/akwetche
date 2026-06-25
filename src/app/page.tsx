@@ -88,7 +88,7 @@ export default function LandingPage() {
  {[
   { icon: faWallet, label: "Solde actuel", value: "150 000 FCFA", bg: "bg-ochre-light", text: "text-forest" },
   { icon: faArrowTrendUp, label: "Revenus du mois", value: "45 000 FCFA", bg: "bg-ochre-light", text: "text-forest-light" },
-  { icon: faBagShopping, label: "Dépenses du mois", value: "20 050 FCFA", bg: "bg-ochre-light", text: "text-ochre" },
+  { icon: faBagShopping, label: "Dépenses du mois", value: "20 050 FCFA", bg: "bg-red-pale", text: "text-red" },
   { icon: faChartBar, label: "Épargne du mois", value: "24 950 FCFA", bg: "bg-ochre-light", text: "text-forest" },
  ].map((stat) => (
  <div key={stat.label} className="card p-5">

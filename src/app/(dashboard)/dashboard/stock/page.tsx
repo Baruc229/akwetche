@@ -339,15 +339,15 @@ export default function StockPage() {
             {movements.slice(0, 50).map((m, i) => (
               <div key={m.id} className="flex items-center justify-between p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-ochre-light">
-                    <FontAwesomeIcon icon={faArrowsUpDown} className={`w-5 h-5 ${m.type === "in" ? "text-forest" : "text-ochre"}`} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-pale">
+                    <FontAwesomeIcon icon={faArrowsUpDown} className={`w-5 h-5 ${m.type === "in" ? "text-forest" : "text-red"}`} />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-ink">{m.product?.name || "Produit supprimé"}</p>
                     <p className="text-xs text-muted">{m.description || (m.type === "in" ? "Entrée" : "Sortie")} · {formatDate(m.date)}</p>
                   </div>
                 </div>
-                <span className={`text-sm font-semibold ${m.type === "in" ? "text-forest" : "text-ochre"}`}>
+                <span className={`text-sm font-semibold ${m.type === "in" ? "text-forest" : "text-red"}`}>
                   {m.type === "in" ? "+" : "-"}{m.quantity}
                 </span>
               </div>

@@ -310,12 +310,12 @@ export default function TransactionsPage() {
         </div>
         <div className="card p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center">
-              <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-ochre" />
+            <div className="w-10 h-10 rounded-xl bg-red-pale flex items-center justify-center">
+              <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-red" />
             </div>
             <div>
               <p className="text-xs text-muted">Dépenses mensuelles</p>
-              <p className="text-lg font-bold text-ochre">{formatCurrency(totalExpense)}</p>
+              <p className="text-lg font-bold text-red">{formatCurrency(totalExpense)}</p>
             </div>
           </div>
         </div>
@@ -453,7 +453,7 @@ export default function TransactionsPage() {
               <div key={group.date}>
                 <div className="flex items-center justify-between px-4 py-2.5 bg-sand/50">
                   <span className="text-xs font-semibold text-ink">{group.label}</span>
-                  <span className={`text-xs font-medium ${group.total >= 0 ? 'text-forest-light' : 'text-ochre'}`}>
+                  <span className={`text-xs font-medium ${group.total >= 0 ? 'text-forest-light' : 'text-red'}`}>
                     {group.total >= 0 ? '+' : ''}{formatCurrency(group.total)}
                   </span>
                 </div>
@@ -474,7 +474,7 @@ export default function TransactionsPage() {
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-2">
-                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-ochre"}`}>
+                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
                             {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                           </span>
                           <span className="text-xs text-muted">{formatDate(tx.date)}</span>
@@ -502,7 +502,7 @@ export default function TransactionsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-ochre"}`}>
+                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
                             {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                           </span>
                           <button onClick={() => openEditModal(tx)} className="text-muted hover:text-forest transition-colors p-1" title="Modifier">
@@ -555,7 +555,7 @@ export default function TransactionsPage() {
                 </div>
                 )}
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
+                  <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-red text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
                   <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-forest-light text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Revenu</button>
                 </div>
                 <div>
@@ -579,15 +579,15 @@ export default function TransactionsPage() {
                   <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
                 </div>
                 {!editTx && limits && !limits.isPremium && user?.role === "user" && (
-                  <div className="p-3 bg-ochre-light rounded-xl">
+                  <div className="p-3 bg-red-pale rounded-xl">
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-medium text-ochre">{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
-                      <span className="font-semibold text-ochre">{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
+                      <span className="font-medium text-red">{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
+                      <span className="font-semibold text-red">{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
                     </div>
                     {(formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
                       <p className="text-xs text-red-600">Limite mensuelle atteinte. Passez à Premium.</p>
                     ) : (
-                      <p className="text-xs text-ochre">{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
+                      <p className="text-xs text-red">{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
                     )}
                   </div>
                 )}
@@ -619,7 +619,7 @@ export default function TransactionsPage() {
               </div>
               )}
               <div className="flex gap-2">
-                <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
+                <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-red text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
                 <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-forest-light text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Revenu</button>
               </div>
               <div>
@@ -643,15 +643,15 @@ export default function TransactionsPage() {
                 <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
               </div>
               {!editTx && limits && !limits.isPremium && user?.role === "user" && (
-                <div className="p-3 bg-ochre-light rounded-xl">
+                <div className="p-3 bg-red-pale rounded-xl">
                   <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-medium text-ochre">{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
-                    <span className="font-semibold text-ochre">{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
+                    <span className="font-medium text-red">{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
+                    <span className="font-semibold text-red">{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
                   </div>
                   {(formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
                     <p className="text-xs text-red-600">Limite mensuelle atteinte. Passez à Premium.</p>
                   ) : (
-                    <p className="text-xs text-ochre">{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
+                    <p className="text-xs text-red">{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
                   )}
                 </div>
               )}

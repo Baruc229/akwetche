@@ -335,7 +335,7 @@ export default function HistoryPage() {
         </div>
         <div className="card p-4">
           <p className="text-xs text-muted mb-0.5">Dépenses</p>
-          <p className="text-lg font-bold text-ochre">{formatCurrency(totalExpense)}</p>
+          <p className="text-lg font-bold text-red">{formatCurrency(totalExpense)}</p>
         </div>
         <div className="card p-4">
           <p className="text-xs text-muted mb-0.5">Transactions</p>
@@ -463,7 +463,7 @@ export default function HistoryPage() {
                 <div key={group.date}>
                   <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-sand/80 backdrop-blur-sm">
                     <span className="text-xs font-semibold text-ink">{group.label}</span>
-                    <span className={`text-xs font-medium ${groupTotal >= 0 ? "text-forest-light" : "text-ochre"}`}>
+                    <span className={`text-xs font-medium ${groupTotal >= 0 ? "text-forest-light" : "text-red"}`}>
                       {groupTotal >= 0 ? "+" : ""}{formatCurrency(groupTotal)}
                     </span>
                   </div>
@@ -477,7 +477,7 @@ export default function HistoryPage() {
                             <p className="text-xs text-muted">{tx.category?.name}</p>
                           </div>
                         </div>
-                        <span className={`text-sm font-semibold shrink-0 ${tx.type === "income" ? "text-forest-light" : "text-ochre"}`}>
+                        <span className={`text-sm font-semibold shrink-0 ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
                           {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                         </span>
                       </div>
