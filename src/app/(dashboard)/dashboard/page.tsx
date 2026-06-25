@@ -364,40 +364,76 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Tableau comparatif Perso / Activité / Total avec scroll horizontal */}
+                {/* Tableau comparatif Perso / Activité / Total responsive */}
                 {showPersonal && showActivity && (
-                  <div className="overflow-x-auto rounded-xl border border-[#E0D8CC] mb-4">
-                    <table className="w-full text-sm min-w-[360px]">
-                      <thead>
-                        <tr className="bg-[#F2EDE4]">
-                          <th className="text-left px-4 py-2.5 font-semibold text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap"></th>
-                          <th className="text-right px-4 py-2.5 font-semibold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">Perso</th>
-                          <th className="text-right px-4 py-2.5 font-semibold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">Activité</th>
-                          <th className="text-right px-4 py-2.5 font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E0D8CC]">
-                        <tr>
-                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Revenus</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.income || 0)}</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.income || 0)}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tIncome)}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Dépenses</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.expense || 0)}</td>
-                          <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.expense || 0)}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tExpense)}</td>
-                        </tr>
-                        <tr className="bg-[#F7F0D6]">
-                          <td className="text-left px-4 py-2 font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Résultat</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
-                          <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tSaved)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  <>
+                    {/* Mobile: stacked rows */}
+                    <div className="sm:hidden rounded-xl border border-[#E0D8CC] mb-4 divide-y divide-[#E0D8CC]">
+                      {[
+                        {
+                          label: "Revenus", perso: monthPersonal?.income || 0, activity: monthActivity?.income || 0,
+                          persoColor: "text-[#1C3A2F]", activityColor: "text-[#C9A84C]", totalColor: "text-[#1A1A1A]", bg: ""
+                        },
+                        {
+                          label: "Dépenses", perso: monthPersonal?.expense || 0, activity: monthActivity?.expense || 0,
+                          persoColor: "text-[#B94A3E]", activityColor: "text-[#B94A3E]", totalColor: "text-[#1A1A1A]", bg: ""
+                        },
+                        {
+                          label: "Résultat", perso: Math.max(0, monthPersonal?.savings || 0), activity: Math.max(0, monthActivity?.savings || 0),
+                          persoColor: "text-[#1C3A2F]", activityColor: "text-[#C9A84C]", totalColor: "text-[#1C3A2F]", bg: "bg-[#F7F0D6]"
+                        },
+                      ].map((r) => (
+                        <div key={r.label} className={`px-4 py-3 ${r.bg}`}>
+                          <p className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] mb-2">{r.label}</p>
+                          <div className="flex items-center justify-between text-[13px]">
+                            <span className="text-[#9BA89D] font-[family-name:var(--font-inter)]">Perso</span>
+                            <span className={`font-semibold font-[family-name:var(--font-inter)] ${r.persoColor}`}>{formatCurrency(r.perso)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[13px] mt-1">
+                            <span className="text-[#9BA89D] font-[family-name:var(--font-inter)]">Activité</span>
+                            <span className={`font-semibold font-[family-name:var(--font-inter)] ${r.activityColor}`}>{formatCurrency(r.activity)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[13px] mt-1 pt-1.5 border-t border-[#E0D8CC]/50">
+                            <span className="font-medium text-[#9BA89D] font-[family-name:var(--font-inter)]">Total</span>
+                            <span className={`font-bold font-[family-name:var(--font-inter)] ${r.totalColor}`}>{formatCurrency(r.label === "Résultat" ? tSaved : r.label === "Revenus" ? tIncome : tExpense)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Desktop: table */}
+                    <div className="hidden sm:block rounded-xl border border-[#E0D8CC] mb-4">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-[#F2EDE4]">
+                            <th className="text-left px-4 py-2.5 font-semibold text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap"></th>
+                            <th className="text-right px-4 py-2.5 font-semibold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">Perso</th>
+                            <th className="text-right px-4 py-2.5 font-semibold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">Activité</th>
+                            <th className="text-right px-4 py-2.5 font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E0D8CC]">
+                          <tr>
+                            <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Revenus</td>
+                            <td className="text-right px-4 py-2 font-medium text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.income || 0)}</td>
+                            <td className="text-right px-4 py-2 font-medium text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.income || 0)}</td>
+                            <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tIncome)}</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Dépenses</td>
+                            <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.expense || 0)}</td>
+                            <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.expense || 0)}</td>
+                            <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tExpense)}</td>
+                          </tr>
+                          <tr className="bg-[#F7F0D6]">
+                            <td className="text-left px-4 py-2 font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Résultat</td>
+                            <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
+                            <td className="text-right px-4 py-2 font-bold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
+                            <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tSaved)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
 
                 {/* Blocs descriptifs Premium */}

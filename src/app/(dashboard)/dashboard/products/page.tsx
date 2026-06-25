@@ -215,7 +215,7 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-4 px-4 animate-pulse">
+      <div className="space-y-4 animate-pulse">
         <div className="flex items-center justify-between">
           <div className="space-y-2"><div className="h-7 w-28 bg-stone/30 rounded-lg" /><div className="h-4 w-36 bg-stone/20 rounded-lg" /></div>
           <div className="h-10 w-28 bg-stone/30 rounded-xl" />
@@ -237,7 +237,7 @@ export default function ProductsPage() {
   if (premiumLocked) return <PremiumLock />;
 
   return (
-    <div className="space-y-4 px-4 pb-6">
+    <div className="space-y-4 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -355,7 +355,7 @@ export default function ProductsPage() {
           <p className="text-text-3 text-sm">Aucun produit trouvé pour &quot;{search}&quot;</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {sorted.map((p, idx) => {
               const margin = p.salePrice - p.purchasePrice;
             const marginRate = p.salePrice > 0 ? (margin / p.salePrice) * 100 : 0;

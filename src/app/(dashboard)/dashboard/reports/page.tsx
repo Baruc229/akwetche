@@ -110,7 +110,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-4 px-4 pb-6">
+      <div className="space-y-4 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -274,10 +274,29 @@ export default function ReportsPage() {
               </svg>
               <h2 className="text-sm font-semibold text-text-1">Comparaison</h2>
             </div>
-            <div className="overflow-x-auto -mx-5 px-5">
-              <div className="min-w-[320px]">
-                {/* Table header */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 pb-2 border-b border-border">
+            <div className="sm:hidden space-y-2">
+              {[
+                { label: "Revenus", current: data.current.income, previous: data.previous.income, currentColor: "text-text-1", previousColor: "text-text-3" },
+                { label: "Dépenses", current: data.current.expense, previous: data.previous.expense, currentColor: "text-red", previousColor: "text-text-3" },
+              ].map((r) => (
+                <div key={r.label} className="flex items-center justify-between py-2 border-b border-border text-sm">
+                  <span className="text-text-1">{r.label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`font-semibold ${r.currentColor}`}>{formatCurrency(r.current)}</span>
+                    <span className={`text-text-3 w-20 text-right tabular-nums ${r.previousColor}`}>{formatCurrency(r.previous)}</span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between py-3 rounded-xl px-3" style={{ backgroundColor: "#F7F0D6" }}>
+                <span className="text-sm font-semibold text-text-1">Épargne</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-green">{formatCurrency(Math.max(0, data.current.savings))}</span>
+                  <span className="text-text-3 w-20 text-right tabular-nums">{formatCurrency(Math.max(0, data.previous.savings))}</span>
+                </div>
+              </div>
+            </div>
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 pb-2 border-b border-border">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-text-3">Libellé</span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Actuelle</span>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Précédente</span>
@@ -304,7 +323,6 @@ export default function ReportsPage() {
                     {formatCurrency(Math.max(0, data.previous.savings))}
                   </span>
                 </div>
-              </div>
             </div>
           </div>
 

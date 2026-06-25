@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDashboard } from "../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUsers, faFileLines, faBagShopping, faDollarSign, faTrash, faShield, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faEye, faCalendarDays, faDownload, faArrowRight, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faFileLines, faBagShopping, faDollarSign, faTrash, faShield, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faEye, faCalendarDays, faDownload, faArrowRight, faLock, faUserPlus, faCreditCard } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, getCountryByCode, getCountryName } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
@@ -272,7 +272,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="space-y-4 px-4 animate-pulse">
+      <div className="space-y-4 animate-pulse">
         <div className="flex items-center justify-between">
           <div className="space-y-2"><div className="h-7 w-32 bg-stone/30 rounded-lg" /><div className="h-4 w-44 bg-stone/20 rounded-lg" /></div>
           <div className="h-9 w-28 bg-stone/30 rounded-xl" />
@@ -290,7 +290,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-4 px-4 pb-6">
+    <div className="space-y-4 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -316,13 +316,16 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* 4 KPIs */}
+      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Utilisateurs", value: stats?.totalUsers || 0, icon: faUsers, bg: "bg-teal/10", iconColor: "text-teal" },
+          { label: "Nouveaux (auj.)", value: stats?.usersToday ?? 0, icon: faUserPlus, bg: "bg-teal/10", iconColor: "text-teal" },
           { label: "Transactions", value: stats?.totalTransactions || 0, icon: faFileLines, bg: "bg-gold-pale", iconColor: "text-gold" },
           { label: "Produits", value: stats?.totalProducts || 0, icon: faBagShopping, bg: "bg-[rgba(28,58,47,0.08)]", iconColor: "text-green" },
           { label: "Revenus", value: formatCurrency(stats?.totalRevenue || 0), icon: faDollarSign, bg: "bg-teal/10", iconColor: "text-teal" },
+          { label: "Abonnés", value: stats?.activeSubscriptions ?? 0, icon: faCrown, bg: "bg-gold-pale", iconColor: "text-gold" },
+          { label: "Tentatives", value: stats?.loginAttemptsToday ?? 0, icon: faRightToBracket, bg: "bg-red-pale", iconColor: "text-red" },
         ].map((s) => (
           <div key={s.label} className="bg-bg-card rounded-2xl border border-border p-4">
             <div className={`w-8 h-8 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
@@ -373,7 +376,7 @@ export default function AdminPage() {
       ) : null}
 
       {/* Subscription revenue summary */}
-      {stats && (stats.activeSubscriptions > 0 || stats.subscriptionRevenue) && (
+      {stats && (stats.activeSubscriptions > 0 || (stats.subscriptionRevenue ?? 0) > 0) && (
         <div className="bg-bg-card rounded-[18px] border border-border p-5">
           <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Abonnements payants</span>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
