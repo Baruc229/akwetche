@@ -332,8 +332,10 @@ export default function AdminPage() {
             </div>
             <p className="text-[11.5px] text-text-3">{s.label}</p>
             <p className="font-display font-bold text-2xl text-text-1 mt-0.5">{s.value}</p>
-            {s.sub > 0 && (
-              <p className="text-[11px] text-teal font-medium mt-0.5">+{s.sub} aujourd&apos;hui</p>
+            {(s.sub > 0 || s.label === "Utilisateurs") && (
+              <p className={`text-[11px] font-medium mt-0.5 ${s.sub > 0 ? "text-teal" : "text-text-3"}`}>
+                {s.sub > 0 ? `+${s.sub}` : "0"} aujourd&apos;hui
+              </p>
             )}
           </div>
         ))}
