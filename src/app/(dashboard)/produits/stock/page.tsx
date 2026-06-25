@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlusCircle, faMinusCircle, faArrowsUpDown, faRotateLeft, faXmark, faTriangleExclamation, faBox, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowUp, faArrowsUpDown, faRotateLeft, faXmark, faTriangleExclamation, faBox, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -330,7 +330,7 @@ export default function StockPage() {
                   {/* Icon */}
                   <div className={`w-[38px] h-[38px] rounded-[11px] flex items-center justify-center shrink-0 ${isAdjustment ? "bg-sand" : isIn ? "bg-teal/10" : "bg-red-pale"}`}>
                     <FontAwesomeIcon
-                      icon={isAdjustment ? faArrowsUpDown : isIn ? faPlusCircle : faMinusCircle}
+                      icon={isAdjustment ? faArrowsUpDown : isIn ? faArrowDown : faArrowUp}
                       className={`w-4 h-4 ${isAdjustment ? "text-text-3" : isIn ? "text-teal" : "text-red"}`}
                     />
                   </div>
