@@ -362,7 +362,7 @@ export default function TransactionsPage() {
       <div className="hidden sm:flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-xs">
           <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-          <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="input-field pl-9 pr-9 py-2 text-sm" placeholder="Rechercher..." />
+          <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="input-field py-2 text-sm" style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }} placeholder="Rechercher..." />
           {searchInput && (
             <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-sand transition-colors">
               <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
@@ -432,29 +432,20 @@ export default function TransactionsPage() {
                       {/* Mobile: stacked layout */}
                       <div className="md:hidden">
                         <div className="flex items-start gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
+                          <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-ink whitespace-normal break-words">{tx.description}</p>
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-medium text-ink whitespace-normal break-words flex-1">{tx.description}</p>
+                              <span className={`text-sm font-semibold shrink-0 ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
+                                {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                              </span>
+                            </div>
                             <p className="text-xs text-muted mt-0.5">
                               {tx.category?.name || "Non catégorisé"}
                               {tx.scope === "activity" && <span className="ml-1 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
                               {tx.scope === "personal" && <span className="ml-1 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
                             </p>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
-                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                          </span>
-                          <span className="text-xs text-muted">{formatDate(tx.date)}</span>
-                        </div>
-                        <div className="flex items-center justify-end gap-2 mt-1">
-                          <button onClick={() => openEditModal(tx)} className="opacity-30 hover:opacity-100 text-muted hover:text-forest transition-all" title="Modifier">
-                            <FontAwesomeIcon icon={faPen} className="w-2.5 h-2.5" />
-                          </button>
-                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="opacity-30 hover:opacity-100 text-muted hover:text-red transition-all" title="Supprimer">
-                            <FontAwesomeIcon icon={faTrash} className="w-2.5 h-2.5" />
-                          </button>
                         </div>
                       </div>
                       {/* Desktop: inline layout */}

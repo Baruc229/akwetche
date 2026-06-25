@@ -435,7 +435,7 @@ export default function HistoryPage() {
               placeholder="Rechercher une transaction..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="input-field pl-9 pr-9 py-2 text-sm w-full"
+              className="input-field py-2 text-sm w-full" style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }}
             />
             {searchInput && (
               <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-sand transition-colors">
