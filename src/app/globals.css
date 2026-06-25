@@ -94,7 +94,7 @@ select.field-input {
 }
 
 /* backward compat */
-.input-field {
+:where(.input-field) {
   width: 100%;
   height: 48px;
   padding: 0 14px;
@@ -109,11 +109,11 @@ select.field-input {
   transition: border-color 150ms ease;
 }
 
-.input-field::placeholder {
+:where(.input-field)::placeholder {
   color: var(--color-text-3);
 }
 
-.input-field:focus {
+:where(.input-field):focus {
   border-color: var(--color-green-deep);
   box-shadow: 0 0 0 3px rgba(28,58,47,0.10);
 }

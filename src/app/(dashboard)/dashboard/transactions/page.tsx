@@ -252,22 +252,6 @@ export default function TransactionsPage() {
     ];
   })();
 
-  const tabs = [
-    { label: "Tout", filter: "all" as const, scope: "all" as const },
-    { label: "Revenus", filter: "income" as const, scope: "all" as const },
-    { label: "Dépenses", filter: "expense" as const, scope: "all" as const },
-    ...(commercialMode ? [
-      { label: "Personnel", filter: "all" as const, scope: "personal" as const },
-      { label: "Activité", filter: "all" as const, scope: "activity" as const },
-    ] : []),
-  ];
-
-  function handleTabClick(tab: { label: string; filter: string; scope: string }) {
-    setFilter(tab.filter);
-    setScopeFilter(tab.scope);
-    setPage(0);
-  }
-
   const groupedTransactions = useMemo(() => {
     const groups: { date: string; label: string; total: number; transactions: Transaction[] }[] = [];
     const today = new Date().toISOString().split('T')[0];
@@ -331,21 +315,6 @@ export default function TransactionsPage() {
               </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Tabs (type + scope) */}
-      <div className="overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex items-center gap-1.5 min-w-max">
-          {tabs.map((tab) => (
-            <button
-              key={tab.label}
-              onClick={() => handleTabClick(tab)}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab.filter === filter && tab.scope === scopeFilter ? "bg-ochre-light text-forest" : "text-muted hover:bg-border"}`}
-            >
-              {tab.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -479,12 +448,12 @@ export default function TransactionsPage() {
                           </span>
                           <span className="text-xs text-muted">{formatDate(tx.date)}</span>
                         </div>
-                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-border/50">
-                          <button onClick={() => openEditModal(tx)} className="text-xs font-medium text-muted hover:text-forest transition-colors flex items-center gap-1">
-                            <FontAwesomeIcon icon={faPen} className="w-3 h-3" /> Modifier
+                        <div className="flex items-center justify-end gap-2 mt-1">
+                          <button onClick={() => openEditModal(tx)} className="opacity-30 hover:opacity-100 text-muted hover:text-forest transition-all" title="Modifier">
+                            <FontAwesomeIcon icon={faPen} className="w-2.5 h-2.5" />
                           </button>
-                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="text-xs font-medium text-muted hover:text-red-500 transition-colors flex items-center gap-1">
-                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3" /> Supprimer
+                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="opacity-30 hover:opacity-100 text-muted hover:text-red transition-all" title="Supprimer">
+                            <FontAwesomeIcon icon={faTrash} className="w-2.5 h-2.5" />
                           </button>
                         </div>
                       </div>
@@ -505,11 +474,11 @@ export default function TransactionsPage() {
                           <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
                             {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                           </span>
-                          <button onClick={() => openEditModal(tx)} className="text-muted hover:text-forest transition-colors p-1" title="Modifier">
-                            <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
+                          <button onClick={() => openEditModal(tx)} className="opacity-30 hover:opacity-100 text-muted hover:text-forest transition-all" title="Modifier">
+                            <FontAwesomeIcon icon={faPen} className="w-3 h-3" />
                           </button>
-                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="text-muted hover:text-red-500 transition-colors p-1" title="Supprimer">
-                            <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="opacity-30 hover:opacity-100 text-muted hover:text-red transition-all" title="Supprimer">
+                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
