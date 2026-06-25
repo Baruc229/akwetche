@@ -440,11 +440,11 @@ export default function TransactionsPage() {
                                 {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                               </span>
                             </div>
-                            <p className="text-xs text-muted mt-0.5">
-                              {tx.category?.name || "Non catégorisé"}
-                              {tx.scope === "activity" && <span className="ml-1 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
-                              {tx.scope === "personal" && <span className="ml-1 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted mt-0.5">
+                              <span>{tx.category?.name || "Non catégorisé"}</span>
+                              {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
+                              {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -454,11 +454,13 @@ export default function TransactionsPage() {
                           <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-ink truncate">{tx.description}</p>
-                            <p className="text-xs text-muted">
-                              {tx.category?.name || "Non catégorisé"} · {formatDate(tx.date)}
-                              {tx.scope === "activity" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
-                              {tx.scope === "personal" && <span className="ml-1.5 inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted">
+                              <span>{tx.category?.name || "Non catégorisé"}</span>
+                              <span>·</span>
+                              <span>{formatDate(tx.date)}</span>
+                              {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
+                              {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
