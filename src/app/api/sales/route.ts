@@ -114,3 +114,54 @@ export async function POST(req: NextRequest) {
     return badRequest("Erreur lors de la vente");
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const userId = await requireAuth();
+    const { id, quantity, unitPrice } = await req.json();
+
+    if (!id || !quantity) {
+      return badRequest("ID et quantité requis");
+    }
+
+    const existingSale = await prisma.sale.findFirst({
+      where: { id: parseInt(id), userId },
+      include: { product: true },
+    });
+
+    if (!existingSale) {
+      return badRequest("Vente introuvable");
+    }
+
+    const qty = parseInt(quantity);
+    const price = unitPrice ? parseFloat(unitPrice) : existingSale.unitPrice;
+    const totalAmount = price * qty;
+    const unitProfit = price - existingSale.product.purchasePrice;
+    const profit = unitProfit * qty;
+
+    const stockDiff = existingSale.quantity - qty;
+    if (stockDiff < 0 && Math.abs(stockDiff) > existingSale.product.stock) {
+      return badRequest("Stock insuffisant");
+    }
+
+    await prisma.product.update({
+      where: { id: existingSale.productId },
+      data: { stock: { increment: stockDiff } },
+    });
+
+    const sale = await prisma.sale.update({
+      where: { id: parseInt(id) },
+      data: {
+        quantity: qty,
+        unitPrice: price,
+        totalAmount,
+        profit,
+      },
+      include: { product: true },
+    });
+
+    return ok({ sale });
+  } catch {
+    return badRequest("Erreur lors de la modification");
+  }
+}

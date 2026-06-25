@@ -73,6 +73,32 @@ export default function SalesPage() {
   const [deleteMsg, setDeleteMsg] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
+
+  function openNewModal() {
+    setEditingSale(null);
+    setFormProductId("");
+    setFormQuantity("1");
+    setFormUnitPrice("");
+    setFormError("");
+    setShowModal(true);
+  }
+
+  function openEditModal(sale: Sale) {
+    setEditingSale(sale);
+    setFormProductId(String(sale.product.id));
+    setFormQuantity(String(sale.quantity));
+    setFormUnitPrice(String(sale.unitPrice));
+    setFormError("");
+    setShowModal(true);
+  }
+
+  function closeModal() {
+    setShowModal(false);
+    setEditingSale(null);
+    setFormError("");
+  }
+
   async function loadData() {
     setLoading(true);
     setError(null);
@@ -153,24 +179,26 @@ export default function SalesPage() {
     setFormError("");
 
     const qty = parseInt(formQuantity);
-    if (!formProductId || !qty || qty < 1) { setFormError("Veuillez remplir tous les champs"); return; }
+    if (!editingSale && !formProductId) { setFormError("Veuillez sélectionner un produit"); return; }
+    if (!qty || qty < 1) { setFormError("Quantité invalide"); return; }
     if (!priceNum || priceNum <= 0) { setFormError("Prix unitaire invalide"); return; }
 
     setSaving(true);
     try {
+      const method = editingSale ? "PATCH" : "POST";
+      const body = editingSale
+        ? JSON.stringify({ id: editingSale.id, quantity: formQuantity, unitPrice: priceNum })
+        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: priceNum });
+
       const res = await fetch("/api/sales", {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: priceNum }),
+        body,
       });
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || "Erreur"); setSaving(false); return; }
 
-      setShowModal(false);
-      setFormProductId("");
-      setFormQuantity("1");
-      setFormUnitPrice("");
-      setFormError("");
+      closeModal();
       loadData();
     } catch {
       setFormError("Erreur réseau");
@@ -275,7 +303,7 @@ export default function SalesPage() {
         )}
         {formError && <p className="text-red text-sm bg-red-pale p-3 rounded-xl">{formError}</p>}
         <button type="submit" disabled={saving} className="w-full bg-green text-white font-sans font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
-          {saving ? "Enregistrement..." : "Enregistrer"}
+          {saving ? "Enregistrement..." : editingSale ? "Modifier la vente" : "Enregistrer"}
         </button>
       </form>
     );
@@ -292,7 +320,11 @@ export default function SalesPage() {
             <p className="text-[11.5px] text-text-3 mt-0.5">{formatDate(sale.date)}</p>
           </div>
           <div className="flex items-center gap-1 shrink-0 pl-3">
-            <button className="w-8 h-8 flex items-center justify-center rounded-xl border border-green/30 text-green hover:bg-green/5 transition-colors" title="Modifier">
+            <button
+              onClick={() => openEditModal(sale)}
+              className="w-8 h-8 flex items-center justify-center rounded-xl border border-green/30 text-green hover:bg-green/5 transition-colors"
+              title="Modifier"
+            >
               <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
             </button>
             <button
@@ -338,7 +370,7 @@ export default function SalesPage() {
           <p className="text-text-3 text-sm mt-0.5">{filteredSales.length} vente{filteredSales.length !== 1 ? "s" : ""} · ce mois</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={openNewModal}
           className="inline-flex items-center gap-2 bg-green text-white font-sans font-bold text-[13px] px-[14px] py-[9px] rounded-xl hover:opacity-90 transition-opacity active:scale-95 shrink-0"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
@@ -469,12 +501,12 @@ export default function SalesPage() {
 
       {/* Bottom sheet (mobile) */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => { setShowModal(false); setFormError(""); }}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={closeModal}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
           <div className="relative bg-white rounded-t-[20px] sm:rounded-2xl w-full sm:max-w-md shadow-xl animate-slide-up sm:animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border rounded-t-[20px] sm:rounded-t-2xl">
-              <h3 className="font-display font-semibold text-base text-text-1">Nouvelle vente</h3>
-              <button onClick={() => { setShowModal(false); setFormError(""); }} className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-text-1 rounded-lg hover:bg-sand transition-colors">
+              <h3 className="font-display font-semibold text-base text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
+              <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-text-1 rounded-lg hover:bg-sand transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
               </button>
             </div>
