@@ -377,21 +377,21 @@ export default function SalesPage() {
 
         {/* Top product */}
         {summary.topProduct && (
-          <div className="mt-3 bg-bg rounded-xl p-[14px] flex items-center justify-between">
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-text-3 flex items-center gap-1">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                Produit le plus vendu
-              </p>
-              <p className="font-display font-bold text-base text-text-1 mt-0.5">{summary.topProduct}</p>
+          <div className="mt-3 bg-bg rounded-xl p-[14px]">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-text-3 flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              Produit le plus vendu
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="font-display font-bold text-base text-text-1 truncate min-w-0">{summary.topProduct}</p>
+              <p className="font-display font-bold text-[15px] text-gold shrink-0 ml-3">{formatCurrency(summary.topTotal)}</p>
             </div>
-            <p className="font-display font-bold text-[15px] text-gold">{formatCurrency(summary.topTotal)}</p>
           </div>
         )}
       </div>
 
       {/* Period pills */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         {periodOptions.map((opt) => (
           <button
             key={opt.value}
@@ -412,36 +412,38 @@ export default function SalesPage() {
             {opt.label}
           </button>
         ))}
-        {period === "custom" && (
-          <div className="flex items-center gap-2 ml-2 flex-1">
+      </div>
+      {period === "custom" && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <input
               type="date"
               value={pendingCustomStart}
               onChange={(e) => { setPendingCustomStart(e.target.value); setCustomDateError(""); }}
               className="flex-1 min-w-0 bg-bg-card border border-border rounded-xl px-3 py-[7px] text-xs text-text-1 outline-none focus:border-green"
             />
-            <span className="text-text-3 text-xs">→</span>
+            <span className="text-text-3 text-xs shrink-0">→</span>
             <input
               type="date"
               value={pendingCustomEnd}
               onChange={(e) => { setPendingCustomEnd(e.target.value); setCustomDateError(""); }}
               className="flex-1 min-w-0 bg-bg-card border border-border rounded-xl px-3 py-[7px] text-xs text-text-1 outline-none focus:border-green"
             />
-            <button
-              onClick={() => {
-                if (!pendingCustomStart || !pendingCustomEnd) { setCustomDateError("Sélectionnez les dates"); return; }
-                if (new Date(pendingCustomEnd) < new Date(pendingCustomStart)) { setCustomDateError("Date de fin antérieure"); return; }
-                setCustomStart(pendingCustomStart);
-                setCustomEnd(pendingCustomEnd);
-                setCustomDateError("");
-              }}
-              className="bg-green text-white text-xs font-semibold px-3 py-[7px] rounded-xl hover:opacity-90 shrink-0"
-            >
-              Appliquer
-            </button>
           </div>
-        )}
-      </div>
+          <button
+            onClick={() => {
+              if (!pendingCustomStart || !pendingCustomEnd) { setCustomDateError("Sélectionnez les dates"); return; }
+              if (new Date(pendingCustomEnd) < new Date(pendingCustomStart)) { setCustomDateError("Date de fin antérieure"); return; }
+              setCustomStart(pendingCustomStart);
+              setCustomEnd(pendingCustomEnd);
+              setCustomDateError("");
+            }}
+            className="bg-green text-white text-xs font-semibold px-3 py-[7px] rounded-xl hover:opacity-90 shrink-0 sm:self-auto"
+          >
+            Appliquer
+          </button>
+        </div>
+      )}
       {customDateError && <p className="text-red text-xs">{customDateError}</p>}
 
       {/* Sales list */}
