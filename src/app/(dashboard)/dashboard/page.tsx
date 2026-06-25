@@ -64,7 +64,7 @@ export default function DashboardPage() {
       const [monthRes, weekRes, txRes, catRes, limitsRes] = await Promise.all([
         fetch("/api/transactions/summary?period=month"),
         fetch("/api/transactions/summary?period=week"),
-        fetch("/api/transactions?limit=5"),
+        fetch("/api/transactions?limit=3"),
         fetch("/api/categories"),
         fetch("/api/user/limits"),
       ]);

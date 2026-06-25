@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowDown, faArrowUp, faArrowsUpDown, faRotateLeft, faXmark, faTriangleExclamation, faBox, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowUp, faRotateLeft, faXmark, faTriangleExclamation, faBox, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -324,14 +324,13 @@ export default function StockPage() {
             {movements.slice(0, 50).map((m, i) => {
               const kind = getMovementKind(m);
               const isIn = kind === "initial" || kind === "replenish";
-              const isAdjustment = kind === "adjustment";
               return (
                 <div key={m.id} className="flex items-center gap-3 px-4 py-3 hover:bg-sand/50 transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
                   {/* Icon */}
-                  <div className={`w-[38px] h-[38px] rounded-[11px] flex items-center justify-center shrink-0 ${isAdjustment ? "bg-sand" : isIn ? "bg-teal/10" : "bg-red-pale"}`}>
+                  <div className={`w-[38px] h-[38px] rounded-[11px] flex items-center justify-center shrink-0 ${isIn ? "bg-teal/10" : "bg-red-pale"}`}>
                     <FontAwesomeIcon
-                      icon={isAdjustment ? faArrowsUpDown : isIn ? faArrowDown : faArrowUp}
-                      className={`w-4 h-4 ${isAdjustment ? "text-text-3" : isIn ? "text-teal" : "text-red"}`}
+                      icon={isIn ? faArrowDown : faArrowUp}
+                      className={`w-4 h-4 ${isIn ? "text-teal" : "text-red"}`}
                     />
                   </div>
                   {/* Body */}
