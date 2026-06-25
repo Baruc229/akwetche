@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDashboard } from "../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUsers, faFileLines, faBagShopping, faDollarSign, faTrash, faShield, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faEye, faCalendarDays, faDownload, faArrowRight, faLock, faUserPlus, faCreditCard } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faFileLines, faBagShopping, faDollarSign, faTrash, faShield, faRightToBracket, faTriangleExclamation, faCircleCheck, faCircleXmark, faPlus, faXmark, faCrown, faEye, faCalendarDays, faDownload, faArrowRight, faLock } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, getCountryByCode, getCountryName } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
@@ -319,13 +319,12 @@ export default function AdminPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Utilisateurs", value: stats?.totalUsers || 0, icon: faUsers, bg: "bg-teal/10", iconColor: "text-teal" },
-          { label: "Nouveaux (auj.)", value: stats?.usersToday ?? 0, icon: faUserPlus, bg: "bg-teal/10", iconColor: "text-teal" },
-          { label: "Transactions", value: stats?.totalTransactions || 0, icon: faFileLines, bg: "bg-gold-pale", iconColor: "text-gold" },
-          { label: "Produits", value: stats?.totalProducts || 0, icon: faBagShopping, bg: "bg-[rgba(28,58,47,0.08)]", iconColor: "text-green" },
-          { label: "Revenus", value: formatCurrency(stats?.totalRevenue || 0), icon: faDollarSign, bg: "bg-teal/10", iconColor: "text-teal" },
-          { label: "Abonnés", value: stats?.activeSubscriptions ?? 0, icon: faCrown, bg: "bg-gold-pale", iconColor: "text-gold" },
-          { label: "Tentatives", value: stats?.loginAttemptsToday ?? 0, icon: faRightToBracket, bg: "bg-red-pale", iconColor: "text-red" },
+          { label: "Utilisateurs", value: stats?.totalUsers || 0, sub: stats?.usersToday ?? 0, icon: faUsers, bg: "bg-teal/10", iconColor: "text-teal" },
+          { label: "Transactions", value: stats?.totalTransactions || 0, sub: 0, icon: faFileLines, bg: "bg-gold-pale", iconColor: "text-gold" },
+          { label: "Produits", value: stats?.totalProducts || 0, sub: 0, icon: faBagShopping, bg: "bg-[rgba(28,58,47,0.08)]", iconColor: "text-green" },
+          { label: "Revenus", value: formatCurrency(stats?.totalRevenue || 0), sub: 0, icon: faDollarSign, bg: "bg-teal/10", iconColor: "text-teal" },
+          { label: "Abonnés", value: stats?.activeSubscriptions ?? 0, sub: 0, icon: faCrown, bg: "bg-gold-pale", iconColor: "text-gold" },
+          { label: "Tentatives", value: stats?.loginAttemptsToday ?? 0, sub: 0, icon: faRightToBracket, bg: "bg-red-pale", iconColor: "text-red" },
         ].map((s) => (
           <div key={s.label} className="bg-bg-card rounded-2xl border border-border p-4">
             <div className={`w-8 h-8 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
@@ -333,6 +332,9 @@ export default function AdminPage() {
             </div>
             <p className="text-[11.5px] text-text-3">{s.label}</p>
             <p className="font-display font-bold text-2xl text-text-1 mt-0.5">{s.value}</p>
+            {s.sub > 0 && (
+              <p className="text-[11px] text-teal font-medium mt-0.5">+{s.sub} aujourd&apos;hui</p>
+            )}
           </div>
         ))}
       </div>
@@ -454,14 +456,28 @@ export default function AdminPage() {
                   </div>
                   {/* Actions */}
                   <div className="flex flex-col items-center gap-1 shrink-0">
-                    {user?.role === "super_admin" && u.id !== user.id && u.role !== "super_admin" && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setConfirmDeleteUser(u.id); }}
-                        className="w-8 h-8 flex items-center justify-center rounded-xl border border-red/20 text-red hover:bg-red-pale transition-colors"
-                        title="Supprimer"
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
-                      </button>
+                    {user?.role === "super_admin" && u.id !== user.id && (
+                      <>
+                        <select
+                          value={u.role}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => changeRole(u.id, e.target.value)}
+                          className="text-[10px] border border-border rounded-lg px-1.5 py-1 bg-white text-text-1 focus:outline-none focus:border-green"
+                        >
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                          <option value="super_admin">Super admin</option>
+                        </select>
+                        {u.role !== "super_admin" && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteUser(u.id); }}
+                            className="w-8 h-8 flex items-center justify-center rounded-xl border border-red/20 text-red hover:bg-red-pale transition-colors"
+                            title="Supprimer"
+                          >
+                            <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </>
                     )}
                     <button
                       onClick={() => loadUserHistory(u)}

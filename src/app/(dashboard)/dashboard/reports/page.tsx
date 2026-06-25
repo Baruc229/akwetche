@@ -85,6 +85,7 @@ export default function ReportsPage() {
   }
 
   const periodLabel = PERIODS.find(p => p.value === period)?.label || "";
+  const previousLabel = period === "weekly" ? "Semaine dernière" : period === "yearly" ? "Année dernière" : "Mois dernier";
 
   const savingsRate = data && data.current.income > 0 ? (data.current.savings / data.current.income) * 100 : 0;
   const avgDaily = data ? data.current.expense / 30 : 0;
@@ -274,32 +275,40 @@ export default function ReportsPage() {
               </svg>
               <h2 className="text-sm font-semibold text-text-1">Comparaison</h2>
             </div>
-            <div className="sm:hidden space-y-2">
+            <div className="sm:hidden space-y-3">
               {[
                 { label: "Revenus", current: data.current.income, previous: data.previous.income, currentColor: "text-text-1", previousColor: "text-text-3" },
                 { label: "Dépenses", current: data.current.expense, previous: data.previous.expense, currentColor: "text-red", previousColor: "text-text-3" },
               ].map((r) => (
-                <div key={r.label} className="flex items-center justify-between py-2 border-b border-border text-sm">
-                  <span className="text-text-1">{r.label}</span>
-                  <div className="flex items-center gap-3">
+                <div key={r.label} className="py-2 border-b border-border">
+                  <p className="text-[11.5px] font-semibold text-text-1 mb-1.5">{r.label}</p>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-text-3">{periodLabel} :</span>
                     <span className={`font-semibold ${r.currentColor}`}>{formatCurrency(r.current)}</span>
-                    <span className={`text-text-3 w-20 text-right tabular-nums ${r.previousColor}`}>{formatCurrency(r.previous)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-0.5">
+                    <span className="text-text-3">{previousLabel} :</span>
+                    <span className={`text-text-3 ${r.previousColor}`}>{formatCurrency(r.previous)}</span>
                   </div>
                 </div>
               ))}
-              <div className="flex items-center justify-between py-3 rounded-xl px-3" style={{ backgroundColor: "#F7F0D6" }}>
-                <span className="text-sm font-semibold text-text-1">Épargne</span>
-                <div className="flex items-center gap-3">
+              <div className="py-2 rounded-xl px-3" style={{ backgroundColor: "#F7F0D6" }}>
+                <p className="text-[11.5px] font-semibold text-text-1 mb-1.5">Épargne</p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-text-3">{periodLabel} :</span>
                   <span className="font-bold text-green">{formatCurrency(Math.max(0, data.current.savings))}</span>
-                  <span className="text-text-3 w-20 text-right tabular-nums">{formatCurrency(Math.max(0, data.previous.savings))}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-0.5">
+                  <span className="text-text-3">{previousLabel} :</span>
+                  <span className="text-text-3">{formatCurrency(Math.max(0, data.previous.savings))}</span>
                 </div>
               </div>
             </div>
             <div className="hidden sm:block">
               <div className="grid grid-cols-3 gap-2 sm:gap-3 pb-2 border-b border-border">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-text-3">Libellé</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Actuelle</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Précédente</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">{periodLabel}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">{previousLabel}</span>
                 </div>
                 {/* Revenus */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border">
