@@ -41,7 +41,10 @@ const PERIODS = [
 
 function formatDateRange(start: string, end: string) {
   const opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
-  return `${new Date(start + "T00:00:00").toLocaleDateString("fr-FR", opts)} → ${new Date(end + "T00:00:00").toLocaleDateString("fr-FR", opts)}`;
+  const d1 = new Date(start);
+  const d2 = new Date(end);
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return "";
+  return `${d1.toLocaleDateString("fr-FR", opts)} → ${d2.toLocaleDateString("fr-FR", opts)}`;
 }
 
 export default function ReportsPage() {
@@ -250,34 +253,36 @@ export default function ReportsPage() {
               </svg>
               <h2 className="text-sm font-semibold text-text-1">Comparaison</h2>
             </div>
-            <div>
-              {/* Table header */}
-              <div className="grid grid-cols-3 gap-3 pb-2 border-b border-border">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-3">Libellé</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Période actuelle</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Période préc.</span>
-              </div>
-              {/* Revenus */}
-              <div className="grid grid-cols-3 gap-3 py-3 border-t border-border">
-                <span className="text-sm text-text-1">Revenus</span>
-                <span className="text-sm font-semibold text-text-1 text-right">{formatCurrency(data.current.income)}</span>
-                <span className="text-sm text-text-3 text-right">{formatCurrency(data.previous.income)}</span>
-              </div>
-              {/* Dépenses */}
-              <div className="grid grid-cols-3 gap-3 py-3 border-t border-border">
-                <span className="text-sm text-text-1">Dépenses</span>
-                <span className="text-sm font-semibold text-red text-right">{formatCurrency(data.current.expense)}</span>
-                <span className="text-sm text-text-3 text-right">{formatCurrency(data.previous.expense)}</span>
-              </div>
-              {/* Épargne */}
-              <div className="grid grid-cols-3 gap-3 py-3 border-t border-border bg-gold-pale rounded-xl mt-1">
-                <span className="text-sm font-semibold text-text-1 pl-3">Épargne</span>
-                <span className="text-sm font-bold text-green text-right pr-3">
-                  {formatCurrency(Math.max(0, data.current.savings))}
-                </span>
-                <span className="text-sm text-text-3 text-right pr-3">
-                  {formatCurrency(Math.max(0, data.previous.savings))}
-                </span>
+            <div className="overflow-x-auto -mx-5 px-5">
+              <div className="min-w-[320px]">
+                {/* Table header */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 pb-2 border-b border-border">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3">Libellé</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Actuelle</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">Précédente</span>
+                </div>
+                {/* Revenus */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border">
+                  <span className="text-sm text-text-1">Revenus</span>
+                  <span className="text-sm font-semibold text-text-1 text-right truncate">{formatCurrency(data.current.income)}</span>
+                  <span className="text-sm text-text-3 text-right truncate">{formatCurrency(data.previous.income)}</span>
+                </div>
+                {/* Dépenses */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border">
+                  <span className="text-sm text-text-1">Dépenses</span>
+                  <span className="text-sm font-semibold text-red text-right truncate">{formatCurrency(data.current.expense)}</span>
+                  <span className="text-sm text-text-3 text-right truncate">{formatCurrency(data.previous.expense)}</span>
+                </div>
+                {/* Épargne */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 mt-1 rounded-xl" style={{ backgroundColor: "#F7F0D6" }}>
+                  <span className="text-sm font-semibold text-text-1 pl-3">Épargne</span>
+                  <span className="text-sm font-bold text-green text-right truncate pr-3">
+                    {formatCurrency(Math.max(0, data.current.savings))}
+                  </span>
+                  <span className="text-sm text-text-3 text-right truncate pr-3">
+                    {formatCurrency(Math.max(0, data.previous.savings))}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

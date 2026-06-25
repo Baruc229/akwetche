@@ -357,7 +357,7 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {sorted.map((p, idx) => {
-            const margin = p.salePrice - p.purchasePrice;
+              const margin = p.salePrice - p.purchasePrice;
             const marginRate = p.salePrice > 0 ? (margin / p.salePrice) * 100 : 0;
             const cardBg = getCardColor(p.name, idx);
             const initial = p.name.charAt(0).toUpperCase();
@@ -377,26 +377,26 @@ export default function ProductsPage() {
             return (
               <div key={p.id} className="bg-bg-card rounded-[18px] border border-border p-[18px] animate-fade-in">
                 {/* Card header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-xl ${cardBg} flex items-center justify-center`}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`w-11 h-11 rounded-xl ${cardBg} flex items-center justify-center shrink-0`}>
                       <span className="font-display font-extrabold text-lg text-green">{initial}</span>
                     </div>
-                    <div>
-                      <h3 className="font-display font-bold text-[17px] text-text-1 leading-tight">{p.name}</h3>
+                    <div className="min-w-0">
+                      <h3 className="font-display font-bold text-[17px] text-text-1 leading-tight truncate">{p.name}</h3>
                     </div>
                   </div>
-                  <div className="flex items-center gap-[6px]">
+                  <div className="flex items-center gap-[6px] shrink-0 ml-2">
                     <button
                       onClick={() => openEdit(p)}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[rgba(28,58,47,0.2)] text-green hover:bg-green/5 transition-colors"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[rgba(28,58,47,0.2)] text-green hover:bg-green/5 transition-colors shrink-0"
                       title="Éditer"
                     >
                       <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setConfirmDeleteProduct(p.id)}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[rgba(185,74,62,0.2)] text-red hover:bg-red-pale transition-colors"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[rgba(185,74,62,0.2)] text-red hover:bg-red-pale transition-colors shrink-0"
                       title="Supprimer"
                     >
                       <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
@@ -406,20 +406,20 @@ export default function ProductsPage() {
 
                 {/* Metrics grid */}
                 <div className="grid grid-cols-3 gap-[6px] mb-4">
-                  <div className="bg-bg border border-border rounded-xl p-[10px]">
+                  <div className="bg-bg border border-border rounded-xl p-[10px] min-w-0">
                     <p className="text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
-                    <p className="font-display font-bold text-[14px] text-text-1">{formatCurrency(p.purchasePrice)}</p>
+                    <p className="font-display font-bold text-[13px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice)}</p>
                   </div>
-                  <div className="bg-bg border border-border rounded-xl p-[10px]">
+                  <div className="bg-bg border border-border rounded-xl p-[10px] min-w-0">
                     <p className="text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
-                    <p className="font-display font-bold text-[14px] text-text-1">{formatCurrency(p.salePrice)}</p>
+                    <p className="font-display font-bold text-[13px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice)}</p>
                   </div>
-                  <div className={`bg-bg border border-border rounded-xl p-[10px] ${marginCellBg} border-transparent`}>
+                  <div className={`bg-bg border border-border rounded-xl p-[10px] min-w-0 ${marginCellBg} border-transparent`}>
                     <p className="text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
-                    <p className={`font-display font-bold text-[14px] ${marginText}`}>
+                    <p className={`font-display font-bold text-[13px] sm:text-[14px] ${marginText} leading-tight`}>
                       {margin >= 0 ? "+" : ""}{formatCurrency(margin)}
-                      <span className="text-[11px] ml-0.5 opacity-80">({marginRate.toFixed(0)}%)</span>
                     </p>
+                    <p className={`text-[10px] ${marginText} opacity-80 leading-tight`}>{marginRate.toFixed(0)}%</p>
                   </div>
                 </div>
 
