@@ -40,11 +40,27 @@ const PERIODS = [
 ];
 
 function formatDateRange(start: string, end: string) {
-  const opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
-  const d1 = new Date(start);
-  const d2 = new Date(end);
-  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return "";
-  return `${d1.toLocaleDateString("fr-FR", opts)} → ${d2.toLocaleDateString("fr-FR", opts)}`;
+  try {
+    const opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
+    const d1 = new Date(start);
+    const d2 = new Date(end);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return "";
+    return `${d1.toLocaleDateString("fr-FR", opts)} → ${d2.toLocaleDateString("fr-FR", opts)}`;
+  } catch {
+    return "";
+  }
+}
+
+function safePeriod(data: ReportData | null) {
+  if (!data?.period?.start || !data?.period?.end) return null;
+  try {
+    const d1 = new Date(data.period.start);
+    const d2 = new Date(data.period.end);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
+    return { start: d1, end: d2 };
+  } catch {
+    return null;
+  }
 }
 
 export default function ReportsPage() {
@@ -135,9 +151,14 @@ export default function ReportsPage() {
           <div className="bg-green rounded-[18px] p-5 text-white">
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-widest text-white/40">{periodLabel}</span>
-              {data.period.start && data.period.end && (
-                <span className="text-[11.5px] text-white/60">{formatDateRange(data.period.start, data.period.end)}</span>
-              )}
+              {(() => {
+                const p = safePeriod(data);
+                return p ? (
+                  <span className="text-[11.5px] text-white/60">
+                    {p.start.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })} → {p.end.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                  </span>
+                ) : null;
+              })()}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -163,27 +184,27 @@ export default function ReportsPage() {
 
           {/* 4 KPIs */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-teal/10 rounded-2xl p-4 border border-border">
+            <div className="bg-teal/10 rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
               <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Volume total</p>
-              <p className="font-display font-bold text-lg text-teal mt-1">{formatCurrency(data.current.income + data.current.expense)}</p>
-              <p className="text-[10.5px] text-text-3 mt-0.5">Revenus + Dépenses</p>
+              <p className="font-display font-bold text-lg text-teal mt-1 truncate">{formatCurrency(data.current.income + data.current.expense)}</p>
+              <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Revenus + Dépenses</p>
             </div>
-            <div className="bg-bg-card rounded-2xl p-4 border border-border">
+            <div className="bg-bg-card rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
               <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Taux d&apos;épargne</p>
               <p className="font-display font-bold text-lg text-green mt-1">{savingsRate.toFixed(0)}%</p>
-              <p className="text-[10.5px] text-text-3 mt-0.5">{savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Correct" : "Faible"}</p>
+              <p className="text-[10.5px] text-text-3 mt-0.5 truncate">{savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Correct" : "Faible"}</p>
             </div>
-            <div className="bg-gold-pale rounded-2xl p-4 border border-border">
+            <div className="bg-gold-pale rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
               <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Moyenne / jour</p>
-              <p className="font-display font-bold text-lg text-gold mt-1">{formatCurrency(avgDaily)}</p>
-              <p className="text-[10.5px] text-text-3 mt-0.5">Dépense quotidienne</p>
+              <p className="font-display font-bold text-lg text-gold mt-1 truncate">{formatCurrency(avgDaily)}</p>
+              <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Dépense quotidienne</p>
             </div>
-            <div className="bg-red-pale rounded-2xl p-4 border border-border">
+            <div className="bg-red-pale rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
               <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Plus gros poste</p>
-              <p className="font-display font-bold text-lg text-text-1 mt-1 break-words leading-tight">
+              <p className="font-display font-bold text-lg text-text-1 mt-1 truncate leading-tight">
                 {getTopExpenseLabel(data.current.topCategories) || "—"}
               </p>
-              <p className="text-[10.5px] text-text-3 mt-0.5">Catégorie principale</p>
+              <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Catégorie principale</p>
             </div>
           </div>
 

@@ -53,17 +53,17 @@ function StockBar({ stock, maxStock }: { stock: number; maxStock: number }) {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3">Stock</span>
-        <span className={`text-xs font-bold font-display ${color.replace("bg-", "text-")}`}>
-          {stock} / {maxStock} unité{maxStock !== 1 ? "s" : ""}
+    <div className="min-w-0">
+      <div className="flex items-center justify-between mb-1.5 gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3 shrink-0">Stock</span>
+        <span className={`text-xs font-bold font-display ${color.replace("bg-", "text-")} truncate text-right`}>
+          {stock} / {maxStock}
         </span>
       </div>
       <div className="h-[5px] bg-border rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${color} transition-all duration-300`} style={{ width: `${Math.max(pct, 2)}%` }} />
       </div>
-      <p className={`text-[10.5px] font-semibold mt-1 ${color.replace("bg-", "text-")}`}>
+      <p className={`text-[10.5px] font-semibold mt-1 ${color.replace("bg-", "text-")} truncate`}>
         {label}
       </p>
     </div>
@@ -406,20 +406,20 @@ export default function ProductsPage() {
 
                 {/* Metrics grid */}
                 <div className="grid grid-cols-3 gap-[6px] mb-4">
-                  <div className="bg-bg border border-border rounded-xl p-[10px] min-w-0">
-                    <p className="text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
-                    <p className="font-display font-bold text-[13px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice)}</p>
+                  <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
+                    <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
+                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice)}</p>
                   </div>
-                  <div className="bg-bg border border-border rounded-xl p-[10px] min-w-0">
-                    <p className="text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
-                    <p className="font-display font-bold text-[13px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice)}</p>
+                  <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
+                    <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
+                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice)}</p>
                   </div>
-                  <div className={`bg-bg border border-border rounded-xl p-[10px] min-w-0 ${marginCellBg} border-transparent`}>
-                    <p className="text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
-                    <p className={`font-display font-bold text-[13px] sm:text-[14px] ${marginText} leading-tight`}>
+                  <div className={`bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden ${marginCellBg}`}>
+                    <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
+                    <p className={`font-display font-bold text-[11px] sm:text-[14px] ${marginText} truncate`}>
                       {margin >= 0 ? "+" : ""}{formatCurrency(margin)}
                     </p>
-                    <p className={`text-[10px] ${marginText} opacity-80 leading-tight`}>{marginRate.toFixed(0)}%</p>
+                    <p className={`text-[9px] sm:text-[10px] ${marginText} opacity-80 truncate`}>{marginRate.toFixed(0)}%</p>
                   </div>
                 </div>
 
