@@ -124,25 +124,25 @@ export default function DashboardLayout({
  router.push("/");
  }
 
-  if (loading) {
-  return (
-  <div className="min-h-screen flex items-center justify-center bg-[#F2EDE4]">
-  <div className="w-8 h-8 border-2 border-[#1C3A2F] border-t-transparent rounded-full animate-spin" />
-  </div>
-  );
-  }
+   const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, handleSetCurrency]);
 
-  if (!user) return null;
+   if (loading) {
+   return (
+   <div className="min-h-screen flex items-center justify-center bg-[#F2EDE4]">
+   <div className="w-8 h-8 border-2 border-[#1C3A2F] border-t-transparent rounded-full animate-spin" />
+   </div>
+   );
+   }
 
-  const isPremium = user?.plan === "premium" || user?.role !== "user";
-  const isFreeLocked = user?.role === "user" && user?.plan !== "premium" && user?.subscription?.status !== "active";
+   if (!user) return null;
 
-  const subStatus = user?.subscription;
-  const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);
+   const isPremium = user?.plan === "premium" || user?.role !== "user";
+   const isFreeLocked = user?.role === "user" && user?.plan !== "premium" && user?.subscription?.status !== "active";
 
-  const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, handleSetCurrency]);
+   const subStatus = user?.subscription;
+   const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);
 
-  return (
+   return (
    <DashboardContext.Provider value={ctxValue}>
     <div className="min-h-screen bg-[#F2EDE4] flex flex-col lg:flex-row">
     <aside
