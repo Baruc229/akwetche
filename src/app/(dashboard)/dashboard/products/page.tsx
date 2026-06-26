@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, convertAmount, detectBaseCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -128,11 +128,18 @@ export default function ProductsPage() {
 
   function openEdit(product: Product) {
     setEditProduct(product);
+    const baseCur = detectBaseCurrency();
+    const displayPurchasePrice = baseCur && baseCur !== currency
+      ? convertAmount(product.purchasePrice, baseCur, currency)
+      : product.purchasePrice;
+    const displaySalePrice = baseCur && baseCur !== currency
+      ? convertAmount(product.salePrice, baseCur, currency)
+      : product.salePrice;
     setForm({
       name: product.name,
       description: product.description || "",
-      purchasePrice: String(product.purchasePrice),
-      salePrice: String(product.salePrice),
+      purchasePrice: String(displayPurchasePrice),
+      salePrice: String(displaySalePrice),
       stock: String(product.stock),
     });
     setError("");
@@ -148,10 +155,18 @@ export default function ProductsPage() {
       return;
     }
 
+    const baseCur = detectBaseCurrency();
+    const purchasePrice = baseCur && baseCur !== currency
+      ? convertAmount(parseFloat(form.purchasePrice || "0"), currency, baseCur)
+      : form.purchasePrice;
+    const salePrice = baseCur && baseCur !== currency
+      ? convertAmount(parseFloat(form.salePrice || "0"), currency, baseCur)
+      : form.salePrice;
+
     const method = editProduct ? "PUT" : "POST";
     const body: Record<string, unknown> = editProduct
-      ? { id: editProduct.id, ...form }
-      : form;
+      ? { id: editProduct.id, name: form.name, purchasePrice: String(purchasePrice), salePrice: String(salePrice) }
+      : { name: form.name, purchasePrice: String(purchasePrice), salePrice: String(salePrice), stock: form.stock };
 
     try {
       const res = await fetch("/api/products", {
@@ -506,7 +521,7 @@ export default function ProductsPage() {
                       <polyline points="5 12 12 5 19 12" />
                     </svg>
                     <span className="text-teal font-medium">
-                      Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                      Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                     </span>
                   </div>
                 )}
@@ -610,7 +625,7 @@ export default function ProductsPage() {
                     <polyline points="5 12 12 5 19 12" />
                   </svg>
                   <span className="text-teal font-medium">
-                    Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                    Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                   </span>
                 </div>
               )}
