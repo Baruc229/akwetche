@@ -66,7 +66,7 @@ function StockBar({ stock }: { stock: number }) {
 }
 
 export default function ProductsPage() {
-  const { user } = useDashboard();
+  const { user, currency } = useDashboard();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -401,16 +401,16 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-[6px] mb-4">
                   <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
                     <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
-                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice)}</p>
+                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice, currency)}</p>
                   </div>
                   <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
                     <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
-                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice)}</p>
+                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice, currency)}</p>
                   </div>
                   <div className={`col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden ${marginCellBg}`}>
                     <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
                     <p className={`font-display font-bold text-[11px] sm:text-[14px] ${marginText} truncate`}>
-                      {margin >= 0 ? "+" : ""}{formatCurrency(margin)}
+                      {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency)}
                     </p>
                     <p className={`text-[9px] sm:text-[10px] ${marginText} opacity-80 truncate`}>{marginRate.toFixed(0)}%</p>
                   </div>
@@ -451,27 +451,37 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix d&apos;achat</label>
-                    <input
-                      type="number"
-                      value={form.purchasePrice}
-                      onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={form.purchasePrice}
+                        onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
+                        className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
+                        {currency === "EUR" ? "€" : "F"}
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix de vente</label>
-                    <input
-                      type="number"
-                      value={form.salePrice}
-                      onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={form.salePrice}
+                        onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                        className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
+                        {currency === "EUR" ? "€" : "F"}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 {!editProduct && (
@@ -496,7 +506,7 @@ export default function ProductsPage() {
                       <polyline points="5 12 12 5 19 12" />
                     </svg>
                     <span className="text-teal font-medium">
-                      Bénéfice unitaire : <strong>{formatCurrency(liveMargin)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                      Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                     </span>
                   </div>
                 )}
@@ -545,27 +555,37 @@ export default function ProductsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix d&apos;achat</label>
-                  <input
-                    type="number"
-                    value={form.purchasePrice}
-                    onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                    className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={form.purchasePrice}
+                      onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
+                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
+                      {currency === "EUR" ? "€" : "F"}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix de vente</label>
-                  <input
-                    type="number"
-                    value={form.salePrice}
-                    onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                    className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={form.salePrice}
+                      onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
+                      {currency === "EUR" ? "€" : "F"}
+                    </span>
+                  </div>
                 </div>
               </div>
               {!editProduct && (
@@ -590,7 +610,7 @@ export default function ProductsPage() {
                     <polyline points="5 12 12 5 19 12" />
                   </svg>
                   <span className="text-teal font-medium">
-                    Bénéfice unitaire : <strong>{formatCurrency(liveMargin)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                    Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                   </span>
                 </div>
               )}

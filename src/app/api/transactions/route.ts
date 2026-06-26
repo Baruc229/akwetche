@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok, created } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
+import { formatCurrency, resolveCurrency } from "@/lib/currency";
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,6 +52,8 @@ export async function POST(req: NextRequest) {
       where: { id: userId },
       select: {
         role: true,
+        currency: true,
+        baseCurrency: true,
         subscription: { select: { status: true } },
       },
     });
@@ -84,7 +87,8 @@ export async function POST(req: NextRequest) {
 
     const direction = type === "income" ? "Revenu" : "Dépense";
     const scopeLabel = transaction.scope === "activity" ? " (Activité)" : "";
-    await createNotification(userId, "transaction", `${direction} : ${parsedAmount.toLocaleString()} FCFA${scopeLabel} — ${description}`, "/dashboard/transactions");
+    const notifCurrency = resolveCurrency(user?.currency);
+    await createNotification(userId, "transaction", `${direction} : ${formatCurrency(parsedAmount, notifCurrency)}${scopeLabel} — ${description}`, "/dashboard/transactions");
 
     return created({ transaction });
   } catch {

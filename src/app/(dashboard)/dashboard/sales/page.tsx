@@ -247,7 +247,7 @@ export default function SalesPage() {
           <CustomSelect
             options={products.map((p) => ({
               value: String(p.id),
-              label: `${p.name} — ${formatCurrency(p.salePrice)} (${p.stock} dispo)`,
+              label: `${p.name} — ${formatCurrency(p.salePrice, currency)} (${p.stock} dispo)`,
             }))}
             value={formProductId}
             onChange={(v) => {
@@ -290,12 +290,12 @@ export default function SalesPage() {
           <div className="bg-bg rounded-xl p-3 text-sm">
             <div className="flex items-center justify-between text-text-3 mb-1">
               <span>Total</span>
-              <span className="font-display font-bold text-lg text-text-1">{formatCurrency(totalDisplay)}</span>
+              <span className="font-display font-bold text-lg text-text-1">{formatCurrency(totalDisplay, currency)}</span>
             </div>
             <div className="flex items-center justify-between text-text-3">
               <span>Marge estimée</span>
               <span className={`font-semibold ${marginDisplay >= 0 ? "text-teal" : "text-red"}`}>
-                {marginDisplay >= 0 ? "+" : ""}{formatCurrency(marginDisplay)}
+                {marginDisplay >= 0 ? "+" : ""}{formatCurrency(marginDisplay, currency)}
               </span>
             </div>
             {qtyNum > (selectedProduct?.stock || 0) && (
@@ -349,17 +349,17 @@ export default function SalesPage() {
           </div>
           <div className="bg-bg rounded-xl p-[10px]">
             <p className="text-[9px] font-bold uppercase tracking-widest text-text-3">Prix unit.</p>
-            <p className="font-display font-bold text-[15px] text-text-1 mt-0.5">{formatCurrency(sale.unitPrice)}</p>
+            <p className="font-display font-bold text-[15px] text-text-1 mt-0.5">{formatCurrency(sale.unitPrice, currency)}</p>
           </div>
           <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-gold-pale rounded-xl p-[10px]">
             <p className="text-[9px] font-bold uppercase tracking-widest text-gold/70">Total</p>
-            <p className="font-display font-bold text-[15px] text-gold mt-0.5">{formatCurrency(sale.totalAmount)}</p>
+            <p className="font-display font-bold text-[15px] text-gold mt-0.5">{formatCurrency(sale.totalAmount, currency)}</p>
           </div>
         </div>
         {/* Margin band */}
         <div className="mt-3 pt-3 border-t border-border">
           <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sale.profit >= 0 ? "bg-teal/10 text-teal" : "bg-red-pale text-red"}`}>
-            {sale.profit >= 0 ? "+" : ""}{formatCurrency(sale.profit)} de marge · {marginRate.toFixed(0)}%
+            {sale.profit >= 0 ? "+" : ""}{formatCurrency(sale.profit, currency)} de marge · {marginRate.toFixed(0)}%
           </span>
         </div>
       </div>
@@ -396,7 +396,7 @@ export default function SalesPage() {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-gold-pale rounded-xl p-3">
             <p className="text-[9.5px] font-bold uppercase tracking-widest text-gold/70">CA du mois</p>
-            <p className="font-display font-bold text-[22px] text-gold mt-0.5">{formatCurrency(summary.revenue)}</p>
+            <p className="font-display font-bold text-[22px] text-gold mt-0.5">{formatCurrency(summary.revenue, currency)}</p>
           </div>
           <div className="bg-bg rounded-xl p-3">
             <p className="text-[9.5px] font-bold uppercase tracking-widest text-text-3">Nb de ventes</p>
@@ -404,11 +404,11 @@ export default function SalesPage() {
           </div>
           <div className="bg-teal/10 rounded-xl p-3">
             <p className="text-[9.5px] font-bold uppercase tracking-widest text-teal/70">Marge totale</p>
-            <p className="font-display font-bold text-[22px] text-teal mt-0.5">{formatCurrency(summary.margin)}</p>
+            <p className="font-display font-bold text-[22px] text-teal mt-0.5">{formatCurrency(summary.margin, currency)}</p>
           </div>
           <div className="bg-bg rounded-xl p-3">
             <p className="text-[9.5px] font-bold uppercase tracking-widest text-text-3">Panier moyen</p>
-            <p className="font-display font-bold text-[22px] text-text-1 mt-0.5">{formatCurrency(summary.avgBasket)}</p>
+            <p className="font-display font-bold text-[22px] text-text-1 mt-0.5">{formatCurrency(summary.avgBasket, currency)}</p>
           </div>
         </div>
 
@@ -421,7 +421,7 @@ export default function SalesPage() {
             </p>
             <div className="flex items-center justify-between mt-1">
               <p className="font-display font-bold text-base text-text-1 truncate min-w-0">{summary.topProduct}</p>
-              <p className="font-display font-bold text-[15px] text-gold shrink-0 ml-3">{formatCurrency(summary.topTotal)}</p>
+              <p className="font-display font-bold text-[15px] text-gold shrink-0 ml-3">{formatCurrency(summary.topTotal, currency)}</p>
             </div>
           </div>
         )}
@@ -530,7 +530,7 @@ export default function SalesPage() {
             <div className="p-5 pb-2">
               <h3 className="font-display font-bold text-base text-red">Supprimer la vente</h3>
               <p className="text-[13px] text-text-3 mt-1.5 leading-relaxed">
-                {deleteTarget.quantity} × {deleteTarget.product.name} — {formatCurrency(deleteTarget.totalAmount)}
+                {deleteTarget.quantity} × {deleteTarget.product.name} — {formatCurrency(deleteTarget.totalAmount, currency)}
               </p>
             </div>
             <div className="p-5 pt-3 space-y-2">
