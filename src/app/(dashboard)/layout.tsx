@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
@@ -35,6 +35,7 @@ type DashboardContextType = {
  setUser: (u: UserData | null) => void;
  commercialMode: boolean;
  currency: CurrencyCode;
+ setCurrency: (c: CurrencyCode) => void;
 };
 
 const DashboardContext = createContext<DashboardContextType>({
@@ -42,6 +43,7 @@ const DashboardContext = createContext<DashboardContextType>({
  setUser: () => {},
  commercialMode: false,
  currency: "XOF",
+ setCurrency: () => {},
 });
 
 export const useDashboard = () => useContext(DashboardContext);
@@ -63,12 +65,18 @@ export default function DashboardLayout({
 }: {
  children: React.ReactNode;
 }) {
- const router = useRouter();
- const pathname = usePathname();
- const [user, setUser] = useState<UserData | null>(null);
- const [commercialMode, setCommercialMode] = useState(false);
- const [sidebarOpen, setSidebarOpen] = useState(false);
- const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [user, setUser] = useState<UserData | null>(null);
+  const [commercialMode, setCommercialMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>("XOF");
+
+  const handleSetCurrency = useCallback((c: CurrencyCode) => {
+    setActiveCurrency(c);
+    setDisplayCurrency(c);
+  }, []);
 
  useEffect(() => {
  const sessionFlag = localStorage.getItem("akwetche_session");
@@ -83,10 +91,12 @@ export default function DashboardLayout({
  router.push("/verify-email-pending");
  return;
  }
- localStorage.setItem("akwetche_session", "true");
- setUser(data.user);
-  setActiveCurrency(resolveCurrency(data.user?.currency || data.user?.baseCurrency));
-  setActiveBaseCurrency((data.user?.baseCurrency || "XOF") as CurrencyCode);
+  localStorage.setItem("akwetche_session", "true");
+  setUser(data.user);
+   const initialCurrency = resolveCurrency(data.user?.currency || data.user?.baseCurrency);
+   setActiveCurrency(initialCurrency);
+   setDisplayCurrency(initialCurrency);
+   setActiveBaseCurrency((data.user?.baseCurrency || "XOF") as CurrencyCode);
  const isPremium = data.user.plan === "premium" || data.user.role !== "user";
  if (isPremium) {
  const saved = localStorage.getItem("akwetche_commercial");
@@ -130,10 +140,10 @@ export default function DashboardLayout({
   const subStatus = user?.subscription;
   const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);
 
+  const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, handleSetCurrency]);
+
   return (
-  <DashboardContext.Provider
-    value={{ user, setUser, commercialMode, currency: resolveCurrency(user?.currency) }}
-  >
+   <DashboardContext.Provider value={ctxValue}>
     <div className="min-h-screen bg-[#F2EDE4] flex flex-col lg:flex-row">
     <aside
       className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-[#E0D8CC] transition-transform duration-200 lg:translate-x-0 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden pb-14 lg:pb-0 ${
@@ -302,7 +312,7 @@ export default function DashboardLayout({
   )}
 
   <div className="flex-1 min-w-0 lg:ml-64 flex flex-col">
-    <header className="sticky top-0 z-20 bg-white border-b-2 border-[#E0D8CC]/60 px-4 py-2.5 flex items-center gap-3 lg:hidden">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b-2 border-[#E0D8CC]/60 px-4 py-2.5 flex items-center gap-3 lg:hidden shadow-sm">
       <button
         onClick={() => setSidebarOpen(true)}
         className="text-[#1A1A1A] hover:text-[#1C3A2F]"

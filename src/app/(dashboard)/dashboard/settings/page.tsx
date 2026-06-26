@@ -45,7 +45,7 @@ const ALL_FEATURES = [
 ];
 
 export default function SettingsPage() {
- const { user, setUser, currency: activeCurrency } = useDashboard();
+  const { user, setUser, currency: activeCurrency, setCurrency: setDashboardCurrency } = useDashboard();
  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
@@ -645,7 +645,11 @@ export default function SettingsPage() {
         { value: "EUR", label: "EUR (Euro)" },
       ]}
       value={currency}
-      onChange={(v) => setCurrency(v)}
+      onChange={(v) => {
+        setCurrency(v);
+        setActiveCurrency(v as CurrencyCode);
+        setDashboardCurrency(v as CurrencyCode);
+      }}
     />
     <p className="text-xs text-muted mt-1">Choisissez la devise d'affichage.</p>
   </div>

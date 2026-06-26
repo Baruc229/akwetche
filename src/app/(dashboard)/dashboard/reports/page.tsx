@@ -164,20 +164,20 @@ export default function ReportsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-[11px] font-medium text-white/60 mb-0.5">Reçu</p>
-                <p className="font-display font-bold text-xl" style={{ color: "#6ECFA0" }}>
+                <p className="font-display font-bold text-base" style={{ color: "#6ECFA0" }}>
                   +{formatCurrency(data.current.income)}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] font-medium text-white/60 mb-0.5">Dépensé</p>
-                <p className="font-display font-bold text-xl" style={{ color: "#E07A72" }}>
+                <p className="font-display font-bold text-base" style={{ color: "#E07A72" }}>
                   -{formatCurrency(data.current.expense)}
                 </p>
               </div>
             </div>
             <div className="mt-4 bg-white/10 rounded-xl px-4 py-3 flex items-center justify-between">
               <span className="text-sm text-white/70">Il vous reste</span>
-              <span className="font-display font-bold text-[26px] text-white leading-none">
+              <span className="font-display font-bold text-xl text-white leading-none">
                 {formatCurrency(Math.max(0, data.current.savings))}
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function ReportsPage() {
               <div className="flex items-center gap-2 pb-2 mb-3 border-b border-border">
                 <span className="text-[9.5px] font-bold uppercase tracking-widest text-text-3">Personnel</span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <div className="bg-bg rounded-xl p-3">
                   <p className="text-[10px] text-text-3 mb-0.5">Capital de départ</p>
                   <p className="font-semibold text-text-3 text-sm">{formatCurrency(data.initialBalance)}</p>
@@ -232,7 +232,7 @@ export default function ReportsPage() {
                   <p className="text-[10px] text-text-3 mb-0.5">Reçu</p>
                   <p className="font-semibold text-teal text-sm">+{formatCurrency(data.personal.current.income)}</p>
                 </div>
-                <div className="bg-bg rounded-xl p-3">
+                <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg rounded-xl p-3">
                   <p className="text-[10px] text-text-3 mb-0.5">Solde</p>
                   <p className="font-bold text-text-1 text-sm">
                     {formatCurrency(data.initialBalance + data.personal.current.savings)}
@@ -247,7 +247,7 @@ export default function ReportsPage() {
                 <div className="flex items-center gap-2 pb-2 mb-3 border-b border-border">
                   <span className="text-[9.5px] font-bold uppercase tracking-widest text-gold">Activité</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   <div className="bg-bg rounded-xl p-3">
                     <p className="text-[10px] text-text-3 mb-0.5">Capital de départ</p>
                     <p className="font-semibold text-text-3 text-sm">{formatCurrency(data.initialBalanceActivity)}</p>
@@ -256,7 +256,7 @@ export default function ReportsPage() {
                     <p className="text-[10px] text-text-3 mb-0.5">Reçu</p>
                     <p className="font-semibold text-teal text-sm">+{formatCurrency(data.activity.current.income)}</p>
                   </div>
-                  <div className="bg-bg rounded-xl p-3">
+                  <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg rounded-xl p-3">
                     <p className="text-[10px] text-text-3 mb-0.5">Solde</p>
                     <p className="font-bold text-text-1 text-sm">
                       {formatCurrency(data.initialBalanceActivity + data.activity.current.savings)}

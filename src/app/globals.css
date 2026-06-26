@@ -186,6 +186,8 @@ select.field-input {
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .stat-label {
@@ -195,6 +197,15 @@ select.field-input {
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Global rule: numeric/monetary values wrap instead of truncating with ellipsis */
+.font-display.font-bold.num-value {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 @keyframes fadeIn {

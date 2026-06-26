@@ -209,8 +209,6 @@ export default function ProductsPage() {
     }
   });
 
-  const maxStock = Math.max(...products.map(p => p.stock), 1);
-
   const sortLabel = SORT_OPTIONS.find(o => o.value === sortKey)?.label || "Nom";
 
   if (loading) {
@@ -405,7 +403,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Metrics grid */}
-                <div className="grid grid-cols-3 gap-[6px] mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-[6px] mb-4">
                   <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
                     <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
                     <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice)}</p>
@@ -414,7 +412,7 @@ export default function ProductsPage() {
                     <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
                     <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice)}</p>
                   </div>
-                  <div className={`bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden ${marginCellBg}`}>
+                  <div className={`col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden ${marginCellBg}`}>
                     <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
                     <p className={`font-display font-bold text-[11px] sm:text-[14px] ${marginText} truncate`}>
                       {margin >= 0 ? "+" : ""}{formatCurrency(margin)}
@@ -424,7 +422,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Stock bar */}
-                <StockBar stock={p.stock} maxStock={maxStock} />
+                <StockBar stock={p.stock} maxStock={p.stock} />
               </div>
             );
           })}

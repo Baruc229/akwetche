@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowTrendUp, faArrowTrendDown, faPiggyBank } from '@fortawesome/free-solid-svg-icons';
-import { formatDualCurrency } from "@/lib/currency";
+import { formatCurrency, detectCurrency, setActiveCurrency, type CurrencyCode } from "@/lib/currency";
+import { useDashboard } from "@/app/(dashboard)/layout";
 
 type Props = {
   totalBalance: number;
@@ -13,24 +13,16 @@ type Props = {
 };
 
 export default function HeroCard({ totalBalance, totalIncome, totalExpense, savingsRate }: Props) {
-  const [showSecondary, setShowSecondary] = useState(false);
-  const primary = formatDualCurrency(totalBalance);
-  const incomeFmt = formatDualCurrency(totalIncome);
-  const expenseFmt = formatDualCurrency(totalExpense);
-
-  const dispBalance = showSecondary
-    ? { primary: primary.secondary, secondary: primary.primary }
-    : { primary: primary.primary, secondary: primary.secondary };
-
-  const dispIncome = showSecondary
-    ? { primary: incomeFmt.secondary, secondary: incomeFmt.primary }
-    : { primary: incomeFmt.primary, secondary: incomeFmt.secondary };
-
-  const dispExpense = showSecondary
-    ? { primary: expenseFmt.secondary, secondary: expenseFmt.primary }
-    : { primary: expenseFmt.primary, secondary: expenseFmt.secondary };
-
+  const { setCurrency } = useDashboard();
+  const activeCurrency = detectCurrency();
+  const isEuro = activeCurrency === "EUR";
   const isNegative = totalBalance < 0;
+
+  function handleToggle() {
+    const next: CurrencyCode = isEuro ? "XOF" : "EUR";
+    setActiveCurrency(next);
+    setCurrency(next);
+  }
 
   return (
     <div className="bg-[#1C3A2F] rounded-[20px] p-5 md:p-6 text-white">
@@ -42,15 +34,15 @@ export default function HeroCard({ totalBalance, totalIncome, totalExpense, savi
           }`}
           style={{ letterSpacing: "-0.5px" }}
         >
-          {dispBalance.primary}
+          {formatCurrency(totalBalance)}
         </p>
       </div>
 
       <button
-        onClick={() => setShowSecondary((p) => !p)}
+        onClick={handleToggle}
         className="text-xs text-white/40 hover:text-white/70 font-[family-name:var(--font-inter)] transition-colors mb-4 underline underline-offset-2 decoration-white/20"
       >
-        {showSecondary ? "Voir en EUR" : "Voir en FCFA"}
+        {isEuro ? "Voir en FCFA" : "Voir en EUR"}
       </button>
 
       <div className="h-px bg-white/10 mb-4" />
@@ -62,7 +54,7 @@ export default function HeroCard({ totalBalance, totalIncome, totalExpense, savi
             <span className="font-[family-name:var(--font-inter)] text-xs text-white/50">Reçus</span>
           </div>
           <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#6ECFA0] mt-0.5">
-            {dispIncome.primary}
+            {formatCurrency(totalIncome)}
           </p>
         </div>
         <div>
@@ -71,7 +63,7 @@ export default function HeroCard({ totalBalance, totalIncome, totalExpense, savi
             <span className="font-[family-name:var(--font-inter)] text-xs text-white/50">Dépensés</span>
           </div>
           <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#E07A72] mt-0.5">
-            {dispExpense.primary}
+            {formatCurrency(totalExpense)}
           </p>
         </div>
       </div>

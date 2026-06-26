@@ -337,7 +337,7 @@ export default function SalesPage() {
           </div>
         </div>
         {/* Metrics grid */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <div className="bg-bg rounded-xl p-[10px]">
             <p className="text-[9px] font-bold uppercase tracking-widest text-text-3">Qté</p>
             <p className="font-display font-bold text-[15px] text-text-1 mt-0.5">{sale.quantity}</p>
@@ -346,7 +346,7 @@ export default function SalesPage() {
             <p className="text-[9px] font-bold uppercase tracking-widest text-text-3">Prix unit.</p>
             <p className="font-display font-bold text-[15px] text-text-1 mt-0.5">{formatCurrency(sale.unitPrice)}</p>
           </div>
-          <div className="bg-gold-pale rounded-xl p-[10px]">
+          <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-gold-pale rounded-xl p-[10px]">
             <p className="text-[9px] font-bold uppercase tracking-widest text-gold/70">Total</p>
             <p className="font-display font-bold text-[15px] text-gold mt-0.5">{formatCurrency(sale.totalAmount)}</p>
           </div>
