@@ -34,17 +34,12 @@ function getCardColor(name: string, index: number) {
   return CARD_COLORS[hash % CARD_COLORS.length];
 }
 
-function StockBar({ stock, maxStock }: { stock: number; maxStock: number }) {
-  const ratio = maxStock > 0 ? stock / maxStock : 0;
-  const pct = Math.round(ratio * 100);
+function StockBar({ stock }: { stock: number }) {
   let color: string, label: string;
   if (stock === 0) {
     color = "bg-red";
     label = "Stock critique — réapprovisionner";
-  } else if (ratio <= 0.1) {
-    color = "bg-red";
-    label = "Stock critique — réapprovisionner";
-  } else if (ratio <= 0.5) {
+  } else if (stock <= 5) {
     color = "bg-gold";
     label = "Stock faible — surveiller";
   } else {
@@ -57,11 +52,11 @@ function StockBar({ stock, maxStock }: { stock: number; maxStock: number }) {
       <div className="flex items-center justify-between mb-1.5 gap-2">
         <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3 shrink-0">Stock</span>
         <span className={`text-xs font-bold font-display ${color.replace("bg-", "text-")} truncate text-right`}>
-          {stock} / {maxStock}
+          {stock}
         </span>
       </div>
       <div className="h-[5px] bg-border rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color} transition-all duration-300`} style={{ width: `${Math.max(pct, 2)}%` }} />
+        <div className={`h-full rounded-full ${color} transition-all duration-300`} style={{ width: `${stock > 0 ? 100 : 0}%` }} />
       </div>
       <p className={`text-[10.5px] font-semibold mt-1 ${color.replace("bg-", "text-")} truncate`}>
         {label}
@@ -422,7 +417,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Stock bar */}
-                <StockBar stock={p.stock} maxStock={p.stock} />
+                <StockBar stock={p.stock} />
               </div>
             );
           })}

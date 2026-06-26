@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok, created } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
+import { formatCurrency } from "@/lib/currency";
 
 export async function GET(req: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const userId = await requireAuth();
-    const { productId, quantity } = await req.json();
+    const { productId, quantity, unitPrice: rawUnitPrice, currency } = await req.json();
 
     if (!productId || !quantity) {
       return badRequest("Produit et quantité requis");
@@ -54,9 +55,9 @@ export async function POST(req: NextRequest) {
       return badRequest("Stock insuffisant");
     }
 
-    const unitPrice = product.salePrice;
+    const unitPrice = rawUnitPrice != null ? parseFloat(rawUnitPrice) : product.salePrice;
     const totalAmount = unitPrice * qty;
-    const unitProfit = product.salePrice - product.purchasePrice;
+    const unitProfit = unitPrice - product.purchasePrice;
     const profit = unitProfit * qty;
 
     const sale = await prisma.sale.create({
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await createNotification(userId, "sale", `Vente : ${qty} x ${product.name} — ${totalAmount.toLocaleString()} FCFA`, "/dashboard/sales");
+    await createNotification(userId, "sale", `Vente : ${qty} x ${product.name} — ${formatCurrency(totalAmount, currency || "XOF")}`, "/dashboard/sales");
 
     return created({ sale });
   } catch {

@@ -47,7 +47,7 @@ function isSaleInRange(sale: Sale, start: Date, end: Date) {
 }
 
 export default function SalesPage() {
-  const { user } = useDashboard();
+  const { user, currency } = useDashboard();
   const router = useRouter();
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -188,7 +188,7 @@ export default function SalesPage() {
       const method = editingSale ? "PATCH" : "POST";
       const body = editingSale
         ? JSON.stringify({ id: editingSale.id, quantity: formQuantity, unitPrice: priceNum })
-        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: priceNum });
+        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: priceNum, currency });
 
       const res = await fetch("/api/sales", {
         method,
@@ -271,15 +271,20 @@ export default function SalesPage() {
         </div>
         <div>
           <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix unitaire</label>
-          <input
-            type="number"
-            value={formUnitPrice}
-            onChange={(e) => setFormUnitPrice(e.target.value)}
-            className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]"
-            step="0.01"
-            min="0"
-            required
-          />
+          <div className="relative">
+            <input
+              type="number"
+              value={formUnitPrice}
+              onChange={(e) => setFormUnitPrice(e.target.value)}
+              className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[38px] pr-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]"
+              step="0.01"
+              min="0"
+              required
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
+              {currency === "EUR" ? "€" : "F"}
+            </span>
+          </div>
         </div>
         {formProductId && qtyNum > 0 && priceNum > 0 && (
           <div className="bg-bg rounded-xl p-3 text-sm">

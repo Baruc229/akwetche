@@ -79,8 +79,14 @@ export async function DELETE(req: NextRequest) {
   try {
     const userId = await requireAuth();
     const { id } = await req.json();
+    const productId = parseInt(id);
+
+    await prisma.sale.deleteMany({
+      where: { productId, userId },
+    });
+
     await prisma.product.deleteMany({
-      where: { id: parseInt(id), userId },
+      where: { id: productId, userId },
     });
     return ok({ success: true });
   } catch {

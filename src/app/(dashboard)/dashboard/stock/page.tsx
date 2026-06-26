@@ -22,7 +22,7 @@ type Movement = {
   quantity: number;
   description: string;
   date: string;
-  product: { name: string };
+  product: { id: number; name: string };
 };
 
 type ProductStats = {
@@ -51,9 +51,10 @@ export default function StockPage() {
 
   function computeProductStats(products: Product[], movements: Movement[]): ProductStats[] {
     const soldMap: Record<number, number> = {};
+    const productIndex = new Map(products.map(p => [p.id, p]));
     for (const m of movements) {
-      if (m.type === "out" && m.product?.name) {
-        const prod = products.find(p => p.name === m.product.name);
+      if (m.type === "out" && m.description?.startsWith("Vente") && m.product?.id) {
+        const prod = productIndex.get(m.product.id);
         if (prod) {
           soldMap[prod.id] = (soldMap[prod.id] || 0) + m.quantity;
         }
