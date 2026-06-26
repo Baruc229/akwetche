@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       prisma.transaction.findMany({
         where,
         include: { category: true },
-        orderBy: { date: "desc" },
+        orderBy: { date: "desc", id: "desc" },
         take: limit,
         skip: offset,
       }),

@@ -323,7 +323,7 @@ export default function StockPage() {
           <div className="divide-y divide-border">
             {movements.slice(0, 50).map((m, i) => {
               const kind = getMovementKind(m);
-              const isIn = kind === "initial" || kind === "replenish";
+              const isIn = m.type === "in";
               return (
                 <div key={m.id} className="flex items-center gap-3 px-4 py-3 hover:bg-sand/50 transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
                   {/* Icon */}
