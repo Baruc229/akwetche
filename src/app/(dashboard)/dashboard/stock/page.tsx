@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBox, faPlus, faTriangleExclamation, faBoxArchive, faArrowsUpDown, faXmark, faRotateLeft, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faBox, faPlus, faTriangleExclamation, faBoxArchive, faArrowDown, faArrowUp, faXmark, faRotateLeft, faEye } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
@@ -339,8 +339,8 @@ export default function StockPage() {
             {movements.slice(0, 50).map((m, i) => (
               <div key={m.id} className="flex items-center justify-between p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-pale">
-                    <FontAwesomeIcon icon={faArrowsUpDown} className={`w-5 h-5 ${m.type === "in" ? "text-forest" : "text-red"}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${m.type === "in" ? "bg-teal/10" : "bg-red-pale"}`}>
+                    <FontAwesomeIcon icon={m.type === "in" ? faArrowDown : faArrowUp} className={`w-5 h-5 ${m.type === "in" ? "text-teal" : "text-red"}`} />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-ink">{m.product?.name || "Produit supprimé"}</p>
