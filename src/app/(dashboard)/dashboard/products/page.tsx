@@ -363,7 +363,7 @@ export default function ProductsPage() {
           <p className="text-text-3 text-sm">Aucun produit trouvé pour &quot;{search}&quot;</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {sorted.map((p, idx) => {
               const margin = p.salePrice - p.purchasePrice;
             const marginRate = p.salePrice > 0 ? (margin / p.salePrice) * 100 : 0;
@@ -413,21 +413,21 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Metrics grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-[6px] mb-4">
-                  <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
-                    <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
-                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.purchasePrice, currency)}</p>
+                <div className="grid grid-cols-2 gap-[6px] mb-4">
+                  <div className="bg-bg border border-border rounded-xl p-[8px] min-w-0 overflow-hidden">
+                    <p className="text-[8px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
+                    <p className="font-display font-bold text-[11px] text-text-1 truncate">{formatCurrency(p.purchasePrice, currency)}</p>
                   </div>
-                  <div className="bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden">
-                    <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
-                    <p className="font-display font-bold text-[11px] sm:text-[14px] text-text-1 truncate">{formatCurrency(p.salePrice, currency)}</p>
+                  <div className="bg-bg border border-border rounded-xl p-[8px] min-w-0 overflow-hidden">
+                    <p className="text-[8px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
+                    <p className="font-display font-bold text-[11px] text-text-1 truncate">{formatCurrency(p.salePrice, currency)}</p>
                   </div>
-                  <div className={`col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg border border-border rounded-xl p-[8px] sm:p-[10px] min-w-0 overflow-hidden ${marginCellBg}`}>
-                    <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
-                    <p className={`font-display font-bold text-[11px] sm:text-[14px] ${marginText} truncate`}>
+                  <div className={`col-span-2 w-full bg-bg border border-border rounded-xl p-[8px] min-w-0 overflow-hidden ${marginCellBg}`}>
+                    <p className="text-[8px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
+                    <p className={`font-display font-bold text-[11px] ${marginText} truncate`}>
                       {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency)}
                     </p>
-                    <p className={`text-[9px] sm:text-[10px] ${marginText} opacity-80 truncate`}>{marginRate.toFixed(0)}%</p>
+                    <p className={`text-[9px] ${marginText} opacity-80 truncate`}>{marginRate.toFixed(0)}%</p>
                   </div>
                 </div>
 
