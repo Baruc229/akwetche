@@ -363,7 +363,7 @@ export default function ProductsPage() {
           <p className="text-text-3 text-sm">Aucun produit trouvé pour &quot;{search}&quot;</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {sorted.map((p, idx) => {
               const margin = p.salePrice - p.purchasePrice;
             const marginRate = p.salePrice > 0 ? (margin / p.salePrice) * 100 : 0;
