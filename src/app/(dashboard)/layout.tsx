@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
-import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
+import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode, detectBaseCurrency } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
 import ExpiredModal from "@/components/subscription/ExpiredModal";
 import NotificationBell from "@/components/NotificationBell";
@@ -35,6 +35,7 @@ type DashboardContextType = {
  setUser: (u: UserData | null) => void;
  commercialMode: boolean;
  currency: CurrencyCode;
+ baseCurrency: CurrencyCode;
  setCurrency: (c: CurrencyCode) => void;
 };
 
@@ -43,6 +44,7 @@ const DashboardContext = createContext<DashboardContextType>({
  setUser: () => {},
  commercialMode: false,
  currency: "XOF",
+ baseCurrency: "XOF",
  setCurrency: () => {},
 });
 
@@ -72,6 +74,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>("XOF");
+  const [baseCurrency, setBaseCurrency] = useState<CurrencyCode>("XOF");
 
   const handleSetCurrency = useCallback((c: CurrencyCode) => {
     setActiveCurrency(c);
@@ -93,10 +96,12 @@ export default function DashboardLayout({
  }
   localStorage.setItem("akwetche_session", "true");
   setUser(data.user);
-   const initialCurrency = resolveCurrency(data.user?.currency || data.user?.baseCurrency);
-   setActiveCurrency(initialCurrency);
-   setDisplayCurrency(initialCurrency);
-   setActiveBaseCurrency((data.user?.baseCurrency || "XOF") as CurrencyCode);
+    const initialCurrency = resolveCurrency(data.user?.currency || data.user?.baseCurrency);
+    const initialBase = (data.user?.baseCurrency || "XOF") as CurrencyCode;
+    setActiveCurrency(initialCurrency);
+    setDisplayCurrency(initialCurrency);
+    setActiveBaseCurrency(initialBase);
+    setBaseCurrency(initialBase);
  const isPremium = data.user.plan === "premium" || data.user.role !== "user";
  if (isPremium) {
  const saved = localStorage.getItem("akwetche_commercial");
@@ -124,7 +129,7 @@ export default function DashboardLayout({
  router.push("/");
  }
 
-   const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, handleSetCurrency]);
+    const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency]);
 
    if (loading) {
    return (

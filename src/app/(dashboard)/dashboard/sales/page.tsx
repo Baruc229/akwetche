@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark, faTrash, faPen, faStar, faBagShopping, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, convertAmount } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -47,7 +47,7 @@ function isSaleInRange(sale: Sale, start: Date, end: Date) {
 }
 
 export default function SalesPage() {
-  const { user, currency } = useDashboard();
+  const { user, currency, baseCurrency } = useDashboard();
   const router = useRouter();
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -88,7 +88,7 @@ export default function SalesPage() {
     setEditingSale(sale);
     setFormProductId(String(sale.product.id));
     setFormQuantity(String(sale.quantity));
-    setFormUnitPrice(String(sale.unitPrice));
+    setFormUnitPrice(String(convertAmount(sale.unitPrice, baseCurrency, currency)));
     setFormError("");
     setShowModal(true);
   }
@@ -170,9 +170,9 @@ export default function SalesPage() {
 
   const selectedProduct = products.find((p) => p.id === parseInt(formProductId));
   const qtyNum = parseInt(formQuantity) || 0;
-  const priceNum = parseFloat(formUnitPrice) || (selectedProduct?.salePrice || 0);
+  const priceNum = parseFloat(formUnitPrice) || convertAmount(selectedProduct?.salePrice || 0, baseCurrency, currency);
   const totalDisplay = qtyNum * priceNum;
-  const marginDisplay = selectedProduct ? (priceNum - selectedProduct.purchasePrice) * qtyNum : 0;
+  const marginDisplay = selectedProduct ? (priceNum - convertAmount(selectedProduct.purchasePrice, baseCurrency, currency)) * qtyNum : 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -186,9 +186,10 @@ export default function SalesPage() {
     setSaving(true);
     try {
       const method = editingSale ? "PATCH" : "POST";
+      const amountInBase = convertAmount(priceNum, currency, baseCurrency);
       const body = editingSale
-        ? JSON.stringify({ id: editingSale.id, quantity: formQuantity, unitPrice: priceNum })
-        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: priceNum, currency });
+        ? JSON.stringify({ id: editingSale.id, quantity: formQuantity, unitPrice: amountInBase })
+        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: amountInBase, currency: baseCurrency });
 
       const res = await fetch("/api/sales", {
         method,
@@ -253,7 +254,7 @@ export default function SalesPage() {
             onChange={(v) => {
               setFormProductId(v);
               const p = products.find((x) => x.id === parseInt(v));
-              if (p && !formUnitPrice) setFormUnitPrice(String(p.salePrice));
+              if (p && !formUnitPrice) setFormUnitPrice(String(convertAmount(p.salePrice, baseCurrency, currency)));
             }}
             placeholder="Sélectionner un produit"
           />
