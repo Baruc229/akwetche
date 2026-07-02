@@ -158,7 +158,7 @@ export function formatXOF(amount: number): string {
 }
 
 export function toEUR(amountXOF: number): number {
-  return Math.round(amountXOF / 655.957 * 100) / 100;
+  return amountXOF / 655.957;
 }
 
 export function toXOF(amountEUR: number): number {

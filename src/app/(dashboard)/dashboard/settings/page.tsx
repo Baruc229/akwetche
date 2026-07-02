@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, convertForDisplay, convertForStorage, type CurrencyCode } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, convertForDisplay, convertForStorage, roundByCurrency, type CurrencyCode } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
@@ -141,10 +141,10 @@ export default function SettingsPage() {
       const to = currency as CurrencyCode;
       // Convert base value from old display → new display (via base currency)
       const baseVal = baseBalanceRef.current;
-      const newDisplay = convertForDisplay(baseVal, bc, to);
+      const newDisplay = roundByCurrency(convertForDisplay(baseVal, bc, to), to);
       setInitialBalance(String(newDisplay));
       const baseActVal = baseActivityRef.current;
-      const newActDisplay = convertForDisplay(baseActVal, bc, to);
+      const newActDisplay = roundByCurrency(convertForDisplay(baseActVal, bc, to), to);
       setInitialBalanceActivity(String(newActDisplay));
       prevCurrencyRef.current = currency;
     }
@@ -184,14 +184,8 @@ export default function SettingsPage() {
     if (phoneErr) { setPhoneError(phoneErr); return; }
   }
 
-  const bc = (user?.baseCurrency || "XOF") as CurrencyCode;
-  const dc = currency as CurrencyCode;
-  const balanceInBase = convertForStorage(parseFloat(initialBalance) || 0, dc, bc);
-  const activityInBase = convertForStorage(parseFloat(initialBalanceActivity) || 0, dc, bc);
-
-  // Update refs with the base values we're about to save
-  baseBalanceRef.current = balanceInBase;
-  baseActivityRef.current = activityInBase;
+  const balanceInBase = baseBalanceRef.current;
+  const activityInBase = baseActivityRef.current;
 
   try {
     const res = await fetch("/api/user", {
@@ -213,8 +207,8 @@ export default function SettingsPage() {
       // Reconvertir les soldes affichés avec la devise de l'utilisateur mis à jour
       const updatedBc = (data.user?.baseCurrency || "XOF") as CurrencyCode;
       const updatedDc = resolveCurrency(data.user?.currency) as CurrencyCode;
-      setInitialBalance(String(convertForDisplay(balanceInBase, updatedBc, updatedDc)));
-      setInitialBalanceActivity(String(convertForDisplay(activityInBase, updatedBc, updatedDc)));
+      setInitialBalance(String(roundByCurrency(convertForDisplay(balanceInBase, updatedBc, updatedDc), updatedDc)));
+      setInitialBalanceActivity(String(roundByCurrency(convertForDisplay(activityInBase, updatedBc, updatedDc), updatedDc)));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }
