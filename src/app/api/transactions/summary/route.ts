@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok } from "@/lib/api";
 import { getStartOfWeek, getEndOfWeek, getStartOfMonth, getEndOfMonth, getStartOfYear, getEndOfYear } from "@/lib/utils";
 
+type Tx = { type: string; amount: number; category: { name: string; icon: string } | null };
+
 type ScopeSummary = {
   income: number;
   expense: number;
@@ -12,13 +14,16 @@ type ScopeSummary = {
   topCategories: { name: string; icon: string; amount: number; type: string }[];
 };
 
-function computeScopeSummary(transactions: { type: string; amount: number; category: { name: string; icon: string } | null }[], initialBalance: number): ScopeSummary {
-  const income = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const expense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+function computeScopeSummary(periodTxs: Tx[], allTxs: Tx[], initialBalance: number): ScopeSummary {
+  const income = periodTxs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const expense = periodTxs.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const savings = income - expense;
 
+  const allIncome = allTxs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const allExpense = allTxs.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+
   const byCategory: Record<string, { name: string; icon: string; amount: number; type: string }> = {};
-  for (const t of transactions) {
+  for (const t of periodTxs) {
     const key = t.category?.name || "Non catégorisé";
     if (!byCategory[key]) {
       byCategory[key] = { name: key, icon: t.category?.icon || "", amount: 0, type: t.type };
@@ -34,7 +39,7 @@ function computeScopeSummary(transactions: { type: string; amount: number; categ
     income,
     expense,
     savings,
-    balance: initialBalance + savings,
+    balance: initialBalance + allIncome - allExpense,
     initialBalance,
     topCategories: Object.values(byCategory).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)),
   };
@@ -61,9 +66,9 @@ export async function GET(req: NextRequest) {
       endDate = getEndOfYear(now);
     }
 
-    const where: Record<string, unknown> = { userId };
+    const periodWhere: Record<string, unknown> = { userId };
     if (startDate && endDate) {
-      where.date = { gte: startDate, lte: endDate };
+      periodWhere.date = { gte: startDate, lte: endDate };
     }
 
     const user = await prisma.user.findUnique({
@@ -73,21 +78,42 @@ export async function GET(req: NextRequest) {
 
     const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
     if (!isPremium) {
-      where.OR = [
+      periodWhere.OR = [
         { category: { archived: false } },
         { categoryId: null },
       ];
     }
 
-    const allTransactions = await prisma.transaction.findMany({
-      where,
+    const periodTransactions = await prisma.transaction.findMany({
+      where: periodWhere,
       include: { category: true },
     });
+
+    const allWhere: Record<string, unknown> = { userId };
+    if (!isPremium) {
+      allWhere.OR = [
+        { category: { archived: false } },
+        { categoryId: null },
+      ];
+    }
+    const allTransactions = await prisma.transaction.findMany({
+      where: allWhere,
+      include: { category: true },
+    });
+
     const personalBalance = user?.initialBalance || 0;
     const activityBalance = user?.initialBalanceActivity || 0;
 
-    const personal = computeScopeSummary(allTransactions.filter(t => t.scope === "personal"), personalBalance);
-    const activity = computeScopeSummary(allTransactions.filter(t => t.scope === "activity"), activityBalance);
+    const personal = computeScopeSummary(
+      periodTransactions.filter(t => t.scope === "personal"),
+      allTransactions.filter(t => t.scope === "personal"),
+      personalBalance,
+    );
+    const activity = computeScopeSummary(
+      periodTransactions.filter(t => t.scope === "activity"),
+      allTransactions.filter(t => t.scope === "activity"),
+      activityBalance,
+    );
 
     return ok({ personal, activity });
   } catch {

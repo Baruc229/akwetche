@@ -194,8 +194,9 @@ export default function DashboardPage() {
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const dayOfMonth = new Date().getDate();
   const daysLeft = daysInMonth - dayOfMonth;
+  const dailyAvgIncome = dayOfMonth > 0 ? (totalIncome / dayOfMonth) : 0;
   const dailyAvgExpense = dayOfMonth > 0 ? (totalExpense / dayOfMonth) : 0;
-  const projectedRemaining = totalBalance - (dailyAvgExpense * daysLeft);
+  const projectedRemaining = totalBalance + (dailyAvgIncome * daysLeft) - (dailyAvgExpense * daysLeft);
 
   const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
 
