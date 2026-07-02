@@ -52,7 +52,7 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-2 mb-6">
             <div className="w-8 h-8 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
-              <img src="/akwetche-symbole.png" alt="Akwetche" className="w-4 h-4" />
+              <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-4 h-4" />
             </div>
             <span className="text-lg font-bold text-[var(--color-brand)]">Akwetche</span>
           </div>
@@ -70,13 +70,13 @@ export default function LoginPage() {
                 Email
               </label>
               <div className="relative">
-                <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemple@email.com"
-                  className="input-field pl-10"
+                  className="input-field pl-12"
                   required
                 />
               </div>
@@ -87,13 +87,13 @@ export default function LoginPage() {
                 Mot de passe
               </label>
               <div className="relative">
-                <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Votre mot de passe"
-                  className="input-field pl-10 pr-10"
+                  className="input-field pl-12 pr-10"
                   required
                 />
                 <button

@@ -578,13 +578,19 @@ export default function SettingsPage() {
   </div>
  <div>
   <label className="field-label">Argent de départ</label>
-  <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseBalanceRef.current = bc !== dc ? convertAmount(v, dc, bc) : v; }} className="input-field" min="0" step="any" />
- <p className="text-xs text-muted mt-1">Ce que vous aviez avant de commencer.</p>
+  <div className="relative">
+  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+  <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseBalanceRef.current = bc !== dc ? convertAmount(v, dc, bc) : v; }} className="input-field pl-16" min="0" step="any" />
+  </div>
+  <p className="text-xs text-muted mt-1">Ce que vous aviez avant de commencer.</p>
  </div>
  {isPremium && (
  <div>
   <label className="field-label">Argent de départ (activité)</label>
-  <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseActivityRef.current = bc !== dc ? convertAmount(v, dc, bc) : v; }} className="input-field" min="0" step="any" />
+  <div className="relative">
+  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+  <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseActivityRef.current = bc !== dc ? convertAmount(v, dc, bc) : v; }} className="input-field pl-16" min="0" step="any" />
+  </div>
  <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
  </div>
  )}

@@ -473,13 +473,13 @@ export default function ProductsPage() {
                         type="number"
                         value={form.purchasePrice}
                         onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                        className="input-field pl-[34px]"
+                        className="input-field pl-16"
                         min="0"
                         step="0.01"
                         placeholder="0"
                       />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
-                        {currency === "EUR" ? "€" : "F"}
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
+                        {currency === "EUR" ? "EUR" : "FCFA"}
                       </span>
                     </div>
                   </div>
@@ -490,13 +490,13 @@ export default function ProductsPage() {
                         type="number"
                         value={form.salePrice}
                         onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                        className="input-field pl-[34px]"
+                        className="input-field pl-16"
                         min="0"
                         step="0.01"
                         placeholder="0"
                       />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
-                        {currency === "EUR" ? "€" : "F"}
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
+                        {currency === "EUR" ? "EUR" : "FCFA"}
                       </span>
                     </div>
                   </div>
@@ -577,13 +577,13 @@ export default function ProductsPage() {
                       type="number"
                       value={form.purchasePrice}
                       onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                      className="input-field pl-[34px]"
+                      className="input-field pl-16"
                       min="0"
                       step="0.01"
                       placeholder="0"
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
-                      {currency === "EUR" ? "€" : "F"}
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
+                      {currency === "EUR" ? "EUR" : "FCFA"}
                     </span>
                   </div>
                 </div>
@@ -594,13 +594,13 @@ export default function ProductsPage() {
                       type="number"
                       value={form.salePrice}
                       onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                      className="input-field pl-[34px]"
+                      className="input-field pl-16"
                       min="0"
                       step="0.01"
                       placeholder="0"
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
-                      {currency === "EUR" ? "€" : "F"}
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
+                      {currency === "EUR" ? "EUR" : "FCFA"}
                     </span>
                   </div>
                 </div>

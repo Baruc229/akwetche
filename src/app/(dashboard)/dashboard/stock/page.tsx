@@ -66,7 +66,7 @@ export default function StockPage() {
       let status: ProductStats["status"] = "instock";
       if (p.stock === 0) {
         status = "out";
-      } else if (initialStock > 0 && p.stock <= initialStock * 0.2) {
+      } else if (initialStock > 0 && p.stock <= initialStock * 0.05) {
         status = "low";
       }
       return { product: p, initialStock, sold, remaining: p.stock, status };

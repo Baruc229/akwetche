@@ -522,7 +522,10 @@ export default function TransactionsPage() {
                 </div>
                 <div>
                   <label className="field-label">Montant</label>
-                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field" placeholder="Ex: 5000" required min="1" />
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+                    <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="Ex: 5000" required min="1" />
+                  </div>
                 </div>
                 <div>
                   <label className="field-label">Description</label>
@@ -586,7 +589,10 @@ export default function TransactionsPage() {
               </div>
               <div>
                 <label className="field-label">Montant</label>
-                <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field" placeholder="Ex: 5000" required min="1" />
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="Ex: 5000" required min="1" />
+                </div>
               </div>
               <div>
                 <label className="field-label">Description</label>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronLeft, faChevronRight, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronLeft, faChevronRight, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -310,7 +310,7 @@ export default function DashboardLayout({
         className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden transition-all duration-200
           ${sidebarCollapsed ? 'w-16' : 'w-60'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-        style={{background:'var(--color-brand)'}}
+        style={{background:'var(--color-brand)', boxShadow:'2px 0 20px rgba(0,0,0,0.12)'}}
       >
         {/* Logo */}
         <div className={`flex items-center shrink-0 ${sidebarCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
@@ -488,10 +488,12 @@ export default function DashboardLayout({
               <div className="relative" ref={accountMenuRef}>
                 <button
                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold cursor-pointer transition-all"
-                  style={{background:'var(--color-gold)', color:'var(--color-brand)', outline: accountMenuOpen ? '2px solid var(--color-brand)' : '2px solid transparent', outlineOffset: '2px'}}
+                  className="flex items-center gap-1.5 px-1 py-1 rounded-lg transition-all hover:bg-[var(--color-brand-subtle)] cursor-pointer"
                 >
-                  {avatarInitial}
+                  <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold" style={{background:'var(--color-gold)', color:'var(--color-brand)', outline: accountMenuOpen ? '2px solid var(--color-brand)' : '2px solid transparent', outlineOffset: '2px'}}>
+                    {avatarInitial}
+                  </div>
+                  <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 text-muted transition-transform" style={{transform: accountMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)'}} />
                 </button>
 
                 {accountMenuOpen && (

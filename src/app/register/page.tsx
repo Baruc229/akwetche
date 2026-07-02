@@ -253,7 +253,7 @@ export default function RegisterPage() {
   Nom complet
   </label>
   <div className="relative">
-  <FontAwesomeIcon icon={faUser} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+  <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
   <input
     type="text"
     value={name}
@@ -262,7 +262,7 @@ export default function RegisterPage() {
       setFieldErrors((prev) => ({ ...prev, name: undefined }));
     }}
     placeholder="Votre nom"
-    className={`input-field pl-10 ${fieldErrors.name ? "border-[var(--color-neg)]" : ""}`}
+    className={`input-field pl-12 ${fieldErrors.name ? "border-[var(--color-neg)]" : ""}`}
     required
   />
   </div>
@@ -276,13 +276,13 @@ export default function RegisterPage() {
   Email
   </label>
   <div className="relative">
-  <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+  <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
   <input
   type="email"
   value={email}
   onChange={(e) => setEmail(e.target.value)}
   placeholder="exemple@email.com"
-  className="input-field pl-10"
+  className="input-field pl-12"
   required
   />
   </div>
@@ -293,13 +293,13 @@ export default function RegisterPage() {
   Mot de passe
   </label>
   <div className="relative">
-  <FontAwesomeIcon icon={faLock} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+  <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
   <input
   type={showPassword ? "text" : "password"}
   value={password}
   onChange={(e) => setPassword(e.target.value)}
   placeholder="Minimum 6 caractères"
-  className="input-field pl-10 pr-10"
+  className="input-field pl-12 pr-10"
   required
   minLength={6}
   />
@@ -343,7 +343,7 @@ export default function RegisterPage() {
     Téléphone <span className="text-[var(--color-neg)]">*</span>
   </label>
   <div className="relative">
-  <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+  <FontAwesomeIcon icon={faPhone} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
   <input
     type="tel"
     value={phone}
@@ -364,7 +364,7 @@ export default function RegisterPage() {
       }
     }}
     placeholder={`${phonePrefix} XX XX XX XX`}
-    className={`input-field pl-10 ${fieldErrors.phone ? "border-[var(--color-neg)]" : ""}`}
+    className={`input-field pl-12 ${fieldErrors.phone ? "border-[var(--color-neg)]" : ""}`}
   />
   </div>
   {fieldErrors.phone && (
@@ -376,14 +376,17 @@ export default function RegisterPage() {
   <label className="block text-sm font-medium text-ink mb-1.5">
   Solde initial (optionnel)
   </label>
+  <div className="relative">
+  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{detectedCurrency === "XOF" ? "FCFA" : "EUR"}</span>
   <input
   type="number"
   value={initialBalance}
   onChange={(e) => setInitialBalance(e.target.value)}
   placeholder="Ex: 150000"
-  className="input-field"
+  className="input-field pl-16"
   min="0"
   />
+  </div>
   <p className="text-xs text-muted mt-1">
   Montant en {detectedCurrency === "XOF" ? "FCFA" : "EUR"} (ex: 150000)
   </p>

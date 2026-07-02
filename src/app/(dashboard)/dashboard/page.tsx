@@ -295,7 +295,7 @@ export default function DashboardPage() {
         </p>
         <button
           onClick={handleToggle}
-          className="text-xs text-white/40 hover:text-white/70 transition-colors mb-4 underline underline-offset-2 decoration-white/20"
+          className="text-xs text-white/40 hover:text-white/70 transition-colors mb-4 underline underline-offset-2 decoration-white/20 cursor-pointer"
         >
           {isEuro ? "Voir en FCFA" : "Voir en EUR"}
         </button>

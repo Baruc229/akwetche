@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { DM_Sans, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -8,7 +8,7 @@ const dmSans = DM_Sans({
   weight: ["300", "400", "500", "600"],
 });
 
-const fraunces = Fraunces({
+const robotoCondensed = Roboto_Condensed({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["600", "700"],
@@ -27,7 +27,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html lang="fr" className={`${dmSans.variable} ${robotoCondensed.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );
