@@ -140,6 +140,16 @@ export function getCurrencyForCountry(countryCode: string): CurrencyCode {
   return COUNTRY_CONFIG[countryCode as CountryCode]?.currency ?? "XOF";
 }
 
+// ============================================================
+// CONSTANTE DE CONVERSION — taux fixe invariable
+// ============================================================
+
+export const EUR_TO_FCFA = 655.957;
+
+// ============================================================
+// FORMATAGE AFFICHAGE (inchangé)
+// ============================================================
+
 export function formatEUR(amount: number): string {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -157,13 +167,35 @@ export function formatXOF(amount: number): string {
   }).format(amount) + " FCFA";
 }
 
-export function toEUR(amountXOF: number): number {
-  return amountXOF / 655.957;
+// ============================================================
+// FONCTIONS DE CONVERSION — PIVOT UNIQUE FCFA
+// ============================================================
+
+/** Convertir un montant saisi en devise quelconque vers l'entier FCFA de stockage */
+export function toStorageCurrency(amount: number, fromCurrency: CurrencyCode): number {
+  if (fromCurrency === "EUR") return Math.round(amount * EUR_TO_FCFA);
+  return Math.round(amount);
 }
 
-export function toXOF(amountEUR: number): number {
-  return Math.round(amountEUR * 655.957);
+/** Convertir un montant FCFA stocké vers la devise d'affichage */
+export function toDisplayCurrency(fcfaAmount: number, toCurrency: CurrencyCode): number {
+  if (toCurrency === "EUR") return fcfaAmount / EUR_TO_FCFA;
+  return fcfaAmount;
 }
+
+/** Convertir FCFA → EUR (précision totale, pas d'arrondi) */
+export function toEUR(amountXOF: number): number {
+  return amountXOF / EUR_TO_FCFA;
+}
+
+/** Convertir EUR → FCFA (entier) */
+export function toXOF(amountEUR: number): number {
+  return Math.round(amountEUR * EUR_TO_FCFA);
+}
+
+// ============================================================
+// ÉTAT GLOBAL D'AFFICHAGE (inchangé)
+// ============================================================
 
 let _activeCurrency: CurrencyCode | null = null;
 let _activeBaseCurrency: CurrencyCode | null = null;
@@ -177,12 +209,14 @@ export function detectCurrency(): CurrencyCode {
   return "XOF";
 }
 
-export function setActiveBaseCurrency(c: CurrencyCode) {
-  _activeBaseCurrency = c;
+/** @deprecated Le stockage est toujours en FCFA — cette fonction n'a plus d'utilité */
+export function setActiveBaseCurrency(_c: CurrencyCode) {
+  _activeBaseCurrency = "XOF";
 }
 
-export function detectBaseCurrency(): CurrencyCode | null {
-  return _activeBaseCurrency;
+/** @deprecated Le stockage est toujours en FCFA — retourne toujours "XOF" */
+export function detectBaseCurrency(): CurrencyCode {
+  return "XOF";
 }
 
 export function resolveCurrency(pref?: string | null): CurrencyCode {
@@ -190,120 +224,56 @@ export function resolveCurrency(pref?: string | null): CurrencyCode {
   return detectCurrency();
 }
 
-export function formatCurrency(amount: number, currency?: CurrencyCode, baseCurrency?: CurrencyCode): string {
+// ============================================================
+// FORMATAGE — version simplifiée, prend un montant FCFA
+// ============================================================
+
+export function formatCurrency(fcfaAmount: number, currency?: CurrencyCode, _baseCurrency?: CurrencyCode): string {
   if (!currency) currency = detectCurrency();
-  if (baseCurrency === undefined) baseCurrency = detectBaseCurrency() ?? undefined;
-  let displayAmount = amount;
-  if (baseCurrency && baseCurrency !== currency) {
-    displayAmount = convertAmount(amount, baseCurrency, currency);
-  }
-  return currency === "EUR" ? formatEUR(displayAmount) : formatXOF(displayAmount);
+  if (currency === "EUR") return formatEUR(toDisplayCurrency(fcfaAmount, "EUR"));
+  return formatXOF(fcfaAmount);
 }
 
-/**
- * Convertir un montant de la devise de stockage (baseCurrency) vers la devise d'affichage.
- * À utiliser pour pré-remplir les champs de formulaire à partir des valeurs DB.
- */
-export function convertForDisplay(
-  amount: number,
-  baseCurrency: CurrencyCode,
-  displayCurrency: CurrencyCode,
-): number {
-  if (baseCurrency === displayCurrency) return amount;
-  return convertAmount(amount, baseCurrency, displayCurrency);
-}
-
-/**
- * Convertir un montant de la devise d'affichage vers la devise de stockage (baseCurrency).
- * À utiliser pour sauvegarder les saisies utilisateur en base.
- */
-export function convertForStorage(
-  amount: number,
-  displayCurrency: CurrencyCode,
-  baseCurrency: CurrencyCode,
-): number {
-  if (baseCurrency === displayCurrency) return amount;
-  return convertAmount(amount, displayCurrency, baseCurrency);
-}
-
-export function formatDualCurrency(amount: number, currency?: CurrencyCode): { primary: string; secondary: string } {
+export function formatDualCurrency(fcfaAmount: number, currency?: CurrencyCode): { primary: string; secondary: string } {
   if (!currency) currency = detectCurrency();
   if (currency === "EUR") {
     return {
-      primary: formatEUR(amount),
-      secondary: formatXOF(toXOF(amount)),
+      primary: formatEUR(toDisplayCurrency(fcfaAmount, "EUR")),
+      secondary: formatXOF(fcfaAmount),
     };
   }
   return {
-    primary: formatXOF(amount),
-    secondary: formatEUR(toEUR(amount)),
+    primary: formatXOF(fcfaAmount),
+    secondary: formatEUR(toDisplayCurrency(fcfaAmount, "EUR")),
   };
 }
 
-// Server-side only: exchange rate cache
-const FCFA_TO_EUR = 655.957;
+// ============================================================
+// DÉPRÉCIÉ — wrappers temporaires pour migration progressive
+// ============================================================
 
-interface RateCache {
-  rate: number;
-  expiry: number;
+/** @deprecated Utiliser toStorageCurrency(amount, fromCurrency) */
+export function convertForStorage(amount: number, fromCurrency: CurrencyCode, _baseCurrency?: CurrencyCode): number {
+  return toStorageCurrency(amount, fromCurrency);
 }
 
-let rateCache: RateCache | null = null;
-const CACHE_TTL_MS = 60 * 60 * 1000;
+/** @deprecated Utiliser toDisplayCurrency(fcfaAmount, toCurrency) */
+export function convertForDisplay(fcfaAmount: number, _baseCurrency?: CurrencyCode, toCurrency?: CurrencyCode): number {
+  return toDisplayCurrency(fcfaAmount, toCurrency ?? "XOF");
+}
+
+// ============================================================
+// ARRONDI PAR DEVISE
+// ============================================================
 
 export function roundByCurrency(amount: number, currency: CurrencyCode): number {
   if (currency === "XOF") return Math.round(amount);
   return Math.round(amount * 100) / 100;
 }
 
-export async function getExchangeRate(): Promise<number> {
-  if (rateCache && Date.now() < rateCache.expiry) {
-    return rateCache.rate;
-  }
-
-  const apiKey = process.env.EXCHANGE_RATE_API_KEY;
-  if (!apiKey) {
-    rateCache = { rate: FCFA_TO_EUR, expiry: Date.now() + CACHE_TTL_MS };
-    return FCFA_TO_EUR;
-  }
-
-  try {
-    const res = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/pair/EUR/XOF`);
-    const data = await res.json();
-    if (data.result === "success" && data.conversion_rate) {
-      rateCache = { rate: data.conversion_rate, expiry: Date.now() + CACHE_TTL_MS };
-      return data.conversion_rate;
-    }
-  } catch {
-    rateCache = { rate: FCFA_TO_EUR, expiry: Date.now() + CACHE_TTL_MS };
-  }
-
-  return FCFA_TO_EUR;
-}
-
-export function convertAmount(
-  amount: number,
-  from: CurrencyCode,
-  to: CurrencyCode,
-  rate?: number,
-): number {
-  if (from === to) return amount;
-  if (rate) {
-    return from === "EUR" ? roundByCurrency(amount * rate, to) : roundByCurrency(amount / rate, to);
-  }
-  if (from === "EUR") return toXOF(amount);
-  return toEUR(amount);
-}
-
-export async function convertAmountAsync(
-  amount: number,
-  from: CurrencyCode,
-  to: CurrencyCode,
-): Promise<number> {
-  if (from === to) return amount;
-  const rate = await getExchangeRate();
-  return convertAmount(amount, from, to, rate);
-}
+// ============================================================
+// FONCTIONS PAYS / TÉLÉPHONE (inchangées)
+// ============================================================
 
 export function getCountryName(code: string): string {
   return COUNTRY_CONFIG[code as CountryCode]?.name ?? code;
