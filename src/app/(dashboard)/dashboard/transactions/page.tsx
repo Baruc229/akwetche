@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faCalendarDays, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, formatDate, convertAmount } from "@/lib/utils";
+import { formatCurrency, formatDate, convertForDisplay, convertForStorage } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -65,6 +65,23 @@ export default function TransactionsPage() {
     note: "",
   });
   const [txError, setTxError] = useState("");
+
+  // Reconvertir le montant affiché dans le formulaire quand la devise change
+  const prevCurrencyRef = useRef(currency);
+  useEffect(() => {
+    const prev = prevCurrencyRef.current;
+    if (showModal && prev !== currency) {
+      if (editTx) {
+        // Mode édition : valeur de base connue
+        setFormData(f => ({ ...f, amount: String(convertForDisplay(editTx.amount, baseCurrency, currency)) }));
+      } else if (formData.amount) {
+        // Mode ajout : convertir depuis l'ancienne devise via baseCurrency
+        const baseVal = convertForStorage(parseFloat(formData.amount) || 0, prev, baseCurrency);
+        setFormData(f => ({ ...f, amount: String(convertForDisplay(baseVal, baseCurrency, currency)) }));
+      }
+      prevCurrencyRef.current = currency;
+    }
+  }, [currency, showModal]);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
@@ -162,7 +179,7 @@ export default function TransactionsPage() {
     setEditTx(tx);
     setFormData({
       type: tx.type,
-      amount: String(convertAmount(tx.amount, baseCurrency, currency)),
+      amount: String(convertForDisplay(tx.amount, baseCurrency, currency)),
       description: tx.description,
       categoryId: String(tx.category?.id ?? ""),
       date: tx.date ? new Date(tx.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -198,7 +215,7 @@ export default function TransactionsPage() {
     try {
       const url = editTx ? `/api/transactions/${editTx.id}` : "/api/transactions";
       const method = editTx ? "PUT" : "POST";
-      const body: Record<string, unknown> = { type: formData.type, amount: convertAmount(Number(formData.amount), currency, baseCurrency), description: formData.description, categoryId: Number(formData.categoryId), date: formData.date, scope: formData.scope };
+      const body: Record<string, unknown> = { type: formData.type, amount: convertForStorage(Number(formData.amount), currency, baseCurrency), description: formData.description, categoryId: Number(formData.categoryId), date: formData.date, scope: formData.scope };
       if (formData.note) body.note = formData.note;
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

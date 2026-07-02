@@ -200,6 +200,32 @@ export function formatCurrency(amount: number, currency?: CurrencyCode, baseCurr
   return currency === "EUR" ? formatEUR(displayAmount) : formatXOF(displayAmount);
 }
 
+/**
+ * Convertir un montant de la devise de stockage (baseCurrency) vers la devise d'affichage.
+ * À utiliser pour pré-remplir les champs de formulaire à partir des valeurs DB.
+ */
+export function convertForDisplay(
+  amount: number,
+  baseCurrency: CurrencyCode,
+  displayCurrency: CurrencyCode,
+): number {
+  if (baseCurrency === displayCurrency) return amount;
+  return convertAmount(amount, baseCurrency, displayCurrency);
+}
+
+/**
+ * Convertir un montant de la devise d'affichage vers la devise de stockage (baseCurrency).
+ * À utiliser pour sauvegarder les saisies utilisateur en base.
+ */
+export function convertForStorage(
+  amount: number,
+  displayCurrency: CurrencyCode,
+  baseCurrency: CurrencyCode,
+): number {
+  if (baseCurrency === displayCurrency) return amount;
+  return convertAmount(amount, displayCurrency, baseCurrency);
+}
+
 export function formatDualCurrency(amount: number, currency?: CurrencyCode): { primary: string; secondary: string } {
   if (!currency) currency = detectCurrency();
   if (currency === "EUR") {

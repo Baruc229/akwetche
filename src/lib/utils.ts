@@ -1,4 +1,4 @@
-export { formatCurrency, formatDualCurrency, detectCurrency, detectBaseCurrency, formatEUR, formatXOF, toEUR, toXOF, resolveCurrency, setActiveCurrency, setActiveBaseCurrency, getCountryByCode, getCountryName, getCountryFlag, getCountryFlagDisplay, validatePhone, validatePhoneMessage, validateName, NAME_PATTERN, getCurrencyForCountry, convertAmount, getPhonePrefix, ALLOWED_COUNTRIES, ALLOWED_COUNTRY_CODES, COUNTRY_OPTIONS, COUNTRY_CONFIG, roundByCurrency } from "./currency";
+export { formatCurrency, formatDualCurrency, detectCurrency, detectBaseCurrency, formatEUR, formatXOF, toEUR, toXOF, resolveCurrency, setActiveCurrency, setActiveBaseCurrency, getCountryByCode, getCountryName, getCountryFlag, getCountryFlagDisplay, validatePhone, validatePhoneMessage, validateName, NAME_PATTERN, getCurrencyForCountry, convertAmount, convertForDisplay, convertForStorage, getPhonePrefix, ALLOWED_COUNTRIES, ALLOWED_COUNTRY_CODES, COUNTRY_OPTIONS, COUNTRY_CONFIG, roundByCurrency } from "./currency";
 export type { CurrencyCode, CountryCode, CountryInfo } from "./currency";
 
 export function formatDate(date: Date | string): string {

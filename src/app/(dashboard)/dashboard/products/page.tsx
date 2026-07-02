@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, convertAmount, detectBaseCurrency } from "@/lib/utils";
+import { formatCurrency, convertForDisplay, convertForStorage } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -68,7 +68,7 @@ function StockBar({ stock }: { stock: number }) {
 }
 
 export default function ProductsPage() {
-  const { user, currency } = useDashboard();
+  const { user, currency, baseCurrency } = useDashboard();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +89,30 @@ export default function ProductsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortOpen, setSortOpen] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Reconvertir les prix affichés dans le formulaire quand la devise change
+  const prevCurrencyRef = useRef(currency);
+  useEffect(() => {
+    const prev = prevCurrencyRef.current;
+    if (showModal && prev !== currency) {
+      if (editProduct) {
+        setForm(f => ({
+          ...f,
+          purchasePrice: String(convertForDisplay(editProduct.purchasePrice, baseCurrency, currency)),
+          salePrice: String(convertForDisplay(editProduct.salePrice, baseCurrency, currency)),
+        }));
+      } else {
+        const basePurchase = convertForStorage(parseFloat(form.purchasePrice) || 0, prev, baseCurrency);
+        const baseSale = convertForStorage(parseFloat(form.salePrice) || 0, prev, baseCurrency);
+        setForm(f => ({
+          ...f,
+          purchasePrice: String(convertForDisplay(basePurchase, baseCurrency, currency)),
+          salePrice: String(convertForDisplay(baseSale, baseCurrency, currency)),
+        }));
+      }
+      prevCurrencyRef.current = currency;
+    }
+  }, [currency, showModal]);
 
   async function loadProducts() {
     setLoading(true);
@@ -130,13 +154,8 @@ export default function ProductsPage() {
 
   function openEdit(product: Product) {
     setEditProduct(product);
-    const baseCur = detectBaseCurrency();
-    const displayPurchasePrice = baseCur && baseCur !== currency
-      ? convertAmount(product.purchasePrice, baseCur, currency)
-      : product.purchasePrice;
-    const displaySalePrice = baseCur && baseCur !== currency
-      ? convertAmount(product.salePrice, baseCur, currency)
-      : product.salePrice;
+    const displayPurchasePrice = convertForDisplay(product.purchasePrice, baseCurrency, currency);
+    const displaySalePrice = convertForDisplay(product.salePrice, baseCurrency, currency);
     setForm({
       name: product.name,
       description: product.description || "",
@@ -157,13 +176,8 @@ export default function ProductsPage() {
       return;
     }
 
-    const baseCur = detectBaseCurrency();
-    const purchasePrice = baseCur && baseCur !== currency
-      ? convertAmount(parseFloat(form.purchasePrice || "0"), currency, baseCur)
-      : form.purchasePrice;
-    const salePrice = baseCur && baseCur !== currency
-      ? convertAmount(parseFloat(form.salePrice || "0"), currency, baseCur)
-      : form.salePrice;
+    const purchasePrice = convertForStorage(parseFloat(form.purchasePrice || "0"), currency, baseCurrency);
+    const salePrice = convertForStorage(parseFloat(form.salePrice || "0"), currency, baseCurrency);
 
     const method = editProduct ? "PUT" : "POST";
     const body: Record<string, unknown> = editProduct
@@ -418,16 +432,16 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-[6px] mb-4">
                   <div className="card-inset min-w-0 overflow-hidden">
                     <p className="text-label">Prix achat</p>
-                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.purchasePrice, currency)}</p>
+                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.purchasePrice, currency, baseCurrency)}</p>
                   </div>
                   <div className="card-inset min-w-0 overflow-hidden">
                     <p className="text-label">Prix vente</p>
-                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.salePrice, currency)}</p>
+                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.salePrice, currency, baseCurrency)}</p>
                   </div>
                   <div className="col-span-2 w-full card-inset" style={marginStyle}>
                     <p className="text-label">Marge</p>
                     <p className="text-amount text-[13px] mt-0.5" style={marginTextStyle}>
-                      {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency)}
+                      {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency, baseCurrency)}
                     </p>
                     <p className="text-[9px] mt-0.5" style={{ ...marginTextStyle, opacity: 0.8 }}>{marginRate.toFixed(0)}%</p>
                   </div>
