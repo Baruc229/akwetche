@@ -97,6 +97,7 @@ body {
 }
 .card-compact { padding: 14px 16px; border-radius: 12px; background: var(--color-surface); border: 1px solid var(--color-border); }
 .card-hero    { background: var(--color-brand); border-radius: 18px; padding: 28px 30px; color: white; }
+@layer base {
 .card-inset   { background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: 10px; padding: 14px 16px; }
 
 /* Buttons */
@@ -137,7 +138,6 @@ body {
 .btn-danger:hover { opacity: 0.88; }
 
 /* Inputs */
-@layer base {
   .input-field {
     width: 100%; padding: 10px 14px;
     background: var(--color-surface);
@@ -166,6 +166,7 @@ body {
   }
 }
 
+@layer base {
 .field-label {
   display: block;
   font-family: var(--font-body);
@@ -224,6 +225,7 @@ body {
 
 .bar-track.on-dark { background:rgba(255,255,255,0.14); }
 .bar-fill.on-dark  { background:#fff; }
+}
 
 /* Stat values */
 .stat-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; overflow-wrap: break-word; word-break: break-word; }

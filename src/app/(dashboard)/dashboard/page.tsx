@@ -304,7 +304,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="card-inset" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
             <p className="text-label text-white/50">Reçus</p>
-            <p className="text-amount text-lg" style={{ color: 'var(--color-pos)' }}>{formatCurrency(totalIncome)}</p>
+            <p className="text-amount text-lg" style={{ color: '#4ADE80' }}>{formatCurrency(totalIncome)}</p>
           </div>
           <div className="card-inset" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
             <p className="text-label text-white/50">Dépensés</p>
