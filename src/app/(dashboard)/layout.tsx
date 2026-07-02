@@ -315,8 +315,8 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className={`flex items-center shrink-0 ${sidebarCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
           <Link href="/dashboard" className={`flex items-center gap-2 ${sidebarCollapsed ? '' : ''}`}>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:'var(--color-gold)'}}>
-              <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-6 h-6" />
             </div>
             {!sidebarCollapsed && (
               <span className="text-lg font-bold text-white font-[family-name:var(--font-display)]">Akwetche</span>
