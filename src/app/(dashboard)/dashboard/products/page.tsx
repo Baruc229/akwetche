@@ -15,6 +15,7 @@ type Product = {
   purchasePrice: number;
   salePrice: number;
   stock: number;
+  initialStock: number;
   description?: string;
 };
 
@@ -34,17 +35,21 @@ function getCardColor(name: string, index: number) {
   return CARD_COLORS[hash % CARD_COLORS.length];
 }
 
-function StockBar({ stock }: { stock: number }) {
-  const threshold = 5;
+function StockBar({ stock, initialStock }: { stock: number; initialStock: number }) {
+  const ratio = initialStock > 0 ? stock / initialStock : 1;
   let barBg: string, dotBg: string, label: string;
   if (stock === 0) {
     barBg = "var(--color-bar-neg)";
     dotBg = "var(--color-neg)";
     label = "Stock critique";
-  } else if (stock <= threshold) {
+  } else if (ratio <= 0.15) {
+    barBg = "var(--color-bar-neg)";
+    dotBg = "var(--color-neg)";
+    label = "Stock faible";
+  } else if (ratio <= 0.30) {
     barBg = "var(--color-bar-warn)";
     dotBg = "var(--color-warn)";
-    label = "Stock faible";
+    label = "Stock en baisse";
   } else {
     barBg = "var(--color-bar-pos)";
     dotBg = "var(--color-pos)";
@@ -448,7 +453,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Stock bar */}
-                <StockBar stock={p.stock} />
+                <StockBar stock={p.stock} initialStock={p.initialStock ?? p.stock} />
               </div>
             );
           })}

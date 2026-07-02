@@ -10,7 +10,23 @@ export async function GET() {
       where: { userId },
       orderBy: { name: "asc" },
     });
-    return ok({ products });
+
+    const inMovements = await prisma.stockMovement.groupBy({
+      by: ["productId"],
+      where: { userId, type: "in" },
+      _sum: { quantity: true },
+    });
+    const initialStockMap: Record<number, number> = {};
+    for (const m of inMovements) {
+      initialStockMap[m.productId] = m._sum.quantity ?? 0;
+    }
+
+    const enriched = products.map((p) => ({
+      ...p,
+      initialStock: initialStockMap[p.id] ?? p.stock,
+    }));
+
+    return ok({ products: enriched });
   } catch {
     return badRequest("Non autorisé");
   }
