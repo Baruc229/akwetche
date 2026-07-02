@@ -40,7 +40,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       {/* Colonne formulaire */}
-      <div className="flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
         <div className="w-full max-w-md">
           <a
             href="/"
@@ -51,10 +51,10 @@ export default function LoginPage() {
           </a>
 
           <div className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-forest rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
               <img src="/akwetche-symbole.png" alt="Akwetche" className="w-4 h-4" />
             </div>
-            <span className="text-lg font-bold text-forest">Akwetche</span>
+            <span className="text-lg font-bold text-[var(--color-brand)]">Akwetche</span>
           </div>
 
           <h1 className="text-2xl font-bold text-ink mb-1">
@@ -111,7 +111,7 @@ export default function LoginPage() {
               <div className="flex justify-end mt-1">
                 <a
                   href="/login/forgot-password"
-                  className="text-xs text-muted hover:text-forest transition-colors"
+                  className="text-xs text-muted hover:text-[var(--color-brand)] transition-colors"
                 >
                   Mot de passe oublié ?
                 </a>
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">
+              <p className="alert-inline neg text-sm">
                 {error}
               </p>
             )}
@@ -137,7 +137,7 @@ export default function LoginPage() {
             Pas encore de compte ?{" "}
             <a
               href="/register"
-              className="text-forest font-medium hover:text-forest"
+              className="text-[var(--color-brand)] font-medium hover:text-[var(--color-brand)]"
             >
               Créer un compte
             </a>

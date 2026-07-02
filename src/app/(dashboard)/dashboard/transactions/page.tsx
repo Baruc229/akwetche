@@ -281,59 +281,53 @@ export default function TransactionsPage() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center">
-              <FontAwesomeIcon icon={faArrowTrendUp} className="w-5 h-5 text-forest-light" />
-            </div>
-            <div>
-              <p className="text-xs text-muted">Revenus mensuels</p>
-              <p className="text-lg font-bold text-forest-light">{formatCurrency(totalIncome)}</p>
-            </div>
+        <div className="card-inset flex items-center gap-3 transition-shadow hover:shadow-sm">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--color-pos-bg)' }}>
+            <FontAwesomeIcon icon={faArrowTrendUp} className="w-5 h-5" style={{ color: 'var(--color-pos)' }} />
+          </div>
+          <div>
+            <p className="text-label">Revenus mensuels</p>
+            <p className="text-amount text-lg" style={{ color: 'var(--color-pos)' }}>{formatCurrency(totalIncome)}</p>
           </div>
         </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-pale flex items-center justify-center">
-              <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-red" />
-            </div>
-            <div>
-              <p className="text-xs text-muted">Dépenses mensuelles</p>
-              <p className="text-lg font-bold text-red">{formatCurrency(totalExpense)}</p>
-            </div>
+        <div className="card-inset flex items-center gap-3 transition-shadow hover:shadow-sm">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--color-neg-bg)' }}>
+            <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5" style={{ color: 'var(--color-neg)' }} />
+          </div>
+          <div>
+            <p className="text-label">Dépenses mensuelles</p>
+            <p className="text-amount text-lg" style={{ color: 'var(--color-neg)' }}>{formatCurrency(totalExpense)}</p>
           </div>
         </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-ochre-light flex items-center justify-center">
-              <FontAwesomeIcon icon={faArrowsUpDown} className="w-5 h-5" style={{ color: netBalance >= 0 ? '#1ABC9C' : '#E74C6F' }} />
-            </div>
-            <div>
-              <p className="text-xs text-muted">Solde net</p>
-              <p className={`text-lg font-bold ${netBalance >= 0 ? 'text-forest-light' : 'text-red-500'}`}>
-                {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance)}
-              </p>
-            </div>
+        <div className="card-inset flex items-center gap-3 transition-shadow hover:shadow-sm">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: netBalance >= 0 ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)' }}>
+            <FontAwesomeIcon icon={faArrowsUpDown} className="w-5 h-5" style={{ color: netBalance >= 0 ? 'var(--color-pos)' : 'var(--color-neg)' }} />
+          </div>
+          <div>
+            <p className="text-label">Solde net</p>
+            <p className="text-amount text-lg" style={{ color: netBalance >= 0 ? 'var(--color-pos)' : 'var(--color-neg)' }}>
+              {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance)}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Period Filter */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-1 flex-wrap p-1 rounded-xl" style={{ background: 'var(--color-surface-raised)' }}>
         {["month", "lastMonth", "custom"].map((p) => (
           <button
             key={p}
             onClick={() => handlePeriodChange(p)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${period === p ? "bg-ochre-light text-forest" : "text-muted hover:bg-border"}`}
+            className={`px-3 py-1.5 rounded-[10px] text-xs font-medium transition-all ${period === p ? "bg-[var(--color-surface)] text-ink shadow-sm" : "text-muted hover:text-ink"}`}
           >
             {p === "month" ? "Ce mois" : p === "lastMonth" ? "Mois dernier" : "Personnalisé"}
           </button>
         ))}
         {period === "custom" && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto ml-2">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 w-full sm:w-auto">
               <div className="relative w-full sm:w-auto">
-                <label className="block text-xs text-muted mb-0.5 sm:hidden">Date de début</label>
+                <label className="text-label mb-0.5 sm:hidden">Date de début</label>
                 <FontAwesomeIcon icon={faCalendarDays} className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none sm:top-1/2" />
                 <input
                   type="date"
@@ -344,7 +338,7 @@ export default function TransactionsPage() {
               </div>
               <span className="hidden sm:inline text-xs text-muted text-center">au</span>
               <div className="relative w-full sm:w-auto">
-                <label className="block text-xs text-muted mb-0.5 sm:hidden">Date de fin</label>
+                <label className="text-label mb-0.5 sm:hidden">Date de fin</label>
                 <FontAwesomeIcon icon={faCalendarDays} className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none sm:top-1/2" />
                 <input
                   type="date"
@@ -364,30 +358,32 @@ export default function TransactionsPage() {
           <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="input-field py-2 text-sm" style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }} placeholder="Rechercher..." />
           {searchInput && (
-            <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-sand transition-colors">
+            <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-[var(--color-surface-raised)] transition-colors">
               <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
         <span className="text-xs text-muted">Trier par:</span>
-        {["date", "amount", "category"].map((s) => (
-          <button
-            key={s}
-            onClick={() => handleSort(s)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1 ${sort === s ? "bg-ochre-light text-forest" : "text-muted hover:bg-border"}`}
-          >
-            {s === "date" ? "Date" : s === "amount" ? "Montant" : "Catégorie"}
-            {sort === s && <FontAwesomeIcon icon={faArrowsUpDown} className={`w-3 h-3 transition-transform ${sortOrder === "asc" ? "rotate-180" : ""}`} />}
-          </button>
-        ))}
+        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--color-surface-raised)' }}>
+          {["date", "amount", "category"].map((s) => (
+            <button
+              key={s}
+              onClick={() => handleSort(s)}
+              className={`px-3 py-1.5 rounded-[10px] text-xs font-medium transition-all flex items-center gap-1 ${sort === s ? "bg-[var(--color-surface)] text-ink shadow-sm" : "text-muted hover:text-ink"}`}
+            >
+              {s === "date" ? "Date" : s === "amount" ? "Montant" : "Catégorie"}
+              {sort === s && <FontAwesomeIcon icon={faArrowsUpDown} className={`w-3 h-3 transition-transform ${sortOrder === "asc" ? "rotate-180" : ""}`} />}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Erreur chargement */}
       {loadError && (
-      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
-      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-      <p className="text-sm text-red-700 flex-1">{loadError}</p>
-      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      <div className="alert-inline neg">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0 mt-0.5" />
+      <p className="text-sm flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="opacity-50 hover:opacity-100 shrink-0 transition-opacity"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
       </div>
       )}
 
@@ -406,10 +402,10 @@ export default function TransactionsPage() {
       {/* Transaction List */}
       <div className="card">
         {loading ? (
-          <div className="divide-y divide-border animate-pulse">
-            <div className="flex items-center gap-3 p-4"><div className="w-10 h-10 bg-stone/30 rounded-xl" /><div className="flex-1 space-y-2"><div className="h-4 w-3/4 bg-stone/30 rounded-lg" /><div className="h-3 w-1/2 bg-stone/20 rounded-lg" /></div><div className="h-5 w-20 bg-stone/20 rounded-lg" /></div>
-            <div className="flex items-center gap-3 p-4"><div className="w-10 h-10 bg-stone/30 rounded-xl" /><div className="flex-1 space-y-2"><div className="h-4 w-2/3 bg-stone/30 rounded-lg" /><div className="h-3 w-1/3 bg-stone/20 rounded-lg" /></div><div className="h-5 w-16 bg-stone/20 rounded-lg" /></div>
-            <div className="flex items-center gap-3 p-4"><div className="w-10 h-10 bg-stone/30 rounded-xl" /><div className="flex-1 space-y-2"><div className="h-4 w-3/4 bg-stone/30 rounded-lg" /><div className="h-3 w-1/2 bg-stone/20 rounded-lg" /></div><div className="h-5 w-24 bg-stone/20 rounded-lg" /></div>
+          <div className="divide-y divide-[var(--color-border)] animate-pulse">
+            <div className="flex items-center gap-3 p-4"><div className="skeleton w-10 h-10 rounded-xl" /><div className="flex-1 space-y-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/2" /></div><div className="skeleton h-5 w-20" /></div>
+            <div className="flex items-center gap-3 p-4"><div className="skeleton w-10 h-10 rounded-xl" /><div className="flex-1 space-y-2"><div className="skeleton h-4 w-2/3" /><div className="skeleton h-3 w-1/3" /></div><div className="skeleton h-5 w-16" /></div>
+            <div className="flex items-center gap-3 p-4"><div className="skeleton w-10 h-10 rounded-xl" /><div className="flex-1 space-y-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/2" /></div><div className="skeleton h-5 w-24" /></div>
           </div>
         ) : transactions.length === 0 ? (
           <div className="text-center py-12 text-muted">
@@ -417,33 +413,35 @@ export default function TransactionsPage() {
             <p className="text-sm">Aucune transaction trouvée</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-[var(--color-border)]">
             {groupedTransactions.map(group => (
               <div key={group.date}>
-                <div className="flex items-center justify-between px-4 py-2.5 bg-sand/50">
-                  <span className="text-xs font-semibold text-ink">{group.label}</span>
-                  <span className={`text-xs font-medium ${group.total >= 0 ? 'text-forest-light' : 'text-red'}`}>
+                <div className="flex items-center justify-between px-4 py-2.5" style={{ background: 'var(--color-surface-raised)' }}>
+                  <span className="text-label">{group.label}</span>
+                  <span className={`text-xs font-medium ${group.total >= 0 ? 'text-[var(--color-pos)]' : 'text-[var(--color-neg)]'}`}>
                     {group.total >= 0 ? '+' : ''}{formatCurrency(group.total)}
                   </span>
                 </div>
-                <div className="divide-y divide-border/50">
+                <div className="divide-y divide-[var(--color-border)]/50">
                   {group.transactions.map((tx, i) => (
-                    <div key={tx.id} className="p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
+                    <div key={tx.id} className="card-compact hover:shadow-sm transition-shadow animate-slide-in" style={{ animationDelay: `${i * 30}ms`, borderRadius: 0 }}>
                       {/* Mobile: stacked layout */}
                       <div className="md:hidden">
                         <div className="flex items-start gap-2">
-                          <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: tx.type === "income" ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)' }}>
+                            <FontAwesomeIcon icon={tx.type === "income" ? faArrowTrendUp : faArrowTrendDown} className="w-3.5 h-3.5" style={{ color: tx.type === "income" ? 'var(--color-pos)' : 'var(--color-neg)' }} />
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <p className="text-sm font-medium text-ink whitespace-normal break-words flex-1">{tx.description}</p>
-                              <span className={`text-sm font-semibold shrink-0 ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
+                              <span className="text-amount text-sm" style={{ color: tx.type === "income" ? 'var(--color-pos)' : 'var(--color-neg)' }}>
                                 {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                               </span>
                             </div>
                             <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted mt-0.5">
                               <span>{tx.category?.name || "Non catégorisé"}</span>
-                              {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
-                              {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
+                              {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: 'var(--color-gold)' }}><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
+                              {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: 'var(--color-brand)' }}><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
                             </div>
                           </div>
                         </div>
@@ -451,26 +449,28 @@ export default function TransactionsPage() {
                       {/* Desktop: inline layout */}
                       <div className="hidden md:flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: tx.type === "income" ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)' }}>
+                            <FontAwesomeIcon icon={tx.type === "income" ? faArrowTrendUp : faArrowTrendDown} className="w-3.5 h-3.5" style={{ color: tx.type === "income" ? 'var(--color-pos)' : 'var(--color-neg)' }} />
+                          </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-ink truncate">{tx.description}</p>
                             <div className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted">
                               <span>{tx.category?.name || "Non catégorisé"}</span>
                               <span>·</span>
                               <span>{formatDate(tx.date)}</span>
-                              {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 text-ochre font-medium"><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
-                              {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 text-forest font-medium"><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
+                              {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: 'var(--color-gold)' }}><FontAwesomeIcon icon={faBriefcase} className="w-3 h-3" /> activité</span>}
+                              {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: 'var(--color-brand)' }}><FontAwesomeIcon icon={faUser} className="w-3 h-3" /> personnel</span>}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-sm font-semibold ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
+                          <span className="text-amount text-sm" style={{ color: tx.type === "income" ? 'var(--color-pos)' : 'var(--color-neg)' }}>
                             {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                           </span>
-                          <button onClick={() => openEditModal(tx)} className="opacity-30 hover:opacity-100 text-muted hover:text-forest transition-all" title="Modifier">
+                          <button onClick={() => openEditModal(tx)} className="btn-ghost p-1.5" title="Modifier">
                             <FontAwesomeIcon icon={faPen} className="w-3 h-3" />
                           </button>
-                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="opacity-30 hover:opacity-100 text-muted hover:text-red transition-all" title="Supprimer">
+                          <button onClick={() => setConfirmDeleteTx(tx.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
                             <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
                           </button>
                         </div>
@@ -487,11 +487,11 @@ export default function TransactionsPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3">
-          <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="btn-secondary text-sm disabled:opacity-30">
+          <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="btn-ghost text-sm disabled:opacity-30">
             <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
           </button>
           <span className="text-sm text-muted">Page {page + 1} sur {totalPages}</span>
-          <button onClick={() => setPage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1} className="btn-secondary text-sm disabled:opacity-30">
+          <button onClick={() => setPage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1} className="btn-ghost text-sm disabled:opacity-30">
             <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
           </button>
         </div>
@@ -501,10 +501,10 @@ export default function TransactionsPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={closeModal}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
               <h3 className="text-lg font-semibold text-ink">{editTx ? "Modifier" : "Nouvelle transaction"}</h3>
-              <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
+              <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
               </button>
             </div>
@@ -512,13 +512,13 @@ export default function TransactionsPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {commercialMode && (
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-forest text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Personnel</button>
-                  <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Activité</button>
+                  <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
+                  <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-[var(--color-gold)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Activité</button>
                 </div>
                 )}
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-red text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
-                  <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-forest-light text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Revenu</button>
+                  <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-[var(--color-neg)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Dépense</button>
+                  <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-[var(--color-pos)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Revenu</button>
                 </div>
                 <div>
                   <label className="field-label">Montant</label>
@@ -541,19 +541,19 @@ export default function TransactionsPage() {
                   <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
                 </div>
                 {!editTx && limits && !limits.isPremium && user?.role === "user" && (
-                  <div className="p-3 bg-red-pale rounded-xl">
+                  <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-medium text-red">{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
-                      <span className="font-semibold text-red">{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
+                      <span className="font-medium" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
+                      <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
                     </div>
                     {(formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
-                      <p className="text-xs text-red-600">Limite mensuelle atteinte. Passez à Premium.</p>
+                      <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
                     ) : (
-                      <p className="text-xs text-red">{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
+                      <p className="text-xs" style={{ color: 'var(--color-warn)' }}>{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
                     )}
                   </div>
                 )}
-                {txError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{txError}</p>}
+                {txError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
                 {(() => {
                   const atLimit = !editTx && limits && !limits.isPremium && user?.role === "user" && ((formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense));
                   return <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">{editTx ? "Enregistrer" : "Ajouter"}</button>;
@@ -566,7 +566,7 @@ export default function TransactionsPage() {
       {/* Desktop modal */}
       {showModal && (
         <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="card max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">{editTx ? "Modifier la transaction" : "Nouvelle transaction"}</h3>
               <button onClick={closeModal} className="text-muted hover:text-muted">
@@ -576,48 +576,48 @@ export default function TransactionsPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {commercialMode && (
               <div className="flex gap-2">
-                <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-forest text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Personnel</button>
-                <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-ochre text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Activité</button>
+                <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
+                <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-[var(--color-gold)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Activité</button>
               </div>
               )}
               <div className="flex gap-2">
-                <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-red text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Dépense</button>
-                <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-forest-light text-white shadow-sm" : "bg-border text-muted hover:bg-sand"}`}>Revenu</button>
+                <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-[var(--color-neg)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Dépense</button>
+                <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-[var(--color-pos)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Revenu</button>
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Montant</label>
+                <label className="field-label">Montant</label>
                 <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field" placeholder="Ex: 5000" required min="1" />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Description</label>
+                <label className="field-label">Description</label>
                 <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="Ex: Achat alimentation" required />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Catégorie</label>
+                <label className="field-label">Catégorie</label>
                 <CustomSelect options={categoryOptions} value={formData.categoryId} onChange={(v) => setFormData({ ...formData, categoryId: v })} placeholder="Sélectionner..." />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Date</label>
+                <label className="field-label">Date</label>
                 <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                <label className="field-label">Note (optionnelle)</label>
                 <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
               </div>
               {!editTx && limits && !limits.isPremium && user?.role === "user" && (
-                <div className="p-3 bg-red-pale rounded-xl">
+                <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
                   <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-medium text-red">{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
-                    <span className="font-semibold text-red">{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
+                    <span className="font-medium" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
+                    <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
                   </div>
                   {(formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
-                    <p className="text-xs text-red-600">Limite mensuelle atteinte. Passez à Premium.</p>
+                    <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
                   ) : (
-                    <p className="text-xs text-red">{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
+                    <p className="text-xs" style={{ color: 'var(--color-warn)' }}>{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
                   )}
                 </div>
               )}
-              {txError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{txError}</p>}
+              {txError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
               {(() => {
                 const atLimit = !editTx && limits && !limits.isPremium && user?.role === "user" && ((formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense));
                 return <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">{editTx ? "Enregistrer" : "Ajouter"}</button>;
@@ -628,7 +628,7 @@ export default function TransactionsPage() {
       )}
 
       {/* FAB mobile */}
-      <button onClick={openAddModal} aria-label="Nouvelle transaction" className="fixed bottom-20 right-4 z-40 lg:hidden w-14 h-14 bg-forest text-white rounded-full shadow-lg flex items-center justify-center hover:bg-forest-light transition-colors animate-fade-in">
+      <button onClick={openAddModal} aria-label="Nouvelle transaction" className="fixed bottom-20 right-4 z-40 lg:hidden w-14 h-14 bg-[var(--color-brand)] text-white rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity animate-fade-in">
         <FontAwesomeIcon icon={faPlus} className="w-6 h-6" />
       </button>
 

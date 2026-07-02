@@ -16,12 +16,12 @@ type PaymentStatus = "idle" | "processing" | "confirming" | "success" | "failed"
 
 const STATUS_CONFIG: Record<PaymentStatus, { icon: IconDefinition; label: string; color: string; bg: string }> = {
  idle: { icon: faWallet, label: "", color: "", bg: "" },
- processing: { icon: faSpinner, label: "Paiement en cours…", color: "text-blue-600", bg: "bg-blue-50" },
- confirming: { icon: faClock, label: "Confirmation en cours…", color: "text-ochre", bg: "bg-ochre-light" },
- success: { icon: faCheck, label: "Paiement validé ✓", color: "text-forest", bg: "bg-ochre-light" },
- failed: { icon: faCircleXmark, label: "Paiement échoué. Veuillez réessayer.", color: "text-red-600", bg: "bg-red-50" },
- cancelled: { icon: faCircleXmark, label: "Paiement annulé.", color: "text-muted", bg: "bg-sand" },
- timeout: { icon: faClock, label: "Délai dépassé. Veuillez réessayer.", color: "text-ochre", bg: "bg-ochre-light" },
+ processing: { icon: faSpinner, label: "Paiement en cours…", color: "text-[var(--color-brand)]", bg: "bg-[var(--color-brand-subtle)]" },
+ confirming: { icon: faClock, label: "Confirmation en cours…", color: "text-[var(--color-gold)]", bg: "bg-[var(--color-gold-light)]" },
+ success: { icon: faCheck, label: "Paiement validé ✓", color: "text-[var(--color-brand)]", bg: "bg-[var(--color-gold-light)]" },
+ failed: { icon: faCircleXmark, label: "Paiement échoué. Veuillez réessayer.", color: "text-[var(--color-neg)]", bg: "bg-[var(--color-neg-bg)]" },
+ cancelled: { icon: faCircleXmark, label: "Paiement annulé.", color: "text-[var(--color-muted)]", bg: "bg-[var(--color-bg)]" },
+ timeout: { icon: faClock, label: "Délai dépassé. Veuillez réessayer.", color: "text-[var(--color-gold)]", bg: "bg-[var(--color-gold-light)]" },
 };
 
 function StripeCardForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus) => void; onSuccess: () => void }) {
@@ -57,10 +57,10 @@ function StripeCardForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus) 
 
  return (
  <form onSubmit={handleSubmit} className="space-y-4">
- <div className="p-4 bg-white border border-border rounded-xl">
- <PaymentElement />
- </div>
- {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">{error}</p>}
+  <div className="p-4 bg-[var(--color-surface)] border border-border rounded-xl">
+  <PaymentElement />
+  </div>
+  {error && <p className="text-sm text-[var(--color-neg)] bg-[var(--color-neg-bg)] p-3 rounded-xl">{error}</p>}
  <button type="submit" disabled={!stripe || !elements} className="btn-primary w-full py-3 text-base disabled:opacity-50">
  Payer par carte
  </button>
@@ -73,7 +73,7 @@ function PayPalForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus) => v
 
  return (
  <div className="space-y-4">
- <div className="p-4 bg-white border border-border rounded-xl min-h-[160px] flex items-center justify-center">
+  <div className="p-4 bg-[var(--color-surface)] border border-border rounded-xl min-h-[160px] flex items-center justify-center">
  <PayPalButtons
  style={{ layout: "vertical", shape: "rect", color: "gold", label: "pay" }}
  createOrder={async () => {
@@ -102,10 +102,10 @@ function PayPalForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus) => v
  onError={(err: any) => { setError(err?.message || "Erreur PayPal"); onStatus("failed"); }}
  />
  </div>
- {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">{error}</p>}
- </div>
- );
-}
+  {error && <p className="text-sm text-[var(--color-neg)] bg-[var(--color-neg-bg)] p-3 rounded-xl">{error}</p>}
+  </div>
+  );
+ }
 
 const LOCAL_NETWORKS = [
   { id: "mtn", name: "MTN Mobile Money", icon: faMobileScreen },
@@ -187,11 +187,11 @@ function MobileMoneyForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus)
  key={net.id}
  type="button"
  onClick={() => setSelectedNetwork(net.id)}
-                    className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-              selectedNetwork === net.id
-                ? "border-forest bg-ochre-light text-forest"
-                : "border-border text-muted hover:border-border"
-              }`}
+               className={`flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+               selectedNetwork === net.id
+                 ? "border-[var(--color-brand)] bg-[var(--color-gold-light)] text-[var(--color-brand)]"
+                 : "border-border text-muted hover:border-border"
+               }`}
             >
               <FontAwesomeIcon icon={net.icon} className="w-4 h-4" />
               <span>{net.name}</span>
@@ -206,15 +206,15 @@ function MobileMoneyForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus)
  value={phone}
  onChange={(e) => setPhone(e.target.value)}
  placeholder="Ex: 01 23 45 67 89"
- className="input w-full"
+   className="input-field"
  />
  </div>
 
- <div ref={widgetRef} />
+  <div ref={widgetRef} />
 
- {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">{error}</p>}
+  {error && <p className="text-sm text-[var(--color-neg)] bg-[var(--color-neg-bg)] p-3 rounded-xl">{error}</p>}
 
- <button type="submit" disabled={!selectedNetwork || !phone} className="btn-primary w-full py-3 text-base disabled:opacity-50">
+  <button type="submit" disabled={!selectedNetwork || !phone} className="btn-primary w-full py-3 text-base disabled:opacity-50">
  Payer par Mobile Money
  </button>
 
@@ -289,18 +289,18 @@ export default function PaymentPage() {
 
  if (loading) {
  return (
- <div className="min-h-screen bg-sand flex items-center justify-center p-4">
- <div className="w-8 h-8 border-2 border-forest border-t-transparent rounded-full animate-spin" />
- </div>
- );
+  <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4">
+  <div className="w-8 h-8 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
+  </div>
+  );
  }
 
  if (!clientSecret && method === "card") {
- return (
- <div className="min-h-screen bg-sand flex items-center justify-center p-4">
+  return (
+  <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4">
  <div className="w-full max-w-md text-center">
  <div className="card p-8">
- <FontAwesomeIcon icon={faMoneyBill} className="w-12 h-12 text-ochre mx-auto mb-4" />
+  <FontAwesomeIcon icon={faMoneyBill} className="w-12 h-12 text-[var(--color-gold)] mx-auto mb-4" />
  <h2 className="text-lg font-bold text-ink mb-2">Paiement non configuré</h2>
  <p className="text-sm text-muted mb-4">Le paiement par carte n'est pas disponible pour le moment.</p>
  <p className="text-sm text-muted">Utilisez PayPal ou Mobile Money.</p>
@@ -313,8 +313,8 @@ export default function PaymentPage() {
  const isSuccess = status === "success";
 
  return (
- <div className="min-h-screen bg-sand flex items-center justify-center p-4">
- <div className="w-full max-w-lg animate-scale-in">
+  <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4">
+  <div className="w-full max-w-lg animate-scale-in">
  <button
  onClick={() => router.back()}
  className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink mb-6 transition-colors"
@@ -325,13 +325,13 @@ export default function PaymentPage() {
 
  <div className="card overflow-hidden">
  {/* Header */}
- <div className={`p-6 text-center transition-all ${isSuccess ? "bg-ochre-light" : "bg-ochre-light"}`}>
+  <div className={`p-6 text-center transition-all ${isSuccess ? "bg-[var(--color-gold-light)]" : "bg-[var(--color-gold-light)]"}`}>
  {isSuccess ? (
- <div className="w-14 h-14 bg-ochre-light rounded-full flex items-center justify-center mx-auto mb-3">
- <FontAwesomeIcon icon={faCheck} className="w-7 h-7 text-forest" />
+  <div className="w-14 h-14 bg-[var(--color-gold-light)] rounded-full flex items-center justify-center mx-auto mb-3">
+  <FontAwesomeIcon icon={faCheck} className="w-7 h-7 text-[var(--color-brand)]" />
  </div>
  ) : (
- <div className="w-14 h-14 bg-ochre rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+  <div className="w-14 h-14 bg-[var(--color-gold)] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
  <FontAwesomeIcon icon={faCrown} className="w-7 h-7 text-white" />
  </div>
  )}
@@ -342,7 +342,7 @@ export default function PaymentPage() {
  {isSuccess ? "Votre abonnement est maintenant actif" : "Débloquez toutes les fonctionnalités"}
  </p>
 
- <div className={`mt-4 inline-block px-5 py-2 rounded-xl text-2xl font-bold ${isSuccess ? "text-forest" : "text-ochre"} bg-white/60`}>
+  <div className={`mt-4 inline-block px-5 py-2 rounded-xl text-2xl font-bold ${isSuccess ? "text-[var(--color-brand)]" : "text-[var(--color-gold)]"} bg-[var(--color-surface)]/60`}>
  {isSuccess ? "Abonnement actif ✓" : `${amountDisplay} ${currencyDisplay}`}
  <span className="block text-xs font-normal text-muted mt-0.5">par mois</span>
  </div>
@@ -365,11 +365,11 @@ export default function PaymentPage() {
  type="button"
  onClick={() => { setMethod(m.id); setStatus("idle"); }}
  disabled={status === "processing"}
- className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-xs font-medium transition-all disabled:opacity-50 ${
- method === m.id
- ? "border-forest bg-ochre-light text-forest"
- : "border-border text-muted hover:border-border hover:text-ink"
- }`}
+   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-xs font-medium transition-all disabled:opacity-50 ${
+   method === m.id
+   ? "border-[var(--color-brand)] bg-[var(--color-gold-light)] text-[var(--color-brand)]"
+   : "border-border text-muted hover:border-border hover:text-ink"
+   }`}
  >
   <FontAwesomeIcon icon={m.icon} className="w-5 h-5" />
  {m.label}
@@ -379,7 +379,7 @@ export default function PaymentPage() {
 
  <div className="min-h-[200px]">
  {method === "card" && clientSecret && (
- <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#059669" } } }}>
+ <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#1C3A2F" } } }}>
  <StripeCardForm onStatus={setStatus} onSuccess={handleSuccess} />
  </Elements>
  )}
@@ -431,7 +431,7 @@ export default function PaymentPage() {
  "Bilans hebdo/mensuel/annuel",
  ].map((f) => (
  <p key={f} className="text-sm text-muted flex items-center gap-1.5">
- <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5 text-forest shrink-0" />
+  <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5 text-[var(--color-brand)] shrink-0" />
  {f}
  </p>
  ))}

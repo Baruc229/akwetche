@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, convertAmount, type CurrencyCode } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -91,11 +91,14 @@ export default function SettingsPage() {
  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
  const [paymentType, setPaymentType] = useState<"success" | "error" | null>(null);
  const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
- const [currentPassword, setCurrentPassword] = useState("");
- const [newPassword, setNewPassword] = useState("");
- const [confirmPassword, setConfirmPassword] = useState("");
- const [passwordSaved, setPasswordSaved] = useState(false);
- const [passwordError, setPasswordError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
  const isPremium = user?.subscription?.status === "active" || isAdmin;
@@ -427,55 +430,56 @@ export default function SettingsPage() {
   </div>
 
   {loadError && (
-  <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
-  <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-  <p className="text-sm text-red-700 flex-1">{loadError}</p>
-  <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+  <div className="alert-inline neg">
+  <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0 mt-0.5" />
+  <p className="text-sm flex-1">{loadError}</p>
+  <button onClick={() => setLoadError(null)} className="shrink-0 hover:opacity-70"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
   </div>
   )}
 
   {/* PLAN CARD */}
- <div className="card overflow-hidden">
+  <p className="text-label mb-3">Abonnement</p>
+  <div>
  {isAdmin ? (
- <div className="p-6 bg-sand">
+ <div className="card-hero">
  <div className="flex items-center justify-between mb-4">
  <div className="flex items-center gap-3">
- <div className="w-12 h-12 bg-ochre-light rounded-2xl flex items-center justify-center">
- <FontAwesomeIcon icon={faShield} className="w-6 h-6 text-ochre" />
+ <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center">
+ <FontAwesomeIcon icon={faShield} className="w-6 h-6 text-white" />
  </div>
  <div>
- <p className="text-lg font-bold text-ink">Administrateur</p>
- <p className="text-sm text-muted">Accès total — toutes les fonctionnalités débloquées</p>
+ <p className="text-lg font-bold text-white">Administrateur</p>
+ <p className="text-sm text-white/70">Accès total — toutes les fonctionnalités débloquées</p>
  </div>
  </div>
- <span className="bg-ochre-light text-ochre text-xs font-semibold px-3 py-1 rounded-full">Admin</span>
+  <span className="badge" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>Admin</span>
  </div>
  <div className="grid grid-cols-2 gap-2">
  {ALL_FEATURES.map((f) => (
- <div key={f.key} className="flex items-center gap-2 text-sm text-ink">
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest shrink-0" />
+ <div key={f.key} className="flex items-center gap-2 text-sm text-white">
+ <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/70 shrink-0" />
  {f.label}
  </div>
  ))}
- <div className="flex items-center gap-2 text-sm text-ink">
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest shrink-0" />
+ <div className="flex items-center gap-2 text-sm text-white">
+ <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/70 shrink-0" />
  Accès panneau d'administration
  </div>
  </div>
  </div>
  ) : subscription?.status === "active" || user?.plan === "premium" ? (
- <div className="p-6 bg-ochre-light">
+  <div className="card border-gold bg-gold-light">
  <div className="flex items-center justify-between mb-4">
  <div className="flex items-center gap-3">
- <div className="w-12 h-12 bg-ochre-light rounded-2xl flex items-center justify-center">
- <FontAwesomeIcon icon={faCrown} className="w-6 h-6 text-ochre" />
+ <div className="w-12 h-12 bg-white/60 rounded-2xl flex items-center justify-center">
+ <FontAwesomeIcon icon={faCrown} className="w-6 h-6 text-gold" />
  </div>
  <div>
  <p className="text-lg font-bold text-ink">Premium</p>
  <p className="text-sm text-muted">Toutes les fonctionnalités débloquées</p>
  </div>
  </div>
- <span className="bg-ochre-light text-forest text-xs font-semibold px-3 py-1 rounded-full">Actif</span>
+ <span className="badge badge-pos">Actif</span>
  </div>
  {subscription && (
  <p className="text-sm text-muted mb-4">
@@ -486,7 +490,7 @@ export default function SettingsPage() {
  <div className="grid grid-cols-2 gap-2 mb-4">
  {ALL_FEATURES.map((f) => (
  <div key={f.key} className="flex items-center gap-2 text-sm text-ink">
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest shrink-0" />
+ <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-pos shrink-0" />
  {f.label}
  </div>
  ))}
@@ -494,26 +498,25 @@ export default function SettingsPage() {
  <button
  onClick={handleSubscribe}
  disabled={subLoading}
- className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-ochre text-white hover:bg-ochre transition-all disabled:opacity-50"
+ className="btn-primary"
  >
  <FontAwesomeIcon icon={faUpRightFromSquare} className="w-4 h-4" />
  {subLoading ? "Chargement..." : "Gérer mon abonnement"}
  </button>
  </div>
  ) : (
- <div>
- <div className="p-6 bg-sand">
+ <div className="card">
  <div className="flex items-center justify-between mb-4">
  <div className="flex items-center gap-3">
- <div className="w-12 h-12 bg-ochre-light rounded-2xl flex items-center justify-center">
- <FontAwesomeIcon icon={faStar} className="w-6 h-6 text-forest" />
+ <div className="w-12 h-12 bg-brand-subtle rounded-2xl flex items-center justify-center">
+ <FontAwesomeIcon icon={faStar} className="w-6 h-6 text-brand" />
  </div>
  <div>
  <p className="text-lg font-bold text-ink">Gratuit</p>
  <p className="text-sm text-muted">Fonctionnalités de base</p>
  </div>
  </div>
- <span className="bg-border text-muted text-xs font-semibold px-3 py-1 rounded-full">Actif</span>
+ <span className="badge badge-muted">Actif</span>
  </div>
 
  <div className="space-y-2 mb-4">
@@ -521,14 +524,14 @@ export default function SettingsPage() {
  <div key={f.key} className="flex items-center justify-between text-sm">
  <div className="flex items-center gap-2">
  {f.free ? (
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest shrink-0" />
+ <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-pos shrink-0" />
  ) : (
  <FontAwesomeIcon icon={faLock} className="w-4 h-4 text-muted shrink-0" />
  )}
  <span className={f.free ? "text-ink" : "text-muted"}>{f.label}</span>
  </div>
  {!f.free && (
- <span className="text-[10px] font-semibold bg-ochre-light text-ochre px-1.5 py-0.5 rounded">Premium</span>
+ <span className="badge badge-gold">Premium</span>
  )}
  </div>
  ))}
@@ -537,30 +540,27 @@ export default function SettingsPage() {
  <button
  onClick={handleSubscribe}
  disabled={subLoading}
- className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-forest text-white hover: hover: transition-all shadow-sm disabled:opacity-50"
+ className="btn-primary"
  >
  <FontAwesomeIcon icon={faCrown} className="w-4 h-4" />
  {subLoading ? "Chargement..." : "Passer au Premium →"}
  </button>
- {subError && <p className="mt-2 text-sm text-red-600">{subError}</p>}
- </div>
+  {subError && <p className="mt-2 text-sm text-neg">{subError}</p>}
  </div>
  )}
  </div>
 
  {/* PAYMENT BANNER */}
- {paymentMessage && (
- <div className={`p-4 rounded-2xl text-sm font-medium animate-fade-in ${paymentType === "success" ? "bg-ochre-light text-forest border border-border" : "bg-ochre-light text-ochre border border-border"}`}>
-  <FontAwesomeIcon icon={paymentType === "success" ? faCircleCheck : faXmark} className="w-4 h-4 inline-block mr-1" />{paymentMessage}
- </div>
- )}
+  {paymentMessage && (
+  <div className={`alert-inline animate-fade-in ${paymentType === "success" ? "pos" : "warn"}`}>
+   <FontAwesomeIcon icon={paymentType === "success" ? faCircleCheck : faXmark} className="w-4 h-4 shrink-0 mt-0.5" />
+   <span>{paymentMessage}</span>
+  </div>
+  )}
 
  {/* PROFILE */}
- <div className="card p-6">
- <div className="flex items-center gap-3 mb-5">
- <FontAwesomeIcon icon={faUser} className="w-5 h-5 text-forest" />
- <h2 className="text-base font-semibold text-ink">Profil</h2>
- </div>
+ <p className="text-label mb-3">Profil</p>
+ <div className="card">
  <form onSubmit={handleSaveProfile} className="space-y-4">
   <div>
   <label className="field-label">Nom</label>
@@ -571,10 +571,10 @@ export default function SettingsPage() {
       setName(e.target.value);
       setNameError("");
     }}
-    className={`input-field ${nameError ? "border-red-500" : ""}`}
+    className={`input-field ${nameError ? "error" : ""}`}
     required
   />
-  {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
+  {nameError && <p className="text-neg text-xs mt-1">{nameError}</p>}
   </div>
  <div>
   <label className="field-label">Argent de départ</label>
@@ -632,25 +632,37 @@ export default function SettingsPage() {
           setPhone(val);
         }
       }}
-      className={`input-field ${phoneError ? "border-red-500" : ""}`}
+      className={`input-field ${phoneError ? "error" : ""}`}
       placeholder={countryCode ? `${getPhonePrefix(countryCode)} XX XX XX XX` : "+229XXXXXXXX"}
     />
-    {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
+    {phoneError && <p className="text-neg text-xs mt-1">{phoneError}</p>}
   </div>
   <div>
     <label className="field-label">Devise d'affichage</label>
-    <CustomSelect
-      options={[
-        { value: "XOF", label: "FCFA (Franc CFA)" },
-        { value: "EUR", label: "EUR (Euro)" },
-      ]}
-      value={currency}
-      onChange={(v) => {
-        setCurrency(v);
-        setActiveCurrency(v as CurrencyCode);
-        setDashboardCurrency(v as CurrencyCode);
-      }}
-    />
+    <div className="flex items-center gap-1 p-1 bg-surface-raised border border-border rounded-xl w-fit">
+      <button
+        type="button"
+        onClick={() => {
+          setCurrency("XOF");
+          setActiveCurrency("XOF" as CurrencyCode);
+          setDashboardCurrency("XOF" as CurrencyCode);
+        }}
+        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${currency === "XOF" ? "bg-brand text-white shadow-sm" : "text-muted hover:text-ink"}`}
+      >
+        FCFA
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setCurrency("EUR");
+          setActiveCurrency("EUR" as CurrencyCode);
+          setDashboardCurrency("EUR" as CurrencyCode);
+        }}
+        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${currency === "EUR" ? "bg-brand text-white shadow-sm" : "text-muted hover:text-ink"}`}
+      >
+        EUR
+      </button>
+    </div>
     <p className="text-xs text-muted mt-1">Choisissez la devise d'affichage.</p>
   </div>
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
@@ -661,26 +673,41 @@ export default function SettingsPage() {
  </div>
 
  {/* PASSWORD */}
- <div className="card p-6">
- <div className="flex items-center gap-3 mb-5">
- <FontAwesomeIcon icon={faLock} className="w-5 h-5 text-forest" />
- <h2 className="text-base font-semibold text-ink">Mot de passe</h2>
- </div>
+ <p className="text-label mb-3">Mot de passe</p>
+ <div className="card">
  <form onSubmit={handleChangePassword} className="space-y-4">
  <div>
   <label className="field-label">Mot de passe actuel</label>
- <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field" required />
+  <div style={{ position: "relative" }}>
+    <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field pr-10" required />
+    <button type="button" onClick={() => setShowCurrent(!showCurrent)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body" tabIndex={-1}>
+      <FontAwesomeIcon icon={showCurrent ? faEyeSlash : faEye} />
+    </button>
+  </div>
  </div>
  <div>
   <label className="field-label">Nouveau mot de passe</label>
- <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field" minLength={8} required />
+  <div style={{ position: "relative" }}>
+    <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field pr-10" minLength={8} required />
+    <button type="button" onClick={() => setShowNew(!showNew)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body" tabIndex={-1}>
+      <FontAwesomeIcon icon={showNew ? faEyeSlash : faEye} />
+    </button>
+  </div>
  <p className="text-xs text-muted mt-1">Minimum 8 caractères.</p>
  </div>
  <div>
   <label className="field-label">Confirmer le nouveau mot de passe</label>
- <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field" minLength={8} required />
+  <div style={{ position: "relative" }}>
+    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field pr-10" minLength={8} required />
+    <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body" tabIndex={-1}>
+      <FontAwesomeIcon icon={showConfirm ? faEyeSlash : faEye} />
+    </button>
+  </div>
  </div>
- {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+  {passwordError && <p className="text-sm text-neg">{passwordError}</p>}
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
  {passwordSaved ? "Mis à jour ✓" : "Modifier le mot de passe"}
@@ -689,30 +716,27 @@ export default function SettingsPage() {
  </div>
 
   {/* CATEGORIES */}
-  <div className="card p-6">
-  <div className="flex items-center gap-3 mb-5">
-  <FontAwesomeIcon icon={faTag} className="w-5 h-5 text-forest" />
-  <h2 className="text-base font-semibold text-ink">Catégories</h2>
-  </div>
+  <p className="text-label mb-3">Catégories</p>
+  <div className="card">
   {!isPremium && (
-  <div className="mb-4 p-4 bg-ochre-light rounded-xl border border-border space-y-3">
+  <div className="mb-4 p-4 bg-gold-light rounded-xl border border-border space-y-3">
   <p className="text-sm text-ink">
   Vous êtes sur le plan <strong>Gratuit</strong>. Seules <strong>3 catégories par type</strong> (revenus / dépenses) sont actives.
   Les catégories supplémentaires nécessitent Premium.
   </p>
   <div className="flex items-center justify-between text-sm">
   <div>
-  <span className="font-medium text-ochre">Revenus actifs</span>
-  <span className="ml-2 font-semibold text-ochre">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "income").length}/{categories.filter(c => c.type === "income").length}</span>
+  <span className="font-medium text-gold">Revenus actifs</span>
+  <span className="ml-2 font-semibold text-gold">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "income").length}/{categories.filter(c => c.type === "income").length}</span>
   </div>
   <div>
-  <span className="font-medium text-ochre">Dépenses actives</span>
-  <span className="ml-2 font-semibold text-ochre">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "expense").length}/{categories.filter(c => c.type === "expense").length}</span>
+  <span className="font-medium text-gold">Dépenses actives</span>
+  <span className="ml-2 font-semibold text-gold">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "expense").length}/{categories.filter(c => c.type === "expense").length}</span>
   </div>
   </div>
   <button
   onClick={handleSubscribe}
-  className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm font-medium bg-forest text-white hover:bg-forest-light transition-all"
+  className="btn-primary w-full justify-center"
   >
   <FontAwesomeIcon icon={faCrown} className="w-4 h-4" />
   Passer au Premium
@@ -733,10 +757,10 @@ export default function SettingsPage() {
   <div className="flex items-center gap-2">
   <h3 className="text-sm font-medium text-ink">{typeLabel}</h3>
   {!isPremium && (
-  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-ochre-light text-ochre" : "bg-sand text-muted"}`}>({activeOfType}/3 actives)</span>
+  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-gold-light text-gold" : "bg-sand text-muted"}`}>({activeOfType}/3 actives)</span>
   )}
   </div>
-  <button onClick={() => addPresetCategories(type)} disabled={presetLoading} className="text-xs text-forest hover:text-forest font-medium disabled:opacity-40">+ Catégories par défaut</button>
+  <button onClick={() => addPresetCategories(type)} disabled={presetLoading} className="text-xs text-brand hover:text-brand font-medium disabled:opacity-40">+ Catégories par défaut</button>
   </div>
 
   {categories.filter(c => !c.archived && c.type === type).length === 0 ? (
@@ -748,14 +772,14 @@ export default function SettingsPage() {
   return (
   <div key={cat.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border ${
   isActive
-  ? "bg-ochre-light text-forest border-transparent"
+  ? "bg-gold-light text-brand border-transparent"
   : "bg-sand text-muted border-border"
   }`}>
   {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
   <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
   <button
   onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
-  className={`hover:text-red-500 transition-colors ml-0.5 ${isActive ? "text-forest" : "text-muted"}`}
+  className={`hover:text-neg transition-colors ml-0.5 ${isActive ? "text-brand" : "text-muted"}`}
   title="Supprimer"
   >
   <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
@@ -785,14 +809,14 @@ export default function SettingsPage() {
   <span className="opacity-70">{cat.name}</span>
   <button
   onClick={(e) => { e.stopPropagation(); handleRestoreCategory(cat.id); }}
-  className="text-muted hover:text-forest transition-colors ml-0.5"
+  className="text-muted hover:text-brand transition-colors ml-0.5"
   title="Restaurer"
   >
   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
   </button>
   <button
   onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
-  className="text-muted hover:text-red-500 transition-colors"
+  className="text-muted hover:text-neg transition-colors"
   title="Supprimer définitivement"
   >
   <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
@@ -837,31 +861,31 @@ export default function SettingsPage() {
   <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
   </button>
   </form>
-  {catError && <p className="text-red-500 text-sm">{catError}</p>}
+  {catError && <p className="text-neg text-sm">{catError}</p>}
   </div>
 
- {/* RESET */}
- <div className="card p-6 border border-red-200 bg-red-50/30">
+ {/* DANGER ZONE */}
+ <p className="text-label mb-3">Zone de danger</p>
+ <div className="card" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
  <div className="flex items-center gap-3 mb-3">
- <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-600" />
- <h2 className="text-base font-semibold text-ink">Réinitialisation</h2>
+ <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
+ <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Réinitialisation</h2>
  </div>
- <p className="text-sm text-muted mb-4">Supprime toutes vos données. Action irréversible.</p>
- <button onClick={() => setShowResetModal(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm">
+ <p className="text-sm" style={{ color: "var(--color-body)" }}>Supprime toutes vos données. Action irréversible.</p>
+ <button onClick={() => setShowResetModal(true)} className="btn-danger flex items-center gap-2 mt-4">
  <FontAwesomeIcon icon={faRotateLeft} className="w-4 h-4" />
  Réinitialiser toutes les données
  </button>
-  {resetDone && <p className="mt-3 text-sm text-forest bg-ochre-light px-3 py-2 rounded-xl"><FontAwesomeIcon icon={faCheck} className="w-4 h-4 mr-1" /> Données réinitialisées.</p>}
+   {resetDone && <p className="mt-3 text-sm px-3 py-2 rounded-xl text-pos bg-pos-bg"><FontAwesomeIcon icon={faCheck} className="w-4 h-4 mr-1" /> Données réinitialisées.</p>}
  </div>
 
- {/* DELETE ACCOUNT */}
- <div className="card p-6 border border-red-300 bg-red-50/50">
+ <div className="card mt-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
  <div className="flex items-center gap-3 mb-3">
- <FontAwesomeIcon icon={faTrash} className="w-5 h-5 text-red-600" />
- <h2 className="text-base font-semibold text-ink">Supprimer mon compte</h2>
+ <FontAwesomeIcon icon={faTrash} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
+ <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Supprimer mon compte</h2>
  </div>
- <p className="text-sm text-muted mb-4">Supprime définitivement votre compte et toutes vos données.</p>
- <button onClick={() => setShowDeleteAccountModal(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-all shadow-sm">
+ <p className="text-sm" style={{ color: "var(--color-body)" }}>Supprime définitivement votre compte et toutes vos données.</p>
+ <button onClick={() => setShowDeleteAccountModal(true)} className="btn-danger flex items-center gap-2 mt-4">
  <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
  Supprimer définitivement
  </button>
@@ -869,7 +893,7 @@ export default function SettingsPage() {
 
  {/* LOGOUT */}
  <div className="border-t border-border pt-6">
- <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-muted hover:text-red-600 transition-colors">
+  <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-muted hover:text-neg transition-colors">
  <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
  Déconnexion
  </button>

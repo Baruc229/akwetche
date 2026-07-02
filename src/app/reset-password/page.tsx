@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
 
   return (
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-  <div className="flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
   <div className="w-full max-w-md animate-scale-in">
   <a
   href="/login"
@@ -74,9 +74,9 @@ export default function ResetPasswordPage() {
   <div className="card p-8">
   {!token ? (
   <div className="text-center">
-  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-  <FontAwesomeIcon icon={faCircleExclamation} className="w-8 h-8 text-red-600" />
-  </div>
+      <div className="w-16 h-16 bg-[var(--color-neg-bg)] rounded-full flex items-center justify-center mx-auto mb-4">
+        <FontAwesomeIcon icon={faCircleExclamation} className="w-8 h-8 text-[var(--color-neg)]" />
+      </div>
   <h1 className="text-xl font-bold text-ink mb-2">
   Lien invalide
   </h1>
@@ -84,17 +84,17 @@ export default function ResetPasswordPage() {
   Ce lien de réinitialisation est invalide ou a expiré.
   </p>
   <a
-  href="/login"
-  className="text-forest font-medium hover:text-forest text-sm"
+      href="/login"
+      className="text-[var(--color-brand)] font-medium hover:text-[var(--color-brand)] text-sm"
   >
   Retour à la connexion
   </a>
   </div>
   ) : success ? (
   <div className="text-center">
-  <div className="w-16 h-16 bg-ochre-light rounded-full flex items-center justify-center mx-auto mb-4">
-  <FontAwesomeIcon icon={faCheck} className="w-8 h-8 text-forest" />
-  </div>
+      <div className="w-16 h-16 bg-[var(--color-brand-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
+        <FontAwesomeIcon icon={faCheck} className="w-8 h-8 text-[var(--color-brand)]" />
+      </div>
   <h1 className="text-xl font-bold text-ink mb-2">
   Mot de passe modifié
   </h1>
@@ -111,9 +111,9 @@ export default function ResetPasswordPage() {
   ) : (
   <>
   <div className="text-center mb-8">
-  <div className="w-12 h-12 bg-forest rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-  <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
-  </div>
+      <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
+      </div>
   <h1 className="text-2xl font-bold text-ink">
   Nouveau mot de passe
   </h1>
@@ -167,7 +167,7 @@ export default function ResetPasswordPage() {
   </div>
 
   {error && (
-  <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{error}</p>
+    <p className="alert-inline neg text-sm">{error}</p>
   )}
 
   <button

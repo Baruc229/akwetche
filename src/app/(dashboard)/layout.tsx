@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react";
+import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faBagShopping, faChartBar, faGear, faRightFromBracket, faBox, faArrowTrendUp, faBars, faXmark, faChevronRight, faShield, faComments, faHouse, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronLeft, faChevronRight, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
-import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode, detectBaseCurrency } from "@/lib/currency";
+import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
 import ExpiredModal from "@/components/subscription/ExpiredModal";
-import NotificationBell from "@/components/NotificationBell";
 
 type UserData = {
   id: number;
@@ -50,17 +49,49 @@ const DashboardContext = createContext<DashboardContextType>({
 
 export const useDashboard = () => useContext(DashboardContext);
 
-const navItems = [
-  { href: "/dashboard", label: "Accueil", icon: faGauge },
-  { href: "/dashboard/transactions", label: "Historique", icon: faArrowsUpDown },
-  { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
-];
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': 'Tableau de bord',
+  '/dashboard/transactions': 'Transactions',
+  '/dashboard/products': 'Produits',
+  '/dashboard/sales': 'Ventes',
+  '/dashboard/stock': 'Stock',
+  '/dashboard/reports': 'Bilans',
+  '/dashboard/history': 'Historique & Analyse',
+  '/dashboard/settings': 'Paramètres',
+  '/admin': 'Administration',
+};
 
-const commercialNavItems = [
-  { href: "/dashboard/products", label: "Produits", icon: faBox },
-  { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp },
-  { href: "/dashboard/stock", label: "Stock", icon: faBagShopping },
-];
+type Notification = {
+  id: number;
+  type: string;
+  message: string;
+  link: string;
+  read: boolean;
+  createdAt: string;
+  actor: { id: number; name: string } | null;
+};
+
+const NOTIF_ICONS: Record<string, any> = {
+  subscription: faCrown,
+  product: faBox,
+  sale: faCartShopping,
+  stock: faArrowTrendUp,
+  transaction: faArrowsUpDown,
+  admin: faShield,
+  role: faUserGear,
+  system: faBell,
+};
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return "À l'instant";
+  if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
+  if (diff < 172800) return "Hier";
+  return `Il y a ${Math.floor(diff / 86400)} jours`;
+}
 
 export default function DashboardLayout({
  children,
@@ -75,10 +106,61 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>("XOF");
   const [baseCurrency, setBaseCurrency] = useState<CurrencyCode>("XOF");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("akwetche_sidebar_collapsed") === "true";
+    }
+    return false;
+  });
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [notifTab, setNotifTab] = useState<"new" | "unread" | "read">("unread");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [busyIds, setBusyIds] = useState<Set<number>>(new Set());
+  const [markingAll, setMarkingAll] = useState(false);
+  const [confirmDeleteNotif, setConfirmDeleteNotif] = useState<Notification | null>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   const handleSetCurrency = useCallback((c: CurrencyCode) => {
     setActiveCurrency(c);
     setDisplayCurrency(c);
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem("akwetche_sidebar_collapsed", String(next));
+      return next;
+    });
+  }, []);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications?limit=50");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnread(data.unread);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
  useEffect(() => {
@@ -124,17 +206,74 @@ export default function DashboardLayout({
  }
  }, [commercialMode, user]);
 
- async function handleLogout() {
- await fetch("/api/auth/logout", { method: "POST" });
- router.push("/");
- }
+  const handleLogout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+  }, [router]);
+
+  async function markAsRead(n: Notification) {
+    if (n.read) return;
+    setBusyIds(prev => new Set(prev).add(n.id));
+    try {
+      const res = await fetch(`/api/notifications/${n.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ read: true }),
+      });
+      if (!res.ok) throw new Error("Échec");
+      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+      setUnread(prev => Math.max(0, prev - 1));
+    } catch {} finally {
+      setBusyIds(prev => { const s = new Set(prev); s.delete(n.id); return s; });
+    }
+  }
+
+  async function handleReadAll() {
+    setMarkingAll(true);
+    try {
+      const res = await fetch("/api/notifications/read-all", { method: "POST" });
+      if (!res.ok) throw new Error("Échec");
+      setNotifications(n => n.map(n => ({ ...n, read: true })));
+      setUnread(0);
+    } catch {} finally {
+      setMarkingAll(false);
+    }
+  }
+
+  async function handleDeleteNotif(n: Notification) {
+    setConfirmDeleteNotif(null);
+    setBusyIds(prev => new Set(prev).add(n.id));
+    if (!n.read) setUnread(prev => Math.max(0, prev - 1));
+    setNotifications(prev => prev.filter(x => x.id !== n.id));
+    try {
+      await fetch(`/api/notifications/${n.id}`, { method: "DELETE" });
+    } catch {} finally {
+      setBusyIds(prev => { const s = new Set(prev); s.delete(n.id); return s; });
+    }
+  }
+
+  function handleClickNotif(n: Notification) {
+    markAsRead(n);
+    setNotifDrawerOpen(false);
+    if (n.link) router.push(n.link);
+  }
+
+  const notifFiltered = useMemo(() => {
+    const now = Date.now();
+    const day = 86400000;
+    return notifications.filter(n => {
+      if (notifTab === "new") return !n.read && (now - new Date(n.createdAt).getTime()) < day;
+      if (notifTab === "unread") return !n.read;
+      return n.read;
+    });
+  }, [notifications, notifTab]);
 
     const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency]);
 
    if (loading) {
    return (
-   <div className="min-h-screen flex items-center justify-center bg-[#F2EDE4]">
-   <div className="w-8 h-8 border-2 border-[#1C3A2F] border-t-transparent rounded-full animate-spin" />
+   <div className="min-h-screen flex items-center justify-center" style={{background:'var(--color-bg)'}}>
+   <div className="w-8 h-8 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
    </div>
    );
    }
@@ -147,138 +286,140 @@ export default function DashboardLayout({
    const subStatus = user?.subscription;
    const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);
 
-   return (
+   const navItems = [
+     { href: "/dashboard", label: "Accueil", icon: faGauge },
+     { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+     { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
+   ];
+
+   const commercialNavItems = [
+     { href: "/dashboard/products", label: "Produits", icon: faBox },
+     { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp },
+     { href: "/dashboard/stock", label: "Stock", icon: faBagShopping },
+   ];
+
+   const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => pathname === path || (path !== '/admin' && path !== '/dashboard' && pathname.startsWith(path)))?.[1] || 'Akwetche';
+
+   const avatarInitial = user.name?.charAt(0)?.toUpperCase() || '?';
+
+  return (
    <DashboardContext.Provider value={ctxValue}>
-    <div className="min-h-screen bg-[#F2EDE4] flex flex-col lg:flex-row">
-    <aside
-      className={`fixed top-0 left-0 z-40 w-64 bg-white border-r border-[#E0D8CC] transition-transform duration-200 lg:translate-x-0 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden pb-14 lg:pb-0 ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
-    >
-      <div className="flex items-center justify-between p-4 border-b border-[#E0D8CC] shrink-0">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#1C3A2F] rounded-xl flex items-center justify-center shadow-sm">
-            <img src="/akwetche-symbole.png" alt="Akwetche" className="w-4 h-4" />
-          </div>
-          <span className="text-lg font-bold text-[#1C3A2F] font-[family-name:var(--font-dm-sans)]">
-            Akwetche
-          </span>
-        </Link>
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="lg:hidden text-[#9BA89D] hover:text-[#9BA89D]"
-        >
-          <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="p-4 border-b border-[#E0D8CC] shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="min-w-0">
-            <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Connecté en tant que</p>
-            <p className="text-sm font-medium text-[#1A1A1A] truncate font-[family-name:var(--font-inter)]">
-              {user.name}
-            </p>
-          </div>
-          <div className="hidden lg:block">
-            <NotificationBell />
-          </div>
-        </div>
-      </div>
-
-      {/* Zone principale — navigation scrollable */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all font-[family-name:var(--font-inter)] ${
-                isActive
-                  ? "bg-[#F7F0D6] text-[#1C3A2F] font-medium"
-                  : "text-[#9BA89D] hover:bg-[#F2EDE4] hover:text-[#1A1A1A]"
-              }`}
-            >
-              <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
-              {item.label}
-              {isActive && (
-                <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-[#1C3A2F]" />
-              )}
-            </Link>
-          );
-        })}
-
-        {commercialMode && (
-          <>
-            <div className="pt-3 mt-3 border-t border-[#E0D8CC]">
-              <p className="px-3 text-xs font-semibold text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">
-                Activité
-              </p>
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{background:'var(--color-bg)'}}>
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden transition-all duration-200
+          ${sidebarCollapsed ? 'w-16' : 'w-60'}
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        style={{background:'var(--color-brand)'}}
+      >
+        {/* Logo */}
+        <div className={`flex items-center shrink-0 ${sidebarCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
+          <Link href="/dashboard" className={`flex items-center gap-2 ${sidebarCollapsed ? '' : ''}`}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm" style={{background:'var(--color-gold)'}}>
+              <span className="text-xs font-bold" style={{color:'var(--color-brand)'}}>A</span>
             </div>
-            {commercialNavItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 ml-2 py-2 rounded-xl text-sm transition-all font-[family-name:var(--font-inter)] ${
-                    isActive
-                      ? "bg-[#F7F0D6] text-[#C9A84C] font-medium"
-                      : "text-[#9BA89D] hover:bg-[#F2EDE4] hover:text-[#1A1A1A]"
-                  }`}
-                >
-                  <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
-                  {item.label}
-                  {isActive && (
-                    <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-[#C9A84C]" />
-                  )}
-                </Link>
-              );
-            })}
-          </>
-        )}
-
-        <div className="pt-3 mt-3 border-t border-[#E0D8CC]">
-          {user && user.role !== "user" && (
-            <Link
-              href="/admin"
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all font-[family-name:var(--font-inter)] ${
-                pathname === "/admin"
-                  ? "bg-[#F7F0D6] text-[#1C3A2F] font-medium"
-                  : "text-[#9BA89D] hover:bg-[#F2EDE4] hover:text-[#1A1A1A]"
-              }`}
-            >
-              <FontAwesomeIcon icon={faShield} className="w-4 h-4" />
-              Administration
-              {pathname === "/admin" && (
-                <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-[#1C3A2F]" />
-              )}
-            </Link>
-          )}
-          <Link
-            href="/dashboard/settings"
-            onClick={() => setSidebarOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all font-[family-name:var(--font-inter)] ${
-              pathname === "/dashboard/settings"
-                ? "bg-[#F7F0D6] text-[#1C3A2F] font-medium"
-                : "text-[#9BA89D] hover:bg-[#F2EDE4] hover:text-[#1A1A1A]"
-            }`}
-          >
-            <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
-            Paramètres
-            {pathname === "/dashboard/settings" && (
-              <FontAwesomeIcon icon={faChevronRight} className="w-3.5 h-3.5 ml-auto text-[#1C3A2F]" />
+            {!sidebarCollapsed && (
+              <span className="text-lg font-bold text-white font-[family-name:var(--font-display)]">Akwetche</span>
             )}
           </Link>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white">
+            <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
+          </button>
         </div>
 
-        {isPremium && (
-          <div className="pt-3 mt-3 border-t border-[#E0D8CC]">
-            <label className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#9BA89D] cursor-pointer hover:bg-[#F2EDE4] rounded-xl transition-all font-[family-name:var(--font-inter)]">
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <div key={item.href} className="relative group">
+                <Link
+                  href={item.href}
+                  onClick={() => { setSidebarOpen(false); }}
+                  className={`flex items-center ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-[10px] px-3 py-[9px]'} rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                    isActive
+                      ? 'text-white font-semibold'
+                      : 'text-white/52 hover:text-white/90 hover:bg-white/7'
+                  }`}
+                  style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
+                >
+                  <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                </Link>
+                {sidebarCollapsed && (
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{background:'var(--color-ink)', color:'white'}}>
+                    {item.label}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Section Activité */}
+          {commercialMode && (
+            <>
+              <div className={`pt-3 mt-3 ${!sidebarCollapsed ? 'px-3' : ''}`} style={{borderTop:'1px solid rgba(255,255,255,0.10)'}}>
+                {!sidebarCollapsed && (
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Activité</p>
+                )}
+              </div>
+              {commercialNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <div key={item.href} className="relative group">
+                    <Link
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-[10px] px-3 py-[9px]'} rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                        isActive
+                          ? 'text-white font-semibold'
+                          : 'text-white/52 hover:text-white/90 hover:bg-white/7'
+                      }`}
+                      style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
+                    >
+                      <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
+                      {!sidebarCollapsed && <span>{item.label}</span>}
+                    </Link>
+                    {sidebarCollapsed && (
+                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{background:'var(--color-ink)', color:'white'}}>
+                        {item.label}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* Section Admin */}
+          {user && user.role !== "user" && (
+            <div className="relative group">
+              <Link
+                href="/admin"
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-[10px] px-3 py-[9px]'} rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                  pathname === '/admin'
+                    ? 'text-white font-semibold'
+                    : 'text-white/52 hover:text-white/90 hover:bg-white/7'
+                }`}
+                style={pathname === '/admin' ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
+              >
+                <FontAwesomeIcon icon={faShield} className="w-[15px] h-[15px] shrink-0" />
+                {!sidebarCollapsed && <span>Administration</span>}
+              </Link>
+              {sidebarCollapsed && (
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{background:'var(--color-ink)', color:'white'}}>
+                  Administration
+                </div>
+              )}
+            </div>
+          )}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="shrink-0 border-t border-white/10 py-3 px-3 space-y-1">
+          {!sidebarCollapsed && isPremium && (
+            <label className="flex items-center gap-3 px-3 py-2 text-sm text-white/52 cursor-pointer hover:bg-white/7 rounded-lg transition-all">
               <input
                 type="checkbox"
                 checked={commercialMode}
@@ -288,119 +429,350 @@ export default function DashboardLayout({
                     fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
                   }
                 }}
-                className="w-4 h-4 rounded border-[#E0D8CC] text-[#1C3A2F] focus:ring-[#1C3A2F]"
+                className="w-4 h-4 rounded accent-[var(--color-gold)]"
               />
               <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
               Activité commerciale
             </label>
-          </div>
-        )}
-      </nav>
-
-      {/* Zone secondaire épinglée — Déconnexion */}
-      <div className="shrink-0 border-t border-[#E0D8CC] py-3 px-3 space-y-1 bg-white">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-[#9BA89D] hover:bg-[#FCECEA] hover:text-[#B94A3E] rounded-xl transition-all font-[family-name:var(--font-inter)]"
-        >
-          <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
-          Déconnexion
-        </button>
-      </div>
-    </aside>
-
-  {sidebarOpen && (
-  <div
-  className="fixed inset-0 bg-black/20 z-30 lg:hidden"
-  onClick={() => setSidebarOpen(false)}
-  />
-  )}
-
-  <div className="flex-1 min-w-0 lg:ml-64 flex flex-col">
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b-2 border-[#E0D8CC]/60 px-4 py-2.5 flex items-center gap-3 lg:hidden shadow-sm">
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="text-[#1A1A1A] hover:text-[#1C3A2F]"
-      >
-        <FontAwesomeIcon icon={faBars} className="w-7 h-7" />
-      </button>
-      <Link href="/dashboard" className="flex items-center gap-2.5">
-        <div className="w-8 h-8 bg-[#1C3A2F] rounded-xl flex items-center justify-center shadow-sm">
-          <img src="/akwetche-symbole.png" alt="Akwetche" className="w-4 h-4" />
+          )}
+          <button
+            onClick={toggleSidebar}
+            className={`flex items-center w-full text-sm text-white/52 hover:text-white/90 hover:bg-white/7 rounded-lg transition-all ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-3 px-3 py-2'}`}
+            title={sidebarCollapsed ? 'Agrandir' : 'Réduire'}
+          >
+            <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} className="w-[15px] h-[15px]" />
+            {!sidebarCollapsed && <span>Réduire</span>}
+          </button>
         </div>
-        <span className="text-lg font-bold text-[#1C3A2F] font-[family-name:var(--font-dm-sans)]">Akwetche</span>
-      </Link>
-      <div className="ml-auto">
-        <NotificationBell />
-      </div>
-    </header>
+      </aside>
 
-    {subStatus && (
-      <ExpirationBanner
-        daysRemaining={subStatus.daysRemaining ?? 0}
-        status={subStatus.status}
-        label={subStatus.label ?? ""}
-        variant={(subStatus.variant as "active" | "warning" | "critical" | "expired") || "active"}
-      />
-    )}
-    <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full pb-20 lg:pb-0">
-      {children}
-    </main>
-    {showExpiredModal && <ExpiredModal />}
+      {/* Sidebar overlay mobile */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/20 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
-    {/* Navigation inférieure (mobile) — redesign */}
-    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden safe-area-bottom" style={{ backgroundColor: "rgba(242,237,228,0.95)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-      <div className="flex items-center justify-around px-1 py-1 max-w-lg mx-auto">
-        {[
-          { href: "/dashboard", label: "Accueil", icon: faHouse },
-          { href: "/dashboard/products", label: "Produits", icon: faBox, locked: isFreeLocked, lockedHref: "/payment" },
-          { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
-          { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
-          { href: "/dashboard/settings", label: "Paramètres", icon: faGear },
-        ].map((item: any) => {
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-          if (item.locked) {
-            return (
+      {/* Main content area */}
+      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-200 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
+        {/* Topbar */}
+        <header className="sticky top-0 z-20" style={{background:'var(--color-surface)', borderBottom:'1px solid var(--color-border)'}}>
+          <div className="flex items-center justify-between h-[58px] px-4 md:px-6">
+            {/* Left: hamburger mobile + page title */}
+            <div className="flex items-center gap-3">
               <button
-                key={item.href}
-                onClick={() => router.push(item.lockedHref)}
-                className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-1.5"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                aria-label="Menu"
               >
-                <FontAwesomeIcon icon={faLock} className="text-xl text-[#9BA89D]" />
-                <span className="text-[10px] font-medium text-[#9BA89D] truncate max-w-full font-[family-name:var(--font-inter)]">{item.label}</span>
+                <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
               </button>
-            );
-          }
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-1.5"
-            >
-              <FontAwesomeIcon
-                icon={item.icon}
-                className={`text-xl ${isActive ? "text-[#1C3A2F]" : "text-[#9BA89D]"}`}
-                style={{ stroke: isActive ? "#1C3A2F" : "none", strokeWidth: isActive ? "0.5" : "0" }}
-              />
-              <span className={`text-[10px] font-medium truncate max-w-full font-[family-name:var(--font-inter)] ${
-                isActive ? "text-[#1C3A2F]" : "text-[#9BA89D]"
-              }`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+              <h1 className="text-lg font-semibold" style={{fontFamily:'var(--font-display)', color:'var(--color-ink)'}}>{pageTitle}</h1>
+            </div>
 
-    <footer className="border-t border-[#E0D8CC] bg-white px-4 md:px-6 lg:px-8 py-3 pb-16 lg:pb-3">
-      <p className="text-xs text-[#9BA89D] text-center font-[family-name:var(--font-inter)]">
-        &copy; {new Date().getFullYear()} Akwetche — Tous droits réservés.
-      </p>
-    </footer>
-  </div>
- </div>
- </DashboardContext.Provider>
- );
+            {/* Right: bell + avatar */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setNotifDrawerOpen(true)}
+                className="relative p-2 rounded-lg transition-all"
+                style={{color:'var(--color-muted)'}}
+                aria-label="Notifications"
+              >
+                <FontAwesomeIcon icon={faBell} className="w-5 h-5" />
+                {unread > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 text-[10px] font-bold flex items-center justify-center rounded-full min-w-[18px] min-h-[18px] leading-none" style={{background:'var(--color-neg)', color:'white'}}>
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </button>
+
+              {/* Account avatar */}
+              <div className="relative" ref={accountMenuRef}>
+                <button
+                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold cursor-pointer transition-all"
+                  style={{background:'var(--color-gold)', color:'var(--color-brand)', outline: accountMenuOpen ? '2px solid var(--color-brand)' : '2px solid transparent', outlineOffset: '2px'}}
+                >
+                  {avatarInitial}
+                </button>
+
+                {accountMenuOpen && (
+                  <div className="account-menu">
+                    <div className="p-4" style={{borderBottom:'1px solid var(--color-border)', background:'var(--color-surface-raised)'}}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>
+                          {avatarInitial}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate" style={{color:'var(--color-ink)'}}>{user.name}</p>
+                          <p className="text-xs truncate" style={{color:'var(--color-muted)'}}>{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="badge" style={user.plan === 'premium' || user.role !== 'user' ? {background:'var(--color-gold-light)', color:'#7A5800'} : {background:'var(--color-brand-subtle)', color:'var(--color-brand)'}}>
+                          {user.plan === 'premium' || user.role !== 'user' ? 'Premium' : 'Gratuit'}
+                        </span>
+                        {user.subscription?.status === 'active' && (
+                          <span className="badge badge-pos">✓ Actif</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <button onClick={() => { setAccountMenuOpen(false); router.push('/dashboard/settings'); }} className="account-menu-item">
+                        <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
+                        Paramètres du compte
+                      </button>
+                      {user && user.role !== "user" && (
+                        <button onClick={() => { setAccountMenuOpen(false); router.push('/admin'); }} className="account-menu-item">
+                          <FontAwesomeIcon icon={faShield} className="w-4 h-4" />
+                          Administration
+                        </button>
+                      )}
+                      {isFreeLocked && (
+                        <>
+                          <div className="account-menu-divider" />
+                          <button onClick={() => { setAccountMenuOpen(false); router.push('/payment'); }} className="account-menu-item upgrade">
+                            <FontAwesomeIcon icon={faStar} className="w-4 h-4" />
+                            Passer à Premium →
+                          </button>
+                        </>
+                      )}
+                      <div className="account-menu-divider" />
+                      <button onClick={() => { setAccountMenuOpen(false); handleLogout(); }} className="account-menu-item danger">
+                        <FontAwesomeIcon icon={faArrowRightFromBracket} className="w-4 h-4" />
+                        Déconnexion
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {subStatus && (
+          <ExpirationBanner
+            daysRemaining={subStatus.daysRemaining ?? 0}
+            status={subStatus.status}
+            label={subStatus.label ?? ""}
+            variant={(subStatus.variant as "active" | "warning" | "critical" | "expired") || "active"}
+          />
+        )}
+
+        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full pb-20 lg:pb-0">
+          {children}
+        </main>
+
+        {showExpiredModal && <ExpiredModal />}
+
+        {/* Mobile bottom nav — 4 items */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden" style={{background:'var(--color-surface)', borderTop:'1px solid var(--color-border)', padding:'6px 0 calc(6px + env(safe-area-inset-bottom))'}}>
+          <div className="flex">
+            {[
+              { href: "/dashboard", label: "Accueil", icon: faHouse },
+              { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+              { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
+              { href: "#menu", label: "Menu", icon: faBars },
+            ].map((item) => {
+              const isActive = item.href !== "#menu" && (pathname === item.href || pathname.startsWith(item.href));
+              if (item.href === "#menu") {
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => setSidebarOpen(true)}
+                    className="flex-1 flex flex-col items-center gap-[3px] py-[6px] px-1 cursor-pointer border-none"
+                    style={{color:'var(--color-muted)', fontSize:'10.5px', fontWeight:500, fontFamily:'var(--font-body)', background:'transparent'}}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex-1 flex flex-col items-center gap-[3px] py-[6px] px-1"
+                  style={{color: isActive ? 'var(--color-brand)' : 'var(--color-muted)', fontSize:'10.5px', fontWeight: isActive ? 600 : 500, fontFamily:'var(--font-body)'}}
+                >
+                  <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        <footer className="no-print border-t px-4 md:px-6 lg:px-8 py-3 pb-16 lg:pb-3" style={{borderColor:'var(--color-border)', background:'var(--color-surface)'}}>
+          <p className="text-xs text-center" style={{color:'var(--color-muted)', fontFamily:'var(--font-body)'}}>
+            &copy; {new Date().getFullYear()} Akwetche — Tous droits réservés.
+          </p>
+        </footer>
+      </div>
+    </div>
+
+    {/* Notification Drawer */}
+    {notifDrawerOpen && (
+      <>
+        <div className="fixed inset-0 z-[60] bg-black/20 animate-fade-in" onClick={() => setNotifDrawerOpen(false)} />
+        <div className="fixed top-0 right-0 z-[70] h-full w-[380px] max-w-full animate-drawer-right flex flex-col" style={{background:'var(--color-surface)', boxShadow:'-4px 0 24px rgba(0,0,0,0.10)'}}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{borderBottom:'1px solid var(--color-border)'}}>
+            <h2 className="text-base font-semibold" style={{color:'var(--color-ink)', fontFamily:'var(--font-display)'}}>Notifications</h2>
+            <button
+              onClick={() => setNotifDrawerOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+              style={{color:'var(--color-muted)'}}
+            >
+              <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-1 px-4 py-3 shrink-0" style={{borderBottom:'1px solid var(--color-border)'}}>
+            {([{key:"new",label:"Nouveau"},{key:"unread",label:"Non lu"},{key:"read",label:"Lu"}] as const).map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setNotifTab(tab.key)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  background: notifTab === tab.key ? 'var(--color-brand-subtle)' : 'transparent',
+                  color: notifTab === tab.key ? 'var(--color-brand)' : 'var(--color-muted)',
+                  fontWeight: notifTab === tab.key ? 600 : 500,
+                }}
+              >
+                {tab.label}
+                {tab.key === "unread" && unread > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold" style={{background:'var(--color-brand)', color:'white'}}>{unread}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* List */}
+          <div className="flex-1 overflow-y-auto">
+            {notifFiltered.length === 0 && (
+              <div className="flex items-center justify-center py-12 text-sm" style={{color:'var(--color-muted)'}}>
+                Aucune notification
+              </div>
+            )}
+            {notifFiltered.map(n => {
+              const Icon = NOTIF_ICONS[n.type] || faBell;
+              const isBusy = busyIds.has(n.id);
+              return (
+                <div
+                  key={n.id}
+                  onClick={() => !isBusy && handleClickNotif(n)}
+                  className="notif-item"
+                  style={!n.read ? {background:'var(--color-brand-subtle)'} : {}}
+                >
+                  <div className="notif-icon" style={{background: !n.read ? 'rgba(28,58,47,0.10)' : 'var(--color-surface-raised)'}}>
+                    {isBusy ? (
+                      <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 animate-spin" style={{color:'var(--color-muted)'}} />
+                    ) : (
+                      <FontAwesomeIcon icon={Icon} className="w-4 h-4" style={{color: !n.read ? 'var(--color-brand)' : 'var(--color-muted)'}} />
+                    )}
+                  </div>
+                  <div className="notif-body">
+                    <p className="notif-message">{n.message}</p>
+                    <p className="notif-time">{timeAgo(n.createdAt)}</p>
+                  </div>
+                  {!n.read && <div className="notif-unread-dot" />}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteNotif(n); }}
+                    className="shrink-0 ml-1 transition-colors"
+                    style={{color:'var(--color-muted)'}}
+                    title="Supprimer"
+                  >
+                    <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          {unread > 0 && (
+            <div className="shrink-0 px-4 py-3" style={{borderTop:'1px solid var(--color-border)'}}>
+              <button
+                onClick={handleReadAll}
+                disabled={markingAll}
+                className="w-full py-2 rounded-lg text-xs font-semibold transition-all"
+                style={{background:'var(--color-brand-subtle)', color:'var(--color-brand)'}}
+              >
+                {markingAll ? 'Mise à jour...' : 'Tout marquer comme lu'}
+              </button>
+            </div>
+          )}
+        </div>
+      </>
+    )}
+
+    {/* Confirm delete notification */}
+    {confirmDeleteNotif !== null && (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/25 animate-fade-in" onClick={() => setConfirmDeleteNotif(null)}>
+        <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+          <h3 className="text-base font-semibold mb-2" style={{color:'var(--color-ink)'}}>Supprimer cette notification ?</h3>
+          <p className="text-sm mb-5" style={{color:'var(--color-muted)'}}>Cette notification sera définitivement supprimée.</p>
+          <div className="flex gap-3 justify-end">
+            <button onClick={() => setConfirmDeleteNotif(null)} className="btn-ghost">Annuler</button>
+            <button onClick={() => handleDeleteNotif(confirmDeleteNotif)} className="btn-danger text-sm">Oui, supprimer</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <style>{`
+      .nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; color:rgba(255,255,255,0.52); font-size:13.5px; font-weight:500; transition:background 0.12s,color 0.12s; margin-bottom:2px; white-space:nowrap; overflow:hidden; }
+      .nav-item:hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.90); }
+      .nav-item.active { background:rgba(255,255,255,0.13); color:white; font-weight:600; border-left:3px solid var(--color-gold); padding-left:9px; }
+      .nav-item svg { width:15px; height:15px; flex-shrink:0; }
+      .sidebar.collapsed .nav-item { justify-content:center; padding:10px; }
+      .sidebar.collapsed .nav-item span { display:none; }
+
+      .account-menu {
+        position:absolute; right:0; top:calc(100% + 8px);
+        width:260px; z-index:100; overflow:hidden;
+        background:var(--color-surface);
+        border:1px solid var(--color-border);
+        border-radius:14px;
+        box-shadow:0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+        animation:scaleIn 0.18s cubic-bezier(0.16,1,0.3,1) forwards;
+        transform-origin:top right;
+      }
+      .account-menu-item {
+        display:flex; align-items:center; gap:10px; width:100%;
+        padding:11px 16px; border:none; background:transparent;
+        font-size:13.5px; font-weight:500; cursor:pointer;
+        font-family:var(--font-body); text-align:left;
+        transition:background 0.11s;
+        color:var(--color-body);
+      }
+      .account-menu-item:hover { background:var(--color-surface-raised); color:var(--color-ink); }
+      .account-menu-item.upgrade { color:var(--color-brand); font-weight:600; }
+      .account-menu-item.upgrade:hover { background:var(--color-brand-subtle); }
+      .account-menu-item.danger { color:var(--color-neg); }
+      .account-menu-item.danger:hover { background:var(--color-neg-bg); }
+      .account-menu-divider { height:1px; background:var(--color-border); margin:4px 0; }
+
+      .notif-item {
+        display:flex; align-items:flex-start; gap:12px;
+        padding:14px 16px; cursor:pointer;
+        border-bottom:1px solid var(--color-border);
+        transition:background 0.12s;
+      }
+      .notif-item:hover { background:var(--color-surface-raised); }
+      .notif-item.unread { background:var(--color-brand-subtle); }
+      .notif-icon {
+        width:36px; height:36px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      }
+      .notif-body { flex:1; min-width:0; }
+      .notif-message { font-size:13px; font-weight:500; line-height:1.4; color:var(--color-ink); }
+      .notif-time { font-size:11.5px; color:var(--color-muted); margin-top:3px; }
+      .notif-unread-dot {
+        width:7px; height:7px; border-radius:50%;
+        background:var(--color-brand); flex-shrink:0; margin-top:5px;
+      }
+    `}</style>
+   </DashboardContext.Provider>
+  );
 }

@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { DM_Sans, Inter } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 
 const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+  variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const fraunces = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${dmSans.variable} ${inter.variable} h-full antialiased`}>
+    <html lang="fr" className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

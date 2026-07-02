@@ -244,7 +244,7 @@ export default function SalesPage() {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Produit</label>
+          <label className="field-label">Produit</label>
           <CustomSelect
             options={products.map((p) => ({
               value: String(p.id),
@@ -260,24 +260,24 @@ export default function SalesPage() {
           />
         </div>
         <div>
-          <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Quantité</label>
+          <label className="field-label">Quantité</label>
           <input
             type="number"
             value={formQuantity}
             onChange={(e) => setFormQuantity(e.target.value)}
-            className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]"
+            className="input-field"
             min="1"
             required
           />
         </div>
         <div>
-          <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix unitaire</label>
+          <label className="field-label">Prix unitaire</label>
           <div className="relative">
             <input
               type="number"
               value={formUnitPrice}
               onChange={(e) => setFormUnitPrice(e.target.value)}
-              className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[38px] pr-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]"
+              className="input-field pl-[38px]"
               step="0.01"
               min="0"
               required
@@ -288,27 +288,27 @@ export default function SalesPage() {
           </div>
         </div>
         {formProductId && qtyNum > 0 && priceNum > 0 && (
-          <div className="bg-bg rounded-xl p-3 text-sm">
-            <div className="flex items-center justify-between text-text-3 mb-1">
+          <div className="card-inset text-sm">
+            <div className="flex items-center justify-between text-muted mb-1">
               <span>Total</span>
-              <span className="font-display font-bold text-lg text-text-1">{formatCurrency(totalDisplay, currency)}</span>
+              <span className="text-amount text-lg text-ink">{formatCurrency(totalDisplay, currency)}</span>
             </div>
-            <div className="flex items-center justify-between text-text-3">
+            <div className="flex items-center justify-between text-muted">
               <span>Marge estimée</span>
-              <span className={`font-semibold ${marginDisplay >= 0 ? "text-teal" : "text-red"}`}>
+              <span className={`font-semibold ${marginDisplay >= 0 ? "text-pos" : "text-neg"}`}>
                 {marginDisplay >= 0 ? "+" : ""}{formatCurrency(marginDisplay, currency)}
               </span>
             </div>
             {qtyNum > (selectedProduct?.stock || 0) && (
-              <p className="text-red text-xs mt-2 flex items-center gap-1">
+              <p className="text-neg text-xs mt-2 flex items-center gap-1">
                 <FontAwesomeIcon icon={faTriangleExclamation} className="w-3 h-3" />
                 Stock insuffisant ({selectedProduct?.stock} disponible{selectedProduct?.stock !== 1 ? "s" : ""})
               </p>
             )}
           </div>
         )}
-        {formError && <p className="text-red text-sm bg-red-pale p-3 rounded-xl">{formError}</p>}
-        <button type="submit" disabled={saving} className="w-full bg-green text-white font-sans font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
+        {formError && <p className="alert-inline neg">{formError}</p>}
+        <button type="submit" disabled={saving} className="btn-primary w-full disabled:opacity-50">
           {saving ? "Enregistrement..." : editingSale ? "Modifier la vente" : "Enregistrer"}
         </button>
       </form>
@@ -318,7 +318,7 @@ export default function SalesPage() {
   function renderSaleCard(sale: Sale) {
     const marginRate = sale.totalAmount > 0 ? (sale.profit / sale.totalAmount) * 100 : 0;
     return (
-      <div key={sale.id} className="bg-bg-card rounded-[14px] border border-border p-4">
+      <div key={sale.id} className="card-compact">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="min-w-0 flex-1">
@@ -328,14 +328,14 @@ export default function SalesPage() {
           <div className="flex items-center gap-1 shrink-0 pl-3">
             <button
               onClick={() => openEditModal(sale)}
-              className="w-8 h-8 flex items-center justify-center rounded-xl border border-green/30 text-green hover:bg-green/5 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-xl border border-[var(--color-brand)]/30 text-[var(--color-brand)] hover:bg-[var(--color-brand)]/5 transition-colors"
               title="Modifier"
             >
               <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => { setDeleteTarget(sale); setDeleteMsg(""); }}
-              className="w-8 h-8 flex items-center justify-center rounded-xl border border-red/30 text-red hover:bg-red-pale transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-xl border border-[var(--color-neg)]/30 text-[var(--color-neg)] hover:bg-[var(--color-neg-bg)] transition-colors"
               title="Supprimer"
             >
               <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
@@ -344,22 +344,22 @@ export default function SalesPage() {
         </div>
         {/* Metrics grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          <div className="bg-bg rounded-xl p-[10px]">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-text-3">Qté</p>
-            <p className="font-display font-bold text-[15px] text-text-1 mt-0.5">{sale.quantity}</p>
+          <div className="card-inset">
+            <p className="text-label">Qté</p>
+            <p className="text-amount text-[15px] mt-0.5">{sale.quantity}</p>
           </div>
-          <div className="bg-bg rounded-xl p-[10px]">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-text-3">Prix unit.</p>
-            <p className="font-display font-bold text-[15px] text-text-1 mt-0.5">{formatCurrency(sale.unitPrice, currency)}</p>
+          <div className="card-inset">
+            <p className="text-label">Prix unit.</p>
+            <p className="text-amount text-[15px] mt-0.5">{formatCurrency(sale.unitPrice, currency)}</p>
           </div>
-          <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-gold-pale rounded-xl p-[10px]">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-gold/70">Total</p>
-            <p className="font-display font-bold text-[15px] text-gold mt-0.5">{formatCurrency(sale.totalAmount, currency)}</p>
+          <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full card-inset" style={{ background: "var(--color-gold-light)" }}>
+            <p className="text-label" style={{ color: "var(--color-gold)" }}>Total</p>
+            <p className="text-amount text-[15px] mt-0.5" style={{ color: "var(--color-gold)" }}>{formatCurrency(sale.totalAmount, currency)}</p>
           </div>
         </div>
         {/* Margin band */}
         <div className="mt-3 pt-3 border-t border-border">
-          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ${sale.profit >= 0 ? "bg-teal/10 text-teal" : "bg-red-pale text-red"}`}>
+          <span className={`badge ${sale.profit >= 0 ? "badge-pos" : "badge-neg"}`}>
             {sale.profit >= 0 ? "+" : ""}{formatCurrency(sale.profit, currency)} de marge · {marginRate.toFixed(0)}%
           </span>
         </div>
@@ -372,12 +372,12 @@ export default function SalesPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="font-display font-bold text-2xl text-text-1">Ventes</h1>
-          <p className="text-text-3 text-sm mt-0.5">{filteredSales.length} vente{filteredSales.length !== 1 ? "s" : ""} · ce mois</p>
+          <h1 className="text-display text-2xl text-ink">Ventes</h1>
+          <p className="text-muted text-sm mt-0.5">{filteredSales.length} vente{filteredSales.length !== 1 ? "s" : ""} · ce mois</p>
         </div>
         <button
           onClick={openNewModal}
-          className="inline-flex items-center gap-2 bg-green text-white font-sans font-bold text-[13px] px-[14px] py-[9px] rounded-xl hover:opacity-90 transition-opacity active:scale-95 shrink-0"
+          className="btn-primary shrink-0"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           Nouvelle vente
@@ -385,44 +385,44 @@ export default function SalesPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-3 bg-red-pale border border-red/20 rounded-2xl p-4">
-          <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red shrink-0 mt-0.5" />
-          <p className="text-sm text-red flex-1">{error}</p>
-          <button onClick={() => setError(null)} className="text-red/60 hover:text-red shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+        <div className="alert-inline neg">
+          <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
+          <p className="flex-1">{error}</p>
+          <button onClick={() => setError(null)} className="opacity-60 hover:opacity-100 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
         </div>
       )}
 
       {/* KPI Card */}
-      <div className="bg-bg-card rounded-[18px] border border-border p-[18px]">
+      <div className="card">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gold-pale rounded-xl p-3">
-            <p className="text-[9.5px] font-bold uppercase tracking-widest text-gold/70">CA du mois</p>
-            <p className="font-display font-bold text-[22px] text-gold mt-0.5">{formatCurrency(summary.revenue, currency)}</p>
+          <div className="card-inset" style={{ background: "var(--color-gold-light)" }}>
+            <p className="text-label">CA du mois</p>
+            <p className="text-amount text-[22px] text-[var(--color-gold)] mt-0.5">{formatCurrency(summary.revenue, currency)}</p>
           </div>
-          <div className="bg-bg rounded-xl p-3">
-            <p className="text-[9.5px] font-bold uppercase tracking-widest text-text-3">Nb de ventes</p>
-            <p className="font-display font-bold text-[22px] text-green mt-0.5">{summary.count}</p>
+          <div className="card-inset">
+            <p className="text-label">Nb de ventes</p>
+            <p className="text-amount text-[22px] mt-0.5" style={{ color: "var(--color-brand)" }}>{summary.count}</p>
           </div>
-          <div className="bg-teal/10 rounded-xl p-3">
-            <p className="text-[9.5px] font-bold uppercase tracking-widest text-teal/70">Marge totale</p>
-            <p className="font-display font-bold text-[22px] text-teal mt-0.5">{formatCurrency(summary.margin, currency)}</p>
+          <div className="card-inset" style={{ background: "var(--color-pos-bg)" }}>
+            <p className="text-label">Marge totale</p>
+            <p className="text-amount text-[22px] mt-0.5" style={{ color: "var(--color-pos)" }}>{formatCurrency(summary.margin, currency)}</p>
           </div>
-          <div className="bg-bg rounded-xl p-3">
-            <p className="text-[9.5px] font-bold uppercase tracking-widest text-text-3">Panier moyen</p>
-            <p className="font-display font-bold text-[22px] text-text-1 mt-0.5">{formatCurrency(summary.avgBasket, currency)}</p>
+          <div className="card-inset">
+            <p className="text-label">Panier moyen</p>
+            <p className="text-amount text-[22px] mt-0.5">{formatCurrency(summary.avgBasket, currency)}</p>
           </div>
         </div>
 
         {/* Top product */}
         {summary.topProduct && (
-          <div className="mt-3 bg-bg rounded-xl p-[14px]">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-text-3 flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="#C9A84C" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+          <div className="card-inset mt-3">
+            <p className="text-label flex items-center gap-1">
+              <FontAwesomeIcon icon={faStar} className="w-3 h-3" style={{ color: "var(--color-gold)" }} />
               Produit le plus vendu
             </p>
             <div className="flex items-center justify-between mt-1">
-              <p className="font-display font-bold text-base text-text-1 truncate min-w-0">{summary.topProduct}</p>
-              <p className="font-display font-bold text-[15px] text-gold shrink-0 ml-3">{formatCurrency(summary.topTotal, currency)}</p>
+              <p className="font-display font-bold text-base text-ink truncate min-w-0">{summary.topProduct}</p>
+              <p className="text-amount text-[15px] shrink-0 ml-3" style={{ color: "var(--color-gold)" }}>{formatCurrency(summary.topTotal, currency)}</p>
             </div>
           </div>
         )}
@@ -443,8 +443,8 @@ export default function SalesPage() {
             }}
             className={`px-4 py-[7px] rounded-xl text-[12.5px] font-medium transition-all ${
               period === opt.value
-                ? "bg-green text-white font-semibold"
-                : "bg-transparent text-text-3 hover:text-text-1"
+                ? "btn-primary"
+                : "btn-ghost"
             }`}
           >
             {opt.label}
@@ -458,14 +458,14 @@ export default function SalesPage() {
               type="date"
               value={pendingCustomStart}
               onChange={(e) => { setPendingCustomStart(e.target.value); setCustomDateError(""); }}
-              className="flex-1 min-w-0 bg-bg-card border border-border rounded-xl px-3 py-[7px] text-xs text-text-1 outline-none focus:border-green"
+              className="flex-1 min-w-0 input-field text-xs py-[7px]"
             />
-            <span className="text-text-3 text-xs shrink-0">→</span>
+            <span className="text-muted text-xs shrink-0">→</span>
             <input
               type="date"
               value={pendingCustomEnd}
               onChange={(e) => { setPendingCustomEnd(e.target.value); setCustomDateError(""); }}
-              className="flex-1 min-w-0 bg-bg-card border border-border rounded-xl px-3 py-[7px] text-xs text-text-1 outline-none focus:border-green"
+              className="flex-1 min-w-0 input-field text-xs py-[7px]"
             />
           </div>
           <button
@@ -476,28 +476,28 @@ export default function SalesPage() {
               setCustomEnd(pendingCustomEnd);
               setCustomDateError("");
             }}
-            className="bg-green text-white text-xs font-semibold px-3 py-[7px] rounded-xl hover:opacity-90 shrink-0 sm:self-auto"
+            className="btn-primary text-xs px-3 py-[7px] shrink-0 sm:self-auto"
           >
             Appliquer
           </button>
         </div>
       )}
-      {customDateError && <p className="text-red text-xs">{customDateError}</p>}
+      {customDateError && <p className="text-[var(--color-neg)] text-xs">{customDateError}</p>}
 
       {/* Sales list */}
       {loading ? (
         <div className="space-y-3 animate-pulse">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-bg-card rounded-[14px] border border-border p-4 space-y-3">
+            <div key={i} className="card space-y-3">
               <div className="flex items-center justify-between"><div className="space-y-1.5"><div className="h-4 w-36 bg-stone/30 rounded-lg" /><div className="h-3 w-20 bg-stone/20 rounded-lg" /></div><div className="flex gap-1"><div className="w-8 h-8 bg-stone/20 rounded-xl" /><div className="w-8 h-8 bg-stone/20 rounded-xl" /></div></div>
               <div className="grid grid-cols-3 gap-2"><div className="h-12 bg-stone/20 rounded-xl" /><div className="h-12 bg-stone/20 rounded-xl" /><div className="h-12 bg-stone/20 rounded-xl" /></div>
             </div>
           ))}
         </div>
       ) : filteredSales.length === 0 ? (
-        <div className="bg-bg-card rounded-[18px] border border-border p-8 text-center">
-          <FontAwesomeIcon icon={faBagShopping} className="w-10 h-10 text-text-3 mx-auto mb-3" />
-          <p className="text-sm text-text-3">Aucune vente pour cette période</p>
+        <div className="card text-center py-12">
+          <FontAwesomeIcon icon={faBagShopping} className="w-10 h-10 text-muted mx-auto mb-3" />
+          <p className="text-sm text-muted">Aucune vente pour cette période</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -509,8 +509,8 @@ export default function SalesPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={closeModal}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-white rounded-t-[20px] sm:rounded-2xl w-full sm:max-w-md shadow-xl animate-slide-up sm:animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border rounded-t-[20px] sm:rounded-t-2xl">
+          <div className="relative bg-[var(--color-surface)] rounded-t-[20px] sm:rounded-2xl w-full sm:max-w-md shadow-xl animate-slide-up sm:animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-border rounded-t-[20px] sm:rounded-t-2xl">
               <h3 className="font-display font-semibold text-base text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
               <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-text-1 rounded-lg hover:bg-sand transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
@@ -527,18 +527,18 @@ export default function SalesPage() {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => { setDeleteTarget(null); setDeleteMsg(""); }}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-white rounded-t-[20px] w-full max-w-lg shadow-xl animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-[var(--color-surface)] rounded-t-[20px] w-full max-w-lg shadow-xl animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="p-5 pb-2">
-              <h3 className="font-display font-bold text-base text-red">Supprimer la vente</h3>
+              <h3 className="font-display font-bold text-base text-[var(--color-neg)]">Supprimer la vente</h3>
               <p className="text-[13px] text-text-3 mt-1.5 leading-relaxed">
                 {deleteTarget.quantity} × {deleteTarget.product.name} — {formatCurrency(deleteTarget.totalAmount, currency)}
               </p>
             </div>
             <div className="p-5 pt-3 space-y-2">
-              <button onClick={() => handleDelete(deleteTarget)} disabled={deleting} className="w-full bg-red text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
+              <button onClick={() => handleDelete(deleteTarget)} disabled={deleting} className="w-full bg-[var(--color-neg)] text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
                 {deleting ? "Suppression..." : "Oui, supprimer"}
               </button>
-              <button onClick={() => { setDeleteTarget(null); setDeleteMsg(""); }} className="w-full bg-bg text-text-3 font-medium text-sm py-3 rounded-xl border border-border hover:bg-border/30 transition-colors">
+              <button onClick={() => { setDeleteTarget(null); setDeleteMsg(""); }} className="w-full bg-[var(--color-bg)] text-[var(--color-muted)] font-medium text-sm py-3 rounded-xl border border-border hover:bg-border/30 transition-colors">
                 Annuler
               </button>
             </div>
@@ -547,7 +547,7 @@ export default function SalesPage() {
       )}
 
       {deleteMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red text-white px-5 py-3 rounded-xl shadow-lg text-sm max-w-md text-center">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-neg)] text-white px-5 py-3 rounded-xl shadow-lg text-sm max-w-md text-center">
           {deleteMsg}
           <button onClick={() => setDeleteMsg("")} className="ml-3 text-white/80 hover:text-white">
             <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />

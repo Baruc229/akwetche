@@ -246,11 +246,11 @@ export default function HistoryPage() {
           <p className="text-muted text-sm mt-0.5">Consultez l&apos;évolution de vos finances</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={exportCSV} className="btn-secondary flex items-center gap-2 text-sm">
+          <button onClick={exportCSV} className="btn-ghost flex items-center gap-2 text-sm">
             <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
             CSV
           </button>
-          <button onClick={() => window.print()} className="btn-secondary flex items-center gap-2 text-sm">
+          <button onClick={() => window.print()} className="btn-ghost flex items-center gap-2 text-sm">
             <FontAwesomeIcon icon={faFilePdf} className="w-4 h-4" />
             Export PDF
           </button>
@@ -258,24 +258,24 @@ export default function HistoryPage() {
       </div>
 
       {loadError && (
-      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
-      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-      <p className="text-sm text-red-700 flex-1">{loadError}</p>
-      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      <div className="alert-inline neg">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0 mt-0.5" />
+      <p className="text-sm flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="opacity-50 hover:opacity-100 shrink-0 transition-opacity"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
       </div>
       )}
 
-      <div className="card p-4 space-y-3">
+      <div className="card space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-muted uppercase tracking-wider">Filtres</p>
-          <button onClick={resetFilters} className="text-xs text-muted hover:text-forest flex items-center gap-1 transition-colors">
+          <p className="text-label">Filtres</p>
+          <button onClick={resetFilters} className="btn-ghost text-xs flex items-center gap-1">
             <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
             Réinitialiser
           </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs text-muted mb-1.5">Période</label>
+            <label className="text-label mb-1.5 block">Période</label>
             <CustomSelect
               options={[
                 { value: "week", label: "Semaine" },
@@ -289,7 +289,7 @@ export default function HistoryPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-muted mb-1.5">Type</label>
+            <label className="text-label mb-1.5 block">Type</label>
             <CustomSelect
               options={[
                 { value: "all", label: "Tous" },
@@ -301,7 +301,7 @@ export default function HistoryPage() {
             />
           </div>
           <div className="col-span-2 sm:col-span-1">
-            <label className="block text-xs text-muted mb-1.5">Catégorie</label>
+            <label className="text-label mb-1.5 block">Catégorie</label>
             <CustomSelect
               options={categoryOptions}
               value={categoryFilter}
@@ -312,14 +312,14 @@ export default function HistoryPage() {
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="block text-xs text-muted mb-1.5">
+                  <label className="text-label mb-1.5 block">
                     <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3 mr-1" />
                     Du
                   </label>
                   <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs text-muted mb-1.5">Au</label>
+                  <label className="text-label mb-1.5 block">Au</label>
                   <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
                 </div>
               </div>
@@ -329,34 +329,34 @@ export default function HistoryPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="card p-4">
-          <p className="text-xs text-muted mb-0.5">Revenus</p>
-          <p className="text-lg font-bold text-forest-light">{formatCurrency(totalIncome)}</p>
+        <div className="card-inset">
+          <p className="text-label">Revenus</p>
+          <p className="text-amount text-lg" style={{ color: 'var(--color-pos)' }}>{formatCurrency(totalIncome)}</p>
         </div>
-        <div className="card p-4">
-          <p className="text-xs text-muted mb-0.5">Dépenses</p>
-          <p className="text-lg font-bold text-red">{formatCurrency(totalExpense)}</p>
+        <div className="card-inset">
+          <p className="text-label">Dépenses</p>
+          <p className="text-amount text-lg" style={{ color: 'var(--color-neg)' }}>{formatCurrency(totalExpense)}</p>
         </div>
-        <div className="card p-4">
-          <p className="text-xs text-muted mb-0.5">Transactions</p>
-          <p className="text-lg font-bold text-ink">{totalCount}</p>
+        <div className="card-inset">
+          <p className="text-label">Transactions</p>
+          <p className="text-amount text-lg">{totalCount}</p>
         </div>
-        <div className="card p-4">
-          <p className="text-xs text-muted mb-0.5">Solde</p>
-          <p className={`text-lg font-bold ${netBalance >= 0 ? 'text-forest-light' : 'text-red-500'}`}>
+        <div className="card-inset">
+          <p className="text-label">Solde</p>
+          <p className="text-amount text-lg" style={{ color: netBalance >= 0 ? 'var(--color-pos)' : 'var(--color-neg)' }}>
             {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance)}
           </p>
         </div>
       </div>
 
-      <div className="card p-5">
+      <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block bg-[#1ABC9C]" />
+            <span className="bar-dot" style={{ background: 'var(--color-pos)' }} />
             <span className="text-muted">Revenus</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block bg-[#E74C6F]" />
+            <span className="bar-dot" style={{ background: 'var(--color-neg)' }} />
             <span className="text-muted">Dépenses</span>
           </div>
         </div>
@@ -375,14 +375,14 @@ export default function HistoryPage() {
                       {d.income > 0 && (
                         <div
                           className="w-[38%] rounded-t-sm transition-all duration-300"
-                          style={{ height: `${Math.max(incomeH, 2)}%`, backgroundColor: "#1ABC9C" }}
+                          style={{ height: `${Math.max(incomeH, 2)}%`, backgroundColor: 'var(--color-pos)' }}
                           title={`Revenu: ${formatCurrency(d.income)}`}
                         />
                       )}
                       {d.expense > 0 && (
                         <div
                           className="w-[38%] rounded-t-sm transition-all duration-300"
-                          style={{ height: `${Math.max(expenseH, 2)}%`, backgroundColor: "#E74C6F" }}
+                          style={{ height: `${Math.max(expenseH, 2)}%`, backgroundColor: 'var(--color-neg)' }}
                           title={`Dépense: ${formatCurrency(d.expense)}`}
                         />
                       )}
@@ -397,7 +397,7 @@ export default function HistoryPage() {
       </div>
 
       {categoryBreakdown.length > 0 && (
-        <div className="card p-5">
+        <div className="card">
           <h2 className="text-sm font-semibold text-ink mb-1">Dépenses par catégorie</h2>
           <p className="text-xs text-muted mb-4">Répartition des dépenses sur la période</p>
           <div className="space-y-3">
@@ -407,13 +407,13 @@ export default function HistoryPage() {
                 <div key={cat.name}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-ink flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: cat.color }} />
+                      <span className="bar-dot" style={{ backgroundColor: cat.color }} />
                       {cat.name}
                     </span>
                     <span className="text-muted">{formatCurrency(cat.amount)} ({pct.toFixed(0)}%)</span>
                   </div>
-                  <div className="h-2.5 bg-border rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
                   </div>
                 </div>
               );
@@ -423,7 +423,7 @@ export default function HistoryPage() {
       )}
 
       <div className="card">
-        <div className="p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 border-b border-[var(--color-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between w-full sm:w-auto">
             <h2 className="text-sm font-semibold text-ink">Transactions</h2>
             <span className="text-xs text-muted sm:hidden">{filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}</span>
@@ -438,7 +438,7 @@ export default function HistoryPage() {
               className="input-field py-2 text-sm w-full" style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }}
             />
             {searchInput && (
-              <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-sand transition-colors">
+              <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full hover:bg-[var(--color-surface-raised)] transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
               </button>
             )}
@@ -447,7 +447,7 @@ export default function HistoryPage() {
         </div>
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="w-6 h-6 border-2 border-forest border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="text-center py-12 text-muted">
@@ -456,28 +456,30 @@ export default function HistoryPage() {
             <p className="text-xs mt-1">Essayez de modifier les filtres ou d&apos;ajouter des transactions</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-[var(--color-border)]">
             {groupedTransactions.map((group) => {
               const groupTotal = group.transactions.reduce((sum, tx) => sum + (tx.type === "income" ? tx.amount : -tx.amount), 0);
               return (
                 <div key={group.date}>
-                  <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-sand/80 backdrop-blur-sm">
-                    <span className="text-xs font-semibold text-ink">{group.label}</span>
-                    <span className={`text-xs font-medium ${groupTotal >= 0 ? "text-forest-light" : "text-red"}`}>
+                  <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5" style={{ background: 'var(--color-surface-raised)' }}>
+                    <span className="text-label">{group.label}</span>
+                    <span className={`text-xs font-medium ${groupTotal >= 0 ? 'text-[var(--color-pos)]' : 'text-[var(--color-neg)]'}`}>
                       {groupTotal >= 0 ? "+" : ""}{formatCurrency(groupTotal)}
                     </span>
                   </div>
-                  <div className="divide-y divide-border/50">
+                  <div className="divide-y divide-[var(--color-border)]/50">
                     {group.transactions.map((tx) => (
-                      <div key={tx.id} className="flex items-center justify-between px-4 py-3 hover:bg-sand transition-colors">
+                      <div key={tx.id} className="card-compact flex items-center justify-between hover:shadow-sm transition-shadow" style={{ borderRadius: 0 }}>
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: getCategoryColor(tx.category?.id || 0) }} />
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: tx.type === "income" ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)' }}>
+                            <FontAwesomeIcon icon={tx.type === "income" ? faArrowTrendUp : faArrowTrendDown} className="w-3.5 h-3.5" style={{ color: tx.type === "income" ? 'var(--color-pos)' : 'var(--color-neg)' }} />
+                          </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-ink truncate">{tx.description}</p>
                             <p className="text-xs text-muted">{tx.category?.name}</p>
                           </div>
                         </div>
-                        <span className={`text-sm font-semibold shrink-0 ${tx.type === "income" ? "text-forest-light" : "text-red"}`}>
+                        <span className="text-amount text-sm" style={{ color: tx.type === "income" ? 'var(--color-pos)' : 'var(--color-neg)' }}>
                           {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                         </span>
                       </div>

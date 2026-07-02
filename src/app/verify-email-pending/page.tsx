@@ -64,7 +64,7 @@ export default function VerifyEmailPendingPage() {
 
   return (
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-  <div className="flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
   <div className="w-full max-w-md text-center animate-scale-in">
   <a
   href="/"
@@ -75,9 +75,9 @@ export default function VerifyEmailPendingPage() {
   </a>
 
   <div className="card p-8">
-  <div className="w-16 h-16 bg-ochre-light rounded-full flex items-center justify-center mx-auto mb-4">
-  <FontAwesomeIcon icon={faEnvelope} className="w-8 h-8 text-ochre" />
-  </div>
+      <div className="w-16 h-16 bg-[var(--color-brand-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
+        <FontAwesomeIcon icon={faEnvelope} className="w-8 h-8 text-[var(--color-brand)]" />
+      </div>
   <h1 className="text-2xl font-bold text-ink mb-2">
   Vérification requise
   </h1>
@@ -85,12 +85,12 @@ export default function VerifyEmailPendingPage() {
   Vous devez vérifier votre adresse email avant d'accéder à votre tableau de bord.
   </p>
 
-  <div className="bg-ochre-light border border-border rounded-xl p-4 text-sm text-ochre mb-6 text-left">
-  <div className="flex items-start gap-2">
-  <FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4 text-ochre shrink-0 mt-0.5" />
-  <p>Un email de confirmation vous a été envoyé. Cliquez sur le lien qu'il contient pour activer votre compte.</p>
-  </div>
-  </div>
+      <div className="alert-inline warn text-sm mb-6 text-left">
+        <div className="flex items-start gap-2">
+          <FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
+          <p>Un email de confirmation vous a été envoyé. Cliquez sur le lien qu'il contient pour activer votre compte.</p>
+        </div>
+      </div>
 
   <button
   onClick={handleCheckVerification}
@@ -102,33 +102,33 @@ export default function VerifyEmailPendingPage() {
   </button>
 
   {checkMessage && (
-  <div className="bg-ochre-light border border-border rounded-xl p-4 text-sm text-ochre mt-3">
-  {checkMessage}
-  </div>
+    <div className="alert-inline warn text-sm mt-3">
+    {checkMessage}
+    </div>
   )}
 
   {!resent ? (
   <button
   onClick={handleResend}
   disabled={resending}
-  className="w-full py-3 text-sm font-medium text-forest hover:text-forest transition-colors mt-4"
+   className="w-full py-3 text-sm font-medium text-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors mt-4"
   >
   {resending ? "Envoi en cours..." : "Renvoyer l'email de vérification"}
   </button>
   ) : (
-  <div className="bg-ochre-light border border-border rounded-xl p-4 text-sm text-forest mt-4">
+   <div className="bg-[var(--color-gold-light)] border border-border rounded-xl p-4 text-sm text-[var(--color-brand)] mt-4">
   Email renvoyé ! Vérifiez votre boîte de réception.
   </div>
   )}
 
   {error && (
-  <p className="mt-3 text-sm text-red-600">{error}</p>
+   <p className="mt-3 text-sm text-[var(--color-neg)]">{error}</p>
   )}
 
   <p className="text-center text-sm text-muted mt-6">
   <button
   onClick={() => router.push("/login")}
-  className="text-forest font-medium hover:text-forest"
+   className="text-[var(--color-brand)] font-medium hover:text-[var(--color-brand)]"
   >
   Se connecter avec un autre compte
   </button>

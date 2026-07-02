@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
+import { detectCurrency, setActiveCurrency, type CurrencyCode } from "@/lib/currency";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
 import OnboardingModal from "@/components/OnboardingModal";
-import HeroCard from "@/components/dashboard/HeroCard";
 import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
@@ -35,7 +35,7 @@ type Transaction = {
 };
 
 export default function DashboardPage() {
-  const { user, commercialMode } = useDashboard();
+  const { user, commercialMode, setCurrency } = useDashboard();
   const router = useRouter();
   const [monthPersonal, setMonthPersonal] = useState<ScopeSummary | null>(null);
   const [monthActivity, setMonthActivity] = useState<ScopeSummary | null>(null);
@@ -58,6 +58,13 @@ export default function DashboardPage() {
   } | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const activeCurrency = detectCurrency();
+  const isEuro = activeCurrency === "EUR";
+  function handleToggle() {
+    const next: CurrencyCode = isEuro ? "XOF" : "EUR";
+    setActiveCurrency(next);
+    setCurrency(next);
+  }
 
   async function loadData() {
     try {
@@ -150,23 +157,23 @@ export default function DashboardPage() {
       <div className="space-y-3 animate-pulse">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-6 w-44 bg-[#E0D8CC] rounded-lg" />
-            <div className="h-4 w-32 bg-[#E0D8CC]/60 rounded-lg" />
+            <div className="skeleton h-6 w-44" />
+            <div className="skeleton h-4 w-32" />
           </div>
         </div>
-        <div className="bg-[#1C3A2F]/20 rounded-[20px] p-6 space-y-3">
-          <div className="h-4 w-32 bg-white/20 rounded-lg" />
-          <div className="h-10 w-48 bg-white/20 rounded-lg" />
+        <div className="card-hero space-y-3" style={{ background: 'var(--color-brand)' }}>
+          <div className="skeleton h-4 w-32" style={{ background: 'rgba(255,255,255,0.2)' }} />
+          <div className="skeleton h-10 w-48" style={{ background: 'rgba(255,255,255,0.2)' }} />
           <div className="grid grid-cols-2 gap-3">
-            <div className="h-12 bg-white/10 rounded-xl" />
-            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="skeleton h-12 rounded-xl" style={{ background: 'rgba(255,255,255,0.1)' }} />
+            <div className="skeleton h-12 rounded-xl" style={{ background: 'rgba(255,255,255,0.1)' }} />
           </div>
         </div>
-        <div className="bg-white rounded-[18px] p-5 space-y-3">
-          <div className="h-4 w-40 bg-[#F2EDE4] rounded-lg" />
+        <div className="card space-y-3">
+          <div className="skeleton h-4 w-40" />
           <div className="space-y-2">
-            <div className="h-4 w-full bg-[#F2EDE4] rounded-lg" />
-            <div className="h-4 w-3/4 bg-[#F2EDE4] rounded-lg" />
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-3/4" />
           </div>
         </div>
       </div>
@@ -181,6 +188,7 @@ export default function DashboardPage() {
   const totalIncome = (personalSummary?.income || 0) + (activitySummary?.income || 0);
   const totalExpense = (personalSummary?.expense || 0) + (activitySummary?.expense || 0);
   const totalBalance = (personalSummary?.balance || 0) + (activitySummary?.balance || 0);
+  const isNegative = totalBalance < 0;
   const totalSavings = Math.max(0, (personalSummary?.savings || 0) + (activitySummary?.savings || 0));
 
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
@@ -197,17 +205,17 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A]">
+            <h1 className="text-xl font-bold text-ink">
               Bonjour, {user?.name?.split(" ")[0] || "utilisateur"}
             </h1>
             {limits?.isPremium && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[#F7F0D6] text-[#C9A84C] px-2 py-0.5 rounded-full font-[family-name:var(--font-inter)]">
+              <span className="badge-gold inline-flex items-center gap-1">
                 <FontAwesomeIcon icon={faCrown} className="w-3 h-3" />
                 Premium
               </span>
             )}
           </div>
-          <p className="text-sm text-[#9BA89D] mt-0.5 font-[family-name:var(--font-inter)]">
+          <p className="text-sm text-muted mt-0.5">
             {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
           </p>
         </div>
@@ -222,10 +230,10 @@ export default function DashboardPage() {
 
       {/* Erreur chargement */}
       {loadError && (
-        <div className="flex items-start gap-3 bg-[#FCECEA] border border-[#B94A3E]/20 rounded-[18px] p-4">
-          <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-[#B94A3E] shrink-0 mt-0.5" />
-          <p className="text-sm text-[#B94A3E] flex-1 font-[family-name:var(--font-inter)]">{loadError}</p>
-          <button onClick={() => setLoadError(null)} className="text-[#B94A3E]/50 hover:text-[#B94A3E] shrink-0">
+        <div className="alert-inline neg">
+          <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 shrink-0 mt-0.5" />
+          <p className="text-sm flex-1">{loadError}</p>
+          <button onClick={() => setLoadError(null)} className="opacity-50 hover:opacity-100 shrink-0 transition-opacity">
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
           </button>
         </div>
@@ -233,47 +241,43 @@ export default function DashboardPage() {
 
       {/* Bannière configuration catégories */}
       {categories.length === 0 && (
-        <div className="bg-[#F7F0D6] border border-[#C9A84C]/20 rounded-[18px] p-5">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#C9A84C]/15 flex items-center justify-center shrink-0">
-              <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-[#C9A84C]" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)]">
-                Configurez vos catégories
-              </p>
-              <p className="text-sm text-[#9BA89D] mt-1 font-[family-name:var(--font-inter)]">
-                Avant d&apos;ajouter des transactions, créez des catégories de dépenses et revenus dans les paramètres.
-              </p>
-              <a
-                href="/dashboard/settings"
-                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[#C9A84C] hover:text-[#C9A84C]/80 transition-colors font-[family-name:var(--font-inter)]"
-              >
-                Aller aux paramètres
-                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
-              </a>
-            </div>
+        <div className="alert-inline warn">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+            <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-ink">Configurez vos catégories</p>
+            <p className="text-sm text-muted mt-1">
+              Avant d&apos;ajouter des transactions, créez des catégories de dépenses et revenus dans les paramètres.
+            </p>
+            <a
+              href="/dashboard/settings"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
+            >
+              Aller aux paramètres
+              <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+            </a>
           </div>
         </div>
       )}
 
       {/* Bannière plan gratuit */}
       {limits && !limits.isPremium && user?.role === "user" && (
-        <div className="bg-white rounded-[18px] border border-[#E0D8CC] p-5">
+        <div className="card">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#F7F0D6] flex items-center justify-center shrink-0">
-              <FontAwesomeIcon icon={faCrown} className="w-5 h-5 text-[#C9A84C]" />
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-gold-light)] flex items-center justify-center shrink-0">
+              <FontAwesomeIcon icon={faCrown} className="w-5 h-5 text-[var(--color-gold)]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)]">
+              <p className="text-sm font-semibold text-ink">
                 Plan gratuit — {limits.maxFreeIncome} revenus et {limits.maxFreeExpense} dépenses max
               </p>
-              <p className="text-sm text-[#9BA89D] mt-1 font-[family-name:var(--font-inter)]">
+              <p className="text-sm text-muted mt-1">
                 Passez à Premium pour profiter de catégories illimitées, du mode commercial, et exporter vos rapports.
               </p>
               <button
                 onClick={handleSubscribe}
-                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[#C9A84C] hover:text-[#C9A84C]/80 transition-colors font-[family-name:var(--font-inter)]"
+                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
               >
                 Passer à Premium
                 <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
@@ -284,12 +288,41 @@ export default function DashboardPage() {
       )}
 
       {/* Hero Card */}
-      <HeroCard
-        totalBalance={totalBalance}
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
-        savingsRate={savingsRate}
-      />
+      <div className="card-hero">
+        <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
+        <p className={`text-amount text-5xl text-white mt-1 ${isNegative ? "text-[var(--color-neg)]" : ""}`}>
+          {formatCurrency(totalBalance)}
+        </p>
+        <button
+          onClick={handleToggle}
+          className="text-xs text-white/40 hover:text-white/70 transition-colors mb-4 underline underline-offset-2 decoration-white/20"
+        >
+          {isEuro ? "Voir en FCFA" : "Voir en EUR"}
+        </button>
+        <div className="h-px bg-white/10 mb-4" />
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="card-inset" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            <p className="text-label text-white/50">Reçus</p>
+            <p className="text-amount text-lg" style={{ color: 'var(--color-pos)' }}>{formatCurrency(totalIncome)}</p>
+          </div>
+          <div className="card-inset" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+            <p className="text-label text-white/50">Dépensés</p>
+            <p className="text-amount text-lg" style={{ color: 'var(--color-neg)' }}>{formatCurrency(totalExpense)}</p>
+          </div>
+        </div>
+        <div className="bar-row">
+          <div className="bar-head">
+            <div className="bar-label" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              <FontAwesomeIcon icon={faPiggyBank} className="w-4 h-4 text-white/40" />
+              Taux d&apos;épargne
+            </div>
+            <span className="bar-value text-white">{savingsRate.toFixed(0)}%</span>
+          </div>
+          <div className="bar-track lg on-dark">
+            <div className="bar-fill on-dark" style={{ width: `${Math.min(100, savingsRate)}%` }} />
+          </div>
+        </div>
+      </div>
 
       {/* Grille : Répartition dépenses + Projection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -323,7 +356,7 @@ export default function DashboardPage() {
       {/* Synthèse globale du mois */}
       {(monthPersonal && (monthPersonal.income + monthPersonal.expense > 0)) ||
       (commercialMode && monthActivity && (monthActivity.income + monthActivity.expense > 0)) ? (
-        <div className="bg-white rounded-[18px] p-5">
+        <div className="card">
           {(() => {
             const showPersonal = monthPersonal && monthPersonal.income + monthPersonal.expense > 0;
             const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
@@ -338,29 +371,27 @@ export default function DashboardPage() {
             return (
               <>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 rounded-full bg-[#C9A84C] shrink-0" />
-                  <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
-                    Synthèse du mois
-                  </h2>
+                  <span className="bar-dot" style={{ background: 'var(--color-gold)' }} />
+                  <h2 className="text-sm font-semibold text-ink">Synthèse du mois</h2>
                 </div>
 
                 {/* 4 KPI cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
-                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Revenus</p>
-                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5 tabular-nums">{formatCurrency(tIncome)}</p>
+                  <div className="card-inset text-center">
+                    <p className="text-label">Revenus</p>
+                    <p className="text-amount text-base mt-1">{formatCurrency(tIncome)}</p>
                   </div>
-                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
-                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Dépenses</p>
-                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5 tabular-nums">{formatCurrency(tExpense)}</p>
+                  <div className="card-inset text-center">
+                    <p className="text-label">Dépenses</p>
+                    <p className="text-amount text-base mt-1">{formatCurrency(tExpense)}</p>
                   </div>
-                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
-                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Épargne</p>
-                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#3A8C68] mt-0.5 tabular-nums">{formatCurrency(tSaved)}</p>
+                  <div className="card-inset text-center">
+                    <p className="text-label">Épargne</p>
+                    <p className="text-amount text-base text-[var(--color-pos)] mt-1">{formatCurrency(tSaved)}</p>
                   </div>
-                  <div className="bg-[#F2EDE4] rounded-xl p-3.5 text-center">
-                    <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">Taux</p>
-                    <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5">{sRate.toFixed(0)}%</p>
+                  <div className="card-inset text-center">
+                    <p className="text-label">Taux</p>
+                    <p className="text-amount text-base mt-1">{sRate.toFixed(0)}%</p>
                   </div>
                 </div>
 
@@ -368,67 +399,67 @@ export default function DashboardPage() {
                 {showPersonal && showActivity && (
                   <>
                     {/* Mobile: stacked rows */}
-                    <div className="sm:hidden rounded-xl border border-[#E0D8CC] mb-4 divide-y divide-[#E0D8CC]">
+                    <div className="sm:hidden rounded-xl border border-[var(--color-border)] mb-4 divide-y divide-[var(--color-border)]">
                       {[
                         {
                           label: "Revenus", perso: monthPersonal?.income || 0, activity: monthActivity?.income || 0,
-                          persoColor: "text-[#1C3A2F]", activityColor: "text-[#C9A84C]", totalColor: "text-[#1A1A1A]", bg: ""
+                          persoStyle: { color: 'var(--color-brand)' }, activityStyle: { color: 'var(--color-gold)' }, totalStyle: { color: 'var(--color-ink)' }, bg: ""
                         },
                         {
                           label: "Dépenses", perso: monthPersonal?.expense || 0, activity: monthActivity?.expense || 0,
-                          persoColor: "text-[#B94A3E]", activityColor: "text-[#B94A3E]", totalColor: "text-[#1A1A1A]", bg: ""
+                          persoStyle: { color: 'var(--color-neg)' }, activityStyle: { color: 'var(--color-neg)' }, totalStyle: { color: 'var(--color-ink)' }, bg: ""
                         },
                         {
                           label: "Résultat", perso: Math.max(0, monthPersonal?.savings || 0), activity: Math.max(0, monthActivity?.savings || 0),
-                          persoColor: "text-[#1C3A2F]", activityColor: "text-[#C9A84C]", totalColor: "text-[#1C3A2F]", bg: "bg-[#F7F0D6]"
+                          persoStyle: { color: 'var(--color-brand)' }, activityStyle: { color: 'var(--color-gold)' }, totalStyle: { color: 'var(--color-brand)' }, bg: "bg-[var(--color-gold-light)]"
                         },
                       ].map((r) => (
                         <div key={r.label} className={`px-4 py-3 ${r.bg}`}>
-                          <p className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] mb-2">{r.label}</p>
+                          <p className="text-label mb-2">{r.label}</p>
                           <div className="flex items-center justify-between text-[13px]">
-                            <span className="text-[#9BA89D] font-[family-name:var(--font-inter)]">Perso</span>
-                            <span className={`font-semibold font-[family-name:var(--font-inter)] ${r.persoColor}`}>{formatCurrency(r.perso)}</span>
+                            <span className="text-muted">Perso</span>
+                            <span className="font-semibold" style={r.persoStyle}>{formatCurrency(r.perso)}</span>
                           </div>
                           <div className="flex items-center justify-between text-[13px] mt-1">
-                            <span className="text-[#9BA89D] font-[family-name:var(--font-inter)]">Activité</span>
-                            <span className={`font-semibold font-[family-name:var(--font-inter)] ${r.activityColor}`}>{formatCurrency(r.activity)}</span>
+                            <span className="text-muted">Activité</span>
+                            <span className="font-semibold" style={r.activityStyle}>{formatCurrency(r.activity)}</span>
                           </div>
-                          <div className="flex items-center justify-between text-[13px] mt-1 pt-1.5 border-t border-[#E0D8CC]/50">
-                            <span className="font-medium text-[#9BA89D] font-[family-name:var(--font-inter)]">Total</span>
-                            <span className={`font-bold font-[family-name:var(--font-inter)] ${r.totalColor}`}>{formatCurrency(r.label === "Résultat" ? tSaved : r.label === "Revenus" ? tIncome : tExpense)}</span>
+                          <div className="flex items-center justify-between text-[13px] mt-1 pt-1.5 border-t border-[var(--color-border)]/50">
+                            <span className="font-medium text-muted">Total</span>
+                            <span className="font-bold" style={r.totalStyle}>{formatCurrency(r.label === "Résultat" ? tSaved : r.label === "Revenus" ? tIncome : tExpense)}</span>
                           </div>
                         </div>
                       ))}
                     </div>
                     {/* Desktop: table */}
-                    <div className="hidden sm:block rounded-xl border border-[#E0D8CC] mb-4">
+                    <div className="hidden sm:block rounded-xl border border-[var(--color-border)] mb-4">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-[#F2EDE4]">
-                            <th className="text-left px-4 py-2.5 font-semibold text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap"></th>
-                            <th className="text-right px-4 py-2.5 font-semibold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">Perso</th>
-                            <th className="text-right px-4 py-2.5 font-semibold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">Activité</th>
-                            <th className="text-right px-4 py-2.5 font-semibold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Total</th>
+                          <tr style={{ background: 'var(--color-surface-raised)' }}>
+                            <th className="text-left px-4 py-2.5 font-semibold text-muted whitespace-nowrap"></th>
+                            <th className="text-right px-4 py-2.5 font-semibold whitespace-nowrap" style={{ color: 'var(--color-brand)' }}>Perso</th>
+                            <th className="text-right px-4 py-2.5 font-semibold whitespace-nowrap" style={{ color: 'var(--color-gold)' }}>Activité</th>
+                            <th className="text-right px-4 py-2.5 font-semibold text-ink whitespace-nowrap">Total</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E0D8CC]">
+                        <tbody className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                           <tr>
-                            <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Revenus</td>
-                            <td className="text-right px-4 py-2 font-medium text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.income || 0)}</td>
-                            <td className="text-right px-4 py-2 font-medium text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.income || 0)}</td>
-                            <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tIncome)}</td>
+                            <td className="px-4 py-2 text-muted whitespace-nowrap">Revenus</td>
+                            <td className="text-right px-4 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--color-brand)' }}>{formatCurrency(monthPersonal?.income || 0)}</td>
+                            <td className="text-right px-4 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--color-gold)' }}>{formatCurrency(monthActivity?.income || 0)}</td>
+                            <td className="text-right px-4 py-2 font-bold text-ink whitespace-nowrap">{formatCurrency(tIncome)}</td>
                           </tr>
                           <tr>
-                            <td className="px-4 py-2 text-[#9BA89D] font-[family-name:var(--font-inter)] whitespace-nowrap">Dépenses</td>
-                            <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthPersonal?.expense || 0)}</td>
-                            <td className="text-right px-4 py-2 font-medium text-[#B94A3E] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(monthActivity?.expense || 0)}</td>
-                            <td className="text-right px-4 py-2 font-bold text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tExpense)}</td>
+                            <td className="px-4 py-2 text-muted whitespace-nowrap">Dépenses</td>
+                            <td className="text-right px-4 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--color-neg)' }}>{formatCurrency(monthPersonal?.expense || 0)}</td>
+                            <td className="text-right px-4 py-2 font-medium whitespace-nowrap" style={{ color: 'var(--color-neg)' }}>{formatCurrency(monthActivity?.expense || 0)}</td>
+                            <td className="text-right px-4 py-2 font-bold text-ink whitespace-nowrap">{formatCurrency(tExpense)}</td>
                           </tr>
-                          <tr className="bg-[#F7F0D6]">
-                            <td className="text-left px-4 py-2 font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)] whitespace-nowrap">Résultat</td>
-                            <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
-                            <td className="text-right px-4 py-2 font-bold text-[#C9A84C] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
-                            <td className="text-right px-4 py-2 font-bold text-[#1C3A2F] font-[family-name:var(--font-inter)] whitespace-nowrap">{formatCurrency(tSaved)}</td>
+                          <tr style={{ background: 'var(--color-gold-light)' }}>
+                            <td className="text-left px-4 py-2 font-medium text-ink whitespace-nowrap">Résultat</td>
+                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-brand)' }}>{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
+                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-gold)' }}>{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
+                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-brand)' }}>{formatCurrency(tSaved)}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -440,24 +471,24 @@ export default function DashboardPage() {
                 {(limits?.isPremium || user?.role !== "user") && (showPersonal || showActivity) && (
                   <>
                     {showPersonal && (
-                      <div className="bg-white border border-[#E0D8CC] rounded-xl p-4 mb-3">
+                      <div className="card-inset mb-3">
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="w-7 h-7 rounded-lg bg-[#1C3A2F]/10 flex items-center justify-center shrink-0">
-                            <FontAwesomeIcon icon={faUser} className="w-3.5 h-3.5 text-[#1C3A2F]" />
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--color-brand-subtle)' }}>
+                            <FontAwesomeIcon icon={faUser} className="w-3.5 h-3.5" style={{ color: 'var(--color-brand)' }} />
                           </div>
-                          <span className="text-xs font-semibold text-[#1C3A2F] uppercase tracking-wider font-[family-name:var(--font-inter)]">Personnel</span>
+                          <span className="text-label" style={{ color: 'var(--color-brand)' }}>Personnel</span>
                         </div>
-                        <p className="text-sm text-[#9BA89D] leading-relaxed font-[family-name:var(--font-inter)]">
-                          Sur le plan personnel, vous avez reçu <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.income)}</strong> en revenus et dépensé <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
-                          Capital initial : <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.initialBalance)}</strong>, solde actuel : <strong className="text-[#1A1A1A]">{formatCurrency(monthPersonal!.balance)}</strong>.
-                          Taux d&apos;épargne : <strong className="text-[#1A1A1A]">{personalRate.toFixed(0)}%</strong>.
+                        <p className="text-sm text-muted leading-relaxed">
+                          Sur le plan personnel, vous avez reçu <strong className="text-ink">{formatCurrency(monthPersonal!.income)}</strong> en revenus et dépensé <strong className="text-ink">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
+                          Capital initial : <strong className="text-ink">{formatCurrency(monthPersonal!.initialBalance)}</strong>, solde actuel : <strong className="text-ink">{formatCurrency(monthPersonal!.balance)}</strong>.
+                          Taux d&apos;épargne : <strong className="text-ink">{personalRate.toFixed(0)}%</strong>.
                         </p>
                         {monthPersonal!.topCategories && monthPersonal!.topCategories.length > 0 && (
                           <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Top catégories :</span>
+                            <span className="text-xs text-muted">Top catégories :</span>
                             {monthPersonal!.topCategories.slice(0, 3).map((c: any) => (
-                              <span key={c.name} className="inline-flex items-center gap-1 bg-[#F2EDE4] rounded-lg px-2.5 py-1 text-xs text-[#1A1A1A] font-medium font-[family-name:var(--font-inter)]">
-                                {c.name} <span className="text-[#9BA89D] font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+                              <span key={c.name} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-ink font-medium" style={{ background: 'var(--color-surface-raised)' }}>
+                                {c.name} <span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
                               </span>
                             ))}
                           </div>
@@ -465,24 +496,24 @@ export default function DashboardPage() {
                       </div>
                     )}
                     {showActivity && (
-                      <div className="bg-white border border-[#E0D8CC] rounded-xl p-4 mb-3">
+                      <div className="card-inset mb-3">
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="w-7 h-7 rounded-lg bg-[#C9A84C]/15 flex items-center justify-center shrink-0">
-                            <FontAwesomeIcon icon={faBriefcase} className="w-3.5 h-3.5 text-[#C9A84C]" />
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--color-gold-light)' }}>
+                            <FontAwesomeIcon icon={faBriefcase} className="w-3.5 h-3.5" style={{ color: 'var(--color-gold)' }} />
                           </div>
-                          <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider font-[family-name:var(--font-inter)]">Activité</span>
+                          <span className="text-label" style={{ color: 'var(--color-gold)' }}>Activité</span>
                         </div>
-                        <p className="text-sm text-[#9BA89D] leading-relaxed font-[family-name:var(--font-inter)]">
-                          Côté activité, vous avez réalisé <strong className="text-[#1A1A1A]">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-[#1A1A1A]">{formatCurrency(monthActivity!.expense)}</strong> de charges.
-                          Bénéfice : <strong className="text-[#1A1A1A]">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
-                          {monthActivity!.income > 0 && <> (marge de <strong className="text-[#1A1A1A]">{((Math.max(0, monthActivity!.savings) / monthActivity!.income) * 100).toFixed(0)}%</strong>)</>}.
+                        <p className="text-sm text-muted leading-relaxed">
+                          Côté activité, vous avez réalisé <strong className="text-ink">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-ink">{formatCurrency(monthActivity!.expense)}</strong> de charges.
+                          Bénéfice : <strong className="text-ink">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
+                          {monthActivity!.income > 0 && <> (marge de <strong className="text-ink">{((Math.max(0, monthActivity!.savings) / monthActivity!.income) * 100).toFixed(0)}%</strong>)</>}.
                         </p>
                         {monthActivity!.topCategories && monthActivity!.topCategories.length > 0 && (
                           <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Top catégories :</span>
+                            <span className="text-xs text-muted">Top catégories :</span>
                             {monthActivity!.topCategories.slice(0, 3).map((c: any) => (
-                              <span key={c.name} className="inline-flex items-center gap-1 bg-[#F2EDE4] rounded-lg px-2.5 py-1 text-xs text-[#1A1A1A] font-medium font-[family-name:var(--font-inter)]">
-                                {c.name} <span className="text-[#9BA89D] font-normal">{formatCurrency(Math.abs(c.amount))}</span>
+                              <span key={c.name} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-ink font-medium" style={{ background: 'var(--color-surface-raised)' }}>
+                                {c.name} <span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
                               </span>
                             ))}
                           </div>
@@ -493,24 +524,24 @@ export default function DashboardPage() {
                 )}
 
                 {/* Bilan mensuel */}
-                <div className="p-4 bg-[#F2EDE4] rounded-xl">
-                  <p className="text-sm text-[#1A1A1A] font-[family-name:var(--font-inter)] leading-relaxed">
+                <div className="card-inset">
+                  <p className="text-sm text-body leading-relaxed">
                     <span className="font-semibold">Bilan mensuel : </span>
-                    <span className="text-[#3A8C68] font-medium">+{formatCurrency(tIncome)}</span>
-                    <span className="text-[#9BA89D]"> reçus · </span>
-                    <span className="text-[#B94A3E] font-medium">-{formatCurrency(tExpense)}</span>
-                    <span className="text-[#9BA89D]"> dépensés · </span>
-                    <span className="text-[#1C3A2F] font-medium">={formatCurrency(tSaved)}</span>
-                    <span className="text-[#9BA89D]"> épargnés · </span>
+                    <span className="font-medium" style={{ color: 'var(--color-pos)' }}>+{formatCurrency(tIncome)}</span>
+                    <span className="text-muted"> reçus · </span>
+                    <span className="font-medium" style={{ color: 'var(--color-neg)' }}>-{formatCurrency(tExpense)}</span>
+                    <span className="text-muted"> dépensés · </span>
+                    <span className="font-medium" style={{ color: 'var(--color-brand)' }}>={formatCurrency(tSaved)}</span>
+                    <span className="text-muted"> épargnés · </span>
                     <span className="font-semibold">{sRate.toFixed(0)}%</span>
                     {bExpense && (
-                      <span className="text-[#9BA89D]"> · Grosse dépense : <strong className="text-[#1A1A1A]">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))})</span>
+                      <span className="text-muted"> · Grosse dépense : <strong className="text-ink">{bExpense.name}</strong> ({formatCurrency(Math.abs(bExpense.amount))})</span>
                     )}
                     {sRate < 5 && showPersonal && (
-                      <span className="text-[#C9A84C]"> · Taux faible ({sRate.toFixed(0)}%), surveillez vos dépenses</span>
+                      <span style={{ color: 'var(--color-gold)' }}> · Taux faible ({sRate.toFixed(0)}%), surveillez vos dépenses</span>
                     )}
                     {sRate >= 20 && (
-                      <span className="text-[#3A8C68] font-medium"> · Excellent taux ({sRate.toFixed(0)}%)</span>
+                      <span className="font-medium" style={{ color: 'var(--color-pos)' }}> · Excellent taux ({sRate.toFixed(0)}%)</span>
                     )}
                   </p>
                 </div>
@@ -523,12 +554,10 @@ export default function DashboardPage() {
       {/* Modal Nouvelle transaction */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-white rounded-[18px] p-6 w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="card max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A]">
-                Nouvelle transaction
-              </h3>
-              <button onClick={() => setShowModal(false)} className="text-[#9BA89D] hover:text-[#1A1A1A]">
+              <h3 className="text-lg font-bold text-ink">Nouvelle transaction</h3>
+              <button onClick={() => setShowModal(false)} className="text-muted hover:text-ink">
                 <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
               </button>
             </div>
@@ -538,10 +567,10 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setNewTx({ ...newTx, scope: "personal" })}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all font-[family-name:var(--font-inter)] ${
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all ${
                       newTx.scope === "personal"
-                        ? "bg-[#1C3A2F] text-white"
-                        : "bg-[#E0D8CC] text-[#9BA89D] hover:bg-[#F2EDE4]"
+                        ? "bg-[var(--color-brand)] text-white"
+                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
                     }`}
                   >
                     Personnel
@@ -549,10 +578,10 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setNewTx({ ...newTx, scope: "activity" })}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all font-[family-name:var(--font-inter)] ${
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all ${
                       newTx.scope === "activity"
-                        ? "bg-[#C9A84C] text-white"
-                        : "bg-[#E0D8CC] text-[#9BA89D] hover:bg-[#F2EDE4]"
+                        ? "bg-[var(--color-gold)] text-white"
+                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
                     }`}
                   >
                     Activité
@@ -563,22 +592,22 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setNewTx({ ...newTx, type: "expense" })}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all font-[family-name:var(--font-inter)] ${
-                    newTx.type === "expense"
-                      ? "bg-[#B94A3E] text-white"
-                      : "bg-[#E0D8CC] text-[#9BA89D] hover:bg-[#F2EDE4]"
-                  }`}
-                >
-                  Dépense
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNewTx({ ...newTx, type: "income" })}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all font-[family-name:var(--font-inter)] ${
-                    newTx.type === "income"
-                      ? "bg-[#3A8C68] text-white"
-                      : "bg-[#E0D8CC] text-[#9BA89D] hover:bg-[#F2EDE4]"
-                  }`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      newTx.type === "expense"
+                        ? "bg-[var(--color-neg)] text-white"
+                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
+                    }`}
+                  >
+                    Dépense
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewTx({ ...newTx, type: "income" })}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      newTx.type === "income"
+                        ? "bg-[var(--color-pos)] text-white"
+                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
+                    }`}
                 >
                   Revenu
                 </button>
@@ -632,20 +661,20 @@ export default function DashboardPage() {
               </div>
 
               {limits && !limits.isPremium && user?.role === "user" && (
-                <div className="p-3 bg-[#F7F0D6] rounded-xl">
-                  <div className="flex items-center justify-between text-xs mb-1 font-[family-name:var(--font-inter)]">
-                    <span className="font-medium text-[#C9A84C]">
+                <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-medium" style={{ color: 'var(--color-warn)' }}>
                       {newTx.type === "income" ? "Revenus" : "Dépenses"} ce mois
                     </span>
-                    <span className="font-semibold text-[#C9A84C]">
+                    <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>
                       {newTx.type === "income" ? limits.incomeCount : limits.expenseCount}/{newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}
                     </span>
                   </div>
                   {(newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
                   (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
-                    <p className="text-xs text-[#B94A3E] font-[family-name:var(--font-inter)]">Limite mensuelle atteinte. Passez à Premium.</p>
+                    <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
                   ) : (
-                    <p className="text-xs text-[#C9A84C] font-[family-name:var(--font-inter)]">
+                    <p className="text-xs" style={{ color: 'var(--color-warn)' }}>
                       {Math.max(0, (newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (newTx.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)
                     </p>
                   )}
@@ -653,9 +682,10 @@ export default function DashboardPage() {
               )}
 
               {txError && (
-                <p className="text-[#B94A3E] text-sm bg-[#FCECEA] p-3 rounded-xl font-[family-name:var(--font-inter)]">
-                  {txError}
-                </p>
+                <div className="alert-inline neg">
+                  <FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p>{txError}</p>
+                </div>
               )}
 
               {(() => {
@@ -677,7 +707,7 @@ export default function DashboardPage() {
       {/* FAB mobile */}
       <button
         onClick={() => setShowModal(true)}
-        className="sm:hidden fixed bottom-24 right-5 z-50 bg-[#1C3A2F] text-white w-14 h-14 flex items-center justify-center shadow-[0_4px_20px_rgba(28,58,47,0.3)] active:scale-95 transition-transform"
+        className="sm:hidden fixed bottom-24 right-5 z-50 bg-[var(--color-brand)] text-white w-14 h-14 flex items-center justify-center shadow-[0_4px_20px_rgba(28,58,47,0.3)] active:scale-95 transition-transform"
         style={{ borderRadius: "16px" }}
         aria-label="Nouvelle transaction"
       >

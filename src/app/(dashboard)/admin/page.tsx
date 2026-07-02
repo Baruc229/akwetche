@@ -70,9 +70,9 @@ type Stats = {
 };
 
 const AVATAR_COLORS: Record<string, { bg: string; text: string }> = {
-  super_admin: { bg: "bg-green", text: "text-gold" },
-  admin: { bg: "bg-gold-pale", text: "text-gold" },
-  user: { bg: "bg-teal/10", text: "text-teal" },
+  super_admin: { bg: "bg-brand", text: "text-gold" },
+  admin: { bg: "bg-gold-light", text: "text-gold" },
+  user: { bg: "bg-pos-bg", text: "text-pos" },
 };
 
 function getAvatarStyle(role: string) {
@@ -87,16 +87,16 @@ function ConfirmSheet({ open, title, message, confirmLabel, onConfirm, onCancel 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onCancel}>
       <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-      <div className="relative bg-white rounded-t-[20px] w-full max-w-lg shadow-xl animate-slide-up max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="relative bg-surface rounded-t-[20px] w-full max-w-lg shadow-xl animate-slide-up max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 pb-2">
-          <h3 className="font-display font-bold text-base text-red">{title}</h3>
-          <p className="text-[13px] text-text-3 mt-1.5 leading-relaxed">{message}</p>
+          <h3 className="font-display font-bold text-base text-neg">{title}</h3>
+          <p className="text-[13px] text-muted mt-1.5 leading-relaxed">{message}</p>
         </div>
         <div className="p-5 pt-3 space-y-2">
-          <button onClick={onConfirm} className="w-full bg-red text-white font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity">
+          <button onClick={onConfirm} className="btn-danger w-full justify-center text-sm py-3 rounded-xl">
             {confirmLabel}
           </button>
-          <button onClick={onCancel} className="w-full bg-bg text-text-3 font-medium text-sm py-3 rounded-xl border border-border hover:bg-border/30 transition-colors">
+          <button onClick={onCancel} className="w-full bg-bg text-muted font-medium text-sm py-3 rounded-xl border border-border hover:bg-border/30 transition-colors">
             Annuler
           </button>
         </div>
@@ -241,30 +241,30 @@ export default function AdminPage() {
 
   function getPlanBadge(u: UserData) {
     if (u.role !== "user") {
-      return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-green/10 text-green px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faShield} className="w-2.5 h-2.5" />Admin</span>;
+      return <span className="badge badge-brand"><FontAwesomeIcon icon={faShield} className="w-2.5 h-2.5" />Admin</span>;
     }
     if (u.subscription?.status === "active") {
-      return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-teal/10 text-teal px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Premium</span>;
+      return <span className="badge badge-pos"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Premium</span>;
     }
     if (u.subscription?.status === "expired") {
-      return <span className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-red-pale text-red px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Expiré</span>;
+      return <span className="badge badge-neg"><FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />Expiré</span>;
     }
-    return <span className="inline-flex items-center text-[10px] font-medium bg-border text-text-3 px-1.5 py-0.5 rounded">Gratuit</span>;
+    return <span className="badge badge-muted">Gratuit</span>;
   }
 
   function getStatusBadge(u: UserData) {
     if (u.lockedUntil && new Date(u.lockedUntil) > new Date()) {
-      return <span className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-red-pale text-red px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faLock} className="w-2.5 h-2.5" />Verrouillé</span>;
+      return <span className="badge badge-neg"><FontAwesomeIcon icon={faLock} className="w-2.5 h-2.5" />Verrouillé</span>;
     }
     if (!u.emailVerified) {
-      return <span className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-gold-pale text-gold px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCircleCheck} className="w-2.5 h-2.5" />Non vérifié</span>;
+      return <span className="badge badge-warn"><FontAwesomeIcon icon={faCircleCheck} className="w-2.5 h-2.5" />Non vérifié</span>;
     }
-    return <span className="inline-flex items-center gap-0.5 text-[10px] font-medium bg-teal/10 text-teal px-1.5 py-0.5 rounded"><FontAwesomeIcon icon={faCircleCheck} className="w-2.5 h-2.5" />Actif</span>;
+    return <span className="badge badge-pos"><FontAwesomeIcon icon={faCircleCheck} className="w-2.5 h-2.5" />Actif</span>;
   }
 
   function getRoleBadge(u: UserData) {
-    if (u.role === "super_admin") return <span className="text-[10px] font-semibold bg-green text-white px-1.5 py-0.5 rounded">Super admin</span>;
-    if (u.role === "admin") return <span className="text-[10px] font-semibold bg-green/10 text-green px-1.5 py-0.5 rounded">Admin</span>;
+    if (u.role === "super_admin") return <span className="badge" style={{ background: "var(--color-brand)", color: "white" }}>Super admin</span>;
+    if (u.role === "admin") return <span className="badge badge-brand">Admin</span>;
     return null;
   }
 
@@ -300,7 +300,7 @@ export default function AdminPage() {
         {user?.role === "super_admin" && (
           <button
             onClick={() => setShowAddAdmin(true)}
-            className="inline-flex items-center gap-2 bg-green text-white font-sans font-bold text-[13px] px-4 py-[10px] rounded-xl hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 bg-brand text-white font-sans font-bold text-[13px] px-4 py-[10px] rounded-xl hover:opacity-90 transition-opacity"
           >
             <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" />
             Admin
@@ -310,7 +310,7 @@ export default function AdminPage() {
 
       {/* Failed logins alert */}
       {stats && stats.failedLoginsToday > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-red-pale border border-red/20 rounded-xl text-sm text-red">
+        <div className="alert-inline neg">
           <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0" />
           <span>{stats.failedLoginsToday} tentative(s) échouée(s) aujourd&apos;hui sur {stats.loginAttemptsToday} totales</span>
         </div>
@@ -319,21 +319,21 @@ export default function AdminPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Utilisateurs", value: stats?.totalUsers || 0, sub: stats?.usersToday ?? 0, icon: faUsers, bg: "bg-teal/10", iconColor: "text-teal" },
-          { label: "Transactions", value: stats?.totalTransactions || 0, sub: 0, icon: faFileLines, bg: "bg-gold-pale", iconColor: "text-gold" },
-          { label: "Produits", value: stats?.totalProducts || 0, sub: 0, icon: faBagShopping, bg: "bg-[rgba(28,58,47,0.08)]", iconColor: "text-green" },
-          { label: "Revenus", value: formatCurrency(stats?.totalRevenue || 0), sub: 0, icon: faDollarSign, bg: "bg-teal/10", iconColor: "text-teal" },
-          { label: "Abonnés", value: stats?.activeSubscriptions ?? 0, sub: 0, icon: faCrown, bg: "bg-gold-pale", iconColor: "text-gold" },
-          { label: "Tentatives", value: stats?.loginAttemptsToday ?? 0, sub: 0, icon: faRightToBracket, bg: "bg-red-pale", iconColor: "text-red" },
+          { label: "Utilisateurs", value: stats?.totalUsers || 0, sub: stats?.usersToday ?? 0, icon: faUsers, bg: "bg-pos-bg", iconColor: "text-pos" },
+          { label: "Transactions", value: stats?.totalTransactions || 0, sub: 0, icon: faFileLines, bg: "bg-gold-light", iconColor: "text-gold" },
+          { label: "Produits", value: stats?.totalProducts || 0, sub: 0, icon: faBagShopping, bg: "bg-brand-subtle", iconColor: "text-brand" },
+          { label: "Revenus", value: formatCurrency(stats?.totalRevenue || 0), sub: 0, icon: faDollarSign, bg: "bg-pos-bg", iconColor: "text-pos" },
+          { label: "Abonnés", value: stats?.activeSubscriptions ?? 0, sub: 0, icon: faCrown, bg: "bg-gold-light", iconColor: "text-gold" },
+          { label: "Tentatives", value: stats?.loginAttemptsToday ?? 0, sub: 0, icon: faRightToBracket, bg: "bg-neg-bg", iconColor: "text-neg" },
         ].map((s) => (
-          <div key={s.label} className="bg-bg-card rounded-2xl border border-border p-4">
-            <div className={`w-8 h-8 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
-              <FontAwesomeIcon icon={s.icon} className={`w-4 h-4 ${s.iconColor}`} />
+          <div key={s.label} className="card-inset">
+            <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
+              <FontAwesomeIcon icon={s.icon} className={`w-[18px] h-[18px] ${s.iconColor}`} />
             </div>
-            <p className="text-[11.5px] text-text-3">{s.label}</p>
-            <p className="font-display font-bold text-2xl text-text-1 mt-0.5">{s.value}</p>
+            <p className="text-label mb-1">{s.label}</p>
+            <p className="text-amount text-2xl text-ink">{s.value}</p>
             {(s.sub > 0 || s.label === "Utilisateurs") && (
-              <p className={`text-[11px] font-medium mt-0.5 ${s.sub > 0 ? "text-teal" : "text-text-3"}`}>
+              <p className={`text-[11px] font-medium mt-1 ${s.sub > 0 ? "text-pos" : "text-muted"}`}>
                 {s.sub > 0 ? `+${s.sub}` : "0"} aujourd'hui
               </p>
             )}
@@ -367,9 +367,9 @@ export default function AdminPage() {
                 {stats.usersByCurrency.map((c) => {
                   const isXOF = c.baseCurrency === "XOF";
                   return (
-                    <div key={c.baseCurrency} className={`flex items-center gap-2 rounded-xl px-3 py-2 ${isXOF ? "bg-gold-pale" : "bg-teal/10"}`}>
-                      <span className="font-display font-bold text-lg text-text-1">{c._count}</span>
-                      <span className={`text-sm font-semibold ${isXOF ? "text-gold" : "text-teal"}`}>{c.baseCurrency}</span>
+                    <div key={c.baseCurrency} className={`flex items-center gap-2 rounded-xl px-3 py-2 ${isXOF ? "bg-gold-light" : "bg-pos-bg"}`}>
+                      <span className="font-display font-bold text-lg text-ink">{c._count}</span>
+                      <span className={`text-sm font-semibold ${isXOF ? "text-gold" : "text-pos"}`}>{c.baseCurrency}</span>
                     </div>
                   );
                 })}
@@ -386,18 +386,18 @@ export default function AdminPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
             <div className="bg-bg rounded-xl p-3">
               <p className="text-[11.5px] text-text-3">Actifs</p>
-              <p className="font-display font-bold text-2xl text-green mt-0.5">{stats.activeSubscriptions}</p>
+              <p className="font-display font-bold text-2xl text-pos mt-0.5">{stats.activeSubscriptions}</p>
             </div>
             {stats.subscriptionRevenue !== undefined && (
               <div className="bg-bg rounded-xl p-3">
                 <p className="text-[11.5px] text-text-3">Revenu mensuel</p>
-                <p className="font-display font-bold text-2xl text-green mt-0.5">{formatCurrency(stats.subscriptionRevenue)}</p>
+                <p className="font-display font-bold text-2xl text-pos mt-0.5">{formatCurrency(stats.subscriptionRevenue)}</p>
               </div>
             )}
             {stats.revenueByCurrency && (
               <div className="bg-bg rounded-xl p-3">
                 <p className="text-[11.5px] text-text-3">Revenu total ventes</p>
-                <p className="font-display font-bold text-2xl text-green mt-0.5">{formatCurrency(stats.totalRevenue)}</p>
+                <p className="font-display font-bold text-2xl text-pos mt-0.5">{formatCurrency(stats.totalRevenue)}</p>
               </div>
             )}
           </div>
@@ -408,17 +408,17 @@ export default function AdminPage() {
       <div className="bg-bg-card rounded-[18px] border border-border overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-sm font-semibold text-text-1">Utilisateurs</h2>
-          <button onClick={downloadUserReport} className="flex items-center gap-1.5 text-xs text-green font-medium hover:opacity-80">
+          <button onClick={downloadUserReport} className="flex items-center gap-1.5 text-xs text-brand font-medium hover:opacity-80">
             <FontAwesomeIcon icon={faDownload} className="w-3 h-3" />
             Rapport
           </button>
         </div>
         <div className="divide-y divide-border">
-          {users.map((u) => {
+          {users.map((u, i) => {
             const avatar = getAvatarStyle(u.role);
             const initial = (u.name || u.email).charAt(0).toUpperCase();
             return (
-              <div key={u.id} className="px-5 py-4 hover:bg-sand/50 transition-colors">
+              <div key={u.id} className={`px-5 py-4 transition-colors ${i % 2 === 1 ? "bg-surface-raised" : ""} hover:bg-sand/50`}>
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
                   <div className={`w-10 h-10 rounded-xl ${avatar.bg} flex items-center justify-center shrink-0`}>
@@ -464,7 +464,7 @@ export default function AdminPage() {
                           value={u.role}
                           onClick={(e) => e.stopPropagation()}
                           onChange={(e) => changeRole(u.id, e.target.value)}
-                          className="text-[10px] border border-border rounded-lg px-1.5 py-1 bg-white text-text-1 focus:outline-none focus:border-green"
+                          className="text-[10px] border border-border rounded-lg px-1.5 py-1 bg-white text-ink focus:outline-none focus:border-brand"
                         >
                           <option value="user">User</option>
                           <option value="admin">Admin</option>
@@ -473,7 +473,7 @@ export default function AdminPage() {
                         {u.role !== "super_admin" && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setConfirmDeleteUser(u.id); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-xl border border-red/20 text-red hover:bg-red-pale transition-colors"
+                            className="w-8 h-8 flex items-center justify-center rounded-xl border border-neg-border text-neg hover:bg-neg-bg transition-colors"
                             title="Supprimer"
                           >
                             <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
@@ -504,13 +504,13 @@ export default function AdminPage() {
             <button
               onClick={() => setConfirmClearLogs(true)}
               disabled={clearingLogs}
-              className="text-xs text-red font-medium hover:opacity-80 disabled:opacity-50"
+              className="text-xs text-neg font-medium hover:opacity-80 disabled:opacity-50"
             >
               {clearingLogs ? "..." : "Vider"}
             </button>
             <button
               onClick={() => showAllLogs ? setShowAllLogs(false) : loadAllLogs()}
-              className="text-xs text-green font-medium hover:opacity-80"
+              className="text-xs text-brand font-medium hover:opacity-80"
             >
               {showAllLogs ? "Masquer" : logsLoading ? "..." : <>
                 Voir tout
@@ -522,28 +522,24 @@ export default function AdminPage() {
         <div className="divide-y divide-border max-h-96 overflow-y-auto">
           {(stats?.recentLogs || []).map((log) => (
             <div key={log.id} className="flex items-center gap-3 px-5 py-3 hover:bg-sand/50 transition-colors text-xs">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${log.success ? "bg-teal" : "bg-red"}`} />
+              <FontAwesomeIcon icon={log.success ? faCircleCheck : faCircleXmark} className={`w-3.5 h-3.5 shrink-0 ${log.success ? "text-pos" : "text-neg"}`} />
               <span className="text-text-1 font-medium truncate flex-1 min-w-0">
                 {log.user?.email || (log.reason.startsWith("user_not_found:") ? log.reason.slice("user_not_found:".length) : "Inconnu")}
               </span>
               <span className="text-text-3 shrink-0 hidden sm:inline">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                log.success ? "bg-teal/10 text-teal" : "bg-red-pale text-red"
-              }`}>
+              <span className={`badge shrink-0 ${log.success ? "badge-pos" : "badge-neg"}`}>
                 {log.success ? "Succès" : "Échec"}
               </span>
             </div>
           ))}
           {showAllLogs && allLogs.slice((stats?.recentLogs || []).length).map((log) => (
             <div key={log.id} className="flex items-center gap-3 px-5 py-3 hover:bg-sand/50 transition-colors text-xs">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${log.success ? "bg-teal" : "bg-red"}`} />
+              <FontAwesomeIcon icon={log.success ? faCircleCheck : faCircleXmark} className={`w-3.5 h-3.5 shrink-0 ${log.success ? "text-pos" : "text-neg"}`} />
               <span className="text-text-1 font-medium truncate flex-1 min-w-0">
                 {log.user?.email || (log.reason.startsWith("user_not_found:") ? log.reason.slice("user_not_found:".length) : "Inconnu")}
               </span>
               <span className="text-text-3 shrink-0 hidden sm:inline">{new Date(log.createdAt).toLocaleString("fr-FR")}</span>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                log.success ? "bg-teal/10 text-teal" : "bg-red-pale text-red"
-              }`}>
+              <span className={`badge shrink-0 ${log.success ? "badge-pos" : "badge-neg"}`}>
                 {log.success ? "Succès" : "Échec"}
               </span>
             </div>
@@ -606,7 +602,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-bg rounded-xl p-3 text-center">
-                  <p className="font-display font-bold text-lg text-teal">{selectedUser._count.transactions}</p>
+                  <p className="font-display font-bold text-lg text-pos">{selectedUser._count.transactions}</p>
                   <p className="text-xs text-text-3">Transactions</p>
                 </div>
                 <div className="bg-bg rounded-xl p-3 text-center">
@@ -614,23 +610,23 @@ export default function AdminPage() {
                   <p className="text-xs text-text-3">Produits</p>
                 </div>
                 <div className="bg-bg rounded-xl p-3 text-center">
-                  <p className="font-display font-bold text-lg text-green">{selectedUser._count.sales}</p>
+                  <p className="font-display font-bold text-lg text-brand">{selectedUser._count.sales}</p>
                   <p className="text-xs text-text-3">Ventes</p>
                 </div>
               </div>
 
               {selectedUser.subscription && (
                 <>
-                  <div className={`rounded-xl p-3 ${selectedUser.subscription.status === "active" ? "bg-teal/10" : "bg-red-pale"}`}>
+                  <div className={`rounded-xl p-3 ${selectedUser.subscription.status === "active" ? "bg-pos-bg" : "bg-neg-bg"}`}>
                     <div className="flex items-center justify-between text-sm">
-                      <span className={selectedUser.subscription.status === "active" ? "text-teal" : "text-red"}>Abonnement</span>
-                      <span className={`font-semibold ${selectedUser.subscription.status === "active" ? "text-teal" : "text-red"}`}>
+                      <span className={selectedUser.subscription.status === "active" ? "text-pos" : "text-neg"}>Abonnement</span>
+                      <span className={`font-semibold ${selectedUser.subscription.status === "active" ? "text-pos" : "text-neg"}`}>
                         {selectedUser.subscription.amount} {selectedUser.subscription.currency}/mois
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                        selectedUser.subscription.status === "active" ? "text-teal bg-teal/10" : "text-red bg-red-pale"
+                        selectedUser.subscription.status === "active" ? "text-pos bg-pos-bg" : "text-neg bg-neg-bg"
                       }`}>
                         {selectedUser.subscription.status === "active" ? "Actif" : selectedUser.subscription.status === "expired" ? "Expiré" : "Annulé"}
                       </span>
@@ -649,7 +645,7 @@ export default function AdminPage() {
                         {selectedUser.subscriptionHistory.map((h) => (
                           <div key={h.id} className="flex items-center justify-between text-[11px]">
                             <div className="flex items-center gap-1.5">
-                              <span className={`w-1.5 h-1.5 rounded-full ${h.status === "active" ? "bg-teal" : "bg-text-3"}`} />
+                              <span className={`w-1.5 h-1.5 rounded-full ${h.status === "active" ? "bg-pos" : "bg-muted"}`} />
                               <span className="text-text-3 capitalize">{h.status}</span>
                               <span className="text-text-3">—</span>
                               <span className="text-text-3">{h.amount} {h.currency}</span>
@@ -672,7 +668,7 @@ export default function AdminPage() {
                 {selectedUser.phone && <p>Téléphone : {selectedUser.phone}</p>}
                 {selectedUser.loginAttempts > 0 && <p>Tentatives échouées : {selectedUser.loginAttempts}</p>}
                 {selectedUser.lockedUntil && new Date(selectedUser.lockedUntil) > new Date() && (
-                  <p className="text-red">Compte verrouillé jusqu&apos;au {new Date(selectedUser.lockedUntil).toLocaleString("fr-FR")}</p>
+                  <p className="text-neg">Compte verrouillé jusqu&apos;au {new Date(selectedUser.lockedUntil).toLocaleString("fr-FR")}</p>
                 )}
               </div>
             </div>
@@ -695,15 +691,15 @@ export default function AdminPage() {
               <form onSubmit={handleCreateAdmin} className="space-y-4">
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Nom</label>
-                  <input type="text" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]" required />
+                  <input type="text" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="input-field" required />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Email</label>
-                  <input type="email" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]" required />
+                  <input type="email" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} className="input-field" required />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Mot de passe</label>
-                  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)]" required minLength={6} />
+                  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" required minLength={6} />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Rôle</label>
@@ -721,8 +717,8 @@ export default function AdminPage() {
                     onChange={(v) => setNewAdmin({ ...newAdmin, plan: v })}
                   />
                 </div>
-                {addAdminError && <p className="text-red text-sm bg-red-pale p-3 rounded-xl">{addAdminError}</p>}
-                <button type="submit" disabled={addingAdmin} className="w-full bg-green text-white font-sans font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
+                {addAdminError && <p className="text-neg text-sm bg-neg-bg p-3 rounded-xl">{addAdminError}</p>}
+                <button type="submit" disabled={addingAdmin} className="w-full bg-brand text-white font-sans font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50">
                   {addingAdmin ? "Création..." : "Créer l'administrateur"}
                 </button>
               </form>

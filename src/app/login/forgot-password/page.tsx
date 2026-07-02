@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
 
   return (
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-  <div className="flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
   <div className="w-full max-w-md animate-scale-in">
   <a
   href="/login"
@@ -51,9 +51,9 @@ export default function ForgotPasswordPage() {
   <div className="card p-8">
   {sent ? (
   <div className="text-center">
-  <div className="w-16 h-16 bg-ochre-light rounded-full flex items-center justify-center mx-auto mb-4">
-  <FontAwesomeIcon icon={faCheck} className="w-8 h-8 text-forest" />
-  </div>
+      <div className="w-16 h-16 bg-[var(--color-brand-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
+        <FontAwesomeIcon icon={faCheck} className="w-8 h-8 text-[var(--color-brand)]" />
+      </div>
   <h1 className="text-xl font-bold text-ink mb-2">
   Email envoyé
   </h1>
@@ -61,8 +61,8 @@ export default function ForgotPasswordPage() {
   Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation.
   </p>
   <a
-  href="/login"
-  className="text-forest font-medium hover:text-forest text-sm"
+      href="/login"
+      className="text-[var(--color-brand)] font-medium hover:text-[var(--color-brand)] text-sm"
   >
   Retour à la connexion
   </a>
@@ -70,9 +70,9 @@ export default function ForgotPasswordPage() {
   ) : (
   <>
   <div className="text-center mb-8">
-  <div className="w-12 h-12 bg-forest rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-  <FontAwesomeIcon icon={faEnvelope} className="w-6 h-6 text-white" />
-  </div>
+      <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <FontAwesomeIcon icon={faEnvelope} className="w-6 h-6 text-white" />
+      </div>
   <h1 className="text-2xl font-bold text-ink">
   Mot de passe oublié
   </h1>
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
   </div>
 
   {error && (
-  <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{error}</p>
+    <p className="alert-inline neg text-sm">{error}</p>
   )}
 
   <button

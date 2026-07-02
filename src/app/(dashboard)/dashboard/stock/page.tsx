@@ -170,51 +170,47 @@ export default function StockPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Gestion du stock</h1>
+          <h1 className="text-display text-2xl text-ink">Gestion du stock</h1>
           <p className="text-muted text-sm mt-0.5">{products.length} produit{products.length !== 1 ? "s" : ""}</p>
         </div>
       </div>
 
       {loadError && (
-      <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in">
-      <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-      <p className="text-sm text-red-700 flex-1">{loadError}</p>
-      <button onClick={() => setLoadError(null)} className="text-red-400 hover:text-red-600 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+      <div className="alert-inline neg animate-fade-in">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
+      <p className="flex-1">{loadError}</p>
+      <button onClick={() => setLoadError(null)} className="opacity-60 hover:opacity-100 shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
       </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-5">
-          <p className="stat-label">Valeur totale du stock</p>
-          <p className="stat-value text-forest">{formatCurrency(totalStockValue)}</p>
+        <div className="card">
+          <p className="text-label">Valeur totale du stock</p>
+          <p className="text-amount text-xl mt-1" style={{ color: "var(--color-brand)" }}>{formatCurrency(totalStockValue)}</p>
         </div>
-        <div className="card p-5">
-          <p className="stat-label">Produits en stock</p>
-          <p className="stat-value text-ink">{products.filter(p => p.stock > 0).length}</p>
+        <div className="card">
+          <p className="text-label">Produits en stock</p>
+          <p className="text-amount text-xl mt-1">{products.filter(p => p.stock > 0).length}</p>
         </div>
-        <div className="card p-5">
-          <p className="stat-label">Produits en rupture</p>
-          <p className={`stat-value ${outOfStock.length > 0 ? "text-red-500" : "text-ink"}`}>{outOfStock.length}</p>
+        <div className="card">
+          <p className="text-label">Produits en rupture</p>
+          <p className={`text-amount text-xl mt-1 ${outOfStock.length > 0 ? "text-neg" : ""}`}>{outOfStock.length}</p>
         </div>
       </div>
 
       {lowStockProducts.length > 0 && (
         <div className="space-y-2">
           {lowStockProducts.map(s => (
-            <div key={s.product.id} className={`rounded-xl px-4 py-3 flex items-center gap-3 text-sm ${
-              s.status === "out"
-                ? "bg-red-50 border border-red-200"
-                : "bg-orange-50 border border-orange-200"
-            }`}>
+            <div key={s.product.id} className={`alert-inline ${s.status === "out" ? "neg" : "warn"}`}>
               <FontAwesomeIcon 
                 icon={faTriangleExclamation} 
-                className={`w-4 h-4 shrink-0 ${s.status === "out" ? "text-red-500" : "text-orange-500"}`} 
+                className="w-4 h-4 shrink-0" 
               />
               <div className="min-w-0 flex-1">
-                <p className={`font-medium truncate ${s.status === "out" ? "text-red-800" : "text-orange-800"}`}>
+                <p className="font-medium truncate">
                   {s.status === "out" ? "Rupture" : "Stock faible"} — {s.product.name}
                 </p>
-                <p className={`text-xs mt-0.5 ${s.status === "out" ? "text-red-600" : "text-orange-600"}`}>
+                <p className="text-xs mt-0.5 opacity-80">
                   {s.remaining} restant{s.remaining !== 1 ? "s" : ""}{s.status === "low" ? ` sur ${s.initialStock} initiaux` : ""}
                 </p>
               </div>
@@ -225,7 +221,7 @@ export default function StockPage() {
                   setReplenishNote("");
                   setReplenishError("");
                 }}
-                className="shrink-0 text-xs font-medium text-forest hover:text-ochre transition-colors px-2 py-1"
+                className="btn-ghost text-xs shrink-0"
               >
                 <FontAwesomeIcon icon={faRotateLeft} className="w-3 h-3 mr-1" />
                 Réappro.
@@ -235,8 +231,10 @@ export default function StockPage() {
         </div>
       )}
 
-      <div className="card overflow-hidden">
-        <h2 className="text-sm font-semibold text-ink p-4 pb-3">Produits</h2>
+      <div className="card overflow-hidden p-0">
+        <div className="px-6 pt-5 pb-3">
+          <h2 className="text-sm font-semibold text-ink">Produits</h2>
+        </div>
         {stats.length === 0 ? (
         <div className="text-center py-12 text-muted">
         <FontAwesomeIcon icon={faBox} className="w-10 h-10 mx-auto mb-3 opacity-50" />
@@ -249,23 +247,23 @@ export default function StockPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left">
-                <th className="px-4 py-3 text-muted font-medium text-xs uppercase tracking-wider">Produit</th>
-                <th className="px-4 py-3 text-muted font-medium text-xs uppercase tracking-wider">Stock initial</th>
-                <th className="px-4 py-3 text-muted font-medium text-xs uppercase tracking-wider">Vendu</th>
-                <th className="px-4 py-3 text-muted font-medium text-xs uppercase tracking-wider">Restant</th>
-                <th className="px-4 py-3 text-muted font-medium text-xs uppercase tracking-wider">Statut</th>
-                <th className="px-4 py-3 text-muted font-medium text-xs uppercase tracking-wider">Action</th>
+                <th className="px-6 py-3 text-label">Produit</th>
+                <th className="px-6 py-3 text-label">Stock initial</th>
+                <th className="px-6 py-3 text-label">Vendu</th>
+                <th className="px-6 py-3 text-label">Restant</th>
+                <th className="px-6 py-3 text-label">Statut</th>
+                <th className="px-6 py-3 text-label">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {stats.map((s, i) => (
-                <tr key={s.product.id} className="hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
-                  <td className="px-4 py-3 font-medium text-ink">{s.product.name}</td>
-                  <td className="px-4 py-3 text-ink">{s.initialStock}</td>
-                  <td className="px-4 py-3 text-ink">{s.sold}</td>
-                  <td className="px-4 py-3 text-ink">{s.remaining}</td>
-                  <td className="px-4 py-3">{renderStatusBadge(s.status)}</td>
-                  <td className="px-4 py-3">
+                <tr key={s.product.id} className={`transition-colors animate-slide-in ${i % 2 === 1 ? "bg-[var(--color-surface-raised)]" : ""}`} style={{ animationDelay: `${i * 30}ms` }}>
+                  <td className="px-6 py-3 font-medium text-ink">{s.product.name}</td>
+                  <td className="px-6 py-3 text-ink">{s.initialStock}</td>
+                  <td className="px-6 py-3 text-ink">{s.sold}</td>
+                  <td className="px-6 py-3 text-ink">{s.remaining}</td>
+                  <td className="px-6 py-3">{renderStatusBadge(s.status)}</td>
+                  <td className="px-6 py-3">
                     <button
                       onClick={() => {
                         setReplenishProduct(s.product);
@@ -273,7 +271,7 @@ export default function StockPage() {
                         setReplenishNote("");
                         setReplenishError("");
                       }}
-                      className="flex items-center gap-1.5 text-xs font-medium text-forest hover:text-ochre transition-colors"
+                      className="btn-ghost text-xs"
                     >
                       <FontAwesomeIcon icon={faRotateLeft} className="w-3.5 h-3.5" />
                       Réapprovisionner
@@ -287,9 +285,16 @@ export default function StockPage() {
         <div className="md:hidden space-y-3 p-4 pt-0">
           {stats.map((s, i) => {
             const pctSold = s.initialStock > 0 ? (s.sold / s.initialStock) * 100 : 0;
-            const barColor = s.status === "out" ? "#EF4444" : s.status === "low" ? "#F97316" : "#10B981";
+            let barBg: string;
+            if (s.status === "out") {
+              barBg = "var(--color-bar-neg)";
+            } else if (s.status === "low") {
+              barBg = "var(--color-bar-warn)";
+            } else {
+              barBg = "var(--color-bar-pos)";
+            }
             return (
-              <div key={s.product.id} className="card p-4 animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
+              <div key={s.product.id} className="card animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink truncate">{s.product.name}</p>
@@ -297,16 +302,18 @@ export default function StockPage() {
                   </div>
                   {renderStatusBadge(s.status)}
                 </div>
-                {/* Progress bar */}
-                <div className="h-2 bg-border rounded-full overflow-hidden mb-3">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(pctSold, 100)}%`, backgroundColor: barColor }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted mb-3">
-                  <span>{s.sold} vendu{s.sold !== 1 ? "s" : ""}</span>
-                  <span>{pctSold.toFixed(0)}%</span>
+                {/* Bar */}
+                <div className="bar-row">
+                  <div className="bar-head">
+                    <span className="bar-label">
+                      <span className="bar-dot" style={{ background: barBg }} />
+                      Vendu
+                    </span>
+                    <span className="bar-value">{s.sold} <span className="pct">{pctSold.toFixed(0)}%</span></span>
+                  </div>
+                  <div className="bar-track lg">
+                    <div className="bar-fill" style={{ width: `${Math.min(pctSold, 100)}%`, background: barBg }} />
+                  </div>
                 </div>
                 <button
                   onClick={() => {
@@ -315,7 +322,7 @@ export default function StockPage() {
                     setReplenishNote("");
                     setReplenishError("");
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 text-xs font-medium py-2.5 rounded-xl bg-forest/10 text-forest hover:bg-forest/20 transition-colors min-h-[44px]"
+                  className="btn-secondary w-full text-xs min-h-[44px]"
                 >
                   <FontAwesomeIcon icon={faRotateLeft} className="w-3.5 h-3.5" />
                   Réapprovisionner
@@ -340,15 +347,15 @@ export default function StockPage() {
             {movements.slice(0, 50).map((m, i) => (
               <div key={m.id} className="flex items-center justify-between p-4 hover:bg-sand transition-colors animate-slide-in" style={{ animationDelay: `${i * 30}ms` }}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${m.type === "in" ? "bg-teal/10" : "bg-red-pale"}`}>
-                    <FontAwesomeIcon icon={m.type === "in" ? faArrowDown : faArrowUp} className={`w-5 h-5 ${m.type === "in" ? "text-teal" : "text-red"}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${m.type === "in" ? "bg-[var(--color-pos-bg)]" : "bg-[var(--color-neg-bg)]"}`}>
+                    <FontAwesomeIcon icon={m.type === "in" ? faArrowDown : faArrowUp} className={`w-5 h-5 ${m.type === "in" ? "text-[var(--color-pos)]" : "text-[var(--color-neg)]"}`} />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-ink">{m.product?.name || "Produit supprimé"}</p>
                     <p className="text-xs text-muted">{m.description || (m.type === "in" ? "Entrée" : "Sortie")} · {formatDate(m.date)}</p>
                   </div>
                 </div>
-                <span className={`text-sm font-semibold ${m.type === "in" ? "text-forest" : "text-red"}`}>
+                <span className={`text-sm font-semibold ${m.type === "in" ? "text-[var(--color-pos)]" : "text-[var(--color-neg)]"}`}>
                   {m.type === "in" ? "+" : "-"}{m.quantity}
                 </span>
               </div>
@@ -361,8 +368,8 @@ export default function StockPage() {
       {replenishProduct && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setReplenishProduct(null)}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-border">
               <h3 className="text-lg font-semibold text-ink">Réapprovisionner</h3>
               <button onClick={() => setReplenishProduct(null)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
@@ -382,7 +389,7 @@ export default function StockPage() {
                   <label className="field-label">Note (optionnelle)</label>
                   <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="Ex: Livraison fournisseur" />
                 </div>
-                {replenishError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{replenishError}</p>}
+                {replenishError && <p className="text-[var(--color-neg)] text-sm bg-[var(--color-neg-bg)] p-3 rounded-xl">{replenishError}</p>}
                 <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
                   {submitting ? "En cours..." : "Ajouter au stock"}
                 </button>
@@ -394,7 +401,7 @@ export default function StockPage() {
       {/* Desktop modal */}
       {replenishProduct && (
         <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">Réapprovisionner</h3>
               <button onClick={() => setReplenishProduct(null)} className="text-muted hover:text-muted"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
@@ -412,7 +419,7 @@ export default function StockPage() {
                 <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
                 <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="Ex: Livraison fournisseur" />
               </div>
-              {replenishError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{replenishError}</p>}
+              {replenishError && <p className="text-[var(--color-neg)] text-sm bg-[var(--color-neg-bg)] p-3 rounded-xl">{replenishError}</p>}
               <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
                 {submitting ? "En cours..." : "Ajouter au stock"}
               </button>
@@ -426,10 +433,10 @@ export default function StockPage() {
 
 function renderStatusBadge(status: ProductStats["status"]) {
   if (status === "out") {
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Rupture</span>;
+    return <span className="badge badge-neg">Rupture</span>;
   }
   if (status === "low") {
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Faible</span>;
+    return <span className="badge badge-warn">Faible</span>;
   }
-  return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">En stock</span>;
+  return <span className="badge badge-pos">En stock</span>;
 }

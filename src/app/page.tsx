@@ -9,17 +9,17 @@ export default function LandingPage() {
  const [menuOpen, setMenuOpen] = useState(false);
 
  return (
- <div className="min-h-screen bg-sand">
- <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
- <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-  <Link href="/" className="flex items-center gap-2 shrink-0">
-  <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center shadow-sm">
-    <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
-  </div>
-  <span className="text-xl font-bold text-forest">
-  Akwetche
-  </span>
-  </Link>
+ <div className="min-h-screen bg-[var(--color-bg)]">
+  <header className="border-b border-border bg-[var(--color-surface)]/80 backdrop-blur-sm sticky top-0 z-50">
+  <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+   <Link href="/" className="flex items-center gap-2 shrink-0">
+   <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
+     <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+   </div>
+   <span className="text-xl font-bold text-[var(--color-brand)]">
+   Akwetche
+   </span>
+   </Link>
  <div className="hidden md:flex items-center gap-3">
  <a href="/login" className="btn-secondary text-sm inline-flex items-center justify-center">
  Connexion
@@ -36,8 +36,8 @@ export default function LandingPage() {
  {menuOpen ? <FontAwesomeIcon icon={faXmark} className="w-6 h-6" /> : <FontAwesomeIcon icon={faBars} className="w-6 h-6" />}
  </button>
  </div>
- {menuOpen && (
- <div className="md:hidden border-t border-border bg-white px-4 py-4 space-y-3 animate-fade-in">
+  {menuOpen && (
+  <div className="md:hidden border-t border-border bg-[var(--color-surface)] px-4 py-4 space-y-3 animate-fade-in">
  <a
  href="/login"
  className="block w-full btn-secondary text-sm text-center py-3"
@@ -59,46 +59,46 @@ export default function LandingPage() {
  <main>
  <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
  <div>
- <span className="inline-flex items-center gap-1 bg-ochre-light text-forest px-4 py-1.5 rounded-full text-sm font-medium mb-6">
- <FontAwesomeIcon icon={faStar} className="w-4 h-4" />
- Votre assistant financier personnel
- </span>
- <h1 className="text-4xl md:text-6xl font-bold text-ink leading-tight mb-6">
- Reprenez le contrôle de{" "}
- <span className="text-transparent bg-clip-text bg-forest">
- vos finances
- </span>
- </h1>
+  <span className="badge badge-brand text-sm font-medium px-4 py-1.5 mb-6">
+  <FontAwesomeIcon icon={faStar} className="w-4 h-4" />
+  Votre assistant financier personnel
+  </span>
+  <h1 className="text-4xl md:text-6xl font-bold text-ink leading-tight mb-6 text-display">
+  Reprenez le contrôle de{" "}
+  <span className="text-[var(--color-brand)]">
+  vos finances
+  </span>
+  </h1>
  <p className="text-lg text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
  Suivez vos revenus et dépenses, gérez votre activité commerciale,
  et construisez votre épargne en toute simplicité.
  </p>
- <a
- href="/register"
- className="inline-flex items-center gap-2 bg-forest text-white px-8 py-4 rounded-2xl text-lg font-semibold shadow-lg shadow-lg hover:shadow-xl hover:shadow-lg transition-all hover:-translate-y-0.5"
- >
- Commencer gratuitement
- <FontAwesomeIcon icon={faArrowRight} className="w-5 h-5" />
- </a>
+  <a
+  href="/register"
+  className="btn-primary text-lg px-8 py-4"
+  >
+  Commencer gratuitement
+  <FontAwesomeIcon icon={faArrowRight} className="w-5 h-5" />
+  </a>
  </div>
  </section>
 
  <section className="max-w-6xl mx-auto px-4 py-16">
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
- {[
-  { icon: faWallet, label: "Solde actuel", value: "150 000 FCFA", bg: "bg-ochre-light", text: "text-forest" },
-  { icon: faArrowTrendUp, label: "Revenus du mois", value: "45 000 FCFA", bg: "bg-ochre-light", text: "text-forest-light" },
-  { icon: faBagShopping, label: "Dépenses du mois", value: "20 050 FCFA", bg: "bg-red-pale", text: "text-red" },
-  { icon: faChartBar, label: "Épargne du mois", value: "24 950 FCFA", bg: "bg-ochre-light", text: "text-forest" },
- ].map((stat) => (
- <div key={stat.label} className="card p-5">
- <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
-  <FontAwesomeIcon icon={stat.icon} className={`w-5 h-5 ${stat.text}`} />
- </div>
- <p className="text-sm text-muted mb-1">{stat.label}</p>
- <p className="text-xl font-bold text-ink">{stat.value}</p>
- </div>
- ))}
+  {[
+   { icon: faWallet, label: "Solde actuel", value: "150 000 FCFA", bg: "bg-[var(--color-brand-subtle)]", text: "text-[var(--color-brand)]" },
+   { icon: faArrowTrendUp, label: "Revenus du mois", value: "45 000 FCFA", bg: "bg-[var(--color-brand-subtle)]", text: "text-[var(--color-brand)]" },
+   { icon: faBagShopping, label: "Dépenses du mois", value: "20 050 FCFA", bg: "bg-[var(--color-neg-bg)]", text: "text-[var(--color-neg)]" },
+   { icon: faChartBar, label: "Épargne du mois", value: "24 950 FCFA", bg: "bg-[var(--color-brand-subtle)]", text: "text-[var(--color-brand)]" },
+  ].map((stat) => (
+  <div key={stat.label} className="card p-5">
+  <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
+   <FontAwesomeIcon icon={stat.icon} className={`w-5 h-5 ${stat.text}`} />
+  </div>
+  <p className="text-sm text-muted mb-1">{stat.label}</p>
+  <p className="text-xl font-bold text-ink">{stat.value}</p>
+  </div>
+  ))}
  </div>
  </section>
 
@@ -127,10 +127,10 @@ export default function LandingPage() {
  features: ["Bilan hebdomadaire", "Bilan mensuel", "Bilan annuel"],
  },
  ].map((feat) => (
- <div key={feat.title} className="card p-8">
- <div className="w-14 h-14 bg-ochre-light rounded-2xl flex items-center justify-center mb-5">
-  <FontAwesomeIcon icon={feat.icon} className="w-7 h-7 text-forest" />
- </div>
+  <div key={feat.title} className="card p-8">
+  <div className="w-14 h-14 bg-[var(--color-brand-subtle)] rounded-2xl flex items-center justify-center mb-5">
+   <FontAwesomeIcon icon={feat.icon} className="w-7 h-7 text-[var(--color-brand)]" />
+  </div>
  <h3 className="text-xl font-semibold text-ink mb-3">
  {feat.title}
  </h3>
@@ -139,10 +139,10 @@ export default function LandingPage() {
  </p>
  <ul className="space-y-2">
  {feat.features.map((f) => (
- <li key={f} className="flex items-center gap-2 text-sm text-muted">
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest flex-shrink-0" />
- {f}
- </li>
+  <li key={f} className="flex items-center gap-2 text-sm text-muted">
+  <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-[var(--color-brand)] flex-shrink-0" />
+  {f}
+  </li>
  ))}
  </ul>
  </div>
@@ -169,53 +169,53 @@ export default function LandingPage() {
  "Budget personnel uniquement",
  "Bilans mensuels",
  ].map((f) => (
- <li key={f} className="flex items-start gap-2 text-sm text-muted">
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest shrink-0 mt-0.5" />
- {f}
- </li>
- ))}
- </ul>
- <a href="/register" className="btn-secondary w-full text-center text-sm py-3 block">
- Commencer
- </a>
- </div>
+  <li key={f} className="flex items-start gap-2 text-sm text-muted">
+  <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-[var(--color-brand)] shrink-0 mt-0.5" />
+  {f}
+  </li>
+  ))}
+  </ul>
+  <a href="/register" className="btn-secondary w-full text-center text-sm py-3 block">
+  Commencer
+  </a>
+  </div>
 
- <div className="card p-8 border-2 border-forest relative shadow-lg shadow-lg">
- <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-forest text-white text-xs font-semibold px-4 py-1 rounded-full">
- POPULAIRE
- </span>
- <div className="flex items-center gap-2 mb-1">
- <FontAwesomeIcon icon={faCrown} className="w-5 h-5 text-ochre" />
- <h3 className="text-lg font-semibold text-ink">Premium</h3>
- </div>
- <p className="text-sm text-muted mb-4">Tout débloquer, sans limite</p>
- <p className="text-3xl font-bold text-ink mb-1">5 000 FCFA</p>
- <p className="text-sm text-muted mb-6">par mois</p>
- <ul className="space-y-3 mb-8">
- {[
- "Transactions et catégories illimitées",
- "Budget personnel + activité commerciale",
- "Gestion des produits, ventes et stocks",
- "Bilans hebdo / mensuel / annuel",
- "Statistiques avancées",
- "Support prioritaire",
- ].map((f) => (
- <li key={f} className="flex items-start gap-2 text-sm text-muted">
- <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-forest shrink-0 mt-0.5" />
- {f}
- </li>
- ))}
- </ul>
- <a href="/register?plan=premium" className="btn-primary w-full text-center text-sm py-3 block">
- Choisir Premium
- </a>
- </div>
+  <div className="card-hero p-8 border-2 border-[var(--color-brand)] relative shadow-lg shadow-lg">
+   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-surface)] text-[var(--color-brand)] text-xs font-semibold px-4 py-1 rounded-full">
+  POPULAIRE
+  </span>
+  <div className="flex items-center gap-2 mb-1">
+  <FontAwesomeIcon icon={faCrown} className="w-5 h-5 text-white" />
+  <h3 className="text-lg font-semibold text-white">Premium</h3>
+  </div>
+  <p className="text-sm text-white/70 mb-4">Tout débloquer, sans limite</p>
+  <p className="text-3xl font-bold text-white mb-1">5 000 FCFA</p>
+  <p className="text-sm text-white/70 mb-6">par mois</p>
+  <ul className="space-y-3 mb-8">
+  {[
+  "Transactions et catégories illimitées",
+  "Budget personnel + activité commerciale",
+  "Gestion des produits, ventes et stocks",
+  "Bilans hebdo / mensuel / annuel",
+  "Statistiques avancées",
+  "Support prioritaire",
+  ].map((f) => (
+  <li key={f} className="flex items-start gap-2 text-sm text-white/80">
+  <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white shrink-0 mt-0.5" />
+  {f}
+  </li>
+  ))}
+  </ul>
+   <a href="/register?plan=premium" className="btn-primary w-full text-center text-sm py-3 block bg-[var(--color-surface)] text-[var(--color-brand)] hover:bg-[var(--color-surface)]/90">
+  Choisir Premium
+  </a>
+  </div>
  </div>
  </section>
 
  <section className="max-w-4xl mx-auto px-4 pb-20 text-center">
  <div className="card p-10">
- <FontAwesomeIcon icon={faShield} className="w-12 h-12 text-forest mx-auto mb-4" />
+  <FontAwesomeIcon icon={faShield} className="w-12 h-12 text-[var(--color-brand)] mx-auto mb-4" />
  <h2 className="text-2xl font-bold text-ink mb-4">
  Vos données sont en sécurité
  </h2>

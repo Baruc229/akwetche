@@ -105,32 +105,32 @@ export default function RegisterPage() {
   if (step === "done") {
   return (
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-  <div className="flex items-center justify-center px-6 py-12 bg-white">
-  <div className="w-full max-w-md text-center animate-scale-in">
-  <div className="card p-8">
-  <div className="w-16 h-16 bg-ochre-light rounded-full flex items-center justify-center mx-auto mb-4">
-  <FontAwesomeIcon icon={faEnvelope} className="w-8 h-8 text-forest" />
-  </div>
-  <h1 className="text-2xl font-bold text-ink mb-2">
-  Vérifiez votre email
-  </h1>
-  <p className="text-muted text-sm mb-6">
-  Un email de confirmation a été envoyé à <strong>{email}</strong>.
-  Cliquez sur le lien pour activer votre compte.
-  </p>
-  <div className="bg-ochre-light border border-border rounded-xl p-4 text-sm text-ochre">
-  <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
-  <p>Vérifiez vos spams ou réessayez dans quelques minutes.</p>
-  </div>
-  <a
-  href="/login"
-  className="inline-block mt-6 text-sm text-forest hover:text-forest font-medium"
-  >
-  Aller à la connexion
-  </a>
-  </div>
-  </div>
-  </div>
+      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
+        <div className="w-full max-w-md text-center animate-scale-in">
+          <div className="card p-8">
+            <div className="w-16 h-16 bg-[var(--color-brand-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
+              <FontAwesomeIcon icon={faEnvelope} className="w-8 h-8 text-[var(--color-brand)]" />
+            </div>
+            <h1 className="text-2xl font-bold text-ink mb-2">
+              Vérifiez votre email
+            </h1>
+            <p className="text-muted text-sm mb-6">
+              Un email de confirmation a été envoyé à <strong>{email}</strong>.
+              Cliquez sur le lien pour activer votre compte.
+            </p>
+            <div className="alert-inline warn text-sm">
+              <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
+              <p>Vérifiez vos spams ou réessayez dans quelques minutes.</p>
+            </div>
+            <a
+              href="/login"
+              className="inline-block mt-6 text-sm text-[var(--color-brand)] hover:text-[var(--color-brand)] font-medium"
+            >
+              Aller à la connexion
+            </a>
+          </div>
+        </div>
+      </div>
   <AuthFeaturePanel />
   </div>
   );
@@ -138,7 +138,7 @@ export default function RegisterPage() {
 
   return (
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-  <div className="flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
   <div className="w-full max-w-lg animate-scale-in">
   <a
   href="/"
@@ -151,7 +151,7 @@ export default function RegisterPage() {
   {step === "plan" && (
   <div className="card p-8">
   <div className="text-center mb-8">
-  <div className="w-12 h-12 bg-forest rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+  <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
   <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
   </div>
   <h1 className="text-2xl font-bold text-ink">
@@ -170,19 +170,19 @@ export default function RegisterPage() {
   key={plan.id}
   onClick={() => setSelectedPlan(plan.id)}
   className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-  selected
-  ? "border-forest bg-ochre-light shadow-sm"
-  : "border-border bg-white hover:border-border"
+   selected
+   ? "border-[var(--color-brand)] bg-[var(--color-brand-subtle)] shadow-sm"
+   : "border-border bg-[var(--color-surface)] hover:border-border"
   }`}
   >
   <div className="flex items-start justify-between">
   <div className="flex items-center gap-3">
-  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-  plan.id === "free" ? "bg-ochre-light" : "bg-ochre-light"
-  }`}>
-   <FontAwesomeIcon icon={plan.icon} className={`w-5 h-5 ${
-   plan.id === "free" ? "text-forest" : "text-ochre"
-   }`} />
+   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+   plan.id === "free" ? "bg-[var(--color-brand-subtle)]" : "bg-[var(--color-brand-subtle)]"
+   }`}>
+    <FontAwesomeIcon icon={plan.icon} className={`w-5 h-5 ${
+    plan.id === "free" ? "text-[var(--color-brand)]" : "text-[var(--color-gold)]"
+    }`} />
   </div>
   <div>
   <p className="font-semibold text-ink">{plan.name}</p>
@@ -191,16 +191,16 @@ export default function RegisterPage() {
   </p>
   </div>
   </div>
-  {selected && (
-  <div className="w-6 h-6 bg-forest rounded-full flex items-center justify-center">
-  <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5 text-white" />
-  </div>
-  )}
+   {selected && (
+   <div className="w-6 h-6 bg-[var(--color-brand)] rounded-full flex items-center justify-center">
+   <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5 text-white" />
+   </div>
+   )}
   </div>
   <div className="mt-3 space-y-1">
   {plan.features.map((f) => (
   <p key={f} className="text-xs text-muted flex items-center gap-1.5">
-  <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-forest shrink-0" />
+   <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-[var(--color-brand)] shrink-0" />
   {f}
   </p>
   ))}
@@ -220,7 +220,7 @@ export default function RegisterPage() {
 
   <p className="text-center text-sm text-muted mt-4">
   Déjà un compte ?{" "}
-  <a href="/login" className="text-forest font-medium hover:text-forest">
+  <a href="/login" className="text-[var(--color-brand)] font-medium hover:text-[var(--color-brand)]">
   Se connecter
   </a>
   </p>
@@ -230,7 +230,7 @@ export default function RegisterPage() {
   {step === "form" && (
   <div className="card p-8">
   <div className="text-center mb-8">
-  <div className="w-12 h-12 bg-forest rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+  <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
   <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
   </div>
   <h1 className="text-2xl font-bold text-ink">
@@ -262,12 +262,12 @@ export default function RegisterPage() {
       setFieldErrors((prev) => ({ ...prev, name: undefined }));
     }}
     placeholder="Votre nom"
-    className={`input-field pl-10 ${fieldErrors.name ? "border-red-500" : ""}`}
+    className={`input-field pl-10 ${fieldErrors.name ? "border-[var(--color-neg)]" : ""}`}
     required
   />
   </div>
   {fieldErrors.name && (
-    <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
+    <p className="text-[var(--color-neg)] text-xs mt-1">{fieldErrors.name}</p>
   )}
   </div>
 
@@ -319,7 +319,7 @@ export default function RegisterPage() {
 
   <div>
   <label className="block text-sm font-medium text-ink mb-1.5">
-    Pays de résidence <span className="text-red-500">*</span>
+    Pays de résidence <span className="text-[var(--color-neg)]">*</span>
   </label>
   <CustomSelect
     options={COUNTRY_OPTIONS}
@@ -331,7 +331,7 @@ export default function RegisterPage() {
     placeholder="Sélectionnez votre pays"
   />
   {fieldErrors.country && (
-    <p className="text-red-500 text-xs mt-1">{fieldErrors.country}</p>
+    <p className="text-[var(--color-neg)] text-xs mt-1">{fieldErrors.country}</p>
   )}
   <p className="text-xs text-muted mt-1">
     Devise : <strong>{detectedCurrency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
@@ -340,7 +340,7 @@ export default function RegisterPage() {
 
   <div>
   <label className="block text-sm font-medium text-ink mb-1.5">
-    Téléphone <span className="text-red-500">*</span>
+    Téléphone <span className="text-[var(--color-neg)]">*</span>
   </label>
   <div className="relative">
   <FontAwesomeIcon icon={faPhone} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
@@ -364,11 +364,11 @@ export default function RegisterPage() {
       }
     }}
     placeholder={`${phonePrefix} XX XX XX XX`}
-    className={`input-field pl-10 ${fieldErrors.phone ? "border-red-500" : ""}`}
+    className={`input-field pl-10 ${fieldErrors.phone ? "border-[var(--color-neg)]" : ""}`}
   />
   </div>
   {fieldErrors.phone && (
-    <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>
+    <p className="text-[var(--color-neg)] text-xs mt-1">{fieldErrors.phone}</p>
   )}
   </div>
 
@@ -390,7 +390,7 @@ export default function RegisterPage() {
   </div>
 
   {error && (
-  <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">
+  <p className="alert-inline neg text-sm">
   {error}
   </p>
   )}
@@ -405,7 +405,7 @@ export default function RegisterPage() {
 
   <p className="text-center text-sm text-muted mt-4">
   Déjà un compte ?{" "}
-  <a href="/login" className="text-forest font-medium hover:text-forest">
+   <a href="/login" className="text-[var(--color-brand)] font-medium hover:text-[var(--color-brand)]">
   Se connecter
   </a>
   </p>

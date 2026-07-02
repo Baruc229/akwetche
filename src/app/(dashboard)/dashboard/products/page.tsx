@@ -27,7 +27,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "stock", label: "Stock" },
 ];
 
-const CARD_COLORS = ["bg-gold-pale", "bg-teal/10", "bg-red-pale", "bg-[#E8F4FD]", "bg-[#F0EBF8]"];
+const CARD_COLORS = ["bg-[var(--color-gold-light)]", "bg-[var(--color-pos-bg)]", "bg-[var(--color-neg-bg)]", "bg-[var(--color-brand-subtle)]", "bg-[var(--color-surface-raised)]"];
 
 function getCardColor(name: string, index: number) {
   const hash = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -35,32 +35,34 @@ function getCardColor(name: string, index: number) {
 }
 
 function StockBar({ stock }: { stock: number }) {
-  let color: string, label: string;
+  const threshold = 5;
+  let barBg: string, dotBg: string, label: string;
   if (stock === 0) {
-    color = "bg-red";
-    label = "Stock critique — réapprovisionner";
-  } else if (stock <= 5) {
-    color = "bg-gold";
-    label = "Stock faible — surveiller";
+    barBg = "var(--color-bar-neg)";
+    dotBg = "var(--color-neg)";
+    label = "Stock critique";
+  } else if (stock <= threshold) {
+    barBg = "var(--color-bar-warn)";
+    dotBg = "var(--color-warn)";
+    label = "Stock faible";
   } else {
-    color = "bg-teal";
+    barBg = "var(--color-bar-pos)";
+    dotBg = "var(--color-pos)";
     label = "Stock correct";
   }
 
   return (
-    <div className="min-w-0">
-      <div className="flex items-center justify-between mb-1.5 gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3 shrink-0">Stock</span>
-        <span className={`text-xs font-bold font-display ${color.replace("bg-", "text-")} truncate text-right`}>
-          {stock}
+    <div className="bar-row">
+      <div className="bar-head">
+        <span className="bar-label">
+          <span className="bar-dot" style={{ background: dotBg }} />
+          {label}
         </span>
+        <span className="bar-value">{stock}</span>
       </div>
-      <div className="h-[5px] bg-border rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color} transition-all duration-300`} style={{ width: `${stock > 0 ? 100 : 0}%` }} />
+      <div className="bar-track lg">
+        <div className="bar-fill" style={{ width: `${stock > 0 ? 100 : 0}%`, background: barBg }} />
       </div>
-      <p className={`text-[10.5px] font-semibold mt-1 ${color.replace("bg-", "text-")} truncate`}>
-        {label}
-      </p>
     </div>
   );
 }
@@ -231,7 +233,7 @@ export default function ProductsPage() {
         <div className="h-11 w-full bg-stone/20 rounded-xl" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[1, 2].map(i => (
-            <div key={i} className="bg-white rounded-[18px] border border-border p-[18px] space-y-4">
+            <div key={i} className="card space-y-4">
               <div className="flex items-center gap-3"><div className="w-11 h-11 bg-stone/30 rounded-xl" /><div className="space-y-2"><div className="h-4 w-24 bg-stone/30 rounded-lg" /><div className="h-3 w-16 bg-stone/20 rounded-lg" /></div></div>
               <div className="grid grid-cols-3 gap-2"><div className="h-14 bg-stone/20 rounded-xl" /><div className="h-14 bg-stone/20 rounded-xl" /><div className="h-14 bg-stone/20 rounded-xl" /></div>
               <div className="space-y-2"><div className="h-3 w-full bg-stone/20 rounded-full" /><div className="h-3 w-3/4 bg-stone/20 rounded-lg" /></div>
@@ -256,7 +258,7 @@ export default function ProductsPage() {
         </div>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 bg-green text-white font-sans font-bold text-[13px] px-4 py-[10px] rounded-xl hover:opacity-90 transition-opacity active:scale-95"
+          className="btn-primary"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -267,10 +269,10 @@ export default function ProductsPage() {
       </div>
 
       {loadError && (
-        <div className="flex items-start gap-3 bg-red-pale border border-red/20 rounded-2xl p-4 animate-fade-in">
-          <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-red shrink-0 mt-0.5" />
-          <p className="text-sm text-red flex-1">{loadError}</p>
-          <button onClick={() => setLoadError(null)} className="text-red/50 hover:text-red shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+        <div className="flex items-start gap-3 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-2xl p-4 animate-fade-in">
+          <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-[var(--color-neg)] shrink-0 mt-0.5" />
+          <p className="text-sm text-[var(--color-neg)] flex-1">{loadError}</p>
+          <button onClick={() => setLoadError(null)} className="text-[var(--color-neg)]/50 hover:text-[var(--color-neg)] shrink-0"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -286,7 +288,7 @@ export default function ProductsPage() {
             placeholder="Rechercher un produit…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full bg-bg-card border-[1.5px] border-border rounded-xl py-[9px] pl-[38px] pr-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green placeholder:text-text-3"
+            className="w-full input-field rounded-xl py-[9px] pl-[38px] pr-3"
           />
           {searchInput && (
             <button onClick={() => { setSearchInput(""); setSearch(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-text-3 hover:text-text-1 rounded-full hover:bg-border/50 transition-colors">
@@ -301,7 +303,7 @@ export default function ProductsPage() {
         <div className="relative">
           <button
             onClick={() => setSortOpen(!sortOpen)}
-            className="flex items-center gap-2 bg-bg-card border-[1.5px] border-border rounded-xl px-3 py-[9px] w-[125px] text-sm text-ink font-medium hover:bg-border/20 transition-colors"
+            className="flex items-center gap-2 input-field w-[125px] py-[9px] px-3 cursor-pointer hover:border-brand transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" y1="6" x2="20" y2="6" />
@@ -316,12 +318,12 @@ export default function ProductsPage() {
           {sortOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
-              <div className="absolute right-0 top-full mt-1 z-50 w-[140px] bg-white border border-border rounded-xl shadow-lg py-1 animate-fade-in">
+              <div className="absolute right-0 top-full mt-1 z-50 w-[140px] card shadow-lg py-1 animate-fade-in">
                 {SORT_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => { setSortKey(opt.value); setSortOpen(false); }}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${sortKey === opt.value ? "text-green font-semibold bg-green/5" : "text-ink hover:bg-sand"}`}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${sortKey === opt.value ? "text-[var(--color-brand)] font-semibold bg-[var(--color-brand-subtle)]" : "text-ink hover:bg-[var(--color-brand-subtle)]"}`}
                   >
                     {opt.label}
                   </button>
@@ -336,7 +338,7 @@ export default function ProductsPage() {
       {products.length === 0 && !search ? (
         /* Empty state */
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-14 h-14 bg-bg-card rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-border">
+          <div className="w-14 h-14 card-inset flex items-center justify-center mb-4 shadow-sm">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-text-3">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -349,7 +351,7 @@ export default function ProductsPage() {
           </p>
           <button
             onClick={openCreate}
-            className="mt-5 inline-flex items-center gap-2 bg-green text-white font-sans font-bold text-[13px] px-5 py-[10px] rounded-xl hover:opacity-90 transition-opacity"
+            className="btn-primary mt-5"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19" />
@@ -370,25 +372,25 @@ export default function ProductsPage() {
             const cardBg = getCardColor(p.name, idx);
             const initial = p.name.charAt(0).toUpperCase();
 
-            let marginCellBg: string, marginText: string;
-            if (margin < 0) {
-              marginCellBg = "bg-red-pale";
-              marginText = "text-red";
-            } else if (marginRate < 30) {
-              marginCellBg = "bg-gold-pale";
-              marginText = "text-gold";
+            let marginStyle: React.CSSProperties, marginTextStyle: React.CSSProperties;
+            if (marginRate >= 40) {
+              marginStyle = { background: "var(--color-pos-bg)" };
+              marginTextStyle = { color: "var(--color-pos)" };
+            } else if (marginRate >= 20) {
+              marginStyle = { background: "var(--color-surface-raised)" };
+              marginTextStyle = { color: "var(--color-body)" };
             } else {
-              marginCellBg = "bg-teal/10";
-              marginText = "text-teal";
+              marginStyle = { background: "var(--color-neg-bg)" };
+              marginTextStyle = { color: "var(--color-neg)" };
             }
 
             return (
-              <div key={p.id} className="bg-bg-card rounded-[18px] border border-border p-[18px] animate-fade-in">
+              <div key={p.id} className="card hover:shadow-md transition-shadow">
                 {/* Card header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className={`w-11 h-11 rounded-xl ${cardBg} flex items-center justify-center shrink-0`}>
-                      <span className="font-display font-extrabold text-lg text-green">{initial}</span>
+                      <span className="font-display font-extrabold text-lg text-[var(--color-brand)]">{initial}</span>
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-display font-bold text-[17px] text-text-1 leading-tight truncate">{p.name}</h3>
@@ -397,14 +399,14 @@ export default function ProductsPage() {
                   <div className="flex items-center gap-[6px] shrink-0 ml-2">
                     <button
                       onClick={() => openEdit(p)}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[rgba(28,58,47,0.2)] text-green hover:bg-green/5 transition-colors shrink-0"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[var(--color-brand)]/20 text-[var(--color-brand)] hover:bg-[var(--color-brand)]/5 transition-colors shrink-0"
                       title="Éditer"
                     >
                       <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setConfirmDeleteProduct(p.id)}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[rgba(185,74,62,0.2)] text-red hover:bg-red-pale transition-colors shrink-0"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center border border-[var(--color-neg)]/20 text-[var(--color-neg)] hover:bg-[var(--color-neg-bg)] transition-colors shrink-0"
                       title="Supprimer"
                     >
                       <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
@@ -414,20 +416,20 @@ export default function ProductsPage() {
 
                 {/* Metrics grid */}
                 <div className="grid grid-cols-2 gap-[6px] mb-4">
-                  <div className="bg-bg border border-border rounded-xl p-[8px] min-w-0 overflow-hidden">
-                    <p className="text-[8px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix achat</p>
-                    <p className="font-display font-bold text-[11px] text-text-1 truncate">{formatCurrency(p.purchasePrice, currency)}</p>
+                  <div className="card-inset min-w-0 overflow-hidden">
+                    <p className="text-label">Prix achat</p>
+                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.purchasePrice, currency)}</p>
                   </div>
-                  <div className="bg-bg border border-border rounded-xl p-[8px] min-w-0 overflow-hidden">
-                    <p className="text-[8px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Prix vente</p>
-                    <p className="font-display font-bold text-[11px] text-text-1 truncate">{formatCurrency(p.salePrice, currency)}</p>
+                  <div className="card-inset min-w-0 overflow-hidden">
+                    <p className="text-label">Prix vente</p>
+                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.salePrice, currency)}</p>
                   </div>
-                  <div className={`col-span-2 w-full bg-bg border border-border rounded-xl p-[8px] min-w-0 overflow-hidden ${marginCellBg}`}>
-                    <p className="text-[8px] font-semibold uppercase tracking-wide text-text-3 mb-0.5">Marge</p>
-                    <p className={`font-display font-bold text-[11px] ${marginText} truncate`}>
+                  <div className="col-span-2 w-full card-inset" style={marginStyle}>
+                    <p className="text-label">Marge</p>
+                    <p className="text-amount text-[13px] mt-0.5" style={marginTextStyle}>
                       {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency)}
                     </p>
-                    <p className={`text-[9px] ${marginText} opacity-80 truncate`}>{marginRate.toFixed(0)}%</p>
+                    <p className="text-[9px] mt-0.5" style={{ ...marginTextStyle, opacity: 0.8 }}>{marginRate.toFixed(0)}%</p>
                   </div>
                 </div>
 
@@ -443,8 +445,8 @@ export default function ProductsPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setShowModal(false)}>
           <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-border">
+          <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-border">
               <h3 className="text-lg font-semibold text-ink font-display">{editProduct ? "Modifier" : "Nouveau"} produit</h3>
               <button onClick={() => setShowModal(false)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
@@ -453,25 +455,25 @@ export default function ProductsPage() {
             <div className="p-5">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Nom du produit *</label>
+                  <label className="field-label">Nom du produit *</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                    className="input-field"
                     placeholder="Ex: Sac à main"
                     required
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix d&apos;achat</label>
+                    <label className="field-label">Prix d&apos;achat</label>
                     <div className="relative">
                       <input
                         type="number"
                         value={form.purchasePrice}
                         onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                        className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                        className="input-field pl-[34px]"
                         min="0"
                         step="0.01"
                         placeholder="0"
@@ -482,13 +484,13 @@ export default function ProductsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix de vente</label>
+                    <label className="field-label">Prix de vente</label>
                     <div className="relative">
                       <input
                         type="number"
                         value={form.salePrice}
                         onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                        className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                        className="input-field pl-[34px]"
                         min="0"
                         step="0.01"
                         placeholder="0"
@@ -502,12 +504,12 @@ export default function ProductsPage() {
                 {!editProduct && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Stock initial</label>
+                      <label className="field-label">Stock initial</label>
                       <input
                         type="number"
                         value={form.stock}
                         onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                        className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                        className="input-field"
                         min="0"
                         placeholder="0"
                       />
@@ -515,25 +517,25 @@ export default function ProductsPage() {
                   </div>
                 )}
                 {salePriceNum > 0 && (
-                  <div className="flex items-center gap-2 bg-teal/10 rounded-xl px-4 py-3 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal shrink-0">
+                  <div className="flex items-center gap-2 bg-[var(--color-pos-bg)] rounded-xl px-4 py-3 text-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-pos)] shrink-0">
                       <line x1="12" y1="19" x2="12" y2="5" />
                       <polyline points="5 12 12 5 19 12" />
                     </svg>
-                    <span className="text-teal font-medium">
+                    <span className="text-[var(--color-pos)] font-medium">
                       Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                     </span>
                   </div>
                 )}
                 {error && (
-                  <div className="flex items-center gap-2 bg-red-pale border border-red/20 rounded-xl px-4 py-3 text-sm">
-                    <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-red shrink-0" />
-                    <p className="text-red">{error}</p>
+                  <div className="flex items-center gap-2 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-xl px-4 py-3 text-sm">
+                    <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[var(--color-neg)] shrink-0" />
+                    <p className="text-[var(--color-neg)]">{error}</p>
                   </div>
                 )}
                 <button
                   type="submit"
-                  className="w-full bg-green text-white font-sans font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity"
+                  className="btn-primary w-full"
                 >
                   {editProduct ? "Enregistrer" : "Créer le produit"}
                 </button>
@@ -546,7 +548,7 @@ export default function ProductsPage() {
       {/* Desktop modal */}
       {showModal && (
         <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink font-display">
                 {editProduct ? "Modifier" : "Nouveau"} produit
@@ -557,25 +559,25 @@ export default function ProductsPage() {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Nom du produit *</label>
+                <label className="field-label">Nom du produit *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                  className="input-field"
                   placeholder="Ex: Sac à main"
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix d&apos;achat</label>
+                  <label className="field-label">Prix d&apos;achat</label>
                   <div className="relative">
                     <input
                       type="number"
                       value={form.purchasePrice}
                       onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                      className="input-field pl-[34px]"
                       min="0"
                       step="0.01"
                       placeholder="0"
@@ -586,13 +588,13 @@ export default function ProductsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Prix de vente</label>
+                  <label className="field-label">Prix de vente</label>
                   <div className="relative">
                     <input
                       type="number"
                       value={form.salePrice}
                       onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl pl-[34px] pr-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                      className="input-field pl-[34px]"
                       min="0"
                       step="0.01"
                       placeholder="0"
@@ -606,12 +608,12 @@ export default function ProductsPage() {
               {!editProduct && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Stock initial</label>
+                    <label className="field-label">Stock initial</label>
                     <input
                       type="number"
                       value={form.stock}
                       onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                      className="w-full bg-bg-card border-[1.5px] border-border rounded-xl px-[14px] py-3 text-sm text-text-1 outline-none transition-[border-color] focus:border-green focus:shadow-[0_0_0_3px_rgba(28,58,47,0.10)] placeholder:text-text-3"
+                      className="input-field"
                       min="0"
                       placeholder="0"
                     />
@@ -619,25 +621,25 @@ export default function ProductsPage() {
                 </div>
               )}
               {salePriceNum > 0 && (
-                <div className="flex items-center gap-2 bg-teal/10 rounded-xl px-4 py-3 text-sm">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal shrink-0">
+                <div className="flex items-center gap-2 bg-[var(--color-pos-bg)] rounded-xl px-4 py-3 text-sm">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-pos)] shrink-0">
                     <line x1="12" y1="19" x2="12" y2="5" />
                     <polyline points="5 12 12 5 19 12" />
                   </svg>
-                  <span className="text-teal font-medium">
+                  <span className="text-[var(--color-pos)] font-medium">
                     Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                   </span>
                 </div>
               )}
               {error && (
-                <div className="flex items-center gap-2 bg-red-pale border border-red/20 rounded-xl px-4 py-3 text-sm">
-                  <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-red shrink-0" />
-                  <p className="text-red">{error}</p>
+                <div className="flex items-center gap-2 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-xl px-4 py-3 text-sm">
+                  <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[var(--color-neg)] shrink-0" />
+                  <p className="text-[var(--color-neg)]">{error}</p>
                 </div>
               )}
               <button
                 type="submit"
-                className="w-full bg-green text-white font-sans font-semibold text-sm py-3 rounded-xl hover:opacity-90 transition-opacity"
+                className="btn-primary w-full"
               >
                 {editProduct ? "Enregistrer" : "Créer le produit"}
               </button>

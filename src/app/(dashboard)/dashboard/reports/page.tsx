@@ -120,7 +120,7 @@ export default function ReportsPage() {
         </div>
         <button
           onClick={handleDownload}
-          className="inline-flex items-center gap-2 bg-transparent border-[1.5px] border-green text-green font-bold text-xs px-3 py-2 rounded-xl hover:bg-green/5 transition-colors no-print"
+          className="inline-flex items-center gap-2 bg-transparent border-[1.5px] border-brand text-brand font-bold text-xs px-3 py-2 rounded-xl hover:bg-brand-subtle transition-colors no-print"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
@@ -137,7 +137,7 @@ export default function ReportsPage() {
             onClick={() => setPeriod(p.value)}
             className={`px-4 py-[7px] rounded-full text-[12.5px] font-semibold transition-all ${
               period === p.value
-                ? "bg-green text-white shadow-sm"
+                ? "bg-brand text-white shadow-sm"
                 : "bg-transparent text-text-3 hover:text-text-1"
             }`}
           >
@@ -149,7 +149,7 @@ export default function ReportsPage() {
       {data && (
         <>
           {/* Hero card */}
-          <div className="bg-green rounded-[18px] p-5 text-white">
+          <div className="card-hero">
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-widest text-white/40">{periodLabel}</span>
               {(() => {
@@ -164,13 +164,13 @@ export default function ReportsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-[11px] font-medium text-white/60 mb-0.5">Reçu</p>
-                <p className="font-display font-bold text-base" style={{ color: "#6ECFA0" }}>
+                <p className="font-display font-bold text-base text-pos">
                   +{formatCurrency(data.current.income)}
                 </p>
               </div>
               <div>
                 <p className="text-[11px] font-medium text-white/60 mb-0.5">Dépensé</p>
-                <p className="font-display font-bold text-base" style={{ color: "#E07A72" }}>
+                <p className="font-display font-bold text-base text-neg">
                   -{formatCurrency(data.current.expense)}
                 </p>
               </div>
@@ -185,24 +185,24 @@ export default function ReportsPage() {
 
           {/* 4 KPIs */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-teal/10 rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
-              <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Volume total</p>
-              <p className="font-display font-bold text-lg text-teal mt-1 truncate">{formatCurrency(data.current.income + data.current.expense)}</p>
+            <div className="card-inset min-w-0 overflow-hidden">
+              <p className="text-label">Volume total</p>
+              <p className="text-amount text-lg text-pos mt-1 truncate">{formatCurrency(data.current.income + data.current.expense)}</p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Revenus + Dépenses</p>
             </div>
-            <div className="bg-bg-card rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
-              <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Taux d&apos;épargne</p>
-              <p className="font-display font-bold text-lg text-green mt-1">{savingsRate.toFixed(0)}%</p>
+            <div className="card-inset min-w-0 overflow-hidden">
+              <p className="text-label">Taux d&apos;épargne</p>
+              <p className="text-amount text-lg text-pos mt-1">{savingsRate.toFixed(0)}%</p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">{savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Correct" : "Faible"}</p>
             </div>
-            <div className="bg-gold-pale rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
-              <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Moyenne / jour</p>
-              <p className="font-display font-bold text-lg text-gold mt-1 truncate">{formatCurrency(avgDaily)}</p>
+            <div className="card-inset min-w-0 overflow-hidden">
+              <p className="text-label">Moyenne / jour</p>
+              <p className="text-amount text-lg text-gold mt-1 truncate">{formatCurrency(avgDaily)}</p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Dépense quotidienne</p>
             </div>
-            <div className="bg-red-pale rounded-2xl p-4 border border-border min-w-0 overflow-hidden">
-              <p className="text-[9.5px] font-bold uppercase tracking-wider text-text-3">Plus gros poste</p>
-              <p className="font-display font-bold text-lg text-text-1 mt-1 truncate leading-tight">
+            <div className="card-inset min-w-0 overflow-hidden">
+              <p className="text-label">Plus gros poste</p>
+              <p className="text-amount text-lg text-ink mt-1 truncate leading-tight">
                 {getTopExpenseLabel(data.current.topCategories) || "—"}
               </p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Catégorie principale</p>
@@ -212,10 +212,10 @@ export default function ReportsPage() {
           {/* Situation financière */}
           <div className="bg-bg-card rounded-[18px] border border-border p-5">
             <div className="flex items-center gap-2 mb-4">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
               </svg>
-              <h2 className="text-sm font-semibold text-text-1">Situation financière</h2>
+              <h2 className="text-sm font-semibold text-ink">Situation financière</h2>
             </div>
 
             {/* Personnel */}
@@ -230,7 +230,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="bg-bg rounded-xl p-3">
                   <p className="text-[10px] text-text-3 mb-0.5">Reçu</p>
-                  <p className="font-semibold text-teal text-sm">+{formatCurrency(data.personal.current.income)}</p>
+                  <p className="font-semibold text-pos text-sm">+{formatCurrency(data.personal.current.income)}</p>
                 </div>
                 <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg rounded-xl p-3">
                   <p className="text-[10px] text-text-3 mb-0.5">Solde</p>
@@ -254,7 +254,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="bg-bg rounded-xl p-3">
                     <p className="text-[10px] text-text-3 mb-0.5">Reçu</p>
-                    <p className="font-semibold text-teal text-sm">+{formatCurrency(data.activity.current.income)}</p>
+                    <p className="font-semibold text-pos text-sm">+{formatCurrency(data.activity.current.income)}</p>
                   </div>
                   <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full bg-bg rounded-xl p-3">
                     <p className="text-[10px] text-text-3 mb-0.5">Solde</p>
@@ -270,15 +270,15 @@ export default function ReportsPage() {
           {/* Comparison table */}
           <div className="bg-bg-card rounded-[18px] border border-border p-5">
             <div className="flex items-center gap-2 mb-4">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
                 <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
               </svg>
-              <h2 className="text-sm font-semibold text-text-1">Comparaison</h2>
+              <h2 className="text-sm font-semibold text-ink">Comparaison</h2>
             </div>
             <div className="sm:hidden space-y-3">
               {[
                 { label: "Revenus", current: data.current.income, previous: data.previous.income, currentColor: "text-text-1", previousColor: "text-text-3" },
-                { label: "Dépenses", current: data.current.expense, previous: data.previous.expense, currentColor: "text-red", previousColor: "text-text-3" },
+                { label: "Dépenses", current: data.current.expense, previous: data.previous.expense, currentColor: "text-neg", previousColor: "text-text-3" },
               ].map((r) => (
                 <div key={r.label} className="py-2 border-b border-border">
                   <p className="text-[11.5px] font-semibold text-text-1 mb-1.5">{r.label}</p>
@@ -292,11 +292,11 @@ export default function ReportsPage() {
                   </div>
                 </div>
               ))}
-              <div className="py-2 rounded-xl px-3" style={{ backgroundColor: "#F7F0D6" }}>
+              <div className="py-2 rounded-xl px-3" style={{ backgroundColor: "var(--color-surface-raised)" }}>
                 <p className="text-[11.5px] font-semibold text-text-1 mb-1.5">Épargne</p>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-text-3">{periodLabel} :</span>
-                  <span className="font-bold text-green">{formatCurrency(Math.max(0, data.current.savings))}</span>
+                  <span className="font-bold text-pos">{formatCurrency(Math.max(0, data.current.savings))}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-0.5">
                   <span className="text-text-3">{previousLabel} :</span>
@@ -306,29 +306,29 @@ export default function ReportsPage() {
             </div>
             <div className="hidden sm:block">
               <div className="grid grid-cols-3 gap-2 sm:gap-3 pb-2 border-b border-border">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3">Libellé</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">{periodLabel}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-3 text-right">{previousLabel}</span>
+                  <span className="text-label">Libellé</span>
+                  <span className="text-label text-right">{periodLabel}</span>
+                  <span className="text-label text-right">{previousLabel}</span>
                 </div>
                 {/* Revenus */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border">
-                  <span className="text-sm text-text-1">Revenus</span>
-                  <span className="text-sm font-semibold text-text-1 text-right truncate">{formatCurrency(data.current.income)}</span>
-                  <span className="text-sm text-text-3 text-right truncate">{formatCurrency(data.previous.income)}</span>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border" style={{ backgroundColor: "var(--color-surface-raised)" }}>
+                  <span className="text-sm text-ink pl-3">Revenus</span>
+                  <span className="text-sm font-semibold text-ink text-right truncate">{formatCurrency(data.current.income)}</span>
+                  <span className="text-sm text-muted text-right truncate">{formatCurrency(data.previous.income)}</span>
                 </div>
                 {/* Dépenses */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border">
-                  <span className="text-sm text-text-1">Dépenses</span>
-                  <span className="text-sm font-semibold text-red text-right truncate">{formatCurrency(data.current.expense)}</span>
-                  <span className="text-sm text-text-3 text-right truncate">{formatCurrency(data.previous.expense)}</span>
+                  <span className="text-sm text-ink">Dépenses</span>
+                  <span className="text-sm font-semibold text-neg text-right truncate">{formatCurrency(data.current.expense)}</span>
+                  <span className="text-sm text-muted text-right truncate">{formatCurrency(data.previous.expense)}</span>
                 </div>
                 {/* Épargne */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 mt-1 rounded-xl" style={{ backgroundColor: "#F7F0D6" }}>
-                  <span className="text-sm font-semibold text-text-1 pl-3">Épargne</span>
-                  <span className="text-sm font-bold text-green text-right truncate pr-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 mt-1 rounded-xl" style={{ backgroundColor: "var(--color-surface-raised)" }}>
+                  <span className="text-sm font-semibold text-ink pl-3">Épargne</span>
+                  <span className="text-sm font-bold text-pos text-right truncate pr-3">
                     {formatCurrency(Math.max(0, data.current.savings))}
                   </span>
-                  <span className="text-sm text-text-3 text-right truncate pr-3">
+                  <span className="text-sm text-muted text-right truncate pr-3">
                     {formatCurrency(Math.max(0, data.previous.savings))}
                   </span>
                 </div>
@@ -345,7 +345,7 @@ export default function ReportsPage() {
                 <h2 className="text-sm font-semibold text-text-1">Où est passé votre argent ?</h2>
               </div>
               <p className="text-xs text-text-3 mb-4">Répartition par catégorie</p>
-              <div className="space-y-3">
+              <div>
                 {Object.entries(data.current.topCategories)
                   .sort(([, a], [, b]) => b - a)
                   .map(([cat, amount], i) => {
@@ -353,16 +353,19 @@ export default function ReportsPage() {
                     const pct = (amount / total) * 100;
                     const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
                     return (
-                      <div key={cat}>
-                        <div className="flex items-center justify-between text-sm mb-1.5">
-                          <span className="text-text-1 font-medium">{cat}</span>
-                          <span className="text-text-1 font-bold">
-                            {formatCurrency(amount)}{" "}
-                            <span className="text-text-3 font-normal">({pct.toFixed(0)}%)</span>
+                      <div className="bar-row" key={cat}>
+                        <div className="bar-head">
+                          <span className="bar-label">
+                            <span className="bar-dot" style={{ backgroundColor: color }} />
+                            {cat}
+                          </span>
+                          <span className="bar-value">
+                            {formatCurrency(amount)}
+                            <span className="pct">({pct.toFixed(0)}%)</span>
                           </span>
                         </div>
-                        <div className="h-[4px] bg-border rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+                        <div className="bar-track">
+                          <div className="bar-fill" style={{ width: `${pct}%`, backgroundColor: color }} />
                         </div>
                       </div>
                     );
@@ -375,7 +378,7 @@ export default function ReportsPage() {
           <div className="flex justify-center no-print pt-2">
             <a
               href="/dashboard/transactions"
-              className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-green hover:opacity-80 transition-opacity"
+              className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-brand hover:opacity-80 transition-opacity"
             >
               Voir le détail des transactions
               <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="w-3.5 h-3.5" />
