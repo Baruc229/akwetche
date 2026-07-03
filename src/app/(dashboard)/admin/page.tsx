@@ -134,7 +134,7 @@ export default function AdminOverview() {
           { label: "Utilisateurs", value: stats?.totalUsers || 0, sub: stats?.usersToday ?? 0, icon: faUsers, bg: "bg-pos-bg", iconColor: "text-pos" },
           { label: "Transactions", value: stats?.totalTransactions || 0, sub: 0, icon: faFileLines, bg: "bg-gold-light", iconColor: "text-gold" },
           { label: "Produits", value: stats?.totalProducts || 0, sub: 0, icon: faBagShopping, bg: "bg-brand-subtle", iconColor: "text-brand" },
-          { label: "Revenus", value: formatCurrency(stats?.totalRevenue || 0), sub: 0, icon: faDollarSign, bg: "bg-pos-bg", iconColor: "text-pos" },
+          { label: "Revenus", value: formatCurrency(stats?.subscriptionRevenue || 0), sub: 0, icon: faCrown, bg: "bg-gold-light", iconColor: "text-gold" },
           { label: "Abonnés", value: stats?.activeSubscriptions ?? 0, sub: 0, icon: faCrown, bg: "bg-gold-light", iconColor: "text-gold" },
           { label: "Tentatives", value: stats?.loginAttemptsToday ?? 0, sub: 0, icon: faRightToBracket, bg: "bg-neg-bg", iconColor: "text-neg" },
         ].map((s) => (
