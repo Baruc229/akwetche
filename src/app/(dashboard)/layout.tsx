@@ -318,9 +318,7 @@ export default function DashboardLayout({
             <div className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/15">
               <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
             </div>
-            {!sidebarCollapsed && (
-              <span className="text-lg font-bold text-white font-[family-name:var(--font-display)]">Akwetche</span>
-            )}
+            <span className={`text-lg font-bold text-white font-[family-name:var(--font-display)] transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Akwetche</span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white">
             <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
@@ -328,26 +326,28 @@ export default function DashboardLayout({
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+        <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll ${sidebarCollapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`}>
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <div key={item.href} className="relative group">
-                <Link
-                  href={item.href}
-                  onClick={() => { setSidebarOpen(false); }}
-                  className={`flex items-center ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-[10px] px-3 py-[9px]'} rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
-                    isActive
-                      ? 'text-white font-semibold'
-                      : 'text-white/52 hover:text-white/90 hover:bg-white/7'
-                  }`}
-                  style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
-                >
-                  <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
-                  {!sidebarCollapsed && <span>{item.label}</span>}
-                </Link>
+                  <Link
+                    href={item.href}
+                    onClick={() => { setSidebarOpen(false); }}
+                    className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                      sidebarCollapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
+                    } ${
+                      isActive
+                        ? 'text-white font-semibold'
+                        : 'text-white/52 hover:text-white/90 hover:bg-white/7'
+                    }`}
+                    style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
+                    <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
+                  </Link>
                 {sidebarCollapsed && (
-                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{background:'var(--color-ink)', color:'white'}}>
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
                     {item.label}
                   </div>
                 )}
@@ -370,7 +370,9 @@ export default function DashboardLayout({
                     <Link
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-[10px] px-3 py-[9px]'} rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                      className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                        sidebarCollapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
+                      } ${
                         isActive
                           ? 'text-white font-semibold'
                           : 'text-white/52 hover:text-white/90 hover:bg-white/7'
@@ -378,10 +380,10 @@ export default function DashboardLayout({
                       style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
                     >
                       <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
-                      {!sidebarCollapsed && <span>{item.label}</span>}
+                      <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
                     </Link>
                     {sidebarCollapsed && (
-                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{background:'var(--color-ink)', color:'white'}}>
+                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
                         {item.label}
                       </div>
                     )}
@@ -397,7 +399,9 @@ export default function DashboardLayout({
               <Link
                 href="/admin"
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-[10px] px-3 py-[9px]'} rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                  sidebarCollapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
+                } ${
                   pathname === '/admin'
                     ? 'text-white font-semibold'
                     : 'text-white/52 hover:text-white/90 hover:bg-white/7'
@@ -405,10 +409,10 @@ export default function DashboardLayout({
                 style={pathname === '/admin' ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
               >
                 <FontAwesomeIcon icon={faShield} className="w-[15px] h-[15px] shrink-0" />
-                {!sidebarCollapsed && <span>Administration</span>}
+                <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Administration</span>
               </Link>
               {sidebarCollapsed && (
-                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{background:'var(--color-ink)', color:'white'}}>
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
                   Administration
                 </div>
               )}
@@ -437,11 +441,10 @@ export default function DashboardLayout({
           )}
           <button
             onClick={toggleSidebar}
-            className={`flex items-center w-full text-sm text-white/52 hover:text-white/90 hover:bg-white/7 rounded-lg transition-all ${sidebarCollapsed ? 'justify-center p-[10px]' : 'gap-3 px-3 py-2'}`}
-            title={sidebarCollapsed ? 'Agrandir' : 'Réduire'}
+            className="flex items-center justify-center w-full p-2 text-white/35 hover:text-white/80 hover:bg-white/7 rounded-lg transition-all group min-h-[32px]"
+            title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
           >
-            <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} className="w-[15px] h-[15px]" />
-            {!sidebarCollapsed && <span>Réduire</span>}
+            <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} className="w-4 h-4 transition-transform duration-200" />
           </button>
         </div>
       </aside>
@@ -723,12 +726,18 @@ export default function DashboardLayout({
     )}
 
     <style>{`
-      .nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; color:rgba(255,255,255,0.52); font-size:13.5px; font-weight:500; transition:background 0.12s,color 0.12s; margin-bottom:2px; white-space:nowrap; overflow:hidden; }
-      .nav-item:hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.90); }
-      .nav-item.active { background:rgba(255,255,255,0.13); color:white; font-weight:600; border-left:3px solid var(--color-gold); padding-left:9px; }
-      .nav-item svg { width:15px; height:15px; flex-shrink:0; }
-      .sidebar.collapsed .nav-item { justify-content:center; padding:10px; }
-      .sidebar.collapsed .nav-item span { display:none; }
+      /* Sidebar scrollbar styles */
+      .sidebar-scroll { scrollbar-width: thin; }
+      .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+      .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+      .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+      .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+      .sidebar-scroll--collapsed { overflow-y: auto; scrollbar-width: none; }
+      .sidebar-scroll--collapsed::-webkit-scrollbar { width: 0; }
+
+      /* Tooltip hover delay for collapsed sidebar */
+      .sidebar-tooltip { transition-delay: 0ms; }
+      .group:hover .sidebar-tooltip { transition-delay: 250ms; }
 
       .account-menu {
         position:absolute; right:0; top:calc(100% + 8px);
