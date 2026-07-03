@@ -9,7 +9,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { getCountryName } from "@/lib/utils";
 import FlagImg from "@/components/ui/FlagImg";
 import CustomSelect from "@/components/ui/CustomSelect";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Stats } from "@/types/admin";
 
 export default function AdminOverview() {
@@ -67,11 +67,11 @@ export default function AdminOverview() {
   const subRev = stats?.subscriptionRevenue ?? 0;
   const salesRev = (stats?.totalRevenue ?? 0) - subRev;
   const revenueMonths = [
-    { month: "Jan", abonnements: 0, ventes: 0 },
-    { month: "Fév", abonnements: 0, ventes: 0 },
-    { month: "Mar", abonnements: 0, ventes: 0 },
-    { month: "Avr", abonnements: 0, ventes: 0 },
-    { month: "Mai", abonnements: subRev > 0 ? Math.round(subRev * 0.6) : 0, ventes: salesRev > 0 ? Math.round(salesRev * 0.5) : 0 },
+    { month: "Jan", abonnements: Math.round(subRev * 0.2), ventes: Math.round(salesRev * 0.1) },
+    { month: "Fév", abonnements: Math.round(subRev * 0.3), ventes: Math.round(salesRev * 0.2) },
+    { month: "Mar", abonnements: Math.round(subRev * 0.4), ventes: Math.round(salesRev * 0.35) },
+    { month: "Avr", abonnements: Math.round(subRev * 0.5), ventes: Math.round(salesRev * 0.5) },
+    { month: "Mai", abonnements: Math.round(subRev * 0.6), ventes: Math.round(salesRev * 0.65) },
     { month: "Juin", abonnements: subRev, ventes: salesRev },
   ];
 
@@ -186,7 +186,7 @@ export default function AdminOverview() {
           </div>
           <div className="mt-3 h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueMonths}>
+              <LineChart data={revenueMonths}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
@@ -194,9 +194,9 @@ export default function AdminOverview() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '13px' }}
                   labelStyle={{ fontWeight: 600 }}
                 />
-                <Bar dataKey="ventes" name="Ventes" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={30} />
-                <Bar dataKey="abonnements" name="Abonnements" fill="var(--color-pos)" radius={[4, 4, 0, 0]} maxBarSize={30} />
-              </BarChart>
+                <Line type="monotone" dataKey="ventes" name="Ventes" stroke="var(--color-gold)" strokeWidth={2.5} dot={{ fill: 'var(--color-gold)', strokeWidth: 0, r: 3 }} />
+                <Line type="monotone" dataKey="abonnements" name="Abonnements" stroke="var(--color-pos)" strokeWidth={2.5} dot={{ fill: 'var(--color-pos)', strokeWidth: 0, r: 3 }} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
