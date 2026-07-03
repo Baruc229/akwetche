@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, convertForDisplay, convertForStorage, roundByCurrency, type CurrencyCode } from "@/lib/utils";
+import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, toDisplayCurrency, toStorageCurrency, roundByCurrency, type CurrencyCode } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
@@ -51,16 +51,14 @@ export default function SettingsPage() {
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState(user?.name || "");
-  const [currency, setCurrency] = useState(user?.currency || user?.baseCurrency || getCountryByCode(user?.countryCode || "")?.currency || "XOF");
+  const [currency, setCurrency] = useState(user?.currency || getCountryByCode(user?.countryCode || "")?.currency || "XOF");
   const [initialBalance, setInitialBalance] = useState(() => {
-    const bc = (user?.baseCurrency || "XOF") as CurrencyCode;
-    const dc = (currency || bc) as CurrencyCode;
-    return String(convertForDisplay(user?.initialBalance || 0, bc, dc));
+    const dc = currency as CurrencyCode;
+    return String(roundByCurrency(toDisplayCurrency(user?.initialBalance || 0, dc), dc));
   });
   const [initialBalanceActivity, setInitialBalanceActivity] = useState(() => {
-    const bc = (user?.baseCurrency || "XOF") as CurrencyCode;
-    const dc = (currency || bc) as CurrencyCode;
-    return String(convertForDisplay(user?.initialBalanceActivity || 0, bc, dc));
+    const dc = currency as CurrencyCode;
+    return String(roundByCurrency(toDisplayCurrency(user?.initialBalanceActivity || 0, dc), dc));
   });
   const baseBalanceRef = useRef(user?.initialBalance || 0);
   const baseActivityRef = useRef(user?.initialBalanceActivity || 0);
@@ -136,15 +134,13 @@ export default function SettingsPage() {
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (prev !== currency) {
-      const bc = (user?.baseCurrency || "XOF") as CurrencyCode;
-      const from = prev as CurrencyCode;
       const to = currency as CurrencyCode;
-      // Convert base value from old display → new display (via base currency)
+      // Convert base value (FCFA) → new display currency
       const baseVal = baseBalanceRef.current;
-      const newDisplay = roundByCurrency(convertForDisplay(baseVal, bc, to), to);
+      const newDisplay = roundByCurrency(toDisplayCurrency(baseVal, to), to);
       setInitialBalance(String(newDisplay));
       const baseActVal = baseActivityRef.current;
-      const newActDisplay = roundByCurrency(convertForDisplay(baseActVal, bc, to), to);
+      const newActDisplay = roundByCurrency(toDisplayCurrency(baseActVal, to), to);
       setInitialBalanceActivity(String(newActDisplay));
       prevCurrencyRef.current = currency;
     }
@@ -205,10 +201,9 @@ export default function SettingsPage() {
       setUser(data.user);
       setActiveCurrency(resolveCurrency(data.user?.currency));
       // Reconvertir les soldes affichés avec la devise de l'utilisateur mis à jour
-      const updatedBc = (data.user?.baseCurrency || "XOF") as CurrencyCode;
       const updatedDc = resolveCurrency(data.user?.currency) as CurrencyCode;
-      setInitialBalance(String(roundByCurrency(convertForDisplay(balanceInBase, updatedBc, updatedDc), updatedDc)));
-      setInitialBalanceActivity(String(roundByCurrency(convertForDisplay(activityInBase, updatedBc, updatedDc), updatedDc)));
+      setInitialBalance(String(roundByCurrency(toDisplayCurrency(balanceInBase, updatedDc), updatedDc)));
+      setInitialBalanceActivity(String(roundByCurrency(toDisplayCurrency(activityInBase, updatedDc), updatedDc)));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }
@@ -574,7 +569,7 @@ export default function SettingsPage() {
   <label className="field-label">Argent de départ</label>
   <div className="relative">
   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-  <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseBalanceRef.current = convertForStorage(v, dc, bc); }} className="input-field pl-16" min="0" step="any" />
+  <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const dc = currency as CurrencyCode; baseBalanceRef.current = toStorageCurrency(v, dc); }} className="input-field pl-16" min="0" step="any" />
   </div>
   <p className="text-xs text-muted mt-1">Ce que vous aviez avant de commencer.</p>
  </div>
@@ -583,7 +578,7 @@ export default function SettingsPage() {
   <label className="field-label">Argent de départ (activité)</label>
   <div className="relative">
   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-  <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const bc = (user?.baseCurrency || "XOF") as CurrencyCode; const dc = currency as CurrencyCode; baseActivityRef.current = convertForStorage(v, dc, bc); }} className="input-field pl-16" min="0" step="any" />
+  <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const dc = currency as CurrencyCode; baseActivityRef.current = toStorageCurrency(v, dc); }} className="input-field pl-16" min="0" step="any" />
   </div>
  <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
  </div>
