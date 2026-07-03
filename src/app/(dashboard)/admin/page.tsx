@@ -194,8 +194,8 @@ export default function AdminOverview() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '13px' }}
                   labelStyle={{ fontWeight: 600 }}
                 />
-                <Bar dataKey="ventes" name="Ventes" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
-                <Bar dataKey="abonnements" name="Abonnements" fill="var(--color-pos)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
+                <Bar dataKey="ventes" name="Ventes" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                <Bar dataKey="abonnements" name="Abonnements" fill="var(--color-pos)" radius={[4, 4, 0, 0]} maxBarSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </div>
