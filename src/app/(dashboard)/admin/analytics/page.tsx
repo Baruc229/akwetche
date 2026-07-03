@@ -219,7 +219,7 @@ export default function AdminAnalytics() {
                         <Cell key={entry.name} fill={i === 0 ? 'var(--color-pos)' : 'var(--color-neg)'} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '12px' }} formatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '12px' }} formatter={(value: any) => formatCurrency(typeof value === 'number' ? value : 0)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
