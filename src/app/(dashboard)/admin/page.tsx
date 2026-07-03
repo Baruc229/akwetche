@@ -12,6 +12,12 @@ import CustomSelect from "@/components/ui/CustomSelect";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Stats } from "@/types/admin";
 
+const MONTH_LABELS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+function fmtMonth(m: string) {
+  const p = m.split('-');
+  return MONTH_LABELS[parseInt(p[1]) - 1] || m;
+}
+
 export default function AdminOverview() {
   const { user } = useDashboard();
   const router = useRouter();
@@ -55,25 +61,15 @@ export default function AdminOverview() {
     finally { setAddingAdmin(false); }
   }
 
-  const usersGrowthData = [
-    { month: "J", users: 4 },
-    { month: "F", users: 7 },
-    { month: "M", users: 9 },
-    { month: "A", users: 14 },
-    { month: "M", users: 18 },
-    { month: "J", users: stats?.totalUsers || 0 },
-  ];
-
-  const subRev = stats?.subscriptionRevenue ?? 0;
-  const salesRev = (stats?.totalRevenue ?? 0) - subRev;
-  const revenueMonths = [
-    { month: "Jan", abonnements: Math.round(subRev * 0.2), ventes: Math.round(salesRev * 0.1) },
-    { month: "Fév", abonnements: Math.round(subRev * 0.3), ventes: Math.round(salesRev * 0.2) },
-    { month: "Mar", abonnements: Math.round(subRev * 0.4), ventes: Math.round(salesRev * 0.35) },
-    { month: "Avr", abonnements: Math.round(subRev * 0.5), ventes: Math.round(salesRev * 0.5) },
-    { month: "Mai", abonnements: Math.round(subRev * 0.6), ventes: Math.round(salesRev * 0.65) },
-    { month: "Juin", abonnements: subRev, ventes: salesRev },
-  ];
+  const usersGrowthData = (stats?.usersMonthly || []).map(d => ({
+    month: fmtMonth(d.month),
+    users: d.count,
+  }));
+  const revenueMonths = (stats?.revenueMonthly || []).map(d => ({
+    month: fmtMonth(d.month),
+    abonnements: d.abonnements,
+    ventes: d.ventes,
+  }));
 
   if (!user || user.role === "user") return null;
 
@@ -161,7 +157,7 @@ export default function AdminOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-bg-card rounded-[18px] border border-border p-5">
           <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Évolution utilisateurs</span>
-          <p className="text-label text-xs text-text-3 mt-0.5">Derniers 30 jours</p>
+          <p className="text-label text-xs text-text-3 mt-0.5">6 derniers mois</p>
           <div className="mt-4 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={usersGrowthData}>

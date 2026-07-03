@@ -56,4 +56,6 @@ export type Stats = {
   usersByCurrency?: { baseCurrency: string; _count: number }[];
   revenueByCurrency?: { XOF: number; EUR: number };
   subscriptionRevenue?: number;
+  usersMonthly: { month: string; count: number }[];
+  revenueMonthly: { month: string; abonnements: number; ventes: number }[];
 };
