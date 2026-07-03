@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, toStorageCurrency } from "@/lib/utils";
 import { detectCurrency, setActiveCurrency, type CurrencyCode } from "@/lib/currency";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -136,7 +136,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTx),
+        body: JSON.stringify({ ...newTx, amount: toStorageCurrency(Number(newTx.amount) || 0, activeCurrency), categoryId: Number(newTx.categoryId) }),
       });
       const data = await res.json();
       if (!res.ok) {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark, faTrash, faPen, faStar, faBagShopping, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, formatDate, convertForDisplay, convertForStorage } from "@/lib/utils";
+import { formatCurrency, formatDate, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -47,7 +47,7 @@ function isSaleInRange(sale: Sale, start: Date, end: Date) {
 }
 
 export default function SalesPage() {
-  const { user, currency, baseCurrency } = useDashboard();
+  const { user, currency } = useDashboard();
   const router = useRouter();
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -81,10 +81,10 @@ export default function SalesPage() {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {
       if (editingSale) {
-        setFormUnitPrice(String(convertForDisplay(editingSale.unitPrice, baseCurrency, currency)));
+        setFormUnitPrice(String(toDisplayCurrency(editingSale.unitPrice, currency)));
       } else if (formUnitPrice) {
-        const basePrice = convertForStorage(parseFloat(formUnitPrice) || 0, prev, baseCurrency);
-        setFormUnitPrice(String(convertForDisplay(basePrice, baseCurrency, currency)));
+        const basePrice = toStorageCurrency(parseFloat(formUnitPrice) || 0, prev);
+        setFormUnitPrice(String(toDisplayCurrency(basePrice, currency)));
       }
       prevCurrencyRef.current = currency;
     }
@@ -103,7 +103,7 @@ export default function SalesPage() {
     setEditingSale(sale);
     setFormProductId(String(sale.product.id));
     setFormQuantity(String(sale.quantity));
-    setFormUnitPrice(String(convertForDisplay(sale.unitPrice, baseCurrency, currency)));
+    setFormUnitPrice(String(toDisplayCurrency(sale.unitPrice, currency)));
     setFormError("");
     setShowModal(true);
   }
@@ -185,9 +185,9 @@ export default function SalesPage() {
 
   const selectedProduct = products.find((p) => p.id === parseInt(formProductId));
   const qtyNum = parseInt(formQuantity) || 0;
-  const priceNum = parseFloat(formUnitPrice) || convertForDisplay(selectedProduct?.salePrice || 0, baseCurrency, currency);
-  const totalDisplay = qtyNum * priceNum;
-  const marginDisplay = selectedProduct ? (priceNum - convertForDisplay(selectedProduct.purchasePrice, baseCurrency, currency)) * qtyNum : 0;
+  const priceFCFA = parseFloat(formUnitPrice) ? toStorageCurrency(parseFloat(formUnitPrice), currency) : (selectedProduct?.salePrice || 0);
+  const totalFCFA = qtyNum * priceFCFA;
+  const marginFCFA = selectedProduct ? (priceFCFA - selectedProduct.purchasePrice) * qtyNum : 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -196,15 +196,14 @@ export default function SalesPage() {
     const qty = parseInt(formQuantity);
     if (!editingSale && !formProductId) { setFormError("Veuillez sélectionner un produit"); return; }
     if (!qty || qty < 1) { setFormError("Quantité invalide"); return; }
-    if (!priceNum || priceNum <= 0) { setFormError("Prix unitaire invalide"); return; }
+    if (!priceFCFA || priceFCFA <= 0) { setFormError("Prix unitaire invalide"); return; }
 
     setSaving(true);
     try {
       const method = editingSale ? "PATCH" : "POST";
-      const amountInBase = convertForStorage(priceNum, currency, baseCurrency);
       const body = editingSale
-        ? JSON.stringify({ id: editingSale.id, quantity: formQuantity, unitPrice: amountInBase })
-        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: amountInBase, currency: baseCurrency });
+        ? JSON.stringify({ id: editingSale.id, quantity: formQuantity, unitPrice: priceFCFA })
+        : JSON.stringify({ productId: formProductId, quantity: formQuantity, unitPrice: priceFCFA });
 
       const res = await fetch("/api/sales", {
         method,
@@ -263,13 +262,13 @@ export default function SalesPage() {
           <CustomSelect
             options={products.map((p) => ({
               value: String(p.id),
-              label: `${p.name} — ${formatCurrency(p.salePrice, currency, baseCurrency)} (${p.stock} dispo)`,
+              label: `${p.name} — ${formatCurrency(p.salePrice, currency)} (${p.stock} dispo)`,
             }))}
             value={formProductId}
             onChange={(v) => {
               setFormProductId(v);
               const p = products.find((x) => x.id === parseInt(v));
-              if (p && !formUnitPrice) setFormUnitPrice(String(convertForDisplay(p.salePrice, baseCurrency, currency)));
+              if (p && !formUnitPrice) setFormUnitPrice(String(toDisplayCurrency(p.salePrice, currency)));
             }}
             placeholder="Sélectionner un produit"
           />
@@ -306,12 +305,12 @@ export default function SalesPage() {
           <div className="card-inset text-sm">
             <div className="flex items-center justify-between text-muted mb-1">
               <span>Total</span>
-              <span className="text-amount text-lg text-ink">{formatCurrency(totalDisplay, currency)}</span>
+              <span className="text-amount text-lg text-ink">{formatCurrency(totalFCFA, currency)}</span>
             </div>
             <div className="flex items-center justify-between text-muted">
               <span>Marge estimée</span>
-              <span className={`font-semibold ${marginDisplay >= 0 ? "text-pos" : "text-neg"}`}>
-                {marginDisplay >= 0 ? "+" : ""}{formatCurrency(marginDisplay, currency)}
+              <span className={`font-semibold ${marginFCFA >= 0 ? "text-pos" : "text-neg"}`}>
+                {marginFCFA >= 0 ? "+" : ""}{formatCurrency(marginFCFA, currency)}
               </span>
             </div>
             {qtyNum > (selectedProduct?.stock || 0) && (
@@ -365,17 +364,17 @@ export default function SalesPage() {
           </div>
           <div className="card-inset">
             <p className="text-label">Prix unit.</p>
-            <p className="text-amount text-[15px] mt-0.5">{formatCurrency(sale.unitPrice, currency, baseCurrency)}</p>
+            <p className="text-amount text-[15px] mt-0.5">{formatCurrency(sale.unitPrice, currency)}</p>
           </div>
           <div className="col-span-2 sm:col-span-1 mx-auto sm:mx-0 w-full card-inset" style={{ background: "var(--color-gold-light)" }}>
             <p className="text-label" style={{ color: "var(--color-gold)" }}>Total</p>
-            <p className="text-amount text-[15px] mt-0.5" style={{ color: "var(--color-gold)" }}>{formatCurrency(sale.totalAmount, currency, baseCurrency)}</p>
+            <p className="text-amount text-[15px] mt-0.5" style={{ color: "var(--color-gold)" }}>{formatCurrency(sale.totalAmount, currency)}</p>
           </div>
         </div>
         {/* Margin band */}
         <div className="mt-3 pt-3 border-t border-border">
           <span className={`badge ${sale.profit >= 0 ? "badge-pos" : "badge-neg"}`}>
-            {sale.profit >= 0 ? "+" : ""}{formatCurrency(sale.profit, currency, baseCurrency)} de marge · {marginRate.toFixed(0)}%
+            {sale.profit >= 0 ? "+" : ""}{formatCurrency(sale.profit, currency)} de marge · {marginRate.toFixed(0)}%
           </span>
         </div>
       </div>
@@ -412,7 +411,7 @@ export default function SalesPage() {
         <div className="grid grid-cols-2 gap-3">
           <div className="card-inset" style={{ background: "var(--color-gold-light)" }}>
             <p className="text-label">CA du mois</p>
-            <p className="text-amount text-[22px] text-[var(--color-gold)] mt-0.5">{formatCurrency(summary.revenue, currency, baseCurrency)}</p>
+            <p className="text-amount text-[22px] text-[var(--color-gold)] mt-0.5">{formatCurrency(summary.revenue, currency)}</p>
           </div>
           <div className="card-inset">
             <p className="text-label">Nb de ventes</p>
@@ -420,11 +419,11 @@ export default function SalesPage() {
           </div>
           <div className="card-inset" style={{ background: "var(--color-pos-bg)" }}>
             <p className="text-label">Marge totale</p>
-            <p className="text-amount text-[22px] mt-0.5" style={{ color: "var(--color-pos)" }}>{formatCurrency(summary.margin, currency, baseCurrency)}</p>
+            <p className="text-amount text-[22px] mt-0.5" style={{ color: "var(--color-pos)" }}>{formatCurrency(summary.margin, currency)}</p>
           </div>
           <div className="card-inset">
             <p className="text-label">Panier moyen</p>
-            <p className="text-amount text-[22px] mt-0.5">{formatCurrency(summary.avgBasket, currency, baseCurrency)}</p>
+            <p className="text-amount text-[22px] mt-0.5">{formatCurrency(summary.avgBasket, currency)}</p>
           </div>
         </div>
 
@@ -437,7 +436,7 @@ export default function SalesPage() {
             </p>
             <div className="flex items-center justify-between mt-1">
               <p className="font-display font-bold text-base text-ink truncate min-w-0">{summary.topProduct}</p>
-              <p className="text-amount text-[15px] shrink-0 ml-3" style={{ color: "var(--color-gold)" }}>{formatCurrency(summary.topTotal, currency, baseCurrency)}</p>
+              <p className="text-amount text-[15px] shrink-0 ml-3" style={{ color: "var(--color-gold)" }}>{formatCurrency(summary.topTotal, currency)}</p>
             </div>
           </div>
         )}
@@ -546,7 +545,7 @@ export default function SalesPage() {
             <div className="p-5 pb-2">
               <h3 className="font-display font-bold text-base text-[var(--color-neg)]">Supprimer la vente</h3>
               <p className="text-[13px] text-text-3 mt-1.5 leading-relaxed">
-                {deleteTarget.quantity} × {deleteTarget.product.name} — {formatCurrency(deleteTarget.totalAmount, currency, baseCurrency)}
+                {deleteTarget.quantity} × {deleteTarget.product.name} — {formatCurrency(deleteTarget.totalAmount, currency)}
               </p>
             </div>
             <div className="p-5 pt-3 space-y-2">
