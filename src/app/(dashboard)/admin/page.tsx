@@ -181,8 +181,8 @@ export default function AdminOverview() {
           <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Revenus mensuels</span>
           <p className="text-label text-xs text-text-3 mt-0.5">Abonnements + ventes</p>
           <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-gold)'}} /><span className="text-[10px] text-text-3">Abonnements</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-pos)'}} /><span className="text-[10px] text-text-3">Ventes</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-gold)'}} /><span className="text-[10px] text-text-3">Ventes</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-pos)'}} /><span className="text-[10px] text-text-3">Abonnements</span></div>
           </div>
           <div className="mt-3 h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -194,8 +194,8 @@ export default function AdminOverview() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '13px' }}
                   labelStyle={{ fontWeight: 600 }}
                 />
-                <Bar dataKey="abonnements" name="Abonnements" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
-                <Bar dataKey="ventes" name="Ventes" fill="var(--color-pos)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
+                <Bar dataKey="ventes" name="Ventes" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
+                <Bar dataKey="abonnements" name="Abonnements" fill="var(--color-pos)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
               </BarChart>
             </ResponsiveContainer>
           </div>
