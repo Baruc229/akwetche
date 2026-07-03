@@ -136,7 +136,7 @@ export default function AdminSubscriptions() {
           <div className="w-9 h-9 rounded-xl bg-neg-bg flex items-center justify-center mb-3">
             <FontAwesomeIcon icon={faArrowTrendDown} className="w-[18px] h-[18px] text-neg" />
           </div>
-          <p className="text-label mb-1">Taux d'attrition</p>
+          <p className="text-label mb-1">Taux d'attrition <span title="Abonnés expirés ÷ (actifs + expirés) × 100" className="cursor-help text-muted text-[10px] ml-0.5 font-semibold">(i)</span></p>
           <p className="text-amount text-2xl text-ink">{churnRate}%</p>
         </div>
         <div className="card-inset">
