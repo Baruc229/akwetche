@@ -99,21 +99,34 @@ export async function PATCH(req: NextRequest) {
   const admin = await prisma.user.findUnique({ where: { id: userId } });
   if (!admin || admin.role !== "super_admin") return unauthorized();
 
-  const { id, role } = await req.json();
-  if (!id || !role) return badRequest("ID et rôle requis");
-  if (!["super_admin", "admin", "user"].includes(role)) return badRequest("Rôle invalide");
+  const body = await req.json();
+  const id = body.id;
+  if (!id) return badRequest("ID requis");
 
   const target = await prisma.user.findUnique({ where: { id: parseInt(id) }, select: { id: true, name: true, email: true } });
   if (!target) return badRequest("Utilisateur introuvable");
 
-  await prisma.user.update({
-    where: { id: parseInt(id) },
-    data: { role },
-  });
+  if (body.unlock) {
+    await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { lockedUntil: null, loginAttempts: 0 },
+    });
+    await createNotification(target.id, "system", `Votre compte a été déverrouillé par un administrateur.`, "/dashboard");
+    await createNotification(userId, "system", `Compte de ${target.name} déverrouillé.`, "/admin");
+  } else {
+    const role = body.role;
+    if (!role) return badRequest("Rôle requis");
+    if (!["super_admin", "admin", "user"].includes(role)) return badRequest("Rôle invalide");
 
-  const roleLabel = role === "super_admin" ? "super administrateur" : role === "admin" ? "administrateur" : "utilisateur";
-  await createNotification(target.id, "role", `Votre rôle a été changé en "${roleLabel}"`, "/dashboard");
-  await createNotification(userId, "role", `Rôle de ${target.name} changé en "${roleLabel}"`, "/admin");
+    await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { role },
+    });
+
+    const roleLabel = role === "super_admin" ? "super administrateur" : role === "admin" ? "administrateur" : "utilisateur";
+    await createNotification(target.id, "role", `Votre rôle a été changé en "${roleLabel}"`, "/dashboard");
+    await createNotification(userId, "role", `Rôle de ${target.name} changé en "${roleLabel}"`, "/admin");
+  }
 
   return ok({ success: true });
 }
