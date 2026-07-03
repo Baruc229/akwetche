@@ -33,8 +33,8 @@ export default function AdminAnalytics() {
 
   useEffect(() => {
     fetch("/api/admin/stats")
-      .then(r => r.ok ? r.json() : {})
-      .then(setStats)
+      .then(r => r.ok ? r.json() : null)
+      .then((data) => setStats(data as Stats | null))
       .finally(() => setLoading(false));
   }, []);
 
