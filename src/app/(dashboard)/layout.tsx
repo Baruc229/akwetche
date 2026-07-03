@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronLeft, faChevronRight, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -439,13 +439,6 @@ export default function DashboardLayout({
               Activité commerciale
             </label>
           )}
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center justify-center w-full p-2 text-white/35 hover:text-white/80 hover:bg-white/7 rounded-lg transition-all group min-h-[32px]"
-            title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
-          >
-            <FontAwesomeIcon icon={sidebarCollapsed ? faChevronRight : faChevronLeft} className="w-4 h-4 transition-transform duration-200" />
-          </button>
         </div>
       </aside>
 
@@ -459,14 +452,21 @@ export default function DashboardLayout({
         {/* Topbar */}
         <header className="sticky top-0 z-20" style={{background:'var(--color-surface)', borderBottom:'1px solid var(--color-border)'}}>
           <div className="flex items-center justify-between h-[58px] px-4 md:px-6">
-            {/* Left: hamburger mobile + page title */}
-            <div className="flex items-center gap-3">
+            {/* Left: sidebar toggle + page title */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-brand-subtle)] transition-all"
                 aria-label="Menu"
               >
-                <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
+                <FontAwesomeIcon icon={faOutdent} className="w-4 h-4" />
+              </button>
+              <button
+                onClick={toggleSidebar}
+                className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-brand-subtle)] transition-all"
+                title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
+              >
+                <FontAwesomeIcon icon={sidebarCollapsed ? faIndent : faOutdent} className="w-4 h-4" />
               </button>
               <h1 className="text-lg font-semibold" style={{fontFamily:'var(--font-display)', color:'var(--color-ink)'}}>{pageTitle}</h1>
             </div>
