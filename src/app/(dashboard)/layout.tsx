@@ -316,7 +316,7 @@ export default function DashboardLayout({
         <div className={`flex items-center shrink-0 ${sidebarCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
           <Link href="/dashboard" className={`flex items-center gap-2 ${sidebarCollapsed ? '' : ''}`}>
             <div className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/15">
-              <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+              <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
             </div>
             <span className={`text-lg font-bold text-white font-[family-name:var(--font-display)] transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Akwetche</span>
           </Link>

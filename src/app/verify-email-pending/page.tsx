@@ -77,7 +77,7 @@ export default function VerifyEmailPendingPage() {
   <div className="card p-8">
       <div className="flex items-center justify-center mb-6">
         <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
-          <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+          <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
         </div>
       </div>
   <h1 className="text-2xl font-bold text-ink mb-2">
