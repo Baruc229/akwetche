@@ -4,11 +4,11 @@ import { useState, useEffect, useMemo } from "react";
 import { useDashboard } from "../../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShield, faTriangleExclamation, faRightToBracket, faLock, faTrash, faXmark, faEye, faSearch, faCheck, faTimes, faGlobe, faChevronLeft, faChevronRight, faArrowRight, faUnlock, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faShield, faTriangleExclamation, faTrash, faXmark, faEye, faSearch, faCheck, faTimes, faGlobe, faChevronLeft, faChevronRight, faClock } from '@fortawesome/free-solid-svg-icons';
 import { formatDate } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
-import type { LoginLog, UserData } from "@/types/admin";
+import type { LoginLog } from "@/types/admin";
 
 const PAGE_SIZE = 30;
 
@@ -16,7 +16,6 @@ export default function AdminSecurity() {
   const { user } = useDashboard();
   const router = useRouter();
   const [logs, setLogs] = useState<LoginLog[]>([]);
-  const [users, setUsers] = useState<UserData[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [clearConfirm, setClearConfirm] = useState(false);
@@ -36,11 +35,9 @@ export default function AdminSecurity() {
   useEffect(() => {
     Promise.all([
       fetch("/api/admin/login-logs").then(r => r.ok ? r.json() : { logs: [] }),
-      fetch("/api/admin/users").then(r => r.ok ? r.json() : { users: [] }),
       fetch("/api/admin/stats").then(r => r.ok ? r.json() : {}),
-    ]).then(([l, u, s]) => {
+    ]).then(([l, s]) => {
       setLogs(l.logs || []);
-      setUsers(u.users || []);
       setStats(s);
     }).finally(() => setLoading(false));
   }, []);
@@ -50,20 +47,6 @@ export default function AdminSecurity() {
     await fetch("/api/admin/login-logs", { method: "DELETE" });
     setLogs([]);
   }
-
-  async function unlockUser(id: number) {
-    await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, unlock: true }),
-    });
-    setUsers(users.map(u => u.id === id ? { ...u, lockedUntil: null, loginAttempts: 0 } : u));
-  }
-
-  const lockedUsers = useMemo(() =>
-    users.filter(u => u.lockedUntil && new Date(u.lockedUntil) > new Date()),
-    [users]
-  );
 
   const filtered = useMemo(() => {
     let result = [...logs];
@@ -107,7 +90,7 @@ export default function AdminSecurity() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-2xl text-text-1">Sécurité</h1>
-          <p className="text-text-3 text-sm mt-0.5">{logs.length} tentatives, {lockedUsers.length} compte(s) verrouillé(s)</p>
+          <p className="text-text-3 text-sm mt-0.5">{logs.length} tentatives de connexion</p>
         </div>
         <button
           onClick={() => setClearConfirm(true)}
@@ -135,13 +118,6 @@ export default function AdminSecurity() {
           <p className="text-amount text-2xl text-ink">{failCount}</p>
         </div>
         <div className="card-inset">
-          <div className="w-9 h-9 rounded-xl bg-neg-bg flex items-center justify-center mb-3">
-            <FontAwesomeIcon icon={faLock} className="w-[18px] h-[18px] text-neg" />
-          </div>
-          <p className="text-label mb-1">Verrouillés</p>
-          <p className="text-amount text-2xl text-ink">{lockedUsers.length}</p>
-        </div>
-        <div className="card-inset">
           <div className="w-9 h-9 rounded-xl bg-gold-light flex items-center justify-center mb-3">
             <FontAwesomeIcon icon={faTriangleExclamation} className="w-[18px] h-[18px] text-gold" />
           </div>
@@ -149,37 +125,6 @@ export default function AdminSecurity() {
           <p className="text-amount text-2xl text-ink">{stats?.failedLoginsToday ?? 0}<span className="text-sm font-normal text-text-3">/{stats?.loginAttemptsToday ?? 0}</span></p>
         </div>
       </div>
-
-      {/* Locked accounts */}
-      {lockedUsers.length > 0 && (
-        <div className="bg-bg-card rounded-[18px] border border-neg-border p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <FontAwesomeIcon icon={faLock} className="w-4 h-4 text-neg" />
-            <span className="text-xs font-bold uppercase tracking-widest text-neg">Comptes verrouillés</span>
-          </div>
-          <div className="space-y-2">
-            {lockedUsers.map(u => (
-              <div key={u.id} className="flex items-center justify-between bg-neg-bg rounded-xl px-4 py-3">
-                <div>
-                  <p className="text-sm font-semibold text-text-1">{u.name}</p>
-                  <p className="text-[11px] text-text-3">{u.email}</p>
-                  <p className="text-[11px] text-neg flex items-center gap-1 mt-0.5">
-                    <FontAwesomeIcon icon={faClock} className="w-2.5 h-2.5" />
-                    Verrouillé jusqu'au {new Date(u.lockedUntil!).toLocaleString("fr-FR")}
-                  </p>
-                </div>
-                <button
-                  onClick={() => unlockUser(u.id)}
-                  className="flex items-center gap-1.5 text-xs text-pos font-medium px-3 py-2 rounded-xl border border-pos-border hover:bg-pos-bg transition-colors"
-                >
-                  <FontAwesomeIcon icon={faUnlock} className="w-3 h-3" />
-                  Déverrouiller
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Login logs */}
       <div className="bg-bg-card rounded-[18px] border border-border p-4 space-y-3">
