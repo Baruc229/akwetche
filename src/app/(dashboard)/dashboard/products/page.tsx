@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, convertForDisplay, convertForStorage } from "@/lib/utils";
+import { formatCurrency, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
@@ -73,7 +73,7 @@ function StockBar({ stock, initialStock }: { stock: number; initialStock: number
 }
 
 export default function ProductsPage() {
-  const { user, currency, baseCurrency } = useDashboard();
+  const { user, currency } = useDashboard();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,16 +103,16 @@ export default function ProductsPage() {
       if (editProduct) {
         setForm(f => ({
           ...f,
-          purchasePrice: String(convertForDisplay(editProduct.purchasePrice, baseCurrency, currency)),
-          salePrice: String(convertForDisplay(editProduct.salePrice, baseCurrency, currency)),
+          purchasePrice: String(toDisplayCurrency(editProduct.purchasePrice, currency)),
+          salePrice: String(toDisplayCurrency(editProduct.salePrice, currency)),
         }));
       } else {
-        const basePurchase = convertForStorage(parseFloat(form.purchasePrice) || 0, prev, baseCurrency);
-        const baseSale = convertForStorage(parseFloat(form.salePrice) || 0, prev, baseCurrency);
+        const basePurchase = toStorageCurrency(parseFloat(form.purchasePrice) || 0, prev);
+        const baseSale = toStorageCurrency(parseFloat(form.salePrice) || 0, prev);
         setForm(f => ({
           ...f,
-          purchasePrice: String(convertForDisplay(basePurchase, baseCurrency, currency)),
-          salePrice: String(convertForDisplay(baseSale, baseCurrency, currency)),
+          purchasePrice: String(toDisplayCurrency(basePurchase, currency)),
+          salePrice: String(toDisplayCurrency(baseSale, currency)),
         }));
       }
       prevCurrencyRef.current = currency;
@@ -159,8 +159,8 @@ export default function ProductsPage() {
 
   function openEdit(product: Product) {
     setEditProduct(product);
-    const displayPurchasePrice = convertForDisplay(product.purchasePrice, baseCurrency, currency);
-    const displaySalePrice = convertForDisplay(product.salePrice, baseCurrency, currency);
+    const displayPurchasePrice = toDisplayCurrency(product.purchasePrice, currency);
+    const displaySalePrice = toDisplayCurrency(product.salePrice, currency);
     setForm({
       name: product.name,
       description: product.description || "",
@@ -181,8 +181,8 @@ export default function ProductsPage() {
       return;
     }
 
-    const purchasePrice = convertForStorage(parseFloat(form.purchasePrice || "0"), currency, baseCurrency);
-    const salePrice = convertForStorage(parseFloat(form.salePrice || "0"), currency, baseCurrency);
+    const purchasePrice = toStorageCurrency(parseFloat(form.purchasePrice || "0"), currency);
+    const salePrice = toStorageCurrency(parseFloat(form.salePrice || "0"), currency);
 
     const method = editProduct ? "PUT" : "POST";
     const body: Record<string, unknown> = editProduct
@@ -219,8 +219,10 @@ export default function ProductsPage() {
 
   const purchasePriceNum = parseFloat(form.purchasePrice) || 0;
   const salePriceNum = parseFloat(form.salePrice) || 0;
-  const liveMargin = salePriceNum - purchasePriceNum;
-  const liveMarginRate = salePriceNum > 0 ? ((liveMargin / salePriceNum) * 100) : 0;
+  const purchaseFCFA = toStorageCurrency(purchasePriceNum, currency);
+  const saleFCFA = toStorageCurrency(salePriceNum, currency);
+  const liveMarginFCFA = saleFCFA - purchaseFCFA;
+  const liveMarginRate = saleFCFA > 0 ? ((liveMarginFCFA / saleFCFA) * 100) : 0;
 
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -437,16 +439,16 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-[6px] mb-4">
                   <div className="card-inset min-w-0 overflow-hidden">
                     <p className="text-label">Prix achat</p>
-                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.purchasePrice, currency, baseCurrency)}</p>
+                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.purchasePrice, currency)}</p>
                   </div>
                   <div className="card-inset min-w-0 overflow-hidden">
                     <p className="text-label">Prix vente</p>
-                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.salePrice, currency, baseCurrency)}</p>
+                    <p className="text-amount text-[13px] text-ink truncate mt-0.5">{formatCurrency(p.salePrice, currency)}</p>
                   </div>
                   <div className="col-span-2 w-full card-inset" style={marginStyle}>
                     <p className="text-label">Marge</p>
                     <p className="text-amount text-[13px] mt-0.5" style={marginTextStyle}>
-                      {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency, baseCurrency)}
+                      {margin >= 0 ? "+" : ""}{formatCurrency(margin, currency)}
                     </p>
                     <p className="text-[9px] mt-0.5" style={{ ...marginTextStyle, opacity: 0.8 }}>{marginRate.toFixed(0)}%</p>
                   </div>
@@ -542,7 +544,7 @@ export default function ProductsPage() {
                       <polyline points="5 12 12 5 19 12" />
                     </svg>
                     <span className="text-[var(--color-pos)] font-medium">
-                      Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                      Bénéfice unitaire : <strong>{formatCurrency(liveMarginFCFA, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                     </span>
                   </div>
                 )}
@@ -646,7 +648,7 @@ export default function ProductsPage() {
                     <polyline points="5 12 12 5 19 12" />
                   </svg>
                   <span className="text-[var(--color-pos)] font-medium">
-                    Bénéfice unitaire : <strong>{formatCurrency(liveMargin, currency, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                    Bénéfice unitaire : <strong>{formatCurrency(liveMarginFCFA, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
                   </span>
                 </div>
               )}
