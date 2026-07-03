@@ -108,8 +108,10 @@ export default function RegisterPage() {
       <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
         <div className="w-full max-w-md text-center animate-scale-in">
           <div className="card p-8">
-            <div className="w-16 h-16 bg-[var(--color-brand-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <FontAwesomeIcon icon={faEnvelope} className="w-8 h-8 text-[var(--color-brand)]" />
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
+                <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+              </div>
             </div>
             <h1 className="text-2xl font-bold text-ink mb-2">
               Vérifiez votre email
@@ -151,8 +153,10 @@ export default function RegisterPage() {
   {step === "plan" && (
   <div className="card p-8">
   <div className="text-center mb-8">
-  <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-  <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
+  <div className="flex items-center justify-center mb-4">
+    <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
+      <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+    </div>
   </div>
   <h1 className="text-2xl font-bold text-ink">
   Choisissez votre plan
@@ -230,8 +234,10 @@ export default function RegisterPage() {
   {step === "form" && (
   <div className="card p-8">
   <div className="text-center mb-8">
-  <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-  <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
+  <div className="flex items-center justify-center mb-4">
+    <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
+      <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+    </div>
   </div>
   <h1 className="text-2xl font-bold text-ink">
   Créer votre compte

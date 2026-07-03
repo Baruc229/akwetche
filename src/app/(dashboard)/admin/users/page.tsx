@@ -249,61 +249,63 @@ export default function AdminUsers() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-        <div className="relative min-w-0 flex-1 max-w-[280px]">
-          <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
+      <div className="bg-bg-card rounded-[18px] border border-border p-4 space-y-3">
+        <div className="relative">
+          <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
             placeholder="Rechercher par nom ou email..."
-            className="input-field pl-9 text-sm"
+            className="input-field pl-10 text-sm"
           />
         </div>
-        <div className="w-[140px] md:w-32 shrink-0">
-          <CustomSelect
-            options={[
-              { value: "all", label: "Tous les plans" },
-              { value: "admin", label: "Admin" },
-              { value: "premium", label: "Premium" },
-              { value: "free", label: "Gratuit" },
-              { value: "expired", label: "Expiré" },
-            ]}
-            value={filterPlan}
-            onChange={(v) => { setFilterPlan(v); setPage(0); }}
-          />
-        </div>
-        <div className="w-[140px] md:w-32 shrink-0">
-          <CustomSelect
-            options={[
-              { value: "all", label: "Tous statuts" },
-              { value: "active", label: "Actif" },
-              { value: "unverified", label: "Non vérifié" },
-              { value: "locked", label: "Verrouillé" },
-            ]}
-            value={filterStatus}
-            onChange={(v) => { setFilterStatus(v); setPage(0); }}
-          />
-        </div>
-        <div className="w-[130px] md:w-28 shrink-0">
-          <CustomSelect
-            options={[
-              { value: "all", label: "Toutes devises" },
-              ...currencies.map(c => ({ value: c, label: c })),
-            ]}
-            value={filterCurrency}
-            onChange={(v) => { setFilterCurrency(v); setPage(0); }}
-          />
-        </div>
-        <div className="w-[140px] md:w-32 shrink-0">
-          <CustomSelect
-            options={[
-              { value: "all", label: "Tous pays" },
-              ...countries.map(c => ({ value: c, label: getCountryName(c) || c })),
-            ]}
-            value={filterCountry}
-            onChange={(v) => { setFilterCountry(v); setPage(0); }}
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[130px]">
+            <CustomSelect
+              options={[
+                { value: "all", label: "Tous plans" },
+                { value: "admin", label: "Admin" },
+                { value: "premium", label: "Premium" },
+                { value: "free", label: "Gratuit" },
+                { value: "expired", label: "Expiré" },
+              ]}
+              value={filterPlan}
+              onChange={(v) => { setFilterPlan(v); setPage(0); }}
+            />
+          </div>
+          <div className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[130px]">
+            <CustomSelect
+              options={[
+                { value: "all", label: "Tous statuts" },
+                { value: "active", label: "Actif" },
+                { value: "unverified", label: "Non vérifié" },
+                { value: "locked", label: "Verrouillé" },
+              ]}
+              value={filterStatus}
+              onChange={(v) => { setFilterStatus(v); setPage(0); }}
+            />
+          </div>
+          <div className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[120px]">
+            <CustomSelect
+              options={[
+                { value: "all", label: "Toutes devises" },
+                ...currencies.map(c => ({ value: c, label: c })),
+              ]}
+              value={filterCurrency}
+              onChange={(v) => { setFilterCurrency(v); setPage(0); }}
+            />
+          </div>
+          <div className="w-[calc(50%-0.25rem)] sm:w-auto sm:min-w-[130px]">
+            <CustomSelect
+              options={[
+                { value: "all", label: "Tous pays" },
+                ...countries.map(c => ({ value: c, label: getCountryName(c) || c })),
+              ]}
+              value={filterCountry}
+              onChange={(v) => { setFilterCountry(v); setPage(0); }}
+            />
+          </div>
         </div>
       </div>
 

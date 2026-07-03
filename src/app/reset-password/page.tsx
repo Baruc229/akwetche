@@ -111,8 +111,10 @@ export default function ResetPasswordPage() {
   ) : (
   <>
   <div className="text-center mb-8">
-      <div className="w-12 h-12 bg-[var(--color-brand)] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-        <FontAwesomeIcon icon={faWallet} className="w-6 h-6 text-white" />
+      <div className="flex items-center justify-center mb-4">
+        <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
+          <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+        </div>
       </div>
   <h1 className="text-2xl font-bold text-ink">
   Nouveau mot de passe

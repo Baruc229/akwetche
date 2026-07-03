@@ -64,13 +64,15 @@ export default function AdminOverview() {
     { month: "J", users: stats?.totalUsers || 0 },
   ];
 
+  const subRev = stats?.subscriptionRevenue ?? 0;
+  const salesRev = (stats?.totalRevenue ?? 0) - subRev;
   const revenueMonths = [
-    { month: "Jan", revenu: 0 },
-    { month: "Fév", revenu: 0 },
-    { month: "Mar", revenu: 0 },
-    { month: "Avr", revenu: 0 },
-    { month: "Mai", revenu: stats?.subscriptionRevenue ? Math.round(stats.subscriptionRevenue * 0.6) : 0 },
-    { month: "Juin", revenu: stats?.totalRevenue ? Math.round(stats.totalRevenue) : 0 },
+    { month: "Jan", abonnements: 0, ventes: 0 },
+    { month: "Fév", abonnements: 0, ventes: 0 },
+    { month: "Mar", abonnements: 0, ventes: 0 },
+    { month: "Avr", abonnements: 0, ventes: 0 },
+    { month: "Mai", abonnements: subRev > 0 ? Math.round(subRev * 0.6) : 0, ventes: salesRev > 0 ? Math.round(salesRev * 0.5) : 0 },
+    { month: "Juin", abonnements: subRev, ventes: salesRev },
   ];
 
   if (!user || user.role === "user") return null;
@@ -178,7 +180,11 @@ export default function AdminOverview() {
         <div className="bg-bg-card rounded-[18px] border border-border p-5">
           <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Revenus mensuels</span>
           <p className="text-label text-xs text-text-3 mt-0.5">Abonnements + ventes</p>
-          <div className="mt-4 h-48">
+          <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-gold)'}} /><span className="text-[10px] text-text-3">Abonnements</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-pos)'}} /><span className="text-[10px] text-text-3">Ventes</span></div>
+          </div>
+          <div className="mt-3 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueMonths}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -187,9 +193,9 @@ export default function AdminOverview() {
                 <Tooltip
                   contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '13px' }}
                   labelStyle={{ fontWeight: 600 }}
-                  formatter={(value) => [formatCurrency(value as number), 'Revenu']}
                 />
-                <Bar dataKey="revenu" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="abonnements" name="Abonnements" fill="var(--color-gold)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
+                <Bar dataKey="ventes" name="Ventes" fill="var(--color-pos)" radius={[4, 4, 0, 0]} maxBarSize={40} stackId="a" />
               </BarChart>
             </ResponsiveContainer>
           </div>

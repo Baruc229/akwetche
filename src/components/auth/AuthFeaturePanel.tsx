@@ -53,6 +53,12 @@ export default function AuthFeaturePanel() {
       <div className="relative z-10 flex flex-col h-full">
         {/* Logo + marque */}
         <div className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-9 h-9 bg-white/15 rounded-xl flex items-center justify-center shadow-sm">
+              <img src="/akwetche-symbole.png" alt="Akwetche" className="w-5 h-5" />
+            </div>
+            <span className="text-xl font-bold text-white font-display">Akwetche</span>
+          </div>
           <h2 className="text-3xl font-bold text-white leading-tight mb-3">
             Votre argent,<br />simplifié.
           </h2>
