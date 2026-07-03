@@ -185,7 +185,8 @@ export default function SalesPage() {
 
   const selectedProduct = products.find((p) => p.id === parseInt(formProductId));
   const qtyNum = parseInt(formQuantity) || 0;
-  const priceFCFA = parseFloat(formUnitPrice) ? toStorageCurrency(parseFloat(formUnitPrice), currency) : (selectedProduct?.salePrice || 0);
+  const priceNum = parseFloat(formUnitPrice) || 0;
+  const priceFCFA = priceNum ? toStorageCurrency(priceNum, currency) : (selectedProduct?.salePrice || 0);
   const totalFCFA = qtyNum * priceFCFA;
   const marginFCFA = selectedProduct ? (priceFCFA - selectedProduct.purchasePrice) * qtyNum : 0;
 
