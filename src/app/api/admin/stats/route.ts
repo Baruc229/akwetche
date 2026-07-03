@@ -77,11 +77,17 @@ export async function GET() {
   });
 
   // -- Monthly aggregations --
-  const [recentUsers, recentSales, recentSubHistories, recentSubs] = await Promise.all([
+  const [recentUsers, recentSales, recentSubHistories, recentSubs, recentTransactions, topCategories] = await Promise.all([
     prisma.user.findMany({ where: { createdAt: { gte: sixMonthsAgo } }, select: { createdAt: true } }),
     prisma.sale.findMany({ where: { date: { gte: sixMonthsAgo } }, select: { totalAmount: true, date: true } }),
     prisma.subscriptionHistory.findMany({ where: { startDate: { gte: sixMonthsAgo } }, select: { amount: true, startDate: true } }),
     prisma.subscription.findMany({ where: { createdAt: { gte: sixMonthsAgo } }, select: { amount: true, createdAt: true } }),
+    prisma.transaction.findMany({ where: { date: { gte: sixMonthsAgo } }, select: { amount: true, type: true, date: true } }),
+    prisma.category.findMany({
+      select: { name: true, type: true, _count: { select: { transactions: true } } },
+      orderBy: { transactions: { _count: "desc" } },
+      take: 10,
+    }),
   ]);
 
   const months = getMonthsRange(6);
@@ -114,6 +120,22 @@ export async function GET() {
     ventes: Math.round(salesByMonth[m] || 0),
   }));
 
+  const txByMonth: Record<string, { income: number; expense: number }> = {};
+  recentTransactions.forEach((tx) => {
+    const k = getMonthKey(tx.date);
+    if (!txByMonth[k]) txByMonth[k] = { income: 0, expense: 0 };
+    if (tx.type === "income") txByMonth[k].income += tx.amount;
+    else txByMonth[k].expense += tx.amount;
+  });
+  const transactionsMonthly = months.map((m) => ({
+    month: m,
+    income: Math.round(txByMonth[m]?.income || 0),
+    expense: Math.round(txByMonth[m]?.expense || 0),
+  }));
+
+  const totalIncome = recentTransactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalExpense = recentTransactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+
   // --
   const revenueXOF = salesWithCurrency
     .filter((s) => (s.user?.baseCurrency || "XOF") === "XOF")
@@ -145,5 +167,13 @@ export async function GET() {
     subscriptionRevenue: subscriptionRevenue._sum.amount || 0,
     usersMonthly,
     revenueMonthly,
+    transactionsMonthly,
+    totalIncome: Math.round(totalIncome),
+    totalExpense: Math.round(totalExpense),
+    categoriesTop: topCategories.map((c) => ({
+      name: c.name,
+      type: c.type,
+      count: c._count.transactions,
+    })),
   });
 }

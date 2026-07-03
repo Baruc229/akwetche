@@ -58,4 +58,8 @@ export type Stats = {
   subscriptionRevenue?: number;
   usersMonthly: { month: string; count: number }[];
   revenueMonthly: { month: string; abonnements: number; ventes: number }[];
+  transactionsMonthly: { month: string; income: number; expense: number }[];
+  totalIncome: number;
+  totalExpense: number;
+  categoriesTop: { name: string; type: string; count: number }[];
 };
