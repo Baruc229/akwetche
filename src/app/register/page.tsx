@@ -44,7 +44,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [initialBalance, setInitialBalance] = useState("");
+
   const [countryCode, setCountryCode] = useState("BJ");
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -83,7 +83,7 @@ export default function RegisterPage() {
       email,
       password,
       plan: selectedPlan,
-      initialBalance: initialBalance ? parseFloat(initialBalance) : 0,
+
       countryCode,
       phone,
     }),
@@ -376,26 +376,6 @@ export default function RegisterPage() {
   {fieldErrors.phone && (
     <p className="text-[var(--color-neg)] text-xs mt-1">{fieldErrors.phone}</p>
   )}
-  </div>
-
-  <div>
-  <label className="block text-sm font-medium text-ink mb-1.5">
-  Solde de départ personnel (optionnel)
-  </label>
-  <div className="relative">
-  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{detectedCurrency === "XOF" ? "FCFA" : "EUR"}</span>
-  <input
-  type="number"
-  value={initialBalance}
-  onChange={(e) => setInitialBalance(e.target.value)}
-  placeholder="Ex: 150000"
-  className="input-field pl-16"
-  min="0"
-  />
-  </div>
-  <p className="text-xs text-muted mt-1">
-  Argent que vous aviez avant de commencer (hors activité commerciale)
-  </p>
   </div>
 
   {error && (
