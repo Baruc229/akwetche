@@ -454,27 +454,27 @@ export default function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-lg font-bold text-ink leading-none">{formatCurrency(totalSavings)}</span>
+                  <span className="text-xl font-bold text-ink leading-none">{savingsRate > 0 ? '+' : ''}{Math.round(Math.abs(savingsRate))}%</span>
                   <span className="text-[10px] text-muted mt-0.5">épargné</span>
                 </div>
               </div>
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-2">
                   {activeData.map((d) => {
                     const pct = totalVal > 0 ? (d.value / totalVal) * 100 : 0;
                     return (
-                      <div key={d.name} className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: d.color }} />
-                        <span className="text-xs text-muted flex-1">{d.name}</span>
-                        <span className="text-xs font-semibold text-ink tabular-nums">{formatCurrency(d.value)}</span>
-                        <span className="text-[10px] text-muted tabular-nums">{pct.toFixed(0)}%</span>
+                      <div key={d.name} className="flex items-center gap-3">
+                        <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: d.color }} />
+                        <span className="text-sm text-muted flex-1 truncate">{d.name}</span>
+                        <span className="text-sm font-semibold text-ink tabular-nums text-right">{formatCurrency(d.value)}</span>
+                        <span className="text-[11px] text-muted/70 tabular-nums w-10 text-right">{pct.toFixed(0)}%</span>
                       </div>
                     );
                   })}
                 </div>
                 <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted">Total</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-semibold text-muted">Total</span>
                     <span className="font-bold text-ink tabular-nums">{formatCurrency(totalVal)}</span>
                   </div>
                 </div>
