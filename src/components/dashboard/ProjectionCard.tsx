@@ -3,6 +3,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 type Props = {
   projectedRemaining: number;
@@ -12,6 +13,13 @@ type Props = {
 
 export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft }: Props) {
   const isNegative = projectedRemaining < 0;
+  const dayOfMonth = new Date().getDate();
+  const currentNet = projectedRemaining + (dailyAvgExpense * daysLeft);
+  const chartData = [
+    { day: `Jour ${dayOfMonth}`, value: Math.round(currentNet) },
+    { day: `Jour ${dayOfMonth + daysLeft}`, value: Math.round(projectedRemaining) },
+  ];
+  const chartColor = projectedRemaining >= currentNet ? '#2D5A27' : '#B94A3E';
 
   return (
     <div className="bg-white rounded-[18px] p-5">
@@ -22,6 +30,29 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
         </h2>
       </div>
       <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Estimation fin de mois</p>
+
+      <div className="h-[50px] mb-3">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id={`projGrad-${chartColor.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={chartColor} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={chartColor}
+              strokeWidth={2}
+              fill={`url(#projGrad-${chartColor.slice(1)})`}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
 
       <div className="bg-[#FCECEA] rounded-xl p-4 border-l-[3px] border-[#B94A3E]">
         <p className="text-xs text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>

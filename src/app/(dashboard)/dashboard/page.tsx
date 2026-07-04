@@ -14,6 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
+import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from 'recharts';
 
 type ScopeSummary = {
   income: number;
@@ -56,6 +57,7 @@ export default function DashboardPage() {
     maxFreeIncome: number;
     maxFreeExpense: number;
   } | null>(null);
+  const [balanceHistory, setBalanceHistory] = useState<{ date: string; balance: number }[]>([]);
   const [subLoading, setSubLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
@@ -68,18 +70,20 @@ export default function DashboardPage() {
 
   async function loadData() {
     try {
-      const [monthRes, weekRes, txRes, catRes, limitsRes] = await Promise.all([
+      const [monthRes, weekRes, txRes, catRes, limitsRes, histRes] = await Promise.all([
         fetch("/api/transactions/summary?period=month"),
         fetch("/api/transactions/summary?period=week"),
         fetch("/api/transactions?limit=3"),
         fetch("/api/categories"),
         fetch("/api/user/limits"),
+        fetch("/api/transactions/balance-history?days=30"),
       ]);
       const monthData = await monthRes.json();
       const weekData = await weekRes.json();
       const txData = await txRes.json();
       const catData = await catRes.json();
       const limitsData = await limitsRes.json();
+      const histData = await histRes.json();
       setMonthPersonal(monthData.personal || null);
       setMonthActivity(monthData.activity || null);
       setWeekPersonal(weekData.personal || null);
@@ -88,6 +92,7 @@ export default function DashboardPage() {
       setCategories(catData.categories || []);
       setActiveCategoryIds(catData.activeCategoryIds || []);
       setLimits(limitsData);
+      setBalanceHistory(Array.isArray(histData) ? histData : []);
     } catch (e) {
       setLoadError("Impossible de charger les données. Vérifiez votre connexion.");
       console.error(e);
@@ -317,12 +322,36 @@ export default function DashboardPage() {
               <FontAwesomeIcon icon={faPiggyBank} className="w-4 h-4 text-white/40" />
               Taux d&apos;épargne
             </div>
-            <span className="bar-value text-white">{savingsRate.toFixed(0)}%</span>
+            <span className="bar-value text-white">{savingsRate > 0 && savingsRate < 1 ? savingsRate.toFixed(1) : savingsRate.toFixed(0)}%</span>
           </div>
           <div className="bar-track lg on-dark">
             <div className="bar-fill on-dark" style={{ width: `${Math.min(100, savingsRate)}%` }} />
           </div>
         </div>
+        {balanceHistory.length > 0 && (
+          <div className="h-[50px] mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={balanceHistory} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ffffff" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#ffffff" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <Area
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth={1.5}
+                  fill="url(#sparkGrad)"
+                  dot={false}
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
 
       {/* Grille : Répartition dépenses + Projection */}
@@ -369,6 +398,18 @@ export default function DashboardPage() {
             const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
             const bExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
 
+            const donutData = showActivity
+              ? [
+                  { name: "Perso Revenus", value: monthPersonal?.income || 0, color: "#2D5A27" },
+                  { name: "Perso Dépenses", value: monthPersonal?.expense || 0, color: "#B94A3E" },
+                  { name: "Activité Revenus", value: monthActivity?.income || 0, color: "#4A7B44" },
+                  { name: "Activité Dépenses", value: monthActivity?.expense || 0, color: "#D46A5E" },
+                ]
+              : [
+                  { name: "Revenus", value: monthPersonal?.income || 0, color: "#2D5A27" },
+                  { name: "Dépenses", value: monthPersonal?.expense || 0, color: "#B94A3E" },
+                ];
+
             return (
               <>
                 <div className="flex items-center gap-2 mb-4">
@@ -392,7 +433,40 @@ export default function DashboardPage() {
                   </div>
                   <div className="card-inset text-center">
                     <p className="text-label">Taux</p>
-                    <p className="text-amount text-base mt-1">{sRate.toFixed(0)}%</p>
+                    <p className="text-amount text-base mt-1">{sRate > 0 && sRate < 1 ? sRate.toFixed(1) : sRate.toFixed(0)}%</p>
+                  </div>
+                </div>
+
+                {/* Petit donut Synthèse */}
+                <div className="flex justify-center mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-[80px] w-[80px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={donutData.filter(d => d.value > 0)}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={22}
+                            outerRadius={36}
+                            strokeWidth={0}
+                            dataKey="value"
+                          >
+                            {donutData.filter(d => d.value > 0).map((entry, idx) => (
+                              <Cell key={idx} fill={entry.color} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col gap-1 text-[11px] leading-tight">
+                      {donutData.filter(d => d.value > 0).map((d) => (
+                        <div key={d.name} className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: d.color }} />
+                          <span className="text-muted">{d.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
