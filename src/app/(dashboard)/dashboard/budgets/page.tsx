@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrash, faPen, faTriangleExclamation, faCircleCheck, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, toStorageCurrency, toDisplayCurrency, roundByCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 
 type Budget = {
@@ -28,7 +28,7 @@ const MONTHS = [
 ];
 
 export default function BudgetsPage() {
-  const { commercialMode } = useDashboard();
+  const { commercialMode, currency } = useDashboard();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +72,7 @@ export default function BudgetsPage() {
   function openEdit(b: Budget) {
     setFormCategoryId(String(b.categoryId));
     setFormScope(b.scope);
-    setFormAmount(String(b.amount));
+    setFormAmount(String(roundByCurrency(toDisplayCurrency(b.amount, currency), currency)));
     setEditingId(b.id);
     setShowForm(true);
     setError("");
@@ -82,9 +82,10 @@ export default function BudgetsPage() {
     e.preventDefault();
     setError("");
     if (!formCategoryId) { setError("Catégorie requise"); return; }
-    const amount = parseFloat(formAmount);
-    if (!amount || amount <= 0) { setError("Montant invalide"); return; }
+    const displayAmount = parseFloat(formAmount);
+    if (!displayAmount || displayAmount <= 0) { setError("Montant invalide"); return; }
 
+    const amount = toStorageCurrency(displayAmount, currency);
     const body = { categoryId: formCategoryId, scope: formScope, amount, month, year };
 
     const res = await fetch("/api/budgets", {
@@ -144,7 +145,10 @@ export default function BudgetsPage() {
               </div>
               <div>
                 <label className="block text-xs text-muted mb-1">Montant alloué</label>
-                <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm" min="0" step="any" required />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+                  <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" min="0" step="any" required />
+                </div>
               </div>
               {commercialMode && (
                 <div>

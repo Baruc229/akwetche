@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrash, faRotate, faCircleCheck, faCircle, faPen, faBolt, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, toStorageCurrency, toDisplayCurrency, roundByCurrency } from "@/lib/utils";
 
 type Template = {
   id: number;
@@ -23,7 +23,7 @@ type Template = {
 type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
 
 export default function RecurringPage() {
-  const { commercialMode } = useDashboard();
+  const { commercialMode, currency } = useDashboard();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ export default function RecurringPage() {
 
   function openEdit(t: Template) {
     setFormName(t.name);
-    setFormAmount(String(t.amount));
+    setFormAmount(String(roundByCurrency(toDisplayCurrency(t.amount, currency), currency)));
     setFormType(t.type);
     setFormScope(t.scope);
     setFormDayOfMonth(String(t.dayOfMonth));
@@ -85,10 +85,11 @@ export default function RecurringPage() {
     setError("");
     const day = parseInt(formDayOfMonth);
     if (day < 1 || day > daysInMonth) { setError(`Jour invalide (1-${daysInMonth})`); return; }
-    const amount = parseFloat(formAmount);
-    if (!amount || amount <= 0) { setError("Montant invalide"); return; }
+    const displayAmount = parseFloat(formAmount);
+    if (!displayAmount || displayAmount <= 0) { setError("Montant invalide"); return; }
     if (!formName.trim()) { setError("Nom requis"); return; }
 
+    const amount = toStorageCurrency(displayAmount, currency);
     const body = { name: formName.trim(), amount, type: formType, scope: formScope, dayOfMonth: day, categoryId: formCategoryId || null };
 
     if (editingId) {
@@ -175,7 +176,10 @@ export default function RecurringPage() {
               </div>
               <div>
                 <label className="block text-xs text-muted mb-1">Montant</label>
-                <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm" min="0" step="any" required />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+                  <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" min="0" step="any" required />
+                </div>
               </div>
               <div>
                 <label className="block text-xs text-muted mb-1">Type</label>
