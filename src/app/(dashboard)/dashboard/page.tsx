@@ -61,8 +61,7 @@ export default function DashboardPage() {
     maxFreeExpense: number;
   } | null>(null);
   const [balanceHistory, setBalanceHistory] = useState<{ date: string; balance: number }[]>([]);
-  const [donutHover, setDonutHover] = useState<number | null>(null);
-  const [donutActive, setDonutActive] = useState<number | null>(null);
+
   const [subLoading, setSubLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
@@ -217,6 +216,18 @@ export default function DashboardPage() {
 
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const monthlyBalances = balanceHistory.filter(d => new Date(d.date) >= startOfMonth);
+  const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
+  const donutData = showActivity
+    ? [
+        { name: "Perso Revenus", value: monthPersonal?.income || 0, color: "#2D5A27" },
+        { name: "Perso Dépenses", value: monthPersonal?.expense || 0, color: "#B94A3E" },
+        { name: "Activité Revenus", value: monthActivity?.income || 0, color: "#4A7B44" },
+        { name: "Activité Dépenses", value: monthActivity?.expense || 0, color: "#D46A5E" },
+      ]
+    : [
+        { name: "Revenus", value: monthPersonal?.income || 0, color: "#2D5A27" },
+        { name: "Dépenses", value: monthPersonal?.expense || 0, color: "#B94A3E" },
+      ];
 
   return (
     <div className="space-y-3 pb-24 sm:pb-0">
@@ -405,6 +416,74 @@ export default function DashboardPage() {
         })()}
       </div>
 
+      {/* Carte répartition globale */}
+      {monthPersonal && (monthPersonal.income + monthPersonal.expense > 0 || (commercialMode && monthActivity && monthActivity.income + monthActivity.expense > 0)) && (() => {
+        const activeData = donutData.filter(d => d.value > 0);
+        const totalVal = activeData.reduce((s, d) => s + d.value, 0);
+        return (
+          <div className="card">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="bar-dot" style={{ background: 'var(--color-gold)' }} />
+              <h2 className="text-sm font-semibold text-ink">Vue d'ensemble</h2>
+              <span className="text-xs text-muted ml-auto">ce mois-ci</span>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="relative h-[160px] w-[160px] shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={activeData}
+                      cx="50%" cy="50%"
+                      innerRadius={46}
+                      outerRadius={72}
+                      cornerRadius={4}
+                      strokeWidth={0}
+                      dataKey="value"
+                      isAnimationActive={true}
+                      animationBegin={200}
+                      animationDuration={600}
+                    >
+                      {activeData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                      formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), '']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-lg font-bold text-ink leading-none">{formatCurrency(totalSavings)}</span>
+                  <span className="text-[10px] text-muted mt-0.5">épargné</span>
+                </div>
+              </div>
+              <div className="flex-1 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {activeData.map((d) => {
+                    const pct = totalVal > 0 ? (d.value / totalVal) * 100 : 0;
+                    return (
+                      <div key={d.name} className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: d.color }} />
+                        <span className="text-xs text-muted flex-1">{d.name}</span>
+                        <span className="text-xs font-semibold text-ink tabular-nums">{formatCurrency(d.value)}</span>
+                        <span className="text-[10px] text-muted tabular-nums">{pct.toFixed(0)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted">Total</span>
+                    <span className="font-bold text-ink tabular-nums">{formatCurrency(totalVal)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Grille : Répartition dépenses + Projection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <ExpenseBreakdown
@@ -451,18 +530,6 @@ export default function DashboardPage() {
             const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
             const bExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
 
-            const donutData = showActivity
-              ? [
-                  { name: "Perso Revenus", value: monthPersonal?.income || 0, color: "#2D5A27" },
-                  { name: "Perso Dépenses", value: monthPersonal?.expense || 0, color: "#B94A3E" },
-                  { name: "Activité Revenus", value: monthActivity?.income || 0, color: "#4A7B44" },
-                  { name: "Activité Dépenses", value: monthActivity?.expense || 0, color: "#D46A5E" },
-                ]
-              : [
-                  { name: "Revenus", value: monthPersonal?.income || 0, color: "#2D5A27" },
-                  { name: "Dépenses", value: monthPersonal?.expense || 0, color: "#B94A3E" },
-                ];
-
             return (
               <>
                 <div className="flex items-center gap-2 mb-4">
@@ -487,67 +554,6 @@ export default function DashboardPage() {
                   <div className="card-inset text-center">
                     <p className="text-label">Taux</p>
                     <p className="text-amount text-base mt-1">{sRate > 0 && sRate < 1 ? sRate.toFixed(1) : sRate.toFixed(0)}%</p>
-                  </div>
-                </div>
-
-                {/* Petit donut Synthèse */}
-                <div className="flex justify-center mb-4">
-                  <div className="flex items-center gap-6">
-                    <div className="relative h-[100px] w-[100px] shrink-0">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={donutData.filter(d => d.value > 0)}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={28}
-                            outerRadius={44}
-                            cornerRadius={4}
-                            strokeWidth={0}
-                            dataKey="value"
-                            isAnimationActive={true}
-                            animationBegin={200}
-                            animationDuration={600}
-                          >
-                            {donutData.filter(d => d.value > 0).map((entry, idx) => {
-                              const dim = donutActive !== null && donutActive !== idx;
-                              return (
-                                <Cell
-                                  key={idx}
-                                  fill={entry.color}
-                                  opacity={dim ? 0.2 : 1}
-                                  style={{ transition: 'opacity 0.3s ease' }}
-                                />
-                              );
-                            })}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-[11px] font-[family-name:var(--font-dm-sans)] font-bold text-ink leading-none">
-                          {formatCurrency(tSaved)}
-                        </span>
-                        <span className="text-[8px] text-muted mt-0.5">Total</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 text-[11px] leading-tight">
-                      {donutData.filter(d => d.value > 0).map((d, idx) => {
-                        const isActive = donutActive === idx;
-                        return (
-                          <div
-                            key={d.name}
-                            className="flex items-center gap-2 cursor-pointer select-none transition-opacity duration-200"
-                            style={{ opacity: donutActive !== null && !isActive ? 0.4 : 1 }}
-                            onClick={() => setDonutActive(isActive ? null : idx)}
-                            onMouseEnter={() => setDonutHover(idx)}
-                            onMouseLeave={() => setDonutHover(null)}
-                          >
-                            <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: d.color }} />
-                            <span className={`text-muted ${isActive ? 'font-semibold text-ink' : ''}`}>{d.name}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 </div>
 
