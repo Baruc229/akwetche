@@ -206,9 +206,8 @@ export default function DashboardPage() {
   const totalRecurringExpense = (personalSummary?.recurringExpense || 0) + (activitySummary?.recurringExpense || 0);
   const totalPendingRecurringExpense = (personalSummary?.pendingRecurringExpense || 0) + (activitySummary?.pendingRecurringExpense || 0);
   const totalPendingRecurringIncome = (personalSummary?.pendingRecurringIncome || 0) + (activitySummary?.pendingRecurringIncome || 0);
-  const totalRecurringFullMonth = totalRecurringExpense + totalPendingRecurringExpense;
   const totalPonctuelExpense = totalExpense - totalRecurringExpense;
-  const projectedExpenses = totalRecurringFullMonth + (dayOfMonth > 0 ? (totalPonctuelExpense / dayOfMonth) * daysInMonth : 0);
+  const projectedExpenses = totalPendingRecurringExpense + (dayOfMonth > 0 ? (totalPonctuelExpense / dayOfMonth) * daysLeft : 0);
   const projectedRemaining = totalBalance - projectedExpenses + totalPendingRecurringIncome;
   const dailyAvgExpense = dayOfMonth > 0 ? totalExpense / dayOfMonth : 0;
 
