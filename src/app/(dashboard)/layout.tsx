@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCircleDown, faCircleUp } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -58,6 +58,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/reports': 'Bilans',
   '/dashboard/history': 'Historique & Analyse',
   '/dashboard/settings': 'Paramètres',
+  '/dashboard/recurring/expenses': 'Dépenses récurrentes',
+  '/dashboard/recurring/income': 'Revenus récurrents',
   '/admin': 'Administration',
 };
 
@@ -296,7 +298,8 @@ export default function DashboardLayout({
       { href: "/dashboard", label: "Accueil", icon: faGauge },
       { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
       { href: "/dashboard/categories", label: "Catégories", icon: faTag },
-      { href: "/dashboard/recurring", label: "Récurrentes", icon: faRotate },
+      { href: "/dashboard/recurring/expenses", label: "Dép. récurrentes", icon: faArrowTrendDown },
+      { href: "/dashboard/recurring/income", label: "Rev. récurrents", icon: faArrowTrendUp },
       { href: "/dashboard/budgets", label: "Budgets", icon: faSackDollar },
       { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
     ];
