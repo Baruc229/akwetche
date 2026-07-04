@@ -421,27 +421,32 @@ export default function DashboardPage() {
         const activeData = donutData.filter(d => d.value > 0);
         const totalVal = activeData.reduce((s, d) => s + d.value, 0);
         return (
-          <div className="card">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="bar-dot" style={{ background: 'var(--color-gold)' }} />
-              <h2 className="text-sm font-semibold text-ink">Vue d'ensemble</h2>
-              <span className="text-xs text-muted ml-auto">ce mois-ci</span>
+          <div className="bg-white rounded-[18px] p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#C9A84C] shrink-0" />
+              <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+                Vue d'ensemble
+              </h2>
+              <span className="text-[11px] text-[#9BA89D] ml-auto font-[family-name:var(--font-inter)]">ce mois-ci</span>
             </div>
-            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
-              <div className="relative h-[160px] w-[160px] shrink-0">
+
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
+              {/* Donut */}
+              <div className="relative h-[170px] w-[170px] shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={activeData}
                       cx="50%" cy="50%"
-                      innerRadius={46}
-                      outerRadius={72}
-                      cornerRadius={4}
-                      strokeWidth={0}
+                      innerRadius={48}
+                      outerRadius={78}
+                      cornerRadius={6}
+                      stroke="#FFFFFF"
+                      strokeWidth={3}
                       dataKey="value"
                       isAnimationActive={true}
                       animationBegin={200}
-                      animationDuration={600}
+                      animationDuration={700}
                     >
                       {activeData.map((entry, idx) => (
                         <Cell key={idx} fill={entry.color} />
@@ -454,30 +459,46 @@ export default function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-xl font-bold text-ink leading-none">{savingsRate > 0 ? '+' : ''}{Math.round(Math.abs(savingsRate))}%</span>
-                  <span className="text-[10px] text-muted mt-0.5">épargné</span>
+                  <span className="text-[28px] font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] leading-none">
+                    {savingsRate > 0 ? '+' : ''}{Math.round(Math.abs(savingsRate))}%
+                  </span>
+                  <span className="text-[10px] text-[#9BA89D] mt-1 font-[family-name:var(--font-inter)]">épargné</span>
                 </div>
               </div>
-              <div className="flex-1 w-full">
-                <div className="space-y-2">
-                  {activeData.map((d) => {
-                    const pct = totalVal > 0 ? (d.value / totalVal) * 100 : 0;
-                    return (
-                      <div key={d.name} className="flex items-center gap-3">
-                        <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: d.color }} />
-                        <span className="text-sm text-muted flex-1 truncate">{d.name}</span>
-                        <span className="text-sm font-semibold text-ink tabular-nums text-right">{formatCurrency(d.value)}</span>
-                        <span className="text-[11px] text-muted/70 tabular-nums w-10 text-right">{pct.toFixed(0)}%</span>
+
+              {/* Légende avec barres */}
+              <div className="flex-1 w-full space-y-4">
+                {activeData.map((d) => {
+                  const pct = totalVal > 0 ? (d.value / totalVal) * 100 : 0;
+                  return (
+                    <div key={d.name}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: d.color }} />
+                          <span className="text-[13px] text-[#9BA89D] font-[family-name:var(--font-inter)]">{d.name}</span>
+                        </div>
+                        <span className="text-[13px] font-semibold text-[#1A1A1A] font-[family-name:var(--font-dm-sans)] tabular-nums">{pct.toFixed(0)}%</span>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold text-muted">Total</span>
-                    <span className="font-bold text-ink tabular-nums">{formatCurrency(totalVal)}</span>
-                  </div>
-                </div>
+                      <div className="h-2 bg-[#F2EDE4] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${d.color}, ${d.color}bb)` }}
+                        />
+                      </div>
+                      <div className="text-right mt-0.5">
+                        <span className="text-[12px] text-[#9BA89D] font-[family-name:var(--font-inter)] tabular-nums">{formatCurrency(d.value)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className="mt-5 pt-4 border-t border-[#E0D8CC]">
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-[#9BA89D] font-[family-name:var(--font-inter)]">Total des flux</span>
+                <span className="text-[15px] font-bold text-[#1A1A1A] font-[family-name:var(--font-dm-sans)] tabular-nums">{formatCurrency(totalVal)}</span>
               </div>
             </div>
           </div>
