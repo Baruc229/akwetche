@@ -57,11 +57,10 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       <div className="bg-[#FCECEA] rounded-xl p-4 border-l-[3px] border-[#B94A3E]">
         <p className="text-xs text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>
         <p
-          className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold text-[#B94A3E]"
-          style={{ letterSpacing: "-0.5px" }}
+          className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold"
+          style={{ letterSpacing: "-0.5px", color: isNegative ? '#B94A3E' : '#2D5A27' }}
         >
-          {formatCurrency(Math.abs(projectedRemaining))}
-          {isNegative ? " (dépassement)" : ""}
+          {formatCurrency(projectedRemaining)}
         </p>
       </div>
 

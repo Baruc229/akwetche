@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok } from "@/lib/api";
 import { getStartOfWeek, getEndOfWeek, getStartOfMonth, getEndOfMonth, getStartOfYear, getEndOfYear } from "@/lib/utils";
 
-type Tx = { type: string; amount: number; category: { name: string; icon: string } | null };
+type Tx = { type: string; amount: number; recurring: boolean; category: { name: string; icon: string } | null };
 
 type ScopeSummary = {
   income: number;
@@ -11,12 +11,14 @@ type ScopeSummary = {
   savings: number;
   balance: number;
   initialBalance: number;
+  recurringExpense: number;
   topCategories: { name: string; icon: string; amount: number; type: string }[];
 };
 
 function computeScopeSummary(periodTxs: Tx[], allTxs: Tx[], initialBalance: number): ScopeSummary {
   const income = periodTxs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expense = periodTxs.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const recurringExpense = periodTxs.filter(t => t.type === "expense" && t.recurring).reduce((s, t) => s + t.amount, 0);
   const savings = income - expense;
 
   const allIncome = allTxs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
@@ -41,6 +43,7 @@ function computeScopeSummary(periodTxs: Tx[], allTxs: Tx[], initialBalance: numb
     savings,
     balance: initialBalance + allIncome - allExpense,
     initialBalance,
+    recurringExpense,
     topCategories: Object.values(byCategory).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)),
   };
 }

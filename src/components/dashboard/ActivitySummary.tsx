@@ -11,7 +11,8 @@ type Props = {
 };
 
 export default function ActivitySummary({ income, expense, savings }: Props) {
-  const marginRate = income > 0 ? (Math.max(0, savings) / income) * 100 : 0;
+  const rawMargin = income > 1 ? (savings / income) * 100 : null;
+  const marginRate = rawMargin !== null ? (rawMargin < -100 ? -100 : rawMargin) : null;
 
   return (
     <div className="rounded-[18px] p-5 border border-[#C9A84C]/20 shadow-sm" style={{ backgroundColor: '#F7F0D6' }}>
@@ -41,8 +42,8 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
           <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">
             Bénéfice
           </p>
-          <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#3A8C68] mt-1 tabular-nums">
-            {formatCurrency(Math.max(0, savings))}
+          <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold mt-1 tabular-nums" style={{ color: savings >= 0 ? '#3A8C68' : '#B94A3E' }}>
+            {formatCurrency(savings)}
           </p>
           <p className="text-[10px] text-[#9BA89D] mt-0.5 font-[family-name:var(--font-inter)]">
             après dépenses
@@ -53,7 +54,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
             Marge
           </p>
           <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-1">
-            {marginRate.toFixed(0)}%
+            {marginRate === null ? "—" : marginRate === -100 ? "-100 % (déficit)" : marginRate.toFixed(0) + " %"}
           </p>
           <p className="text-[10px] text-[#9BA89D] mt-0.5 font-[family-name:var(--font-inter)]">
             du chiffre d&apos;affaires

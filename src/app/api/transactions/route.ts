@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const userId = await requireAuth();
-    const { type, amount, description, categoryId, date, scope } = await req.json();
+    const { type, amount, description, categoryId, date, scope, recurring } = await req.json();
 
     if (!type || !amount || !description || !categoryId) {
       return badRequest("Tous les champs sont requis");
@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
         amount: parsedAmount,
         description,
         scope: scope || "personal",
+        recurring: recurring === true,
         categoryId: parseInt(categoryId),
         userId,
         date: date ? new Date(date) : new Date(),

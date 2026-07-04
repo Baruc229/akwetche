@@ -16,7 +16,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   });
   if (!existing) return badRequest("Transaction introuvable");
 
-  const { type, amount, description, date, categoryId, scope } = await req.json();
+  const { type, amount, description, date, categoryId, scope, recurring } = await req.json();
 
   const updateData: Record<string, unknown> = {};
   if (type !== undefined) updateData.type = type;
@@ -25,6 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (date !== undefined) updateData.date = new Date(date);
   if (categoryId !== undefined) updateData.categoryId = parseInt(categoryId);
   if (scope !== undefined) updateData.scope = scope;
+  if (recurring !== undefined) updateData.recurring = recurring === true;
 
   const updated = await prisma.transaction.update({
     where: { id: transactionId },

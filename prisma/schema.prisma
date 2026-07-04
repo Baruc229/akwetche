@@ -158,6 +158,7 @@ model Transaction {
   description String
   date        DateTime @default(now())
   scope       String   @default("personal") // "personal" or "activity"
+  recurring   Boolean  @default(false)
   categoryId  Int?
   userId      Int
 

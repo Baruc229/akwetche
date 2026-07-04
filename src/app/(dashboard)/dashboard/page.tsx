@@ -22,6 +22,7 @@ type ScopeSummary = {
   savings: number;
   balance: number;
   initialBalance: number;
+  recurringExpense: number;
   topCategories: { name: string; icon: string; amount: number; type: string }[];
 };
 
@@ -47,7 +48,7 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [categories, setCategories] = useState<{ id: number; name: string; icon: string; type: string }[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
-  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal" });
+  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false });
   const [txError, setTxError] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [limits, setLimits] = useState<{
@@ -149,7 +150,7 @@ export default function DashboardPage() {
         return;
       }
       setShowModal(false);
-      setNewTx({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal" });
+      setNewTx({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false });
       loadData();
       fetch("/api/user/limits").then(r => r.json()).then(setLimits);
     } catch {
@@ -194,13 +195,14 @@ export default function DashboardPage() {
   const totalExpense = (personalSummary?.expense || 0) + (activitySummary?.expense || 0);
   const totalBalance = (personalSummary?.balance || 0) + (activitySummary?.balance || 0);
   const isNegative = totalBalance < 0;
-  const totalSavings = Math.max(0, (personalSummary?.savings || 0) + (activitySummary?.savings || 0));
+  const totalSavings = (personalSummary?.savings || 0) + (activitySummary?.savings || 0);
 
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const dayOfMonth = new Date().getDate();
   const daysLeft = daysInMonth - dayOfMonth;
   const savings = totalIncome - totalExpense;
-  const dailyAvgExpense = dayOfMonth > 0 ? totalExpense / dayOfMonth : 0;
+  const totalRecurringExpense = (personalSummary?.recurringExpense || 0) + (activitySummary?.recurringExpense || 0);
+  const dailyAvgExpense = dayOfMonth > 0 ? totalRecurringExpense / dayOfMonth : 0;
   const projectedRemaining = savings - (dailyAvgExpense * daysLeft);
 
   const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
@@ -325,7 +327,7 @@ export default function DashboardPage() {
             <span className="bar-value text-white">{savingsRate > 0 && savingsRate < 1 ? savingsRate.toFixed(1) : savingsRate.toFixed(0)}%</span>
           </div>
           <div className="bar-track lg on-dark">
-            <div className="bar-fill on-dark" style={{ width: `${Math.min(100, savingsRate)}%` }} />
+            <div className="bar-fill on-dark" style={{ width: `${Math.max(0, Math.min(100, savingsRate))}%` }} />
           </div>
         </div>
         {balanceHistory.length > 0 && (
@@ -390,10 +392,11 @@ export default function DashboardPage() {
           {(() => {
             const showPersonal = monthPersonal && monthPersonal.income + monthPersonal.expense > 0;
             const showActivity = monthActivity && commercialMode && monthActivity.income + monthActivity.expense > 0;
-            const personalRate = monthPersonal && monthPersonal.income > 0 ? (monthPersonal.savings / monthPersonal.income) * 100 : 0;
+            const rawPersonalRate = monthPersonal && monthPersonal.income > 1 ? (monthPersonal.savings / monthPersonal.income) * 100 : null;
+            const personalRate = rawPersonalRate !== null ? (rawPersonalRate < -100 ? -100 : rawPersonalRate) : null;
             const tIncome = (monthPersonal?.income || 0) + (monthActivity?.income || 0);
             const tExpense = (monthPersonal?.expense || 0) + (monthActivity?.expense || 0);
-            const tSaved = Math.max(0, (monthPersonal?.savings || 0)) + Math.max(0, (monthActivity?.savings || 0));
+            const tSaved = (monthPersonal?.savings || 0) + (monthActivity?.savings || 0);
             const sRate = tIncome > 0 ? (tSaved / tIncome) * 100 : 0;
             const allCats = [...(monthPersonal?.topCategories ?? []), ...(monthActivity?.topCategories ?? [])];
             const bExpense = allCats.filter(c => c.type === "expense").sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))[0];
@@ -429,7 +432,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="card-inset text-center">
                     <p className="text-label">Épargne</p>
-                    <p className="text-amount text-base text-[var(--color-pos)] mt-1">{formatCurrency(tSaved)}</p>
+                    <p className="text-amount text-base mt-1" style={{ color: tSaved >= 0 ? 'var(--color-pos)' : 'var(--color-neg)' }}>{formatCurrency(tSaved)}</p>
                   </div>
                   <div className="card-inset text-center">
                     <p className="text-label">Taux</p>
@@ -485,8 +488,8 @@ export default function DashboardPage() {
                           persoStyle: { color: 'var(--color-neg)' }, activityStyle: { color: 'var(--color-neg)' }, totalStyle: { color: 'var(--color-ink)' }, bg: ""
                         },
                         {
-                          label: "Résultat", perso: Math.max(0, monthPersonal?.savings || 0), activity: Math.max(0, monthActivity?.savings || 0),
-                          persoStyle: { color: 'var(--color-brand)' }, activityStyle: { color: 'var(--color-gold)' }, totalStyle: { color: 'var(--color-brand)' }, bg: "bg-[var(--color-gold-light)]"
+                          label: "Résultat", perso: monthPersonal?.savings || 0, activity: monthActivity?.savings || 0,
+                          persoStyle: { color: (monthPersonal?.savings || 0) >= 0 ? 'var(--color-brand)' : 'var(--color-neg)' }, activityStyle: { color: 'var(--color-gold)' }, totalStyle: { color: tSaved >= 0 ? 'var(--color-brand)' : 'var(--color-neg)' }, bg: "bg-[var(--color-gold-light)]"
                         },
                       ].map((r) => (
                         <div key={r.label} className={`px-4 py-3 ${r.bg}`}>
@@ -532,9 +535,9 @@ export default function DashboardPage() {
                           </tr>
                           <tr style={{ background: 'var(--color-gold-light)' }}>
                             <td className="text-left px-4 py-2 font-medium text-ink whitespace-nowrap">Résultat</td>
-                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-brand)' }}>{formatCurrency(Math.max(0, monthPersonal?.savings || 0))}</td>
-                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-gold)' }}>{formatCurrency(Math.max(0, monthActivity?.savings || 0))}</td>
-                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-brand)' }}>{formatCurrency(tSaved)}</td>
+                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: (monthPersonal?.savings || 0) >= 0 ? 'var(--color-brand)' : 'var(--color-neg)' }}>{formatCurrency(monthPersonal?.savings || 0)}</td>
+                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: 'var(--color-gold)' }}>{formatCurrency(monthActivity?.savings || 0)}</td>
+                            <td className="text-right px-4 py-2 font-bold whitespace-nowrap" style={{ color: tSaved >= 0 ? 'var(--color-brand)' : 'var(--color-neg)' }}>{formatCurrency(tSaved)}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -556,7 +559,7 @@ export default function DashboardPage() {
                         <p className="text-sm text-muted leading-relaxed">
                           Sur le plan personnel, vous avez reçu <strong className="text-ink">{formatCurrency(monthPersonal!.income)}</strong> en revenus et dépensé <strong className="text-ink">{formatCurrency(monthPersonal!.expense)}</strong> ce mois-ci.
                           Capital initial : <strong className="text-ink">{formatCurrency(monthPersonal!.initialBalance)}</strong>, solde actuel : <strong className="text-ink">{formatCurrency(monthPersonal!.balance)}</strong>.
-                          Taux d&apos;épargne : <strong className="text-ink">{personalRate.toFixed(0)}%</strong>.
+                           Taux d&apos;épargne : <strong className="text-ink">{personalRate === null ? "—" : personalRate === -100 ? "-100 % (déficit important)" : personalRate.toFixed(0) + " %"}</strong>.
                         </p>
                         {monthPersonal!.topCategories && monthPersonal!.topCategories.length > 0 && (
                           <div className="flex flex-wrap items-center gap-1.5 mt-2">
@@ -580,8 +583,14 @@ export default function DashboardPage() {
                         </div>
                         <p className="text-sm text-muted leading-relaxed">
                           Côté activité, vous avez réalisé <strong className="text-ink">{formatCurrency(monthActivity!.income)}</strong> de chiffre d&apos;affaires pour <strong className="text-ink">{formatCurrency(monthActivity!.expense)}</strong> de charges.
-                          Bénéfice : <strong className="text-ink">{formatCurrency(Math.max(0, monthActivity!.savings))}</strong>
-                          {monthActivity!.income > 0 && <> (marge de <strong className="text-ink">{((Math.max(0, monthActivity!.savings) / monthActivity!.income) * 100).toFixed(0)}%</strong>)</>}.
+                           Bénéfice : <strong className="text-ink" style={{ color: monthActivity!.savings >= 0 ? 'var(--color-pos)' : 'var(--color-neg)' }}>{formatCurrency(monthActivity!.savings)}</strong>
+                           {(() => {
+                             const aIncome = monthActivity!.income;
+                             const aSavings = monthActivity!.savings;
+                             const aRaw = aIncome > 1 ? (aSavings / aIncome) * 100 : null;
+                             const aRate = aRaw !== null ? (aRaw < -100 ? -100 : aRaw) : null;
+                             return aRate !== null ? <> (marge de <strong className="text-ink">{aRate.toFixed(0)} %</strong>)</> : null;
+                           })()}.
                         </p>
                         {monthActivity!.topCategories && monthActivity!.topCategories.length > 0 && (
                           <div className="flex flex-wrap items-center gap-1.5 mt-2">
@@ -712,6 +721,25 @@ export default function DashboardPage() {
                   required
                 />
               </div>
+
+              {newTx.type === "expense" && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewTx({ ...newTx, recurring: !newTx.recurring })}
+                    className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold transition-all ${
+                      newTx.recurring
+                        ? "bg-[var(--color-brand)] text-white"
+                        : "bg-[var(--color-border)] text-transparent"
+                    }`}
+                  >
+                    {newTx.recurring ? "✓" : ""}
+                  </button>
+                  <label className="text-sm text-muted cursor-pointer select-none" onClick={() => setNewTx({ ...newTx, recurring: !newTx.recurring })}>
+                    Dépense récurrente (loyer, abonnement…)
+                  </label>
+                </div>
+              )}
 
               <div>
                 <label className="field-label">Catégorie</label>
