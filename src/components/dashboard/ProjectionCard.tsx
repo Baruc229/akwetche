@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTriangleExclamation, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { faTriangleExclamation, faCircleInfo, faLock } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -143,6 +143,13 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
             {daysLeft}
           </p>
         </div>
+      </div>
+
+      <div className="mt-3 rounded-xl bg-[#F7F0DF]/50 border border-[#E0D8CC] px-3 py-2 flex items-center gap-2">
+        <FontAwesomeIcon icon={faLock} className="w-3 h-3 text-[#C9A84C] shrink-0" />
+        <span className="text-[11px] text-[#9BA89D] font-[family-name:var(--font-inter)]">
+          Budget alloué — <span className="text-[#C9A84C] font-medium">bientôt disponible</span>
+        </span>
       </div>
     </div>
   );
