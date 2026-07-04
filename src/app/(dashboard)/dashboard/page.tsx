@@ -485,9 +485,6 @@ export default function DashboardPage() {
                           style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${d.color}, ${d.color}bb)` }}
                         />
                       </div>
-                      <div className="text-right mt-0.5">
-                        <span className="text-[12px] text-[#9BA89D] font-[family-name:var(--font-inter)] tabular-nums">{formatCurrency(d.value)}</span>
-                      </div>
                     </div>
                   );
                 })}
