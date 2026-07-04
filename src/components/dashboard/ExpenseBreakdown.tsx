@@ -1,9 +1,29 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowTrendDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowTrendDown, faCartShopping, faUtensils, faHouseChimney, faCar, faHeart, faGraduationCap, faPlane, faShirt, faWifi, faGamepad, faGift, faStar, faBriefcase, faBasketShopping, faTag, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
+
+function getCatIcon(icon: string) {
+  const map: Record<string, any> = {
+    "shopping": faCartShopping,
+    "food": faUtensils,
+    "house": faHouseChimney,
+    "car": faCar,
+    "health": faHeart,
+    "education": faGraduationCap,
+    "travel": faPlane,
+    "clothing": faShirt,
+    "bills": faWifi,
+    "entertainment": faGamepad,
+    "gift": faGift,
+    "salary": faStar,
+    "freelance": faBriefcase,
+    "groceries": faBasketShopping,
+  };
+  return map[icon?.toLowerCase()] || faTag;
+}
 
 type CatItem = { name: string; icon: string; amount: number; type: string };
 
@@ -12,6 +32,30 @@ type Props = {
   activity: CatItem[];
   commercialMode: boolean;
 };
+
+function renderBar(cat: CatItem, pct: number, color: string) {
+  const absAmount = Math.abs(cat.amount);
+  const pctDisplay = pct > 0 && pct < 1 ? pct.toFixed(1) : pct.toFixed(0);
+  return (
+    <div key={cat.name}>
+      <div className="flex justify-between text-sm mb-1 font-[family-name:var(--font-inter)]">
+        <span className="text-[#1A1A1A] flex items-center gap-1.5">
+          <FontAwesomeIcon icon={getCatIcon(cat.icon)} className="w-3.5 h-3.5 text-[#9BA89D]" />
+          {cat.name}
+        </span>
+        <span className="text-[#9BA89D] font-medium tabular-nums">
+          {pctDisplay}% <span className="text-[#9BA89D]/60">{formatCurrency(absAmount)}</span>
+        </span>
+      </div>
+      <div className="h-1.5 bg-[#F2EDE4] rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}99)` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function ExpenseBreakdown({ personal, activity, commercialMode }: Props) {
   const totalPersonal = personal.reduce((a, c) => a + Math.abs(c.amount), 0);
@@ -58,28 +102,8 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
             )}
             <div className="space-y-3">
               {personal.slice(0, 5).map((cat, i) => {
-                const absAmount = Math.abs(cat.amount);
-                const pct = totalPersonal > 0 ? (absAmount / totalPersonal) * 100 : 0;
-                const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
-                return (
-                  <div key={cat.name}>
-                    <div className="flex justify-between text-sm mb-1 font-[family-name:var(--font-inter)]">
-                      <span className="text-[#1A1A1A] flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
-                        {cat.name}
-                      </span>
-                      <span className="text-[#9BA89D] font-medium tabular-nums">
-                        {pct.toFixed(0)}% <span className="text-[#9BA89D]/60">{formatCurrency(absAmount)}</span>
-                      </span>
-                    </div>
-                    <div className="h-1 bg-[#F2EDE4] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${pct}%`, backgroundColor: color }}
-                      />
-                    </div>
-                  </div>
-                );
+                const pct = totalPersonal > 0 ? (Math.abs(cat.amount) / totalPersonal) * 100 : 0;
+                return renderBar(cat, pct, CATEGORY_COLORS[i % CATEGORY_COLORS.length]);
               })}
             </div>
           </div>
@@ -92,28 +116,8 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
             </div>
             <div className="space-y-3">
               {activity.slice(0, 5).map((cat, i) => {
-                const absAmount = Math.abs(cat.amount);
-                const pct = totalActivity > 0 ? (absAmount / totalActivity) * 100 : 0;
-                const color = CATEGORY_COLORS[(i + 3) % CATEGORY_COLORS.length];
-                return (
-                  <div key={cat.name}>
-                    <div className="flex justify-between text-sm mb-1 font-[family-name:var(--font-inter)]">
-                      <span className="text-[#1A1A1A] flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full inline-block shrink-0" style={{ backgroundColor: color }} />
-                        {cat.name}
-                      </span>
-                      <span className="text-[#9BA89D] font-medium tabular-nums">
-                        {pct.toFixed(0)}% <span className="text-[#9BA89D]/60">{formatCurrency(absAmount)}</span>
-                      </span>
-                    </div>
-                    <div className="h-1 bg-[#F2EDE4] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${pct}%`, backgroundColor: color }}
-                      />
-                    </div>
-                  </div>
-                );
+                const pct = totalActivity > 0 ? (Math.abs(cat.amount) / totalActivity) * 100 : 0;
+                return renderBar(cat, pct, CATEGORY_COLORS[(i + 3) % CATEGORY_COLORS.length]);
               })}
             </div>
           </div>

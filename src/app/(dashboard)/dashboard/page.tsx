@@ -14,7 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
 type ScopeSummary = {
   income: number;
@@ -23,6 +23,8 @@ type ScopeSummary = {
   balance: number;
   initialBalance: number;
   recurringExpense: number;
+  pendingRecurringExpense: number;
+  pendingRecurringIncome: number;
   topCategories: { name: string; icon: string; amount: number; type: string }[];
 };
 
@@ -59,6 +61,8 @@ export default function DashboardPage() {
     maxFreeExpense: number;
   } | null>(null);
   const [balanceHistory, setBalanceHistory] = useState<{ date: string; balance: number }[]>([]);
+  const [donutHover, setDonutHover] = useState<number | null>(null);
+  const [donutActive, setDonutActive] = useState<number | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
@@ -200,12 +204,19 @@ export default function DashboardPage() {
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const dayOfMonth = new Date().getDate();
   const daysLeft = daysInMonth - dayOfMonth;
-  const savings = totalIncome - totalExpense;
   const totalRecurringExpense = (personalSummary?.recurringExpense || 0) + (activitySummary?.recurringExpense || 0);
-  const dailyAvgExpense = dayOfMonth > 0 ? totalRecurringExpense / dayOfMonth : 0;
-  const projectedRemaining = savings - (dailyAvgExpense * daysLeft);
+  const totalPendingRecurringExpense = (personalSummary?.pendingRecurringExpense || 0) + (activitySummary?.pendingRecurringExpense || 0);
+  const totalPendingRecurringIncome = (personalSummary?.pendingRecurringIncome || 0) + (activitySummary?.pendingRecurringIncome || 0);
+  const totalRecurringFullMonth = totalRecurringExpense + totalPendingRecurringExpense;
+  const totalPonctuelExpense = totalExpense - totalRecurringExpense;
+  const projectedExpenses = totalRecurringFullMonth + (dayOfMonth > 0 ? (totalPonctuelExpense / dayOfMonth) * daysInMonth : 0);
+  const projectedRemaining = totalBalance - projectedExpenses + totalPendingRecurringIncome;
+  const dailyAvgExpense = dayOfMonth > 0 ? totalExpense / dayOfMonth : 0;
 
   const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
+
+  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const monthlyBalances = balanceHistory.filter(d => new Date(d.date) >= startOfMonth);
 
   return (
     <div className="space-y-3 pb-24 sm:pb-0">
@@ -295,6 +306,30 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Bannière solde initial */}
+      {personalSummary && user?.initialBalance === 0 && user?.initialBalanceActivity === 0 && (totalIncome > 0 || totalExpense > 0) && (
+        <div className="card">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+              <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-ink">Solde initial non défini</p>
+              <p className="text-sm text-muted mt-1">
+                Pour des projections précises, indiquez l&apos;argent que vous aviez avant de commencer dans les paramètres.
+              </p>
+              <a
+                href="/dashboard/settings"
+                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
+              >
+                Définir mon solde initial
+                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Card */}
       <div className="card-hero">
         <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
@@ -330,30 +365,44 @@ export default function DashboardPage() {
             <div className="bar-fill on-dark" style={{ width: `${Math.max(0, Math.min(100, savingsRate))}%` }} />
           </div>
         </div>
-        {balanceHistory.length > 0 && (
-          <div className="h-[50px] mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={balanceHistory} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <defs>
-                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ffffff" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#ffffff" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <Area
-                  type="monotone"
-                  dataKey="balance"
-                  stroke="rgba(255,255,255,0.5)"
-                  strokeWidth={1.5}
-                  fill="url(#sparkGrad)"
-                  dot={false}
-                  activeDot={false}
-                  isAnimationActive={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        {(() => {
+          if (balanceHistory.length === 0) return null;
+          const firstB = balanceHistory[0].balance;
+          const lastB = balanceHistory[balanceHistory.length - 1].balance;
+          const trendUp = lastB >= firstB;
+          const sparkColor = trendUp ? '#4ADE80' : '#EF4444';
+          return (
+            <div className="h-[50px] mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={balanceHistory} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={sparkColor} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={sparkColor} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                    labelStyle={{ fontWeight: 600, marginBottom: 2 }}
+                    formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
+                    labelFormatter={(label: any) => new Date(label).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    cursor={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="balance"
+                    stroke={sparkColor}
+                    strokeWidth={2}
+                    fill="url(#sparkGrad)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: sparkColor, stroke: '#fff', strokeWidth: 2 }}
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Grille : Répartition dépenses + Projection */}
@@ -367,6 +416,7 @@ export default function DashboardPage() {
           projectedRemaining={projectedRemaining}
           dailyAvgExpense={dailyAvgExpense}
           daysLeft={daysLeft}
+          dailyBalances={monthlyBalances}
         />
       </div>
 
@@ -442,33 +492,61 @@ export default function DashboardPage() {
 
                 {/* Petit donut Synthèse */}
                 <div className="flex justify-center mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-[80px] w-[80px]">
+                  <div className="flex items-center gap-6">
+                    <div className="relative h-[100px] w-[100px] shrink-0">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
                             data={donutData.filter(d => d.value > 0)}
                             cx="50%"
                             cy="50%"
-                            innerRadius={22}
-                            outerRadius={36}
+                            innerRadius={28}
+                            outerRadius={44}
+                            cornerRadius={4}
                             strokeWidth={0}
                             dataKey="value"
+                            isAnimationActive={true}
+                            animationBegin={200}
+                            animationDuration={600}
                           >
-                            {donutData.filter(d => d.value > 0).map((entry, idx) => (
-                              <Cell key={idx} fill={entry.color} />
-                            ))}
+                            {donutData.filter(d => d.value > 0).map((entry, idx) => {
+                              const dim = donutActive !== null && donutActive !== idx;
+                              return (
+                                <Cell
+                                  key={idx}
+                                  fill={entry.color}
+                                  opacity={dim ? 0.2 : 1}
+                                  style={{ transition: 'opacity 0.3s ease' }}
+                                />
+                              );
+                            })}
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[11px] font-[family-name:var(--font-dm-sans)] font-bold text-ink leading-none">
+                          {formatCurrency(tSaved)}
+                        </span>
+                        <span className="text-[8px] text-muted mt-0.5">Total</span>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-1 text-[11px] leading-tight">
-                      {donutData.filter(d => d.value > 0).map((d) => (
-                        <div key={d.name} className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: d.color }} />
-                          <span className="text-muted">{d.name}</span>
-                        </div>
-                      ))}
+                    <div className="flex flex-col gap-2 text-[11px] leading-tight">
+                      {donutData.filter(d => d.value > 0).map((d, idx) => {
+                        const isActive = donutActive === idx;
+                        return (
+                          <div
+                            key={d.name}
+                            className="flex items-center gap-2 cursor-pointer select-none transition-opacity duration-200"
+                            style={{ opacity: donutActive !== null && !isActive ? 0.4 : 1 }}
+                            onClick={() => setDonutActive(isActive ? null : idx)}
+                            onMouseEnter={() => setDonutHover(idx)}
+                            onMouseLeave={() => setDonutHover(null)}
+                          >
+                            <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: d.color }} />
+                            <span className={`text-muted ${isActive ? 'font-semibold text-ink' : ''}`}>{d.name}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

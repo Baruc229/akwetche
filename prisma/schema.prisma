@@ -40,6 +40,8 @@ model User {
   loginLogs          LoginLog[]
   notifications           Notification[]              @relation("UserNotifications")
   actedNotifications       Notification[]              @relation("NotificationActor")
+  recurringTemplates       RecurringTemplate[]
+  budgets                  Budget[]
   adminNotificationPref    String                      @default("instant") // "instant" ou "digest"
   onboardingCompleted      Boolean                     @default(false)
 }
@@ -145,8 +147,10 @@ model Category {
   archived Boolean @default(false)
   userId   Int
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions       Transaction[]
+  recurringTemplates RecurringTemplate[]
+  budgets            Budget[]
 
   @@unique([name, userId])
 }
@@ -218,4 +222,37 @@ model Report {
   userId    Int
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RecurringTemplate {
+  id         Int      @id @default(autoincrement())
+  name       String
+  amount     Float
+  type       String   // "income" or "expense"
+  scope      String   @default("personal") // "personal" or "activity"
+  dayOfMonth Int      // 1-31
+  categoryId Int?
+  active     Boolean  @default(true)
+  userId     Int
+
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, active])
+}
+
+model Budget {
+  id         Int    @id @default(autoincrement())
+  categoryId Int
+  scope      String @default("personal") // "personal" or "activity"
+  amount     Float
+  month      Int    // 1-12
+  year       Int
+  userId     Int
+
+  category  Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, scope, month, year])
+  @@index([userId, month, year])
 }

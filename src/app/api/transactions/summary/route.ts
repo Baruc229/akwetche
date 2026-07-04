@@ -12,10 +12,12 @@ type ScopeSummary = {
   balance: number;
   initialBalance: number;
   recurringExpense: number;
+  pendingRecurringExpense: number;
+  pendingRecurringIncome: number;
   topCategories: { name: string; icon: string; amount: number; type: string }[];
 };
 
-function computeScopeSummary(periodTxs: Tx[], allTxs: Tx[], initialBalance: number): ScopeSummary {
+function computeScopeSummary(periodTxs: Tx[], allTxs: Tx[], initialBalance: number, pendingRecurringExpense = 0, pendingRecurringIncome = 0): ScopeSummary {
   const income = periodTxs.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expense = periodTxs.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const recurringExpense = periodTxs.filter(t => t.type === "expense" && t.recurring).reduce((s, t) => s + t.amount, 0);
@@ -44,6 +46,8 @@ function computeScopeSummary(periodTxs: Tx[], allTxs: Tx[], initialBalance: numb
     balance: initialBalance + allIncome - allExpense,
     initialBalance,
     recurringExpense,
+    pendingRecurringExpense,
+    pendingRecurringIncome,
     topCategories: Object.values(byCategory).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)),
   };
 }
@@ -107,15 +111,38 @@ export async function GET(req: NextRequest) {
     const personalBalance = user?.initialBalance || 0;
     const activityBalance = user?.initialBalanceActivity || 0;
 
+    const today = new Date().getDate();
+    const templates = await prisma.recurringTemplate.findMany({
+      where: { userId, active: true, dayOfMonth: { gt: today } },
+      select: { scope: true, type: true, amount: true },
+    });
+
+    const pendingPersonalExpense = templates
+      .filter(t => t.scope === "personal" && t.type === "expense")
+      .reduce((s, t) => s + t.amount, 0);
+    const pendingPersonalIncome = templates
+      .filter(t => t.scope === "personal" && t.type === "income")
+      .reduce((s, t) => s + t.amount, 0);
+    const pendingActivityExpense = templates
+      .filter(t => t.scope === "activity" && t.type === "expense")
+      .reduce((s, t) => s + t.amount, 0);
+    const pendingActivityIncome = templates
+      .filter(t => t.scope === "activity" && t.type === "income")
+      .reduce((s, t) => s + t.amount, 0);
+
     const personal = computeScopeSummary(
       periodTransactions.filter(t => t.scope === "personal"),
       allTransactions.filter(t => t.scope === "personal"),
       personalBalance,
+      pendingPersonalExpense,
+      pendingPersonalIncome,
     );
     const activity = computeScopeSummary(
       periodTransactions.filter(t => t.scope === "activity"),
       allTransactions.filter(t => t.scope === "activity"),
       activityBalance,
+      pendingActivityExpense,
+      pendingActivityIncome,
     );
 
     return ok({ personal, activity });

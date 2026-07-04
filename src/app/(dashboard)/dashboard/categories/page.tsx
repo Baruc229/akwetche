@@ -1,0 +1,224 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrash, faLock, faTag } from '@fortawesome/free-solid-svg-icons';
+import { useDashboard } from "../../layout";
+
+type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
+
+export default function CategoriesPage() {
+  const { user } = useDashboard();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
+  const [isPremium, setIsPremium] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatType, setNewCatType] = useState<"income" | "expense">("expense");
+  const [catError, setCatError] = useState("");
+  const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
+  const [presetLoading, setPresetLoading] = useState(false);
+  const [archivedOpen, setArchivedOpen] = useState<"income" | "expense" | null>(null);
+
+  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
+  const isFree = !isPremium && !isAdmin;
+  const limit = 3;
+
+  async function loadCategories() {
+    try {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      setCategories(data.categories || []);
+      setActiveCategoryIds(data.activeCategoryIds || []);
+      setIsPremium(data.isPremium || false);
+    } catch { setCatError("Impossible de charger les catégories"); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { loadCategories(); }, []);
+
+  async function handleAddCategory(e: React.FormEvent) {
+    e.preventDefault();
+    setCatError("");
+    if (!newCatName.trim()) return;
+    const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length;
+    if (isFree && activeOfType >= limit) {
+      setCatError(`Limite gratuite atteinte (${limit} catégories par type max).`);
+      return;
+    }
+    const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType, archived: false };
+    setCategories(prev => [...prev, optimistic]);
+    setActiveCategoryIds(prev => [...prev, optimistic.id]);
+    setNewCatName("");
+    try {
+      const res = await fetch("/api/categories", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: optimistic.name, type: optimistic.type, icon: "" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCategories(prev => prev.filter(c => c.id !== optimistic.id));
+        setActiveCategoryIds(prev => prev.filter(id => id !== optimistic.id));
+        setCatError(data.error || "Erreur");
+        return;
+      }
+      setCategories(prev => prev.map(c => c.id === optimistic.id ? data.category : c));
+      if (data.category) setActiveCategoryIds(prev => [...prev.filter(id => id !== optimistic.id), data.category.id]);
+    } catch {
+      setCategories(prev => prev.filter(c => c.id !== optimistic.id));
+      setActiveCategoryIds(prev => prev.filter(id => id !== optimistic.id));
+      setCatError("Erreur");
+    }
+  }
+
+  async function handleArchiveCategory(id: number) {
+    const res = await fetch("/api/categories", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, archived: true }) });
+    if (res.ok) loadCategories();
+  }
+
+  async function handleRestoreCategory(id: number) {
+    const res = await fetch("/api/categories", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, archived: false }) });
+    if (res.ok) loadCategories();
+  }
+
+  async function handleDeleteCategory() {
+    if (!confirmDeleteCat) return;
+    const id = confirmDeleteCat;
+    setConfirmDeleteCat(null);
+    setCategories(prev => prev.filter(c => c.id !== id));
+    setActiveCategoryIds(prev => prev.filter(cid => cid !== id));
+    const res = await fetch("/api/categories", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (!res.ok) loadCategories();
+  }
+
+  async function addPresetCategories(type: "income" | "expense") {
+    setPresetLoading(true);
+    const presets = type === "income"
+      ? ["Salaire", "Freelance", "Ventes", "Investissements", "Autres revenus"]
+      : ["Alimentation", "Logement", "Transport", "Électricité", "Eau", "Internet", "Santé", "Éducation", "Loisirs", "Vêtements", "Autres dépenses"];
+    for (const name of presets) {
+      const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
+      if (isFree && activeOfType >= limit) break;
+      try {
+        const res = await fetch("/api/categories", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, type, icon: "" }),
+        });
+        if (res.ok) await loadCategories();
+      } catch {}
+    }
+    setPresetLoading(false);
+  }
+
+  if (loading) return (
+    <div className="space-y-3">
+      <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold">Catégories</h1>
+      <div className="card p-8 text-center text-muted text-sm">Chargement...</div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold">Catégories</h1>
+      </div>
+
+      <div className="card">
+        {isFree && (
+          <div className="mb-4 p-4 bg-gold-light rounded-xl border border-border space-y-3">
+            <p className="text-sm text-ink">Plan <strong>Gratuit</strong> : {limit} catégories actives par type. Passez à Premium pour des catégories illimitées.</p>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-gold">Revenus : {activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "income").length}/{categories.filter(c => c.type === "income").length}</span>
+              <span className="font-medium text-gold">Dépenses : {activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "expense").length}/{categories.filter(c => c.type === "expense").length}</span>
+            </div>
+          </div>
+        )}
+
+        {(["income", "expense"] as const).map((type) => {
+          const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
+          const isTypeLocked = isFree && activeOfType >= limit;
+          const typeLabel = type === "income" ? "Revenus" : "Dépenses";
+          const activeCats = categories.filter(c => !c.archived && c.type === type);
+          const archivedCats = categories.filter(c => c.archived && c.type === type);
+
+          return (
+            <div key={type} className="mb-6 last:mb-0">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-ink">{typeLabel}</h3>
+                {isFree && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-gold-light text-gold" : "bg-sand text-muted"}`}>({activeOfType}/{limit})</span>}
+                <button onClick={() => addPresetCategories(type)} disabled={presetLoading} className="text-xs text-brand hover:text-brand font-medium disabled:opacity-40">+ Défaut</button>
+              </div>
+
+              {activeCats.length === 0 ? (
+                <p className="text-sm text-muted mb-3">Aucune catégorie</p>
+              ) : (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {activeCats.map((cat) => {
+                    const isActive = activeCategoryIds.includes(cat.id);
+                    return (
+                      <div key={cat.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border ${isActive ? "bg-gold-light text-brand border-transparent" : "bg-sand text-muted border-border"}`}>
+                        {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
+                        <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
+                        <button onClick={() => handleArchiveCategory(cat.id)} className="text-muted hover:text-neg transition-colors ml-0.5" title="Archiver">
+                          <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                        </button>
+                        {!isActive && <span className="text-[10px] font-medium bg-white/60 text-muted px-1.5 py-0.5 rounded">Premium</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {archivedCats.length > 0 && (
+                <details className="mt-2 group" open={archivedOpen === type}>
+                  <summary className="text-xs text-muted cursor-pointer hover:text-ink transition-colors list-none flex items-center gap-1.5" onClick={() => setArchivedOpen(archivedOpen === type ? null : type)}>
+                    <span className="text-[10px] font-medium bg-border text-muted px-1.5 py-0.5 rounded">{archivedCats.length} archivée{(archivedCats.length > 1 ? "s" : "")}</span>
+                    <svg className={`w-3 h-3 transition-transform ${archivedOpen === type ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  </summary>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {archivedCats.map((cat) => (
+                      <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border opacity-70">
+                        <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />
+                        <span className="opacity-70">{cat.name}</span>
+                        <button onClick={() => handleRestoreCategory(cat.id)} className="text-muted hover:text-brand transition-colors ml-0.5" title="Restaurer">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+
+              <form onSubmit={handleAddCategory} className="flex items-end gap-2 pt-3 border-t border-border">
+                <div className="flex-1">
+                  <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} className="input-field text-sm" placeholder="Nouveau nom" disabled={isFree && activeOfType >= limit} />
+                </div>
+                <select value={newCatType} onChange={e => setNewCatType(e.target.value as "income" | "expense")} className="input-field text-sm" style={{ padding: '8px 24px 8px 12px', width: 'auto' }}>
+                  <option value="expense">Dépense</option>
+                  <option value="income">Revenu</option>
+                </select>
+                <button type="submit" disabled={isFree && activeOfType >= limit} className="btn-primary py-2.5 px-3 text-sm disabled:opacity-40">
+                  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+                </button>
+              </form>
+              {catError && <p className="text-neg text-sm mt-2">{catError}</p>}
+            </div>
+          );
+        })}
+      </div>
+
+      {confirmDeleteCat && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={() => setConfirmDeleteCat(null)}>
+          <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-2">Supprimer cette catégorie ?</h3>
+            <p className="text-sm text-muted mb-4">Les transactions liées ne seront plus associées à une catégorie.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDeleteCat(null)} className="btn-secondary text-sm">Annuler</button>
+              <button onClick={handleDeleteCategory} className="btn-danger text-sm">Oui, supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

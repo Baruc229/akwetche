@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
@@ -713,150 +714,11 @@ export default function SettingsPage() {
   {/* CATEGORIES */}
   <p className="text-label mb-3">Catégories</p>
   <div className="card">
-  {!isPremium && (
-  <div className="mb-4 p-4 bg-gold-light rounded-xl border border-border space-y-3">
-  <p className="text-sm text-ink">
-  Vous êtes sur le plan <strong>Gratuit</strong>. Seules <strong>3 catégories par type</strong> (revenus / dépenses) sont actives.
-  Les catégories supplémentaires nécessitent Premium.
-  </p>
-  <div className="flex items-center justify-between text-sm">
-  <div>
-  <span className="font-medium text-gold">Revenus actifs</span>
-  <span className="ml-2 font-semibold text-gold">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "income").length}/{categories.filter(c => c.type === "income").length}</span>
-  </div>
-  <div>
-  <span className="font-medium text-gold">Dépenses actives</span>
-  <span className="ml-2 font-semibold text-gold">{activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === "expense").length}/{categories.filter(c => c.type === "expense").length}</span>
-  </div>
-  </div>
-  <button
-  onClick={handleSubscribe}
-  className="btn-primary w-full justify-center"
-  >
-  <FontAwesomeIcon icon={faCrown} className="w-4 h-4" />
-  Passer au Premium
-  <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
-  </button>
-  </div>
-  )}
-
-  {(["income", "expense"] as const).map((type) => {
-  const typeLabel = type === "income" ? "Revenus" : "Dépenses";
-  const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
-  const totalOfType = categories.filter(c => c.type === type).length;
-  const isTypeLocked = !isPremium && activeOfType >= 3;
-
-  return (
-  <div key={type} className="mb-6 last:mb-0">
-  <div className="flex items-center justify-between mb-3">
-  <div className="flex items-center gap-2">
-  <h3 className="text-sm font-medium text-ink">{typeLabel}</h3>
-  {!isPremium && (
-  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-gold-light text-gold" : "bg-sand text-muted"}`}>({activeOfType}/3 actives)</span>
-  )}
-  </div>
-  <button onClick={() => addPresetCategories(type)} disabled={presetLoading} className="text-xs text-brand hover:text-brand font-medium disabled:opacity-40">+ Catégories par défaut</button>
-  </div>
-
-  {categories.filter(c => !c.archived && c.type === type).length === 0 ? (
-  <p className="text-sm text-muted">Aucune catégorie de {typeLabel.toLowerCase()}</p>
-  ) : (
-  <div className="flex flex-wrap gap-2">
-  {categories.filter(c => !c.archived && c.type === type).map((cat) => {
-  const isActive = activeCategoryIds.includes(cat.id);
-  return (
-  <div key={cat.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border ${
-  isActive
-  ? "bg-gold-light text-brand border-transparent"
-  : "bg-sand text-muted border-border"
-  }`}>
-  {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
-  <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
-  <button
-  onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
-  className={`hover:text-neg transition-colors ml-0.5 ${isActive ? "text-brand" : "text-muted"}`}
-  title="Supprimer"
-  >
-  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-  </button>
-  {!isActive && (
-  <span className="text-[10px] font-medium bg-white/60 text-muted px-1.5 py-0.5 rounded">Premium</span>
-  )}
-  </div>
-  );
-  })}
-  </div>
-  )}
-
-  {/* Archived categories for this type */}
-  {categories.filter(c => c.archived && c.type === type).length > 0 && (
-  <details className="mt-2 group">
-  <summary className="text-xs text-muted cursor-pointer hover:text-ink transition-colors list-none flex items-center gap-1.5">
-  <span className="text-[10px] font-medium bg-border text-muted px-1.5 py-0.5 rounded">
-  {categories.filter(c => c.archived && c.type === type).length} archivée{(categories.filter(c => c.archived && c.type === type).length) > 1 ? "s" : ""}
-  </span>
-  <svg className={`w-3 h-3 transition-transform group-open:rotate-90`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-  </summary>
-  <div className="flex flex-wrap gap-2 mt-2">
-  {categories.filter(c => c.archived && c.type === type).map((cat) => (
-  <div key={cat.id} className="flex items-center gap-1.5 bg-sand text-muted px-3 py-1.5 rounded-xl text-sm border border-border opacity-70">
-  <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />
-  <span className="opacity-70">{cat.name}</span>
-  <button
-  onClick={(e) => { e.stopPropagation(); handleRestoreCategory(cat.id); }}
-  className="text-muted hover:text-brand transition-colors ml-0.5"
-  title="Restaurer"
-  >
-  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-  </button>
-  <button
-  onClick={(e) => { e.stopPropagation(); setConfirmDeleteCat(cat.id); }}
-  className="text-muted hover:text-neg transition-colors"
-  title="Supprimer définitivement"
-  >
-  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-  </button>
-  </div>
-  ))}
-  </div>
-  </details>
-  )}
-  </div>
-  );
-  })}
-
-  <form onSubmit={handleAddCategory} className="flex items-end gap-2 pt-3 border-t border-border">
-  <div className="flex-1">
-  <label className="block text-xs text-muted mb-1">Nouvelle catégorie</label>
-  <input
-  type="text"
-  value={newCatName}
-  onChange={(e) => setNewCatName(e.target.value)}
-  className="input-field text-sm"
-  placeholder="Nom"
-  disabled={!isPremium && activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length >= 3}
-  />
-  </div>
-  <div>
-  <label className="block text-xs text-muted mb-1">Type</label>
-  <CustomSelect
-  options={[
-  { value: "expense", label: "Dépense" },
-  { value: "income", label: "Revenu" },
-  ]}
-  value={newCatType}
-  onChange={(v) => setNewCatType(v)}
-  />
-  </div>
-  <button
-  type="submit"
-  disabled={!isPremium && activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length >= 3}
-  className="btn-primary py-2.5 px-3 text-sm disabled:opacity-40"
-  >
-  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-  </button>
-  </form>
-  {catError && <p className="text-neg text-sm">{catError}</p>}
+    <p className="text-sm text-muted mb-3">Gérez vos catégories de revenus et dépenses depuis la page dédiée.</p>
+    <Link href="/dashboard/categories" className="btn-primary w-full justify-center flex items-center gap-2 text-sm">
+      <FontAwesomeIcon icon={faTag} className="w-4 h-4" />
+      Gérer les catégories →
+    </Link>
   </div>
 
  {/* DANGER ZONE */}

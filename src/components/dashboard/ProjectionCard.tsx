@@ -3,23 +3,47 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+
+type DailyBalance = { date: string; balance: number };
 
 type Props = {
   projectedRemaining: number;
   dailyAvgExpense: number;
   daysLeft: number;
+  dailyBalances?: DailyBalance[];
 };
 
-export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft }: Props) {
+export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances }: Props) {
   const isNegative = projectedRemaining < 0;
   const dayOfMonth = new Date().getDate();
-  const currentNet = projectedRemaining + (dailyAvgExpense * daysLeft);
-  const chartData = [
-    { day: `Jour ${dayOfMonth}`, value: Math.round(currentNet) },
-    { day: `Jour ${dayOfMonth + daysLeft}`, value: Math.round(projectedRemaining) },
-  ];
-  const chartColor = projectedRemaining >= currentNet ? '#2D5A27' : '#B94A3E';
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+
+  const lastRealBalance = dailyBalances && dailyBalances.length > 0
+    ? dailyBalances[dailyBalances.length - 1].balance
+    : projectedRemaining + (dailyAvgExpense * daysLeft);
+
+  const chartColor = projectedRemaining >= lastRealBalance ? '#2D5A27' : '#B94A3E';
+
+  const chartData: { day: number; pastValue: number | null; futureValue: number | null; label: string }[] = [];
+
+  if (dailyBalances && dailyBalances.length > 0) {
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const monthDays = dailyBalances.filter(d => new Date(d.date) >= startOfMonth);
+    for (const d of monthDays) {
+      const dayNum = new Date(d.date).getDate();
+      chartData.push({ day: dayNum, pastValue: d.balance, futureValue: null, label: `${dayNum}` });
+    }
+  }
+
+  if (chartData.length > 0) {
+    chartData[chartData.length - 1].futureValue = chartData[chartData.length - 1].pastValue;
+  }
+
+  const futureDay = dayOfMonth + daysLeft;
+  if (futureDay > dayOfMonth) {
+    chartData.push({ day: futureDay, pastValue: null, futureValue: projectedRemaining, label: `${futureDay}` });
+  }
 
   return (
     <div className="bg-white rounded-[18px] p-5">
@@ -31,21 +55,43 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       </div>
       <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Estimation fin de mois</p>
 
-      <div className="h-[50px] mb-3">
+      <div className="h-[60px] mb-3">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
             <defs>
-              <linearGradient id={`projGrad-${chartColor.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.25} />
+              <linearGradient id="projPastGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.2} />
                 <stop offset="95%" stopColor={chartColor} stopOpacity={0.02} />
               </linearGradient>
+              <linearGradient id="projFutureGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.1} />
+                <stop offset="95%" stopColor={chartColor} stopOpacity={0.01} />
+              </linearGradient>
             </defs>
+            <Tooltip
+              contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              labelStyle={{ fontWeight: 600, marginBottom: 2 }}
+              formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
+              labelFormatter={(label: any) => `Jour ${label}`}
+              cursor={false}
+            />
             <Area
               type="monotone"
-              dataKey="value"
+              dataKey="pastValue"
               stroke={chartColor}
               strokeWidth={2}
-              fill={`url(#projGrad-${chartColor.slice(1)})`}
+              fill="url(#projPastGrad)"
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="futureValue"
+              stroke={chartColor}
+              strokeWidth={2}
+              strokeDasharray="4 3"
+              fill="url(#projFutureGrad)"
               dot={false}
               activeDot={false}
               isAnimationActive={false}
@@ -54,7 +100,7 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-[#FCECEA] rounded-xl p-4 border-l-[3px] border-[#B94A3E]">
+      <div className="rounded-xl p-4 border-l-[3px]" style={{ background: isNegative ? '#FCECEA' : '#E8F5E9', borderColor: isNegative ? '#B94A3E' : '#2D5A27' }}>
         <p className="text-xs text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>
         <p
           className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold"

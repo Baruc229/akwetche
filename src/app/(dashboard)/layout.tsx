@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -200,11 +200,17 @@ export default function DashboardLayout({
  .finally(() => setLoading(false));
  }, [router]);
 
- useEffect(() => {
- if (user && (user.plan === "premium" || user.role !== "user")) {
- localStorage.setItem("akwetche_commercial", String(commercialMode));
- }
- }, [commercialMode, user]);
+  useEffect(() => {
+  if (user && (user.plan === "premium" || user.role !== "user")) {
+  localStorage.setItem("akwetche_commercial", String(commercialMode));
+  }
+  }, [commercialMode, user]);
+
+  useEffect(() => {
+    if (user) {
+      fetch("/api/recurring/generate", { method: "POST" }).catch(() => {});
+    }
+  }, [user]);
 
   const handleLogout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -286,11 +292,14 @@ export default function DashboardLayout({
    const subStatus = user?.subscription;
    const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);
 
-   const navItems = [
-     { href: "/dashboard", label: "Accueil", icon: faGauge },
-     { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
-     { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
-   ];
+    const navItems = [
+      { href: "/dashboard", label: "Accueil", icon: faGauge },
+      { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+      { href: "/dashboard/categories", label: "Catégories", icon: faTag },
+      { href: "/dashboard/recurring", label: "Récurrentes", icon: faRotate },
+      { href: "/dashboard/budgets", label: "Budgets", icon: faSackDollar },
+      { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
+    ];
 
    const commercialNavItems = [
      { href: "/dashboard/products", label: "Produits", icon: faBox },
