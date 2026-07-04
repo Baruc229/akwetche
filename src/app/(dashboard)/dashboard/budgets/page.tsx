@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrash, faPen, faTriangleExclamation, faCircleCheck, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faPen, faTriangleExclamation, faCircleCheck, faArrowRight, faSackDollar, faFire } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { formatCurrency, toStorageCurrency, toDisplayCurrency, roundByCurrency } from "@/lib/utils";
-import CustomSelect from "@/components/ui/CustomSelect";
 
 type Budget = {
   id: number;
@@ -62,40 +61,28 @@ export default function BudgetsPage() {
   useEffect(() => { loadData(); }, [month, year]);
 
   function resetForm() {
-    setFormCategoryId("");
-    setFormScope("personal");
-    setFormAmount("");
-    setEditingId(null);
-    setError("");
+    setFormCategoryId(""); setFormScope("personal"); setFormAmount(""); setEditingId(null); setError("");
   }
 
   function openEdit(b: Budget) {
     setFormCategoryId(String(b.categoryId));
     setFormScope(b.scope);
     setFormAmount(String(roundByCurrency(toDisplayCurrency(b.amount, currency), currency)));
-    setEditingId(b.id);
-    setShowForm(true);
-    setError("");
+    setEditingId(b.id); setShowForm(true); setError("");
   }
 
   async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+    e.preventDefault(); setError("");
     if (!formCategoryId) { setError("Catégorie requise"); return; }
     const displayAmount = parseFloat(formAmount);
     if (!displayAmount || displayAmount <= 0) { setError("Montant invalide"); return; }
-
     const amount = toStorageCurrency(displayAmount, currency);
     const body = { categoryId: formCategoryId, scope: formScope, amount, month, year };
-
     const res = await fetch("/api/budgets", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     if (!res.ok) { setError("Erreur d'enregistrement"); return; }
-
-    resetForm();
-    setShowForm(false);
-    loadData();
+    resetForm(); setShowForm(false); loadData();
   }
 
   async function handleDelete(id: number) {
@@ -103,35 +90,195 @@ export default function BudgetsPage() {
     loadData();
   }
 
+  const totalBudget = budgets.reduce((s, b) => s + b.amount, 0);
+  const totalSpent = budgets.reduce((s, b) => s + b.spent, 0);
+  const totalRemaining = totalBudget - totalSpent;
+  const totalTaux = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
   const personalBudgets = budgets.filter(b => b.scope === "personal");
   const activityBudgets = budgets.filter(b => b.scope === "activity");
 
   if (loading) return (
     <div className="space-y-3">
-      <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold">Budgets</h1>
       <div className="card p-8 text-center text-muted text-sm">Chargement...</div>
     </div>
   );
 
+  function BudgetRow({ budget: b }: { budget: Budget }) {
+    const remaining = b.amount - b.spent;
+    const taux = b.amount > 0 ? (b.spent / b.amount) * 100 : 0;
+    const dailyBurn = dayOfMonth > 0 ? b.spent / dayOfMonth : 0;
+    const projectedMonth = dailyBurn * daysInMonth;
+    const willOvershoot = projectedMonth > b.amount && b.amount > 0;
+    const tauxDisplay = taux > 0 && taux < 1 ? taux.toFixed(1) : taux.toFixed(0);
+    const overshootAmount = projectedMonth - b.amount;
+
+    let status: "ok" | "warning" | "danger" = "ok";
+    if (taux >= 100) status = "danger";
+    else if (taux >= 75 || willOvershoot) status = "warning";
+
+    return (
+      <div className="card px-5 py-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{
+              background: status === "danger" ? 'var(--color-neg-bg)' : status === "warning" ? 'rgba(255,183,77,0.15)' : 'var(--color-pos-bg)',
+            }}>
+              <span className="text-base">{b.category.icon}</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{b.category.name}</p>
+              {b.scope === "activity" && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>Activité</span>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-sm font-bold tabular-nums">{formatCurrency(b.amount)}</p>
+              <p className="text-[10px] text-muted">alloué</p>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title="Modifier">
+                <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => handleDelete(b.id)} className="p-1.5 rounded-lg hover:bg-neg-bg text-muted hover:text-neg transition-all" title="Supprimer">
+                <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex-1 h-2.5 bg-sand rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ease-out ${
+                status === "danger" ? "bg-neg" : status === "warning" ? "bg-gold" : "bg-pos"
+              }`}
+              style={{ width: `${Math.min(taux, 100)}%` }}
+            />
+          </div>
+          <span className={`text-xs font-bold tabular-nums shrink-0 ${
+            status === "danger" ? "text-neg" : status === "warning" ? "text-gold" : "text-pos"
+          }`}>
+            {tauxDisplay}%
+          </span>
+        </div>
+
+        {/* Spent / Remaining / Daily burn */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-2.5 rounded-lg" style={{background:'var(--color-neg-bg)'}}>
+            <p className="text-[10px] text-muted">Dépensé</p>
+            <p className="text-sm font-bold text-neg tabular-nums">{formatCurrency(b.spent)}</p>
+          </div>
+          <div className="p-2.5 rounded-lg" style={{
+            background: remaining < 0 ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)',
+          }}>
+            <p className="text-[10px] text-muted">Restant</p>
+            <p className={`text-sm font-bold tabular-nums ${remaining < 0 ? "text-neg" : "text-pos"}`}>
+              {remaining < 0 ? formatCurrency(Math.abs(remaining)) + " dépassé" : formatCurrency(remaining)}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-lg" style={{background:'var(--color-brand-subtle)'}}>
+            <p className="text-[10px] text-muted">Moy. journalière</p>
+            <p className="text-sm font-bold tabular-nums">{formatCurrency(Math.round(dailyBurn))}/j</p>
+          </div>
+        </div>
+
+        {/* Alerts */}
+        {taux >= 100 && (
+          <div className="mt-2 flex items-center gap-2 p-2.5 rounded-lg text-xs font-semibold" style={{background:'var(--color-neg-bg)', color:'var(--color-neg)'}}>
+            <FontAwesomeIcon icon={faFire} className="w-4 h-4" />
+            Budget dépassé de {formatCurrency(Math.abs(remaining))}
+          </div>
+        )}
+        {willOvershoot && taux < 100 && (
+          <div className="mt-2 flex items-center gap-2 p-2.5 rounded-lg text-xs font-semibold" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>
+            <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4" />
+            <span>Dépassement prévu de <strong>{formatCurrency(Math.round(overshootAmount))}</strong> en fin de mois</span>
+            <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 ml-auto" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const sections: { label: string; items: Budget[] }[] = [];
+  if (commercialMode && activityBudgets.length > 0) {
+    if (personalBudgets.length > 0) sections.push({ label: "Personnel", items: personalBudgets });
+    if (activityBudgets.length > 0) sections.push({ label: "Activité", items: activityBudgets });
+  } else if (personalBudgets.length > 0) {
+    sections.push({ label: "Budgets", items: personalBudgets });
+  }
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold">Budgets</h1>
-        <div className="flex items-center gap-2">
-          <select value={month} onChange={e => setMonth(parseInt(e.target.value))} className="input-field text-sm" style={{ padding: '6px 20px 6px 10px', width: 'auto' }}>
-            {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-          </select>
-          <input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="input-field text-sm" style={{ padding: '6px 10px', width: '80px' }} min="2020" max="2100" />
-          <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-primary text-sm flex items-center gap-1.5">
-            <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-            Budget
-          </button>
+    <div className="space-y-4">
+      {/* Hero header */}
+      <div className="card overflow-hidden" style={{
+        background: totalTaux >= 100
+          ? 'linear-gradient(135deg, var(--color-neg) 0%, #b91c1c 100%)'
+          : totalTaux >= 75
+          ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
+          : 'linear-gradient(135deg, var(--color-pos) 0%, #15803d 100%)',
+      }}>
+        <div className="flex items-center justify-between p-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:'rgba(255,255,255,0.2)'}}>
+                <FontAwesomeIcon icon={faSackDollar} className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">Budgets</h1>
+                <p className="text-xs text-white/70">{MONTHS.find(m => m.value === String(month))?.label} {year}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 mt-4">
+              <div>
+                <p className="text-3xl font-bold text-white tabular-nums">{formatCurrency(totalBudget)}</p>
+                <p className="text-xs text-white/60">Budget total</p>
+              </div>
+              <div className="w-px h-10" style={{background:'rgba(255,255,255,0.2)'}} />
+              <div>
+                <p className="text-xl font-bold text-white tabular-nums">{formatCurrency(totalSpent)}</p>
+                <p className="text-xs text-white/60">Dépensé</p>
+              </div>
+              <div className="w-px h-10" style={{background:'rgba(255,255,255,0.2)'}} />
+              <div>
+                <p className="text-xl font-bold text-white tabular-nums">{formatCurrency(totalRemaining)}</p>
+                <p className="text-xs text-white/60">Restant</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 justify-end">
+              <select value={month} onChange={e => setMonth(parseInt(e.target.value))} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-none" style={{background:'rgba(255,255,255,0.2)', color:'white', WebkitAppearance:'none', MozAppearance:'none'}}>
+                {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+              <input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border-none w-16 text-center" style={{background:'rgba(255,255,255,0.2)', color:'white'}} min="2020" max="2100" />
+            </div>
+            <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all" style={{background:'rgba(255,255,255,0.2)', color:'white'}}>
+              <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+              Nouveau budget
+            </button>
+          </div>
+        </div>
+        {/* Mini total bar */}
+        <div className="px-5 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.2)'}}>
+              <div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${Math.min(totalTaux, 100)}%` }} />
+            </div>
+            <span className="text-xs font-bold text-white tabular-nums">{totalTaux > 0 && totalTaux < 1 ? totalTaux.toFixed(1) : totalTaux.toFixed(0)}%</span>
+          </div>
         </div>
       </div>
 
+      {/* Form */}
       {showForm && (
         <div className="card">
-          <h2 className="text-sm font-semibold mb-4">Nouveau budget</h2>
+          <h2 className="text-sm font-semibold mb-4">{editingId ? "Modifier" : "Nouveau"} budget</h2>
           <form onSubmit={handleSave} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -139,7 +286,7 @@ export default function BudgetsPage() {
                 <select value={formCategoryId} onChange={e => setFormCategoryId(e.target.value)} className="input-field text-sm" required>
                   <option value="">Sélectionner...</option>
                   {expCategories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                   ))}
                 </select>
               </div>
@@ -169,109 +316,36 @@ export default function BudgetsPage() {
         </div>
       )}
 
+      {/* Empty state */}
       {budgets.length === 0 ? (
-        <div className="card p-8 text-center">
-          <div className="w-12 h-12 bg-sand rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 text-muted" />
+        <div className="card p-12 text-center">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{background:'var(--color-brand-subtle)'}}>
+            <FontAwesomeIcon icon={faSackDollar} className="w-7 h-7" style={{color:'var(--color-brand)'}} />
           </div>
-          <p className="text-sm text-muted">Aucun budget pour {MONTHS.find(m => m.value === String(month))?.label} {year}</p>
+          <p className="text-base font-medium mb-1">Aucun budget défini</p>
+          <p className="text-sm text-muted mb-5">Fixez des limites par catégorie pour {MONTHS.find(m => m.value === String(month))?.label} {year}</p>
+          <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-primary text-sm">
+            <FontAwesomeIcon icon={faPlus} className="w-4 h-4 mr-1.5" />
+            Créer un budget
+          </button>
         </div>
       ) : (
         <div className="space-y-4">
-          {(commercialMode && activityBudgets.length > 0 ? [
-            { label: "Personnel", items: personalBudgets },
-            { label: "Activité", items: activityBudgets },
-          ] : [
-            { label: "Budgets", items: personalBudgets },
-          ]).filter(s => s.items.length > 0).map(section => (
+          {sections.map(section => (
             <div key={section.label}>
-              {commercialMode && <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 px-1">{section.label}</p>}
+              {commercialMode && (
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="w-2 h-2 rounded-full" style={{background:'var(--color-brand)'}} />
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">{section.label}</p>
+                </div>
+              )}
               <div className="space-y-2">
-                {section.items.map(b => (
-                  <BudgetRow
-                    key={b.id}
-                    budget={b}
-                    dayOfMonth={dayOfMonth}
-                    daysInMonth={daysInMonth}
-                    onEdit={() => openEdit(b)}
-                    onDelete={() => handleDelete(b.id)}
-                  />
-                ))}
+                {section.items.map(b => <BudgetRow key={b.id} budget={b} />)}
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function BudgetRow({ budget: b, dayOfMonth, daysInMonth, onEdit, onDelete }: { budget: Budget; dayOfMonth: number; daysInMonth: number; onEdit: () => void; onDelete: () => void }) {
-  const remaining = b.amount - b.spent;
-  const taux = b.amount > 0 ? (b.spent / b.amount) * 100 : 0;
-  const dailyBurn = dayOfMonth > 0 ? b.spent / dayOfMonth : 0;
-  const projectedMonth = dailyBurn * daysInMonth;
-  const willOvershoot = projectedMonth > b.amount && b.amount > 0;
-  const tauxDisplay = taux > 0 && taux < 1 ? taux.toFixed(1) : taux.toFixed(0);
-
-  let status: "ok" | "warning" | "danger" = "ok";
-  if (taux >= 100) status = "danger";
-  else if (taux >= 75 || willOvershoot) status = "warning";
-
-  return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-ink">{b.category.name}</p>
-          {b.scope === "activity" && <span className="text-[10px] text-muted bg-sand px-1.5 py-0.5 rounded">Activité</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          {status === "danger" && <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-neg" title="Dépassé" />}
-          {status === "warning" && <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-gold" title="Attention" />}
-          {status === "ok" && <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 text-pos" title="Dans les clous" />}
-          <button onClick={onEdit} className="text-muted hover:text-ink transition-colors"><FontAwesomeIcon icon={faPen} className="w-3 h-3" /></button>
-          <button onClick={onDelete} className="text-muted hover:text-neg transition-colors"><FontAwesomeIcon icon={faTrash} className="w-3 h-3" /></button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 mb-2">
-        <div>
-          <p className="text-[10px] text-muted">Alloué</p>
-          <p className="text-sm font-semibold tabular-nums">{formatCurrency(b.amount)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-muted">Dépensé</p>
-          <p className="text-sm font-semibold tabular-nums text-neg">{formatCurrency(b.spent)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-muted">Restant</p>
-          <p className={`text-sm font-semibold tabular-nums ${remaining < 0 ? "text-neg" : "text-pos"}`}>{formatCurrency(remaining)}</p>
-        </div>
-      </div>
-
-      <div className="h-1.5 bg-sand rounded-full overflow-hidden mb-2">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ease-out ${
-            status === "danger" ? "bg-neg" : status === "warning" ? "bg-gold" : "bg-pos"
-          }`}
-          style={{ width: `${Math.min(taux, 100)}%` }}
-        />
-      </div>
-
-      <div className="flex items-center justify-between text-xs">
-        <span className={`font-medium ${status === "danger" ? "text-neg" : status === "warning" ? "text-gold" : "text-pos"}`}>
-          {tauxDisplay}%
-        </span>
-        {willOvershoot && taux < 100 && (
-          <span className="text-gold flex items-center gap-1">
-            <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
-            Dépassement prévu ({formatCurrency(projectedMonth - b.amount)})
-          </span>
-        )}
-        {taux >= 100 && (
-          <span className="text-neg font-medium">Dépassé de {formatCurrency(Math.abs(remaining))}</span>
-        )}
-      </div>
     </div>
   );
 }
