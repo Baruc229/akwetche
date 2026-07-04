@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCircleDown, faCircleUp } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -306,8 +306,8 @@ export default function DashboardLayout({
 
    const commercialNavItems = [
      { href: "/dashboard/products", label: "Produits", icon: faBox },
-     { href: "/dashboard/sales", label: "Ventes", icon: faArrowTrendUp },
-     { href: "/dashboard/stock", label: "Stock", icon: faBagShopping },
+      { href: "/dashboard/sales", label: "Ventes", icon: faCashRegister },
+      { href: "/dashboard/stock", label: "Stock", icon: faWarehouse },
    ];
 
    const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => pathname === path || (path !== '/admin' && path !== '/dashboard' && pathname.startsWith(path)))?.[1] || 'Akwetche';

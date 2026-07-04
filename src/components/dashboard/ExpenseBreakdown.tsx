@@ -1,29 +1,10 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowTrendDown, faCartShopping, faUtensils, faHouseChimney, faCar, faHeart, faGraduationCap, faPlane, faShirt, faWifi, faGamepad, faGift, faStar, faBriefcase, faBasketShopping, faTag, faEllipsis } from '@fortawesome/free-solid-svg-icons';
+import { faArrowTrendDown } from '@fortawesome/free-solid-svg-icons';
+import { getIconByKey } from "@/lib/categoryIcons";
 import { formatCurrency } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
-
-function getCatIcon(icon: string) {
-  const map: Record<string, any> = {
-    "shopping": faCartShopping,
-    "food": faUtensils,
-    "house": faHouseChimney,
-    "car": faCar,
-    "health": faHeart,
-    "education": faGraduationCap,
-    "travel": faPlane,
-    "clothing": faShirt,
-    "bills": faWifi,
-    "entertainment": faGamepad,
-    "gift": faGift,
-    "salary": faStar,
-    "freelance": faBriefcase,
-    "groceries": faBasketShopping,
-  };
-  return map[icon?.toLowerCase()] || faTag;
-}
 
 type CatItem = { name: string; icon: string; amount: number; type: string };
 
@@ -36,11 +17,12 @@ type Props = {
 function renderBar(cat: CatItem, pct: number, color: string) {
   const absAmount = Math.abs(cat.amount);
   const pctDisplay = pct > 0 && pct < 1 ? pct.toFixed(1) : pct.toFixed(0);
+  const icon = getIconByKey(cat.icon);
   return (
     <div key={cat.name}>
       <div className="flex justify-between text-sm mb-1 font-[family-name:var(--font-inter)]">
         <span className="text-[#1A1A1A] flex items-center gap-1.5">
-          <FontAwesomeIcon icon={getCatIcon(cat.icon)} className="w-3.5 h-3.5 text-[#9BA89D]" />
+          <FontAwesomeIcon icon={icon} className="w-3.5 h-3.5 text-[#9BA89D]" />
           {cat.name}
         </span>
         <span className="text-[#9BA89D] font-medium tabular-nums">

@@ -1,7 +1,8 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRight, faClock, faCartShopping, faBasketShopping, faHouseChimney, faCar, faHeart, faGraduationCap, faPlane, faShirt, faWifi, faUtensils, faGamepad, faGift, faBriefcase, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faClock, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
+import { getIconByKey } from "@/lib/categoryIcons";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 
 type Transaction = {
@@ -18,26 +19,6 @@ type Props = {
   transactions: Transaction[];
   onAdd?: () => void;
 };
-
-function getCategoryIcon(icon: string) {
-  const map: Record<string, any> = {
-    "shopping": faCartShopping,
-    "food": faUtensils,
-    "house": faHouseChimney,
-    "car": faCar,
-    "health": faHeart,
-    "education": faGraduationCap,
-    "travel": faPlane,
-    "clothing": faShirt,
-    "bills": faWifi,
-    "entertainment": faGamepad,
-    "gift": faGift,
-    "salary": faStar,
-    "freelance": faBriefcase,
-    "groceries": faBasketShopping,
-  };
-  return map[icon?.toLowerCase()] || faCartShopping;
-}
 
 export default function RecentTransactions({ transactions, onAdd }: Props) {
   return (
@@ -74,7 +55,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
         <div className="divide-y divide-[#E0D8CC]">
           {transactions.map((tx) => {
             const isIncome = tx.type === "income";
-            const icon = getCategoryIcon(tx.category?.icon);
+            const icon = getIconByKey(tx.category?.icon);
             return (
               <div key={tx.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                 <div

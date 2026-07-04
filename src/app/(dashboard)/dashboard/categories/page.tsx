@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrash, faLock, faTag } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
+import { EXPENSE_ICONS, INCOME_ICONS, getDefaultIconForName } from "@/lib/categoryIcons";
 
 type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
+
+const ICON_SETS = { income: INCOME_ICONS, expense: EXPENSE_ICONS };
 
 export default function CategoriesPage() {
   const { user } = useDashboard();
@@ -15,6 +18,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [newCatName, setNewCatName] = useState("");
   const [newCatType, setNewCatType] = useState<"income" | "expense">("expense");
+  const [newCatIcon, setNewCatIcon] = useState("");
   const [catError, setCatError] = useState("");
   const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
   const [presetLoading, setPresetLoading] = useState(false);
@@ -37,6 +41,20 @@ export default function CategoriesPage() {
 
   useEffect(() => { loadCategories(); }, []);
 
+  function getUsedIcons(type: "income" | "expense"): string[] {
+    return categories
+      .filter(c => !c.archived && c.type === type && c.icon)
+      .map(c => c.icon);
+  }
+
+  function availableIcons(type: "income" | "expense") {
+    return ICON_SETS[type].filter(i => !getUsedIcons(type).includes(i.key));
+  }
+
+  function resetForm() {
+    setNewCatName(""); setNewCatIcon(""); setCatError("");
+  }
+
   async function handleAddCategory(e: React.FormEvent) {
     e.preventDefault();
     setCatError("");
@@ -46,14 +64,17 @@ export default function CategoriesPage() {
       setCatError(`Limite gratuite atteinte (${limit} catégories par type max).`);
       return;
     }
-    const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: "", type: newCatType, archived: false };
+
+    const iconKey = newCatIcon || getDefaultIconForName(newCatName);
+
+    const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: iconKey, type: newCatType, archived: false };
     setCategories(prev => [...prev, optimistic]);
     setActiveCategoryIds(prev => [...prev, optimistic.id]);
-    setNewCatName("");
+    setNewCatName(""); setNewCatIcon("");
     try {
       const res = await fetch("/api/categories", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: optimistic.name, type: optimistic.type, icon: "" }),
+        body: JSON.stringify({ name: optimistic.name, type: optimistic.type, icon: iconKey }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -94,15 +115,33 @@ export default function CategoriesPage() {
   async function addPresetCategories(type: "income" | "expense") {
     setPresetLoading(true);
     const presets = type === "income"
-      ? ["Salaire", "Freelance", "Ventes", "Investissements", "Autres revenus"]
-      : ["Alimentation", "Logement", "Transport", "Électricité", "Eau", "Internet", "Santé", "Éducation", "Loisirs", "Vêtements", "Autres dépenses"];
-    for (const name of presets) {
+      ? [
+          { name: "Salaire", icon: "salary" },
+          { name: "Freelance", icon: "freelance" },
+          { name: "Ventes", icon: "sales" },
+          { name: "Investissements", icon: "investment" },
+          { name: "Autres revenus", icon: "other" },
+        ]
+      : [
+          { name: "Alimentation", icon: "food" },
+          { name: "Logement", icon: "house" },
+          { name: "Transport", icon: "car" },
+          { name: "Électricité", icon: "bolt" },
+          { name: "Eau", icon: "water" },
+          { name: "Internet", icon: "wifi" },
+          { name: "Santé", icon: "health" },
+          { name: "Éducation", icon: "education" },
+          { name: "Loisirs", icon: "entertainment" },
+          { name: "Vêtements", icon: "clothing" },
+          { name: "Autres dépenses", icon: "palette" },
+        ];
+    for (const p of presets) {
       const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
       if (isFree && activeOfType >= limit) break;
       try {
         const res = await fetch("/api/categories", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, type, icon: "" }),
+          body: JSON.stringify({ name: p.name, type, icon: p.icon }),
         });
         if (res.ok) await loadCategories();
       } catch {}
@@ -140,6 +179,8 @@ export default function CategoriesPage() {
           const typeLabel = type === "income" ? "Revenus" : "Dépenses";
           const activeCats = categories.filter(c => !c.archived && c.type === type);
           const archivedCats = categories.filter(c => c.archived && c.type === type);
+          const availIcons = availableIcons(type);
+          const selectedIconDef = ICON_SETS[type].find(i => i.key === newCatIcon);
 
           return (
             <div key={type} className="mb-6 last:mb-0">
@@ -155,9 +196,14 @@ export default function CategoriesPage() {
                 <div className="flex flex-wrap gap-2 mb-3">
                   {activeCats.map((cat) => {
                     const isActive = activeCategoryIds.includes(cat.id);
+                    const catIconDef = ICON_SETS[type === "income" ? "income" : "expense"].find(i => i.key === cat.icon);
                     return (
                       <div key={cat.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border ${isActive ? "bg-gold-light text-brand border-transparent" : "bg-sand text-muted border-border"}`}>
-                        {!isActive && <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />}
+                        {catIconDef ? (
+                          <FontAwesomeIcon icon={catIconDef.icon} className="w-3.5 h-3.5 shrink-0" />
+                        ) : !isActive ? (
+                          <FontAwesomeIcon icon={faLock} className="w-3 h-3 shrink-0" />
+                        ) : null}
                         <span className={!isActive ? "opacity-70" : ""}>{cat.name}</span>
                         <button onClick={() => handleArchiveCategory(cat.id)} className="text-muted hover:text-neg transition-colors ml-0.5" title="Archiver">
                           <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
@@ -189,17 +235,51 @@ export default function CategoriesPage() {
                 </details>
               )}
 
-              <form onSubmit={handleAddCategory} className="flex items-end gap-2 pt-3 border-t border-border">
-                <div className="flex-1">
-                  <input type="text" value={newCatName} onChange={e => setNewCatName(e.target.value)} className="input-field text-sm" placeholder="Nouveau nom" disabled={isFree && activeOfType >= limit} />
+              <form onSubmit={handleAddCategory} className="pt-3 border-t border-border space-y-3">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <input type="text" value={newCatName} onChange={e => { setNewCatName(e.target.value); if (!newCatIcon && e.target.value) setNewCatIcon(getDefaultIconForName(e.target.value)); }} className="input-field text-sm" placeholder="Nouveau nom" disabled={isFree && activeOfType >= limit} />
+                  </div>
+                  <select value={newCatType} onChange={e => { setNewCatType(e.target.value as "income" | "expense"); setNewCatIcon(""); }} className="input-field text-sm" style={{ padding: '8px 24px 8px 12px', width: 'auto' }}>
+                    <option value="expense">Dépense</option>
+                    <option value="income">Revenu</option>
+                  </select>
+                  <button type="submit" disabled={isFree && activeOfType >= limit} className="btn-primary py-2.5 px-3 text-sm disabled:opacity-40">
+                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+                  </button>
                 </div>
-                <select value={newCatType} onChange={e => setNewCatType(e.target.value as "income" | "expense")} className="input-field text-sm" style={{ padding: '8px 24px 8px 12px', width: 'auto' }}>
-                  <option value="expense">Dépense</option>
-                  <option value="income">Revenu</option>
-                </select>
-                <button type="submit" disabled={isFree && activeOfType >= limit} className="btn-primary py-2.5 px-3 text-sm disabled:opacity-40">
-                  <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-                </button>
+
+                {/* Icon picker */}
+                <div>
+                  <p className="text-xs text-muted mb-1.5">Icône</p>
+                  {availIcons.length === 0 ? (
+                    <p className="text-xs text-muted italic">Toutes les icônes sont utilisées</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {availIcons.map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => setNewCatIcon(item.key)}
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
+                            newCatIcon === item.key
+                              ? 'ring-2 ring-brand bg-brand-subtle text-brand'
+                              : 'bg-sand text-muted hover:bg-border hover:text-ink'
+                          }`}
+                          title={item.label}
+                        >
+                          <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {selectedIconDef && newCatIcon && (
+                    <p className="text-xs text-muted mt-1">
+                      Sélectionné : <FontAwesomeIcon icon={selectedIconDef.icon} className="w-3 h-3 mr-1" />
+                      {selectedIconDef.label}
+                    </p>
+                  )}
+                </div>
               </form>
               {catError && <p className="text-neg text-sm mt-2">{catError}</p>}
             </div>

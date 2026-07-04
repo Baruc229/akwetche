@@ -99,6 +99,7 @@ export default function RevenusRecurrentsPage() {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
       if (!res.ok) { setError("Erreur de création"); return; }
+      fetch("/api/recurring/generate", { method: "POST" }).catch(() => {});
     }
     resetForm(); setShowForm(false); loadData();
   }
