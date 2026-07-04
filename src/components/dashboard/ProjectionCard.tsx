@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faTriangleExclamation, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -12,9 +12,10 @@ type Props = {
   dailyAvgExpense: number;
   daysLeft: number;
   dailyBalances?: DailyBalance[];
+  initialBalanceMissing?: boolean;
 };
 
-export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances }: Props) {
+export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances, initialBalanceMissing }: Props) {
   const isNegative = projectedRemaining < 0;
   const dayOfMonth = new Date().getDate();
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
@@ -115,6 +116,16 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[#B94A3E] shrink-0 mt-0.5" />
           <p className="text-xs text-[#B94A3E] font-[family-name:var(--font-inter)]">
             Vous dépensez plus que votre budget disponible.
+          </p>
+        </div>
+      )}
+
+      {initialBalanceMissing && (
+        <div className="flex items-start gap-2 mt-3">
+          <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5 text-[#C9A84C] shrink-0 mt-0.5" />
+          <p className="text-[11px] text-[#9BA89D] font-[family-name:var(--font-inter)] leading-relaxed">
+            Solde de départ non renseigné — cette estimation reflète uniquement vos revenus et dépenses enregistrés.
+            Ajoutez votre solde de départ dans les paramètres pour une projection plus précise.
           </p>
         </div>
       )}

@@ -329,6 +329,31 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Bannière solde activité non renseigné */}
+      {commercialMode && user?.initialBalanceActivity === 0 && monthActivity && (monthActivity.income + monthActivity.expense > 0) && (
+        <div className="card">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+              <FontAwesomeIcon icon={faBriefcase} className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-ink">Trésorerie de départ non renseignée</p>
+              <p className="text-sm text-muted mt-1">
+                Votre activité commerciale a des transactions mais aucun solde de départ n&apos;a été indiqué.
+                Ajoutez-le dans les paramètres pour des soldes et projections plus précis.
+              </p>
+              <a
+                href="/dashboard/settings"
+                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
+              >
+                Définir ma trésorerie de départ
+                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Card */}
       <div className="card-hero">
         <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
@@ -416,6 +441,7 @@ export default function DashboardPage() {
           dailyAvgExpense={dailyAvgExpense}
           daysLeft={daysLeft}
           dailyBalances={monthlyBalances}
+          initialBalanceMissing={user?.initialBalance === 0 && user?.initialBalanceActivity === 0 && (totalIncome > 0 || totalExpense > 0)}
         />
       </div>
 

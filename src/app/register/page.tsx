@@ -380,7 +380,7 @@ export default function RegisterPage() {
 
   <div>
   <label className="block text-sm font-medium text-ink mb-1.5">
-  Solde initial (optionnel)
+  Solde de départ personnel (optionnel)
   </label>
   <div className="relative">
   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{detectedCurrency === "XOF" ? "FCFA" : "EUR"}</span>
@@ -394,7 +394,7 @@ export default function RegisterPage() {
   />
   </div>
   <p className="text-xs text-muted mt-1">
-  Montant en {detectedCurrency === "XOF" ? "FCFA" : "EUR"} (ex: 150000)
+  Argent que vous aviez avant de commencer (hors activité commerciale)
   </p>
   </div>
 
