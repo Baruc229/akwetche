@@ -150,9 +150,23 @@ export default function CategoriesPage() {
   }
 
   if (loading) return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold">Catégories</h1>
-      <div className="card p-8 text-center text-muted text-sm">Chargement...</div>
+    <div className="space-y-4 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="skeleton h-8 w-36" />
+      </div>
+      <div className="card">
+        {[1,2].map(i => (
+          <div key={i} className="mb-6">
+            <div className="skeleton h-5 w-24 mb-3" />
+            <div className="flex flex-wrap gap-2 mb-3">
+              {[1,2,3].map(j => (
+                <div key={j} className="skeleton h-8 w-24 rounded-xl" />
+              ))}
+            </div>
+            <div className="skeleton h-10 w-full rounded-lg" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -236,9 +250,10 @@ export default function CategoriesPage() {
               )}
 
               <form onSubmit={handleAddCategory} className="pt-3 border-t border-border space-y-3">
+                <label className="text-xs text-muted font-medium">Nouvelle catégorie</label>
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
-                    <input type="text" value={newCatName} onChange={e => { setNewCatName(e.target.value); if (!newCatIcon && e.target.value) setNewCatIcon(getDefaultIconForName(e.target.value)); }} className="input-field text-sm" placeholder="Nouveau nom" disabled={isFree && activeOfType >= limit} />
+                    <input type="text" value={newCatName} onChange={e => { setNewCatName(e.target.value); if (!newCatIcon && e.target.value) setNewCatIcon(getDefaultIconForName(e.target.value)); }} className="input-field text-sm" placeholder="ex: courses, salaire" disabled={isFree && activeOfType >= limit} />
                   </div>
                   <select value={newCatType} onChange={e => { setNewCatType(e.target.value as "income" | "expense"); setNewCatIcon(""); }} className="input-field text-sm" style={{ padding: '8px 24px 8px 12px', width: 'auto' }}>
                     <option value="expense">Dépense</option>

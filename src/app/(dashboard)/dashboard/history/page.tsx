@@ -446,8 +446,14 @@ export default function HistoryPage() {
           <span className="text-xs text-muted hidden sm:block">{filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? "s" : ""}</span>
         </div>
         {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <div className="w-6 h-6 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
+          <div className="p-4 space-y-3 animate-pulse">
+            {[1,2,3].map(i => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="skeleton w-8 h-8 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/3" /></div>
+                <div className="skeleton h-5 w-16 shrink-0" />
+              </div>
+            ))}
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="text-center py-12 text-muted">

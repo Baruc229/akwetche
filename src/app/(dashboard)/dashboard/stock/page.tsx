@@ -387,7 +387,7 @@ export default function StockPage() {
                 </div>
                 <div>
                   <label className="field-label">Note (optionnelle)</label>
-                  <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="Ex: Livraison fournisseur" />
+                  <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="ex: Livraison fournisseur" />
                 </div>
                 {replenishError && <p className="text-[var(--color-neg)] text-sm bg-[var(--color-neg-bg)] p-3 rounded-xl">{replenishError}</p>}
                 <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
@@ -417,7 +417,7 @@ export default function StockPage() {
               </div>
               <div>
                 <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
-                <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="Ex: Livraison fournisseur" />
+                <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="ex: Livraison fournisseur" />
               </div>
               {replenishError && <p className="text-[var(--color-neg)] text-sm bg-[var(--color-neg-bg)] p-3 rounded-xl">{replenishError}</p>}
               <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">

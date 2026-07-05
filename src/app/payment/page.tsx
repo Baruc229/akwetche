@@ -205,7 +205,7 @@ function MobileMoneyForm({ onStatus, onSuccess }: { onStatus: (s: PaymentStatus)
  type="tel"
  value={phone}
  onChange={(e) => setPhone(e.target.value)}
- placeholder="Ex: 01 23 45 67 89"
+ placeholder="ex: 01 23 45 67 89"
    className="input-field"
  />
  </div>

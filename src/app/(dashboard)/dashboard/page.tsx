@@ -733,7 +733,7 @@ export default function DashboardPage() {
                   value={newTx.amount}
                   onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
                   className="field-input"
-                  placeholder="Ex: 5000"
+                  placeholder="ex: 5000"
                   required
                   min="1"
                 />
@@ -746,7 +746,7 @@ export default function DashboardPage() {
                   value={newTx.description}
                   onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
                   className="field-input"
-                  placeholder="Ex: Achat alimentation"
+                  placeholder="ex: Achat alimentation"
                   required
                 />
               </div>

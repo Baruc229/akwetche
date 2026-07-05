@@ -137,8 +137,35 @@ export default function RevenusRecurrentsPage() {
   const futureTemplates = activeTemplates.filter(t => t.dayOfMonth > today).sort((a, b) => a.dayOfMonth - b.dayOfMonth);
 
   if (loading) return (
-    <div className="space-y-3">
-      <div className="card p-8 text-center text-muted text-sm">Chargement...</div>
+    <div className="space-y-4 animate-pulse">
+      <div className="card overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-pos) 0%, #15803d 100%)' }}>
+        <div className="p-5">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="skeleton w-10 h-10 rounded-xl" />
+            <div className="space-y-2"><div className="skeleton h-5 w-44" /><div className="skeleton h-3 w-36" /></div>
+          </div>
+          <div className="skeleton h-8 w-36 mb-1" />
+          <div className="skeleton h-3 w-52" />
+        </div>
+        <div className="grid grid-cols-3" style={{ background:'rgba(255,255,255,0.1)' }}>
+          {[1,2,3].map(i => (
+            <div key={i} className="p-3" style={{ background:'rgba(0,0,0,0.15)' }}>
+              <div className="skeleton h-3 w-12 mb-1.5" style={{ background:'rgba(255,255,255,0.3)' }} />
+              <div className="skeleton h-5 w-8" style={{ background:'rgba(255,255,255,0.3)' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      {[1,2,3].map(i => (
+        <div key={i} className="card flex items-center gap-4 px-5 py-4">
+          <div className="skeleton w-14 h-14 rounded-xl shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="skeleton h-4 w-3/4" />
+            <div className="skeleton h-3 w-24" />
+          </div>
+          <div className="skeleton h-6 w-20 shrink-0" />
+        </div>
+      ))}
     </div>
   );
 

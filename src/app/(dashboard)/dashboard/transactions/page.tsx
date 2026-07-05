@@ -542,12 +542,12 @@ export default function TransactionsPage() {
                   <label className="field-label">Montant</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                    <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="Ex: 5000" required min="1" />
+                    <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
                   </div>
                 </div>
                 <div>
                   <label className="field-label">Description</label>
-                  <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="Ex: Achat alimentation" required />
+                  <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="ex: Achat alimentation" required />
                 </div>
                 <div>
                   <label className="field-label">Catégorie</label>
@@ -609,12 +609,12 @@ export default function TransactionsPage() {
                 <label className="field-label">Montant</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="Ex: 5000" required min="1" />
+                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
                 </div>
               </div>
               <div>
                 <label className="field-label">Description</label>
-                <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="Ex: Achat alimentation" required />
+                <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="ex: Achat alimentation" required />
               </div>
               <div>
                 <label className="field-label">Catégorie</label>

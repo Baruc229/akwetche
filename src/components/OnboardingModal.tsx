@@ -67,7 +67,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
                 type="number"
                 value={balanceInput}
                 onChange={(e) => setBalanceInput(e.target.value)}
-                placeholder="Ex: 150000"
+                placeholder="ex: 150000"
                 className="w-full h-12 bg-white rounded-xl border border-[#E0D8CC] px-4 pl-16 text-sm text-[#1A1A1A] outline-none focus:border-[#1C3A2F] transition-colors"
                 min="0"
               />

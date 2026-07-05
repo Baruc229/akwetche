@@ -482,7 +482,7 @@ export default function ProductsPage() {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="input-field"
-                    placeholder="Ex: Sac à main"
+                    placeholder="ex: Sac à main"
                     required
                   />
                 </div>
@@ -586,7 +586,7 @@ export default function ProductsPage() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="input-field"
-                  placeholder="Ex: Sac à main"
+                  placeholder="ex: Sac à main"
                   required
                 />
               </div>
