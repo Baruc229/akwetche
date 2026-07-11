@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
+import ConfirmModal from "@/components/ConfirmModal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -37,6 +39,7 @@ type Tontine = {
 
 export default function TontineDetail() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [tontine, setTontine] = useState<Tontine | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,6 +53,8 @@ export default function TontineDetail() {
   const [newTourData, setNewTourData] = useState({ numeroTour: "", datePrevue: "", beneficiaireId: "", montantAttendu: "" });
   const [showDistribution, setShowDistribution] = useState(false);
   const [distData, setDistData] = useState({ dateDistribution: "", montantAlloueVivres: "", montantAlloueArgent: "" });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const mParams = { include: { _count: { select: { cotisations: true } } } };
 
@@ -94,7 +99,7 @@ export default function TontineDetail() {
   if (tontine?.dateDistribution) {
     const diff = new Date(tontine.dateDistribution).getTime() - Date.now();
     joursRestants = Math.max(0, Math.round(diff / (1000 * 3600 * 24)));
-    const frequenceJours = tontine.frequence === "journaliere" ? 1 : tontine.frequence === "hebdomadaire" ? 7 : 30;
+    const frequenceJours = parseInt(tontine.frequence) || (tontine.frequence === "journaliere" ? 1 : tontine.frequence === "hebdomadaire" ? 7 : 30);
     nbPeriodesRestantes = Math.floor(joursRestants / frequenceJours);
     const projection = totalCollecte + (tontine.montantCotisation - tontine.fraisOrganisateurParDefaut) * actifs.length * nbPeriodesRestantes;
     partProjetee = actifs.length > 0 ? projection / actifs.length : 0;
@@ -216,10 +221,17 @@ export default function TontineDetail() {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-ink truncate">{tontine.nom}</h1>
-            <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · {tontine.frequence} · {formatCurrency(tontine.montantCotisation)}</span>
+            <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · tts. {tontine.frequence} jours · {formatCurrency(tontine.montantCotisation)}</span>
           </div>
         </div>
-        <span className={`badge shrink-0 ${tontine.statut === "active" ? "bg-emerald-500 text-white" : "bg-stone-400 text-white"}`}>{tontine.statut === "active" ? "Active" : tontine.statut}</span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`badge shrink-0 ${tontine.statut === "active" ? "bg-emerald-500 text-white" : "bg-stone-400 text-white"}`}>{tontine.statut === "active" ? "Active" : tontine.statut}</span>
+          {tontine.statut === "active" && (
+            <button onClick={() => setShowDeleteConfirm(true)} className="btn-danger-sm shrink-0">
+              <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -459,7 +471,7 @@ export default function TontineDetail() {
               </div>
               <div>
                 <label className="field-label">Période</label>
-                <input type="month" value={cotisationPeriode} onChange={e => setCotisationPeriode(e.target.value)} className="field-input" required />
+                <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
               </div>
               <div>
                 <label className="field-label">Montant payé</label>
@@ -487,7 +499,7 @@ export default function TontineDetail() {
               </div>
               <div>
                 <label className="field-label">Date prévue</label>
-                <input type="date" value={newTourData.datePrevue} onChange={e => setNewTourData({...newTourData, datePrevue: e.target.value})} className="field-input" required />
+                <DatePicker value={newTourData.datePrevue} onChange={v => setNewTourData({...newTourData, datePrevue: v})} />
               </div>
               <div>
                 <label className="field-label">Bénéficiaire</label>
@@ -520,7 +532,7 @@ export default function TontineDetail() {
             <form onSubmit={handleSaveDistribution} className="space-y-4">
               <div>
                 <label className="field-label">Date</label>
-                <input type="date" value={distData.dateDistribution} className="field-input" onChange={e => setDistData({...distData, dateDistribution: e.target.value})} required />
+                <DatePicker value={distData.dateDistribution} onChange={v => setDistData({...distData, dateDistribution: v})} />
               </div>
               <div>
                 <label className="field-label">Montant alloué aux vivres</label>
@@ -536,6 +548,27 @@ export default function TontineDetail() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirm Modal */}
+      <ConfirmModal
+        open={showDeleteConfirm}
+        title="Supprimer la tontine"
+        message={`Êtes-vous sûr de vouloir supprimer définitivement « ${tontine.nom} » ? Cette action est irréversible et supprimera toutes les cotisations, tours et données associées.`}
+        confirmLabel={deleting ? "Suppression..." : "Supprimer définitivement"}
+        variant="danger"
+        onConfirm={async () => {
+          setDeleting(true);
+          try {
+            const res = await fetch(`/api/tontines/${id}`, { method: "DELETE" });
+            if (res.ok) { router.push("/dashboard/tontines"); return; }
+            const data = await res.json();
+            setError(data.error || "Erreur lors de la suppression");
+          } catch { setError("Erreur"); }
+          setDeleting(false);
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => { setShowDeleteConfirm(false); setError(""); }}
+      />
     </div>
   );
 }

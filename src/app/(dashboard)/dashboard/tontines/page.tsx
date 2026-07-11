@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { detectCurrency } from "@/lib/currency";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
 
 type Tontine = {
   id: number;
@@ -71,7 +72,7 @@ export default function TontinesPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
       setShowCreate(false);
-      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequence: "hebdomadaire", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", dateDistribution: "" });
+      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequence: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", dateDistribution: "" });
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -158,16 +159,12 @@ export default function TontinesPage() {
                 <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="field-input" placeholder="ex: 10000" required min="1" />
               </div>
               <div>
-                <label className="field-label">Fréquence</label>
-                <CustomSelect
-                  options={[{ value: "journaliere", label: "Journalière" }, { value: "hebdomadaire", label: "Hebdomadaire" }, { value: "mensuelle", label: "Mensuelle" }]}
-                  value={newTnt.frequence}
-                  onChange={v => setNewTnt({...newTnt, frequence: v})}
-                />
+                <label className="field-label">Fréquence (tous les X jours)</label>
+                <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="field-input" placeholder="ex: 7, 10, 15, 30" required min="1" />
               </div>
               <div>
                 <label className="field-label">Date de début</label>
-                <input type="date" value={newTnt.dateDebut} onChange={e => setNewTnt({...newTnt, dateDebut: e.target.value})} className="field-input" required />
+                <DatePicker value={newTnt.dateDebut} onChange={v => setNewTnt({...newTnt, dateDebut: v})} />
               </div>
               <div>
                 <label className="field-label">Commission organisateur</label>
@@ -191,7 +188,7 @@ export default function TontinesPage() {
               {newTnt.type === "vivres_fin_annee" && (
                 <div>
                   <label className="field-label">Date de distribution</label>
-                  <input type="date" value={newTnt.dateDistribution} onChange={e => setNewTnt({...newTnt, dateDistribution: e.target.value})} className="field-input" />
+                  <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
                 </div>
               )}
               {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}

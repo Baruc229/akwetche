@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faUsers } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -302,14 +302,17 @@ export default function DashboardLayout({
       { href: "/dashboard/recurring/income", label: "Rev. récurrents", icon: faArrowTrendUp },
       { href: "/dashboard/budgets", label: "Budgets", icon: faSackDollar },
       { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
+    ];
+
+    const tontineNavItems = [
       { href: "/dashboard/tontines", label: "Tontines", icon: faPeopleGroup },
     ];
 
-   const commercialNavItems = [
-     { href: "/dashboard/products", label: "Produits", icon: faBox },
-      { href: "/dashboard/sales", label: "Ventes", icon: faCashRegister },
-      { href: "/dashboard/stock", label: "Stock", icon: faWarehouse },
-   ];
+    const commercialNavItems = [
+      { href: "/dashboard/products", label: "Produits", icon: faBox },
+       { href: "/dashboard/sales", label: "Ventes", icon: faCashRegister },
+       { href: "/dashboard/stock", label: "Stock", icon: faWarehouse },
+    ];
 
    const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => pathname === path || (path !== '/admin' && path !== '/dashboard' && pathname.startsWith(path)))?.[1] || 'Akwetche';
 
@@ -320,7 +323,7 @@ export default function DashboardLayout({
     <div className="min-h-screen flex flex-col lg:flex-row" style={{background:'var(--color-bg)'}}>
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden transition-all duration-200
+        className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-x-hidden transition-all duration-200
           ${sidebarCollapsed ? 'w-16' : 'w-60'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
         style={{background:'var(--color-brand)', boxShadow:'2px 0 20px rgba(0,0,0,0.12)'}}
@@ -339,7 +342,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Nav */}
-        <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll ${sidebarCollapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`}>
+        <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll min-h-0 overflow-hidden ${sidebarCollapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`}>
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -369,45 +372,79 @@ export default function DashboardLayout({
           })}
 
           {/* Section Activité */}
-          {commercialMode && (
-            <>
-              <div className={`pt-3 mt-3 ${!sidebarCollapsed ? 'px-3' : ''}`} style={{borderTop:'1px solid rgba(255,255,255,0.10)'}}>
-                {!sidebarCollapsed && (
-                  <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Activité</p>
-                )}
-              </div>
-              {commercialNavItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <div key={item.href} className="relative group">
-                    <Link
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
-                        sidebarCollapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
-                      } ${
-                        isActive
-                          ? 'text-white font-semibold'
-                          : 'text-white/52 hover:text-white/90 hover:bg-white/7'
-                      }`}
-                      style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
-                    >
-                      <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
-                      <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
-                    </Link>
-                    {sidebarCollapsed && (
-                      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
-                        {item.label}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          )}
+          <div className={`${commercialMode ? '' : 'hidden'}`}>
+            <div className={`pt-3 mt-3 ${!sidebarCollapsed ? 'px-3' : ''}`} style={{borderTop:'1px solid rgba(255,255,255,0.10)'}}>
+              {!sidebarCollapsed && (
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Activité</p>
+              )}
+            </div>
+            {commercialNavItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <div key={item.href} className="relative group">
+                  <Link
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                      sidebarCollapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
+                    } ${
+                      isActive
+                        ? 'text-white font-semibold'
+                        : 'text-white/52 hover:text-white/90 hover:bg-white/7'
+                    }`}
+                    style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
+                    <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
+                  </Link>
+                  {sidebarCollapsed && (
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
+                      {item.label}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Section Tontines */}
+          <>
+            <div className={`pt-3 mt-3 ${!sidebarCollapsed ? 'px-3' : ''}`} style={{borderTop:'1px solid rgba(255,255,255,0.10)'}}>
+              {!sidebarCollapsed && (
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Tontines</p>
+              )}
+            </div>
+            {tontineNavItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <div key={item.href} className="relative group">
+                  <Link
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
+                      sidebarCollapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
+                    } ${
+                      isActive
+                        ? 'text-white font-semibold'
+                        : 'text-white/52 hover:text-white/90 hover:bg-white/7'
+                    }`}
+                    style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: sidebarCollapsed ? '10px' : '9px'} : {}}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
+                    <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
+                  </Link>
+                  {sidebarCollapsed && (
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
+                      {item.label}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
 
           {/* Section Admin */}
-          {user && user.role !== "user" && (
+          <div className={`${user && user.role !== "user" ? '' : 'hidden'}`} style={{ minHeight: 0 }}>
             <div className="relative group">
               <Link
                 href="/admin"
@@ -430,11 +467,11 @@ export default function DashboardLayout({
                 </div>
               )}
             </div>
-          )}
+          </div>
         </nav>
 
         {/* Bottom section */}
-        <div className="shrink-0 border-t border-white/10 py-3 px-3 space-y-1">
+        <div className="shrink-0 overflow-hidden border-t border-white/10 py-3 px-3 space-y-1">
           {!sidebarCollapsed && isPremium && (
             <label className="flex items-center gap-3 px-3 py-2 text-sm text-white/52 cursor-pointer hover:bg-white/7 rounded-lg transition-all">
               <input
