@@ -88,6 +88,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
       } else if (fraisOrganisateurEffectif > 0 && statut !== "en_attente") {
         // Créer une nouvelle transaction
+        const commissionCategorie = await tx.category.upsert({
+          where: { name_userId: { name: "Commission tontine", userId } },
+          update: {},
+          create: { name: "Commission tontine", icon: "hand-holding-dollar", type: "income", userId },
+        });
         const transaction = await tx.transaction.create({
           data: {
             type: "income",
@@ -95,6 +100,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             description: `Tontine — commission : ${tontine.nom}`,
             date: datePaiement ? new Date(datePaiement) : new Date(),
             scope: tontine.scopeCommission,
+            categoryId: commissionCategorie.id,
             userId,
             tontineCotisationId: cotisation.id,
           },

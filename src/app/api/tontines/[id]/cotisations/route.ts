@@ -73,6 +73,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       if (fraisOrganisateurEffectif > 0 && (statut === "paye" || statut === "partiel")) {
         const description = `Tontine — commission : ${tontine.nom} (${tontine.type === "rotative_simple" ? "tour" : "cotisation"})`;
 
+        const commissionCategorie = await tx.category.upsert({
+          where: { name_userId: { name: "Commission tontine", userId } },
+          update: {},
+          create: { name: "Commission tontine", icon: "hand-holding-dollar", type: "income", userId },
+        });
+
         const transaction = await tx.transaction.create({
           data: {
             type: "income",
@@ -80,6 +86,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             description,
             date: datePaiement ? new Date(datePaiement) : new Date(),
             scope: tontine.scopeCommission,
+            categoryId: commissionCategorie.id,
             userId,
             tontineCotisationId: cotisation.id,
           },
