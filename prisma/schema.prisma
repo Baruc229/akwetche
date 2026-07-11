@@ -44,6 +44,8 @@ model User {
   budgets                  Budget[]
   adminNotificationPref    String                      @default("instant") // "instant" ou "digest"
   onboardingCompleted      Boolean                     @default(false)
+
+  tontines                      Tontine[]
 }
 
 model VerificationToken {
@@ -165,9 +167,11 @@ model Transaction {
   recurring   Boolean  @default(false)
   categoryId  Int?
   userId      Int
+  tontineCotisationId Int?   @unique
 
-  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tontineCotisation TontineCotisation? @relation("TontineCommission", fields: [tontineCotisationId], references: [id])
 }
 
 model Product {
@@ -255,4 +259,79 @@ model Budget {
 
   @@unique([userId, categoryId, scope, month, year])
   @@index([userId, month, year])
+}
+
+model Tontine {
+  id                        Int       @id @default(autoincrement())
+  nom                       String
+  organisateurId            Int
+  type                      String    // "rotative_simple" ou "vivres_fin_annee"
+  montantCotisation         Float
+  frequence                 String    // "hebdomadaire", "mensuelle", "journaliere"
+  dateDebut                 DateTime
+  fraisOrganisateurParDefaut Float    @default(0)
+  scopeCommission           String    @default("activite") // "activite" ou "personnel"
+  nombreTours               Int?
+  dateDistribution          DateTime?
+  statut                    String    @default("active") // "active", "terminee", "suspendue"
+
+  organisateur User                    @relation(fields: [organisateurId], references: [id], onDelete: Cascade)
+  membres      TontineMembre[]
+  cotisations  TontineCotisation[]
+  tours        TontineTour[]
+  distribution TontineDistribution?
+}
+
+model TontineMembre {
+  id           Int      @id @default(autoincrement())
+  tontineId    Int
+  nom          String
+  contact      String?
+  ordrePassage Int?
+  statut       String   @default("actif") // "actif", "retire", "exclu"
+
+  tontine     Tontine              @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+  cotisations TontineCotisation[]
+}
+
+model TontineCotisation {
+  id                Int       @id @default(autoincrement())
+  tontineId         Int
+  membreId          Int
+  periode           DateTime
+  montantBase       Float     // part qui va dans la cagnotte commune
+  fraisOrganisateur Float     @default(0) // commission organisateur
+  montantTotal      Float     // montantBase + fraisOrganisateur
+  montantPaye       Float     @default(0)
+  datePaiement      DateTime?
+  statut            String    @default("en_attente") // "paye", "en_retard", "partiel", "en_attente"
+
+  tontine   Tontine       @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+  membre    TontineMembre @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  commissionTransaction Transaction? @relation("TontineCommission")
+}
+
+model TontineTour {
+  id              Int      @id @default(autoincrement())
+  tontineId       Int
+  numeroTour      Int
+  datePrevue      DateTime
+  beneficiaireId  Int
+  montantAttendu  Float
+  montantCollecte Float    @default(0)
+  statut          String   @default("en_cours") // "en_cours", "cloture"
+
+  tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+}
+
+model TontineDistribution {
+  id                   Int      @id @default(autoincrement())
+  tontineId            Int      @unique
+  dateDistribution     DateTime
+  montantTotalCollecte Float    @default(0)
+  montantAlloueVivres  Float    @default(0)
+  montantAlloueArgent  Float    @default(0)
+  statut               String   @default("planifiee") // "planifiee", "effectuee"
+
+  tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
 }
