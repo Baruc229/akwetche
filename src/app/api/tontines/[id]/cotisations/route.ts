@@ -85,7 +85,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             amount: fraisOrganisateurEffectif,
             description,
             date: datePaiement ? new Date(datePaiement) : new Date(),
-            scope: tontine.scopeCommission,
+            scope: tontine.scopeCommission === "personnel" ? "personal" : "activity",
             categoryId: commissionCategorie.id,
             userId,
             tontineCotisationId: cotisation.id,

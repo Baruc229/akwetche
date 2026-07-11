@@ -99,7 +99,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             amount: fraisOrganisateurEffectif,
             description: `Tontine — commission : ${tontine.nom}`,
             date: datePaiement ? new Date(datePaiement) : new Date(),
-            scope: tontine.scopeCommission,
+            scope: tontine.scopeCommission === "personnel" ? "personal" : "activity",
             categoryId: commissionCategorie.id,
             userId,
             tontineCotisationId: cotisation.id,
