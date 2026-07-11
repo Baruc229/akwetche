@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok, created } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
+import { formatCurrency, resolveCurrency } from "@/lib/currency";
 
 function calculerProrata(
   montantPaye: number,
@@ -54,6 +56,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           ? "paye"
           : "partiel";
 
+    let commissionTx: Record<string, number> | null = null;
+    const description = tontine.type === "rotative_simple"
+      ? `Commission tontine : ${tontine.nom} (tour)`
+      : `Commission tontine : ${tontine.nom} (cotisation)`;
+
     const cotisation = await prisma.$transaction(async (tx) => {
       const cotisation = await tx.tontineCotisation.create({
         data: {
@@ -69,9 +76,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         },
       });
 
-      // Générer automatiquement la transaction pour la commission
       if (fraisOrganisateurEffectif > 0 && (statut === "paye" || statut === "partiel")) {
-        const description = `Tontine — commission : ${tontine.nom} (${tontine.type === "rotative_simple" ? "tour" : "cotisation"})`;
+        const txDescription = `Tontine \u2014 commission : ${tontine.nom} (${tontine.type === "rotative_simple" ? "tour" : "cotisation"})`;
 
         const commissionCategorie = await tx.category.upsert({
           where: { name_userId: { name: "Commission tontine", userId } },
@@ -79,11 +85,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           create: { name: "Commission tontine", icon: "hand-holding-dollar", type: "income", userId },
         });
 
-        const transaction = await tx.transaction.create({
+        const newTx = await tx.transaction.create({
           data: {
             type: "income",
             amount: fraisOrganisateurEffectif,
-            description,
+            description: txDescription,
             date: datePaiement ? new Date(datePaiement) : new Date(),
             scope: tontine.scopeCommission === "personnel" ? "personal" : "activity",
             categoryId: commissionCategorie.id,
@@ -91,12 +97,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             tontineCotisationId: cotisation.id,
           },
         });
+        commissionTx = { amount: newTx.amount } as Record<string, number>;
 
-        return { ...cotisation, commissionTransaction: transaction };
+        return { ...cotisation, commissionTransaction: newTx };
       }
 
       return { ...cotisation, commissionTransaction: null };
     });
+
+    if (commissionTx) {
+      const amount = (commissionTx as { amount: number }).amount;
+      const userCurrency = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { currency: true },
+      });
+      const notifCurrency = resolveCurrency(userCurrency?.currency);
+      const scopeLabel = tontine.scopeCommission === "personnel" ? "" : " (Activit\u00E9)";
+      await createNotification(
+        userId,
+        "transaction",
+        `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} \u2014 ${description}`,
+        "/dashboard/transactions"
+      );
+    }
 
     return created({ cotisation });
   } catch {

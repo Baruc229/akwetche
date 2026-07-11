@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok } from "@/lib/api";
+import { createNotification } from "@/lib/notifications";
+import { formatCurrency, resolveCurrency } from "@/lib/currency";
 
 function calculerProrata(
   montantPaye: number,
@@ -57,6 +59,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       existing.fraisOrganisateur
     );
 
+    let notificationInfo: Record<string, number> | null = null;
+    let notificationSent = false;
+
     const result = await prisma.$transaction(async (tx) => {
       // 1. Mettre à jour la cotisation
       const cotisation = await tx.tontineCotisation.update({
@@ -71,7 +76,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       // 2. Gérer la transaction liée (réversibilité)
       if (existing.commissionTransaction) {
         if (fraisOrganisateurEffectif <= 0) {
-          // Supprimer la transaction si la commission devient nulle
           await tx.transaction.delete({
             where: { id: existing.commissionTransaction.id },
           });
@@ -80,14 +84,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: { commissionTransaction: { disconnect: true } },
           });
         } else {
-          // Ajuster le montant de la transaction existante
           await tx.transaction.update({
             where: { id: existing.commissionTransaction.id },
             data: { amount: fraisOrganisateurEffectif },
           });
         }
       } else if (fraisOrganisateurEffectif > 0 && statut !== "en_attente") {
-        // Créer une nouvelle transaction
         const commissionCategorie = await tx.category.upsert({
           where: { name_userId: { name: "Commission tontine", userId } },
           update: {},
@@ -105,10 +107,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             tontineCotisationId: cotisation.id,
           },
         });
+        notificationInfo = { amount: transaction.amount } as Record<string, number>;
+        notificationSent = true;
       }
 
       return cotisation;
     });
+
+    if (notificationSent && notificationInfo) {
+      const amount = (notificationInfo as { amount: number }).amount;
+      const notifCurrency = resolveCurrency((await prisma.user.findUnique({ where: { id: userId }, select: { currency: true } }))?.currency);
+      const scopeLabel = tontine.scopeCommission === "personnel" ? "" : " (Activité)";
+      await createNotification(userId, "transaction", `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} — Commission tontine : ${tontine.nom}`, "/dashboard/transactions");
+    }
 
     return ok({ cotisation: result });
   } catch {
