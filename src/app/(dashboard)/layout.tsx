@@ -342,7 +342,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Nav */}
-        <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll min-h-0 overflow-hidden ${sidebarCollapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`}>
+        <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll min-h-0 overflow-hidden overscroll-contain scroll-smooth pb-6 ${sidebarCollapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`} style={{ WebkitOverflowScrolling: 'touch' as unknown as undefined, touchAction: 'pan-y' }}>
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
