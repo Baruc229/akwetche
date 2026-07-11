@@ -124,5 +124,5 @@ function handleAuth(request: NextRequest, pathname: string) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|.*\\.png$).*)"],
+  matcher: ["/((?!_next/static|_next/image|.*\\.(png|svg)$).*)"],
 };
