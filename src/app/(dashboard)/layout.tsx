@@ -485,7 +485,7 @@ export default function DashboardLayout({
                   className="w-4 h-4 rounded accent-[var(--color-gold)]"
                 />
                 <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
-                Activité commerciale
+                Mode activité
               </label>
             )}
           </div>
