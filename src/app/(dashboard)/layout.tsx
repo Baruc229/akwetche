@@ -323,7 +323,7 @@ export default function DashboardLayout({
     <div className="min-h-screen flex flex-col lg:flex-row" style={{background:'var(--color-bg)'}}>
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-x-hidden transition-all duration-200
+        className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden transition-all duration-200
           ${sidebarCollapsed ? 'w-16' : 'w-60'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
         style={{background:'var(--color-brand)', boxShadow:'2px 0 20px rgba(0,0,0,0.12)'}}
@@ -468,28 +468,28 @@ export default function DashboardLayout({
               )}
             </div>
           </div>
-        </nav>
 
-        {/* Bottom section */}
-        <div className="shrink-0 overflow-hidden border-t border-white/10 py-3 px-3 space-y-1">
-          {!sidebarCollapsed && isPremium && (
-            <label className="flex items-center gap-3 px-3 py-2 text-sm text-white/52 cursor-pointer hover:bg-white/7 rounded-lg transition-all">
-              <input
-                type="checkbox"
-                checked={commercialMode}
-                onChange={(e) => {
-                  setCommercialMode(e.target.checked);
-                  if (e.target.checked && !user?.activityActivated) {
-                    fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
-                  }
-                }}
-                className="w-4 h-4 rounded accent-[var(--color-gold)]"
-              />
-              <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
-              Activité commerciale
-            </label>
-          )}
-        </div>
+          {/* Bottom section — sticky dans le nav pour rester fixe sur mobile ET desktop */}
+          <div className={`sticky bottom-0 -mx-3 px-3 pb-2 pt-3 ${!sidebarCollapsed ? 'border-t border-white/10' : ''}`} style={{background:'var(--color-brand)'}}>
+            {!sidebarCollapsed && isPremium && (
+              <label className="flex items-center gap-3 px-3 py-2 text-sm text-white/52 cursor-pointer hover:bg-white/7 rounded-lg transition-all">
+                <input
+                  type="checkbox"
+                  checked={commercialMode}
+                  onChange={(e) => {
+                    setCommercialMode(e.target.checked);
+                    if (e.target.checked && !user?.activityActivated) {
+                      fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+                    }
+                  }}
+                  className="w-4 h-4 rounded accent-[var(--color-gold)]"
+                />
+                <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
+                Activité commerciale
+              </label>
+            )}
+          </div>
+        </nav>
       </aside>
 
       {/* Sidebar overlay mobile */}
