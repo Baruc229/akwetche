@@ -448,6 +448,9 @@ export default function DashboardPage() {
           daysLeft={daysLeft}
           dailyBalances={monthlyBalances}
           initialBalanceMissing={user?.initialBalance === 0 && user?.initialBalanceActivity === 0 && (totalIncome > 0 || totalExpense > 0)}
+          totalBalance={totalBalance}
+          pendingRecurringExpense={totalPendingRecurringExpense}
+          pendingRecurringIncome={totalPendingRecurringIncome}
         />
       </div>
 

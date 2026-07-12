@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTriangleExclamation, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -13,12 +13,15 @@ type Props = {
   daysLeft: number;
   dailyBalances?: DailyBalance[];
   initialBalanceMissing?: boolean;
+  totalBalance?: number;
+  pendingRecurringExpense?: number;
+  pendingRecurringIncome?: number;
 };
 
-export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances, initialBalanceMissing }: Props) {
+export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances, initialBalanceMissing, totalBalance = 0, pendingRecurringExpense = 0, pendingRecurringIncome = 0 }: Props) {
   const isNegative = projectedRemaining < 0;
   const dayOfMonth = new Date().getDate();
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const hasBreakdown = pendingRecurringExpense > 0 || pendingRecurringIncome > 0;
 
   const lastRealBalance = dailyBalances && dailyBalances.length > 0
     ? dailyBalances[dailyBalances.length - 1].balance
@@ -101,6 +104,33 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
         </ResponsiveContainer>
       </div>
 
+      {hasBreakdown && (
+        <div className="mb-3 rounded-xl border border-[#E8E4DC] overflow-hidden">
+          <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#FAF8F5]">
+            <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Solde actuel</span>
+            <span className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] tabular-nums">{formatCurrency(totalBalance)}</span>
+          </div>
+          {pendingRecurringExpense > 0 && (
+            <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E8E4DC]">
+              <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
+                <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
+                Dépenses récurrentes en attente
+              </span>
+              <span className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#B94A3E] tabular-nums">-{formatCurrency(pendingRecurringExpense)}</span>
+            </div>
+          )}
+          {pendingRecurringIncome > 0 && (
+            <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E8E4DC]">
+              <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
+                <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#2D5A27]" />
+                Revenus récurrents en attente
+              </span>
+              <span className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#2D5A27] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="rounded-xl p-4 border-l-[3px]" style={{ background: isNegative ? '#FCECEA' : '#E8F5E9', borderColor: isNegative ? '#B94A3E' : '#2D5A27' }}>
         <p className="text-xs text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>
         <p
@@ -115,7 +145,9 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
         <div className="flex items-start gap-2 mt-3">
           <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[#B94A3E] shrink-0 mt-0.5" />
           <p className="text-xs text-[#B94A3E] font-[family-name:var(--font-inter)]">
-            Vous dépensez plus que votre budget disponible.
+            {hasBreakdown
+              ? "Vos dépenses récurrentes en attente dépassent votre solde actuel."
+              : "Vous dépensez plus que votre budget disponible."}
           </p>
         </div>
       )}
