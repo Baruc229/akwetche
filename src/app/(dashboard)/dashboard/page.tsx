@@ -678,8 +678,8 @@ export default function DashboardPage() {
           (newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
           (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense)
         );
-        const formContent = (
-          <form onSubmit={handleAddTransaction} className="space-y-4">
+        const formFields = (
+          <>
             {commercialMode && (
               <div className="flex gap-2">
                 <button type="button" onClick={() => setNewTx({ ...newTx, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${newTx.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
@@ -753,9 +753,13 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
-            {txError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
+          </>
+        );
+        const submitFooter = (
+          <>
+            {txError && <div className="alert-inline neg mb-3"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
             <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">Ajouter</button>
-          </form>
+          </>
         );
         return (
           <>
@@ -768,7 +772,10 @@ export default function DashboardPage() {
                   </button>
                   <h3 className="text-base font-semibold text-ink">Nouvelle transaction</h3>
                 </div>
-                <div className="flex-1 overflow-y-auto p-5">{formContent}</div>
+                <form onSubmit={handleAddTransaction} className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 overflow-y-auto p-5 space-y-4">{formFields}</div>
+                  <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">{submitFooter}</div>
+                </form>
               </div>
             )}
             {/* Desktop modal */}
@@ -781,7 +788,10 @@ export default function DashboardPage() {
                       <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
                     </button>
                   </div>
-                  {formContent}
+                  <form onSubmit={handleAddTransaction} className="space-y-4">
+                    {formFields}
+                    {submitFooter}
+                  </form>
                 </div>
               </div>
             )}

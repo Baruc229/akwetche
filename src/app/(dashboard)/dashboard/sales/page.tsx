@@ -266,75 +266,64 @@ export default function SalesPage() {
 
   function renderForm() {
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="field-label">Produit</label>
-          <CustomSelect
-            options={products.map((p) => ({
-              value: String(p.id),
-              label: `${p.name} — ${formatCurrency(p.salePrice, currency)} (${p.stock} dispo)`,
-            }))}
-            value={formProductId}
-            onChange={(v) => {
-              setFormProductId(v);
-              const p = products.find((x) => x.id === parseInt(v));
-              if (p && !formUnitPrice) setFormUnitPrice(String(toDisplayCurrency(p.salePrice, currency)));
-            }}
-            placeholder="Sélectionner un produit"
-          />
-        </div>
-        <div>
-          <label className="field-label">Quantité</label>
-          <input
-            type="number"
-            value={formQuantity}
-            onChange={(e) => setFormQuantity(e.target.value)}
-            className="input-field"
-            min="1"
-            required
-          />
-        </div>
-        <div>
-          <label className="field-label">Prix unitaire</label>
-          <div className="relative">
-            <input
-              type="number"
-              value={formUnitPrice}
-              onChange={(e) => setFormUnitPrice(e.target.value)}
-              className="input-field pl-[38px]"
-              step="0.01"
-              min="0"
-              required
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div>
+            <label className="field-label">Produit</label>
+            <CustomSelect
+              options={products.map((p) => ({
+                value: String(p.id),
+                label: `${p.name} — ${formatCurrency(p.salePrice, currency)} (${p.stock} dispo)`,
+              }))}
+              value={formProductId}
+              onChange={(v) => {
+                setFormProductId(v);
+                const p = products.find((x) => x.id === parseInt(v));
+                if (p && !formUnitPrice) setFormUnitPrice(String(toDisplayCurrency(p.salePrice, currency)));
+              }}
+              placeholder="Sélectionner un produit"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
-              {currency === "EUR" ? "€" : "F"}
-            </span>
           </div>
-        </div>
-        {formProductId && qtyNum > 0 && priceNum > 0 && (
-          <div className="card-inset text-sm">
-            <div className="flex items-center justify-between text-muted mb-1">
-              <span>Total</span>
-              <span className="text-amount text-lg text-ink">{formatCurrency(totalFCFA, currency)}</span>
-            </div>
-            <div className="flex items-center justify-between text-muted">
-              <span>Marge estimée</span>
-              <span className={`font-semibold ${marginFCFA >= 0 ? "text-pos" : "text-neg"}`}>
-                {marginFCFA >= 0 ? "+" : ""}{formatCurrency(marginFCFA, currency)}
+          <div>
+            <label className="field-label">Quantité</label>
+            <input type="number" value={formQuantity} onChange={(e) => setFormQuantity(e.target.value)} className="input-field" min="1" required />
+          </div>
+          <div>
+            <label className="field-label">Prix unitaire</label>
+            <div className="relative">
+              <input type="number" value={formUnitPrice} onChange={(e) => setFormUnitPrice(e.target.value)} className="input-field pl-[38px]" step="0.01" min="0" required />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
+                {currency === "EUR" ? "€" : "F"}
               </span>
             </div>
-            {qtyNum > (selectedProduct?.stock || 0) && (
-              <p className="text-neg text-xs mt-2 flex items-center gap-1">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="w-3 h-3" />
-                Stock insuffisant ({selectedProduct?.stock} disponible{selectedProduct?.stock !== 1 ? "s" : ""})
-              </p>
-            )}
           </div>
-        )}
-        {formError && <p className="alert-inline neg">{formError}</p>}
-        <button type="submit" disabled={saving} className="btn-primary w-full disabled:opacity-50">
-          {saving ? "Enregistrement..." : editingSale ? "Modifier la vente" : "Enregistrer"}
-        </button>
+          {formProductId && qtyNum > 0 && priceNum > 0 && (
+            <div className="card-inset text-sm">
+              <div className="flex items-center justify-between text-muted mb-1">
+                <span>Total</span>
+                <span className="text-amount text-lg text-ink">{formatCurrency(totalFCFA, currency)}</span>
+              </div>
+              <div className="flex items-center justify-between text-muted">
+                <span>Marge estimée</span>
+                <span className={`font-semibold ${marginFCFA >= 0 ? "text-pos" : "text-neg"}`}>
+                  {marginFCFA >= 0 ? "+" : ""}{formatCurrency(marginFCFA, currency)}
+                </span>
+              </div>
+              {qtyNum > (selectedProduct?.stock || 0) && (
+                <p className="text-neg text-xs mt-2 flex items-center gap-1">
+                  <FontAwesomeIcon icon={faTriangleExclamation} className="w-3 h-3" />
+                  Stock insuffisant ({selectedProduct?.stock} disponible{selectedProduct?.stock !== 1 ? "s" : ""})
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+          {formError && <div className="alert-inline neg mb-3"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{formError}</p></div>}
+          <button type="submit" disabled={saving} className="btn-primary w-full py-3 disabled:opacity-50">
+            {saving ? "Enregistrement..." : editingSale ? "Modifier la vente" : "Enregistrer"}
+          </button>
+        </div>
       </form>
     );
   }
@@ -538,16 +527,14 @@ export default function SalesPage() {
             </button>
             <h3 className="text-base font-semibold text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-5">
-            {renderForm()}
-          </div>
+          {renderForm()}
         </div>
       )}
       {/* Desktop modal */}
       {showModal && (
         <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full sm:max-w-md shadow-xl animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-[var(--color-surface)] rounded-2xl w-full sm:max-w-md shadow-xl animate-scale-in max-h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 pt-6 pb-0">
               <h3 className="font-display font-semibold text-base text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
               <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-text-1 rounded-lg hover:bg-sand transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />

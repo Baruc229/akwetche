@@ -480,52 +480,25 @@ export default function ProductsPage() {
             </button>
             <h3 className="text-base font-semibold text-ink font-display">{editProduct ? "Modifier" : "Nouveau"} produit</h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-5">
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div>
                 <label className="field-label">Nom du produit *</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="input-field"
-                  placeholder="ex: Sac à main"
-                  required
-                />
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input-field" placeholder="ex: Sac à main" required />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="field-label">Prix d&apos;achat</label>
                   <div className="relative">
-                    <input
-                      type="number"
-                      value={form.purchasePrice}
-                      onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                      className="input-field pl-16"
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                    />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
-                      {currency === "EUR" ? "EUR" : "FCFA"}
-                    </span>
+                    <input type="number" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="input-field pl-16" min="0" step="0.01" placeholder="0" />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">{currency === "EUR" ? "EUR" : "FCFA"}</span>
                   </div>
                 </div>
                 <div>
                   <label className="field-label">Prix de vente</label>
                   <div className="relative">
-                    <input
-                      type="number"
-                      value={form.salePrice}
-                      onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                      className="input-field pl-16"
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                    />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
-                      {currency === "EUR" ? "EUR" : "FCFA"}
-                    </span>
+                    <input type="number" value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: e.target.value })} className="input-field pl-16" min="0" step="0.01" placeholder="0" />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">{currency === "EUR" ? "EUR" : "FCFA"}</span>
                   </div>
                 </div>
               </div>
@@ -533,14 +506,7 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="field-label">Stock initial</label>
-                    <input
-                      type="number"
-                      value={form.stock}
-                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                      className="input-field"
-                      min="0"
-                      placeholder="0"
-                    />
+                    <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="input-field" min="0" placeholder="0" />
                   </div>
                 </div>
               )}
@@ -555,20 +521,19 @@ export default function ProductsPage() {
                   </span>
                 </div>
               )}
+            </div>
+            <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
               {error && (
-                <div className="flex items-center gap-2 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-xl px-4 py-3 text-sm">
+                <div className="flex items-center gap-2 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-xl px-4 py-3 text-sm mb-3">
                   <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[var(--color-neg)] shrink-0" />
                   <p className="text-[var(--color-neg)]">{error}</p>
                 </div>
               )}
-              <button
-                type="submit"
-                className="btn-primary w-full py-3 disabled:opacity-50"
-              >
+              <button type="submit" className="btn-primary w-full py-3 disabled:opacity-50">
                 {editProduct ? "Enregistrer" : "Créer le produit"}
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       )}
 

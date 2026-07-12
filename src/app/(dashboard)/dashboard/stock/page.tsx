@@ -373,8 +373,8 @@ export default function StockPage() {
             </button>
             <h3 className="text-base font-semibold text-ink">Réapprovisionner</h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-5">
-            <form onSubmit={handleReplenish} className="space-y-4">
+          <form onSubmit={handleReplenish} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div>
                 <label className="field-label">Produit</label>
                 <p className="text-sm font-medium text-ink bg-sand rounded-xl px-3 py-2.5">{replenishProduct.name}</p>
@@ -387,12 +387,14 @@ export default function StockPage() {
                 <label className="field-label">Note (optionnelle)</label>
                 <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="ex: Livraison fournisseur" />
               </div>
-              {replenishError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{replenishError}</p></div>}
+            </div>
+            <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+              {replenishError && <div className="alert-inline neg mb-3"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{replenishError}</p></div>}
               <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
                 {submitting ? "En cours..." : "Ajouter au stock"}
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       )}
       {/* Desktop modal */}

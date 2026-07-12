@@ -102,58 +102,62 @@ export default function QuickTransactionModal({ open, onClose, onSuccess }: Prop
   }
 
   const content = (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {commercialMode && (
-        <div className="flex gap-2">
-          <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
-          <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-[var(--color-gold)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Activité</button>
-        </div>
-      )}
-      <div className="flex gap-2">
-        <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-[var(--color-neg)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Dépense</button>
-        <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-[var(--color-pos)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Revenu</button>
-      </div>
-      <div>
-        <label className="field-label">Montant</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-          <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
-        </div>
-      </div>
-      <div>
-        <label className="field-label">Description</label>
-        <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="ex: Achat alimentation" required />
-      </div>
-      <div>
-        <label className="field-label">Catégorie</label>
-        <CustomSelect options={categoryOptions} value={formData.categoryId} onChange={(v) => setFormData({ ...formData, categoryId: v })} placeholder="Sélectionner..." />
-      </div>
-      <div>
-        <label className="field-label">Date</label>
-        <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
-      </div>
-      <div>
-        <label className="field-label">Note (optionnelle)</label>
-        <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
-      </div>
-      {limits && !limits.isPremium && user?.role === "user" && (
-        <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-medium" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
-            <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
+    <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        {commercialMode && (
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
+            <button type="button" onClick={() => setFormData({ ...formData, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "activity" ? "bg-[var(--color-gold)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Activité</button>
           </div>
-          {(formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
-            <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
-          ) : (
-            <p className="text-xs" style={{ color: 'var(--color-warn)' }}>{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
-          )}
+        )}
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setFormData({ ...formData, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "expense" ? "bg-[var(--color-neg)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Dépense</button>
+          <button type="button" onClick={() => setFormData({ ...formData, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${formData.type === "income" ? "bg-[var(--color-pos)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Revenu</button>
         </div>
-      )}
-      {txError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
-      {(() => {
-        const atLimit = limits && !limits.isPremium && user?.role === "user" && ((formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense));
-        return <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">Ajouter</button>;
-      })()}
+        <div>
+          <label className="field-label">Montant</label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+            <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
+          </div>
+        </div>
+        <div>
+          <label className="field-label">Description</label>
+          <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="input-field" placeholder="ex: Achat alimentation" required />
+        </div>
+        <div>
+          <label className="field-label">Catégorie</label>
+          <CustomSelect options={categoryOptions} value={formData.categoryId} onChange={(v) => setFormData({ ...formData, categoryId: v })} placeholder="Sélectionner..." />
+        </div>
+        <div>
+          <label className="field-label">Date</label>
+          <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
+        </div>
+        <div>
+          <label className="field-label">Note (optionnelle)</label>
+          <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
+        </div>
+        {limits && !limits.isPremium && user?.role === "user" && (
+          <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="font-medium" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
+              <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>{formData.type === "income" ? limits.incomeCount : limits.expenseCount}/{formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
+            </div>
+            {(formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
+              <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
+            ) : (
+              <p className="text-xs" style={{ color: 'var(--color-warn)' }}>{Math.max(0, (formData.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (formData.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+        {txError && <div className="alert-inline neg mb-3"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
+        {(() => {
+          const atLimit = limits && !limits.isPremium && user?.role === "user" && ((formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense));
+          return <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">Ajouter</button>;
+        })()}
+      </div>
     </form>
   );
 
@@ -169,12 +173,12 @@ export default function QuickTransactionModal({ open, onClose, onSuccess }: Prop
           </button>
           <h3 className="text-base font-semibold text-ink">Nouvelle transaction</h3>
         </div>
-        <div className="flex-1 overflow-y-auto p-5">{content}</div>
+        <div className="flex-1 overflow-y-auto">{content}</div>
       </div>
       {/* Desktop modal */}
       <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-        <div className="card max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]">
+          <div className="flex items-center justify-between px-6 pt-6 pb-0">
             <h3 className="text-lg font-semibold text-ink">Nouvelle transaction</h3>
             <button onClick={onClose} className="text-muted hover:text-muted">
               <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />

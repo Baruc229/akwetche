@@ -524,8 +524,8 @@ export default function TransactionsPage() {
             </button>
             <h3 className="text-base font-semibold text-ink">{editTx ? "Modifier" : "Nouvelle transaction"}</h3>
           </div>
-          <div className="flex-1 overflow-y-auto p-5">
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {commercialMode && (
               <div className="flex gap-2">
                 <button type="button" onClick={() => setFormData({ ...formData, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${formData.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
@@ -572,13 +572,15 @@ export default function TransactionsPage() {
                   )}
                 </div>
               )}
-              {txError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
+            </div>
+            <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+              {txError && <div className="alert-inline neg mb-3"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
               {(() => {
                 const atLimit = !editTx && limits && !limits.isPremium && user?.role === "user" && ((formData.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (formData.type === "expense" && limits.expenseCount >= limits.maxFreeExpense));
                 return <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">{editTx ? "Enregistrer" : "Ajouter"}</button>;
               })()}
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       )}
       {/* Desktop modal */}
