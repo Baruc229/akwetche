@@ -24,7 +24,6 @@ type CustomSelectProps = {
 
 const DROPDOWN_MAX_HEIGHT = 256;
 const OPTION_HEIGHT = 44;
-const GRADIENT_HEIGHT = 20;
 
 export default function CustomSelect({
   options,
@@ -38,8 +37,8 @@ export default function CustomSelect({
   const [openUp, setOpenUp] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [canScroll, setCanScroll] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
@@ -87,19 +86,6 @@ export default function CustomSelect({
   }, [open]);
 
   useEffect(() => {
-    if (open && dropdownRef.current && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const contentHeight = options.length * OPTION_HEIGHT + 16;
-      const dropdownH = Math.min(contentHeight, DROPDOWN_MAX_HEIGHT);
-      const spaceBelow = window.innerHeight - rect.bottom - 8;
-      const spaceAbove = rect.top - 8;
-      setOpenUp(spaceBelow < dropdownH && spaceAbove >= dropdownH);
-
-      setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
-    }
-  }, [open, options.length]);
-
-  useEffect(() => {
     if (open && listRef.current && value) {
       const selectedEl = listRef.current.querySelector<HTMLElement>(`[role='option'][data-selected="true"]`);
       if (selectedEl) {
@@ -108,14 +94,28 @@ export default function CustomSelect({
     }
   }, [open, value]);
 
+  const computePosition = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setTriggerRect({ top: rect.top, left: rect.left, width: rect.width, height: rect.height });
+
+    const contentHeight = options.length * OPTION_HEIGHT + 16;
+    const dropdownH = Math.min(contentHeight, DROPDOWN_MAX_HEIGHT);
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    setOpenUp(spaceBelow < dropdownH && spaceAbove >= dropdownH);
+    setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
+  }, [options.length]);
+
   const handleOpen = useCallback(() => {
     if (disabled) return;
     if (isSmallScreen) {
       setSearchMode(true);
     } else {
+      computePosition();
       setOpen((prev) => !prev);
     }
-  }, [disabled, isSmallScreen]);
+  }, [disabled, isSmallScreen, computePosition]);
 
   const handleSelect = useCallback((val: string) => {
     onChange(val);
@@ -188,6 +188,19 @@ export default function CustomSelect({
     );
   }
 
+  const dropdownStyle: React.CSSProperties = triggerRect
+    ? {
+        position: "fixed",
+        zIndex: 9999,
+        left: triggerRect.left,
+        width: triggerRect.width,
+        maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
+        ...(openUp
+          ? { bottom: window.innerHeight - triggerRect.top + 4 }
+          : { top: triggerRect.top + triggerRect.height + 4 }),
+      }
+    : { position: "fixed", zIndex: 9999, opacity: 0 };
+
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <button
@@ -211,11 +224,8 @@ export default function CustomSelect({
       </button>
       {open && (
         <div
-          ref={dropdownRef}
-          className={`absolute z-50 left-0 right-0 bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in ${
-            openUp ? "bottom-full mb-1" : "top-full mt-1"
-          }`}
-          style={{ maxHeight: `${DROPDOWN_MAX_HEIGHT}px` }}
+          className="bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
+          style={dropdownStyle}
         >
           <div
             ref={listRef}
