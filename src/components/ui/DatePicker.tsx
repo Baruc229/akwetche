@@ -31,13 +31,15 @@ export default function DatePicker({ value, onChange, className = '', min, place
   const [viewYear, setViewYear] = useState(0);
   const [viewMonth, setViewMonth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number; openUp: boolean } | null>(null);
 
   const parsed = value ? new Date(value + 'T00:00:00Z') : null;
   const isValid = parsed && !isNaN(parsed.getTime());
   const selectedYear = isValid ? parsed.getUTCFullYear() : undefined;
   const selectedMonth = isValid ? parsed.getUTCMonth() : undefined;
   const selectedDay = isValid ? parsed.getUTCDate() : undefined;
+
+  const CALENDAR_HEIGHT = 310;
 
   function initView() {
     if (isValid) {
@@ -53,10 +55,16 @@ export default function DatePicker({ value, onChange, className = '', min, place
   function computePosition() {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const openUp = spaceBelow < CALENDAR_HEIGHT && spaceAbove > spaceBelow;
     setPos({
-      top: rect.bottom + 4,
+      top: openUp
+        ? rect.top - CALENDAR_HEIGHT - 4
+        : rect.bottom + 4,
       left: rect.left,
       width: rect.width,
+      openUp,
     });
   }
 
@@ -129,7 +137,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
       <button
         type="button"
         onClick={handleOpen}
-        className={`field-input text-left cursor-pointer ${className}`}
+        className={`input-field text-left cursor-pointer ${className}`}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
         {displayValue}

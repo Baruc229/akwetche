@@ -154,7 +154,7 @@ export default function TontinesPage() {
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="field-label">Nom</label>
-                <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="field-input" placeholder="ex: Tontine 2026" required />
+                <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="input-field" placeholder="ex: Tontine 2026" required />
               </div>
               <div>
                 <label className="field-label">Type</label>
@@ -166,11 +166,11 @@ export default function TontinesPage() {
               </div>
               <div>
                 <label className="field-label">Montant cotisation</label>
-                <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="field-input" placeholder="ex: 10000" required min="1" />
+                <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
               </div>
               <div>
                 <label className="field-label">Fréquence (tous les X jours)</label>
-                <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="field-input" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
               </div>
               <div>
                 <label className="field-label">Date de début</label>
@@ -178,7 +178,7 @@ export default function TontinesPage() {
               </div>
               <div>
                 <label className="field-label">Commission organisateur</label>
-                <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="field-input" placeholder="0" min="0" />
+                <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="0" min="0" />
                 <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
               </div>
               <div>
@@ -192,7 +192,7 @@ export default function TontinesPage() {
               {newTnt.type === "rotative_simple" && (
                 <div>
                   <label className="field-label">Nombre de tours</label>
-                  <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="field-input" placeholder="ex: 12" />
+                  <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" />
                 </div>
               )}
               {newTnt.type === "vivres_fin_annee" && (

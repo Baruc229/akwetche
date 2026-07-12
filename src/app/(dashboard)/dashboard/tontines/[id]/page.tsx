@@ -443,7 +443,7 @@ export default function TontineDetail() {
             <form onSubmit={handleAddMembre} className="space-y-4">
               <div>
                 <label className="field-label">Nom</label>
-                <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="field-input" placeholder="Nom complet du membre" required />
+                <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
               </div>
               <button type="submit" className="btn-primary w-full">Ajouter</button>
             </form>
@@ -475,7 +475,7 @@ export default function TontineDetail() {
               </div>
               <div>
                 <label className="field-label">Montant payé</label>
-                <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="field-input" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
+                <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
                 <p className="text-xs text-muted mt-1">Total (base + commission) que le membre a versé</p>
               </div>
               <button type="submit" className="btn-primary w-full">Enregistrer</button>
@@ -495,7 +495,7 @@ export default function TontineDetail() {
             <form onSubmit={handleAddTour} className="space-y-4">
               <div>
                 <label className="field-label">Numéro de tour</label>
-                <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="field-input" required min="1" />
+                <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" />
               </div>
               <div>
                 <label className="field-label">Date prévue</label>
@@ -512,7 +512,7 @@ export default function TontineDetail() {
               </div>
               <div>
                 <label className="field-label">Montant attendu</label>
-                <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="field-input" required min="1" />
+                <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" />
                 <p className="text-xs text-muted mt-1">montantCotisation × membres = {formatCurrency(tontine.montantCotisation * actifs.length)}</p>
               </div>
               <button type="submit" className="btn-primary w-full">Créer</button>
@@ -536,11 +536,11 @@ export default function TontineDetail() {
               </div>
               <div>
                 <label className="field-label">Montant alloué aux vivres</label>
-                <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="field-input" min="0" />
+                <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" />
               </div>
               <div>
                 <label className="field-label">Montant distribué en argent</label>
-                <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="field-input" min="0" />
+                <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" />
               </div>
               <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
               <button type="submit" className="btn-primary w-full">Planifier</button>
