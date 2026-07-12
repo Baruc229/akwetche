@@ -240,73 +240,84 @@ export default function RevenusRecurrentsPage() {
     );
   }
 
-  if (showForm) return (
-    <div className="flex flex-col h-[100dvh] sm:h-auto">
-      <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-[var(--color-surface)] border-b sm:hidden">
-        <button onClick={() => { resetForm(); setShowForm(false); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-sand transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 rotate-180"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-        </button>
-        <h1 className="text-base font-bold text-ink truncate">{editingId ? "Modifier" : "Nouveau"} revenu</h1>
-      </div>
+  const scopeOptions = [
+    { value: "personal", label: "Personnel" },
+    { value: "activity", label: "Activité" },
+  ];
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-0 sm:py-0">
-        <div className="card sm:mt-4 sm:mx-auto sm:max-w-lg" style={{borderLeft:'3px solid var(--color-pos)'}}>
-          <div className="hidden sm:flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold">{editingId ? "Modifier" : "Nouveau"} revenu récurrent</h2>
-            <button onClick={() => { resetForm(); setShowForm(false); }} className="text-xs text-muted hover:text-ink">Annuler</button>
+  if (showForm) {
+    const formFields = (
+      <>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label className="field-label">Nom</label>
+            <input type="text" value={formName} onChange={e => setFormName(e.target.value)} className="input-field text-sm" placeholder="Salaire, Pension, Loyer perçu..." required />
           </div>
-          <form id="recurring-form" onSubmit={handleSave} className="flex flex-col gap-3 sm:space-y-3 sm:block">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="field-label">Nom</label>
-                <input type="text" value={formName} onChange={e => setFormName(e.target.value)} className="input-field text-sm" placeholder="Salaire, Pension, Loyer perçu..." required />
-              </div>
-              <div>
-                <label className="field-label">Montant</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                  <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" min="0" step="any" required />
-                </div>
-              </div>
-              <div>
-                <label className="field-label">Jour de versement</label>
-                <input type="number" value={formDayOfMonth} onChange={e => setFormDayOfMonth(e.target.value)} className="input-field text-sm" min="1" max={daysInMonth} required />
-              </div>
-              <div>
-                <label className="field-label">Catégorie</label>
-                <CustomSelect
-                  options={categoryOptions}
-                  value={formCategoryId}
-                  onChange={(v) => setFormCategoryId(v)}
-                  placeholder="Sélectionner..."
-                />
-              </div>
-              {commercialMode && (
-                <div className="sm:col-span-2">
-                  <label className="field-label">Portée</label>
-                  <select value={formScope} onChange={e => setFormScope(e.target.value as "personal" | "activity")} className="input-field text-sm">
-                    <option value="personal">Personnel</option>
-                    <option value="activity">Activité</option>
-                  </select>
-                </div>
-              )}
+          <div>
+            <label className="field-label">Montant</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
+              <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" min="0" step="any" required />
             </div>
-            {error && <p className="alert-inline neg text-sm">{error}</p>}
-            <div className="hidden sm:flex gap-2 justify-end pt-2">
-              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="btn-secondary text-sm">Annuler</button>
-              <button type="submit" className="btn-primary text-sm" style={{background:'var(--color-pos)', borderColor:'var(--color-pos)'}}>{editingId ? "Enregistrer" : "Créer"}</button>
+          </div>
+          <div>
+            <label className="field-label">Jour de versement</label>
+            <input type="number" value={formDayOfMonth} onChange={e => setFormDayOfMonth(e.target.value)} className="input-field text-sm" min="1" max={daysInMonth} required />
+          </div>
+          <div>
+            <label className="field-label">Catégorie</label>
+            <CustomSelect options={categoryOptions} value={formCategoryId} onChange={(v) => setFormCategoryId(v)} placeholder="Sélectionner..." />
+          </div>
+          {commercialMode && (
+            <div className="sm:col-span-2">
+              <label className="field-label">Portée</label>
+              <CustomSelect options={scopeOptions} value={formScope} onChange={(v) => setFormScope(v as "personal" | "activity")} placeholder="Sélectionner..." />
+            </div>
+          )}
+        </div>
+        {error && <p className="alert-inline neg text-sm">{error}</p>}
+      </>
+    );
+
+    return (
+      <>
+        {/* Mobile: full-page overlay */}
+        <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+          <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-[var(--color-surface)] border-b">
+            <button onClick={() => { resetForm(); setShowForm(false); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-sand transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 rotate-180"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+            <h1 className="text-base font-bold text-ink truncate">{editingId ? "Modifier" : "Nouveau"} revenu</h1>
+          </div>
+          <form onSubmit={handleSave} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">{formFields}</div>
+            <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+              {error && <div className="alert-inline neg mb-3 text-sm">{error}</div>}
+              <button type="submit" className="btn-primary w-full py-3 text-sm" style={{background:'var(--color-pos)', borderColor:'var(--color-pos)'}}>
+                {editingId ? "Enregistrer" : "Créer"}
+              </button>
             </div>
           </form>
         </div>
-      </div>
 
-      <div className="sticky bottom-0 shrink-0 px-4 py-3 bg-[var(--color-surface)] border-t sm:hidden">
-        <button type="submit" form="recurring-form" className="btn-primary w-full py-3 text-sm" style={{background:'var(--color-pos)', borderColor:'var(--color-pos)'}}>
-          {editingId ? "Enregistrer" : "Créer"}
-        </button>
-      </div>
-    </div>
-  );
+        {/* Desktop: centered modal */}
+        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
+          <div className="card max-w-md w-full shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold">{editingId ? "Modifier" : "Nouveau"} revenu récurrent</h2>
+              <button onClick={() => { resetForm(); setShowForm(false); }} className="text-xs text-muted hover:text-ink">Annuler</button>
+            </div>
+            <form onSubmit={handleSave} className="space-y-4">
+              {formFields}
+              <button type="submit" className="btn-primary w-full py-3 text-sm" style={{background:'var(--color-pos)', borderColor:'var(--color-pos)'}}>
+                {editingId ? "Enregistrer" : "Créer"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="space-y-4">
