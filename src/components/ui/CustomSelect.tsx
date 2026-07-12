@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faLock } from '@fortawesome/free-solid-svg-icons';
 
@@ -37,13 +38,31 @@ export default function CustomSelect({
   const [openUp, setOpenUp] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [canScroll, setCanScroll] = useState(false);
-  const [triggerRect, setTriggerRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
   const selectedIndex = options.findIndex((o) => o.value === value);
   const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 375;
+
+  function computePosition() {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const contentHeight = options.length * OPTION_HEIGHT + 16;
+    const dropdownH = Math.min(contentHeight, DROPDOWN_MAX_HEIGHT);
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    setOpenUp(spaceBelow < dropdownH && spaceAbove >= dropdownH);
+    setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
+    setDropdownPos({
+      top: spaceBelow >= dropdownH || spaceBelow < dropdownH && spaceAbove < dropdownH
+        ? rect.bottom + window.scrollY + 4
+        : rect.top + window.scrollY - dropdownH - 4,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    });
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -94,19 +113,6 @@ export default function CustomSelect({
     }
   }, [open, value]);
 
-  const computePosition = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    setTriggerRect({ top: rect.top, left: rect.left, width: rect.width, height: rect.height });
-
-    const contentHeight = options.length * OPTION_HEIGHT + 16;
-    const dropdownH = Math.min(contentHeight, DROPDOWN_MAX_HEIGHT);
-    const spaceBelow = window.innerHeight - rect.bottom - 8;
-    const spaceAbove = rect.top - 8;
-    setOpenUp(spaceBelow < dropdownH && spaceAbove >= dropdownH);
-    setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
-  }, [options.length]);
-
   const handleOpen = useCallback(() => {
     if (disabled) return;
     if (isSmallScreen) {
@@ -115,7 +121,7 @@ export default function CustomSelect({
       computePosition();
       setOpen((prev) => !prev);
     }
-  }, [disabled, isSmallScreen, computePosition]);
+  }, [disabled, isSmallScreen]);
 
   const handleSelect = useCallback((val: string) => {
     onChange(val);
@@ -188,18 +194,85 @@ export default function CustomSelect({
     );
   }
 
-  const dropdownStyle: React.CSSProperties = triggerRect
-    ? {
-        position: "fixed",
-        zIndex: 9999,
-        left: triggerRect.left,
-        width: triggerRect.width,
+  const dropdownContent = open && dropdownPos ? (
+    <div
+      className="fixed bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
+      style={{
+        top: openUp ? "auto" : dropdownPos.top,
+        bottom: openUp ? `calc(100vh - ${dropdownPos.top}px)` : "auto",
+        left: dropdownPos.left,
+        width: dropdownPos.width,
         maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
-        ...(openUp
-          ? { bottom: window.innerHeight - triggerRect.top + 4 }
-          : { top: triggerRect.top + triggerRect.height + 4 }),
-      }
-    : { position: "fixed", zIndex: 9999, opacity: 0 };
+        zIndex: 100,
+      }}
+    >
+      <div
+        ref={listRef}
+        className="overflow-y-auto custom-select-scrollbar"
+        style={{
+          maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
+          overscrollBehavior: "contain",
+          scrollbarWidth: "thin",
+          scrollbarColor: "#d4d0c8 #f5f3f0",
+        }}
+      >
+          {options.length === 0 ? (
+            <div className="px-4 py-3 text-sm text-muted">Aucune option</div>
+          ) : (
+            options.map((opt, i) =>
+              opt.separator ? (
+                <div
+                  key={opt.value}
+                  role="separator"
+                  aria-label={opt.label || "Separator"}
+                  className="flex items-center gap-2 px-4 py-2"
+                >
+                  {opt.label && (
+                    <span className="text-[10px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">
+                      {opt.label}
+                    </span>
+                  )}
+                  <span className="flex-1 h-px bg-border" />
+                </div>
+              ) : (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="option"
+                  data-focused={i === selectedIndex ? "true" : "false"}
+                  data-selected={opt.value === value ? "true" : "false"}
+                  data-disabled={opt.disabled ? "true" : "false"}
+                  disabled={opt.disabled}
+                  onClick={() => !opt.disabled && handleSelect(opt.value)}
+                  className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
+                    opt.disabled
+                      ? "text-muted cursor-not-allowed"
+                      : opt.value === value
+                        ? "bg-ochre-light text-ochre font-medium"
+                        : "text-ink hover:bg-sand hover:text-forest"
+                  }`}
+                  title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    {opt.icon && <img src={opt.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
+                    <span className={`truncate ${opt.disabled ? "opacity-50" : ""}`}>{opt.label}</span>
+                  </span>
+                  {opt.disabled && (
+                    <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
+                      <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
+                      {opt.disabledReason || "Premium"}
+                    </span>
+                  )}
+                </button>
+              )
+            )
+          )}
+      </div>
+      {canScroll && (
+        <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+      )}
+    </div>
+  ) : null;
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -222,78 +295,7 @@ export default function CustomSelect({
           }`}
         />
       </button>
-      {open && (
-        <div
-          className="bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
-          style={dropdownStyle}
-        >
-          <div
-            ref={listRef}
-            className="overflow-y-auto custom-select-scrollbar"
-            style={{
-              maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
-              overscrollBehavior: "contain",
-              scrollbarWidth: "thin",
-              scrollbarColor: "#d4d0c8 #f5f3f0",
-            }}
-          >
-              {options.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-muted">Aucune option</div>
-              ) : (
-                options.map((opt, i) =>
-                  opt.separator ? (
-                    <div
-                      key={opt.value}
-                      role="separator"
-                      aria-label={opt.label || "Separator"}
-                      className="flex items-center gap-2 px-4 py-2"
-                    >
-                      {opt.label && (
-                        <span className="text-[10px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">
-                          {opt.label}
-                        </span>
-                      )}
-                      <span className="flex-1 h-px bg-border" />
-                    </div>
-                  ) : (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      role="option"
-                      data-focused={i === selectedIndex ? "true" : "false"}
-                      data-selected={opt.value === value ? "true" : "false"}
-                      data-disabled={opt.disabled ? "true" : "false"}
-                      disabled={opt.disabled}
-                      onClick={() => !opt.disabled && handleSelect(opt.value)}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
-                        opt.disabled
-                          ? "text-muted cursor-not-allowed"
-                          : opt.value === value
-                            ? "bg-ochre-light text-ochre font-medium"
-                            : "text-ink hover:bg-sand hover:text-forest"
-                      }`}
-                      title={opt.disabled ? (opt.disabledReason || "Option non disponible") : undefined}
-                    >
-                      <span className="flex items-center gap-2 min-w-0">
-                        {opt.icon && <img src={opt.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
-                        <span className={`truncate ${opt.disabled ? "opacity-50" : ""}`}>{opt.label}</span>
-                      </span>
-                      {opt.disabled && (
-                        <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
-                          <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
-                          {opt.disabledReason || "Premium"}
-                        </span>
-                      )}
-                  </button>
-                )
-              )
-            )}
-            </div>
-            {canScroll && (
-              <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
-            )}
-          </div>
-      )}
+      {typeof document !== "undefined" && createPortal(dropdownContent, document.body)}
     </div>
   );
 }
