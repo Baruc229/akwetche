@@ -257,12 +257,12 @@ export default function DepensesRecurrentesPage() {
             <label className="field-label">Montant</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-              <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" min="0" step="any" required />
+              <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" placeholder="0" min="0" step="any" required />
             </div>
           </div>
           <div>
             <label className="field-label">Jour d'échéance</label>
-            <input type="number" value={formDayOfMonth} onChange={e => setFormDayOfMonth(e.target.value)} className="input-field text-sm" min="1" max={daysInMonth} required />
+            <input type="number" value={formDayOfMonth} onChange={e => setFormDayOfMonth(e.target.value)} className="input-field text-sm" placeholder="15" min="1" max={daysInMonth} required />
           </div>
           <div>
             <label className="field-label">Catégorie</label>
@@ -301,8 +301,8 @@ export default function DepensesRecurrentesPage() {
         </div>
 
         {/* Desktop: centered modal */}
-        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { resetForm(); setShowForm(false); }}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold">{editingId ? "Modifier" : "Nouvelle"} dépense récurrente</h2>
               <button onClick={() => { resetForm(); setShowForm(false); }} className="text-xs text-muted hover:text-ink">Annuler</button>

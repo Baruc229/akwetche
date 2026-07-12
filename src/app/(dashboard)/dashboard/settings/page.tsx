@@ -562,6 +562,7 @@ export default function SettingsPage() {
       setNameError("");
     }}
     className={`input-field ${nameError ? "error" : ""}`}
+    placeholder="Votre nom"
     required
   />
   {nameError && <p className="text-neg text-xs mt-1">{nameError}</p>}
@@ -570,7 +571,7 @@ export default function SettingsPage() {
   <label className="field-label">Argent de départ</label>
   <div className="relative">
   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-  <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const dc = currency as CurrencyCode; baseBalanceRef.current = toStorageCurrency(v, dc); }} className="input-field pl-16" min="0" step="any" />
+  <input type="number" value={initialBalance} onChange={(e) => { setInitialBalance(e.target.value); const v = parseFloat(e.target.value) || 0; const dc = currency as CurrencyCode; baseBalanceRef.current = toStorageCurrency(v, dc); }} className="input-field pl-16" placeholder="0" min="0" step="any" />
   </div>
   <p className="text-xs text-muted mt-1">Ce que vous aviez avant de commencer.</p>
  </div>
@@ -579,7 +580,7 @@ export default function SettingsPage() {
   <label className="field-label">Argent de départ (activité)</label>
   <div className="relative">
   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-  <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const dc = currency as CurrencyCode; baseActivityRef.current = toStorageCurrency(v, dc); }} className="input-field pl-16" min="0" step="any" />
+  <input type="number" value={initialBalanceActivity} onChange={(e) => { setInitialBalanceActivity(e.target.value); const v = parseFloat(e.target.value) || 0; const dc = currency as CurrencyCode; baseActivityRef.current = toStorageCurrency(v, dc); }} className="input-field pl-16" placeholder="0" min="0" step="any" />
   </div>
  <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
  </div>
@@ -675,7 +676,7 @@ export default function SettingsPage() {
  <div>
   <label className="field-label">Mot de passe actuel</label>
   <div style={{ position: "relative" }}>
-    <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field pr-10" required />
+    <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field pr-10" placeholder="Mot de passe actuel" required />
     <button type="button" onClick={() => setShowCurrent(!showCurrent)}
       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body" tabIndex={-1}>
       <FontAwesomeIcon icon={showCurrent ? faEyeSlash : faEye} />
@@ -685,7 +686,7 @@ export default function SettingsPage() {
  <div>
   <label className="field-label">Nouveau mot de passe</label>
   <div style={{ position: "relative" }}>
-    <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field pr-10" minLength={8} required />
+    <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field pr-10" placeholder="Nouveau mot de passe" minLength={8} required />
     <button type="button" onClick={() => setShowNew(!showNew)}
       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body" tabIndex={-1}>
       <FontAwesomeIcon icon={showNew ? faEyeSlash : faEye} />
@@ -696,7 +697,7 @@ export default function SettingsPage() {
  <div>
   <label className="field-label">Confirmer le nouveau mot de passe</label>
   <div style={{ position: "relative" }}>
-    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field pr-10" minLength={8} required />
+    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field pr-10" placeholder="Confirmer le mot de passe" minLength={8} required />
     <button type="button" onClick={() => setShowConfirm(!showConfirm)}
       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-body" tabIndex={-1}>
       <FontAwesomeIcon icon={showConfirm ? faEyeSlash : faEye} />

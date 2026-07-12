@@ -176,11 +176,11 @@ export default function QuickTransactionModal({ open, onClose, onSuccess }: Prop
         <div className="flex-1 overflow-y-auto">{content}</div>
       </div>
       {/* Desktop modal */}
-      <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-        <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]">
+      <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={onClose}>
+        <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between px-6 pt-6 pb-0">
             <h3 className="text-lg font-semibold text-ink">Nouvelle transaction</h3>
-            <button onClick={onClose} className="text-muted hover:text-muted">
+            <button onClick={onClose} className="text-muted hover:text-ink">
               <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
             </button>
           </div>

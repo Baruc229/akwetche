@@ -611,11 +611,11 @@ export default function TransactionsPage() {
       )}
       {/* Desktop modal */}
       {showModal && (
-        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={closeModal}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">{editTx ? "Modifier la transaction" : "Nouvelle transaction"}</h3>
-              <button onClick={closeModal} className="text-muted hover:text-muted">
+              <button onClick={closeModal} className="text-muted hover:text-ink">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
               </button>
             </div>

@@ -381,7 +381,7 @@ export default function StockPage() {
               </div>
               <div>
                 <label className="field-label">Quantité</label>
-                <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
+                <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" placeholder="1" min="1" required />
               </div>
               <div>
                 <label className="field-label">Note (optionnelle)</label>
@@ -399,11 +399,11 @@ export default function StockPage() {
       )}
       {/* Desktop modal */}
       {replenishProduct && (
-        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setReplenishProduct(null)}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-ink">Réapprovisionner</h3>
-              <button onClick={() => setReplenishProduct(null)} className="text-muted hover:text-muted"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              <button onClick={() => setReplenishProduct(null)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleReplenish} className="space-y-4">
               <div>
@@ -412,7 +412,7 @@ export default function StockPage() {
               </div>
               <div>
                 <label className="field-label">Quantité</label>
-                <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
+                <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" placeholder="1" min="1" required />
               </div>
               <div>
                 <label className="field-label">Note (optionnelle)</label>

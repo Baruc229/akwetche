@@ -284,15 +284,15 @@ export default function AdminOverview() {
               <form onSubmit={handleCreateAdmin} className="space-y-4">
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Nom</label>
-                  <input type="text" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="input-field" required />
+                  <input type="text" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="input-field" placeholder="Nom complet" required />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Email</label>
-                  <input type="email" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} className="input-field" required />
+                  <input type="email" value={newAdmin.email} onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })} className="input-field" placeholder="admin@email.com" required />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Mot de passe</label>
-                  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" required minLength={6} />
+                  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" placeholder="Minimum 6 caractères" required minLength={6} />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Rôle</label>

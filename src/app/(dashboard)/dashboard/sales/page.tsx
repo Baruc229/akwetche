@@ -286,12 +286,12 @@ export default function SalesPage() {
           </div>
           <div>
             <label className="field-label">Quantité</label>
-            <input type="number" value={formQuantity} onChange={(e) => setFormQuantity(e.target.value)} className="input-field" min="1" required />
+            <input type="number" value={formQuantity} onChange={(e) => setFormQuantity(e.target.value)} className="input-field" placeholder="1" min="1" required />
           </div>
           <div>
             <label className="field-label">Prix unitaire</label>
             <div className="relative">
-              <input type="number" value={formUnitPrice} onChange={(e) => setFormUnitPrice(e.target.value)} className="input-field pl-[38px]" step="0.01" min="0" required />
+              <input type="number" value={formUnitPrice} onChange={(e) => setFormUnitPrice(e.target.value)} className="input-field pl-[38px]" placeholder="0" step="0.01" min="0" required />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-3 pointer-events-none">
                 {currency === "EUR" ? "€" : "F"}
               </span>
@@ -532,7 +532,7 @@ export default function SalesPage() {
       )}
       {/* Desktop modal */}
       {showModal && (
-        <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
+        <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={closeModal}>
           <div className="bg-[var(--color-surface)] rounded-2xl w-full sm:max-w-md shadow-xl animate-scale-in max-h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 pt-6 pb-0">
               <h3 className="font-display font-semibold text-base text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
