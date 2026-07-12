@@ -58,9 +58,9 @@ export default function CustomSelect({
     setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
     setDropdownPos({
       top: spaceBelow >= dropdownH || spaceBelow < dropdownH && spaceAbove < dropdownH
-        ? rect.bottom + window.scrollY + 4
-        : rect.top + window.scrollY - dropdownH - 4,
-      left: rect.left + window.scrollX,
+        ? rect.bottom + 4
+        : rect.top - dropdownH - 4,
+      left: rect.left,
       width: rect.width,
     });
   }

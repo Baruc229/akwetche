@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
@@ -30,14 +31,16 @@ export default function DatePicker({ value, onChange, className = '', min, place
   const [viewYear, setViewYear] = useState(0);
   const [viewMonth, setViewMonth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const parsed = value ? new Date(value + 'T00:00:00Z') : null;
-  const selectedYear = parsed?.getUTCFullYear();
-  const selectedMonth = parsed?.getUTCMonth();
-  const selectedDay = parsed?.getUTCDate();
+  const isValid = parsed && !isNaN(parsed.getTime());
+  const selectedYear = isValid ? parsed.getUTCFullYear() : undefined;
+  const selectedMonth = isValid ? parsed.getUTCMonth() : undefined;
+  const selectedDay = isValid ? parsed.getUTCDate() : undefined;
 
   function initView() {
-    if (parsed) {
+    if (isValid) {
       setViewYear(parsed.getUTCFullYear());
       setViewMonth(parsed.getUTCMonth());
     } else {
@@ -47,19 +50,33 @@ export default function DatePicker({ value, onChange, className = '', min, place
     }
   }
 
+  function computePosition() {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setPos({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  }
+
   function handleOpen() {
     initView();
+    computePosition();
     setOpen(true);
   }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (document.getElementById('date-picker-portal')?.contains(target)) return;
+      setOpen(false);
     }
-    if (open) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    if (open) {
+      document.addEventListener('mousedown', handleClick);
+      return () => document.removeEventListener('mousedown', handleClick);
+    }
   }, [open]);
 
   function daysInMonth(y: number, m: number) {
@@ -77,21 +94,13 @@ export default function DatePicker({ value, onChange, className = '', min, place
   }
 
   function prevMonth() {
-    if (viewMonth === 0) {
-      setViewYear(viewYear - 1);
-      setViewMonth(11);
-    } else {
-      setViewMonth(viewMonth - 1);
-    }
+    if (viewMonth === 0) { setViewYear(viewYear - 1); setViewMonth(11); }
+    else { setViewMonth(viewMonth - 1); }
   }
 
   function nextMonth() {
-    if (viewMonth === 11) {
-      setViewYear(viewYear + 1);
-      setViewMonth(0);
-    } else {
-      setViewMonth(viewMonth + 1);
-    }
+    if (viewMonth === 11) { setViewYear(viewYear + 1); setViewMonth(0); }
+    else { setViewMonth(viewMonth + 1); }
   }
 
   const dim = daysInMonth(viewYear, viewMonth);
@@ -109,7 +118,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
     return d < minParsed;
   }
 
-  const displayValue = value ? (
+  const displayValue = isValid ? (
     <span>{selectedDay}/{selectedMonth! + 1}/{selectedYear}</span>
   ) : (
     <span style={{ color: 'var(--color-placeholder)' }}>{placeholder}</span>
@@ -130,10 +139,11 @@ export default function DatePicker({ value, onChange, className = '', min, place
           <line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
       </button>
-      {open && (
+      {open && pos && createPortal(
         <div
-          className="absolute z-50 mt-1 rounded-xl shadow-lg"
-          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', width: '280px', padding: '14px' }}
+          id="date-picker-portal"
+          className="fixed z-[100] rounded-xl shadow-lg animate-fade-in"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', width: '280px', padding: '14px', top: pos.top, left: pos.left }}
         >
           <div className="flex items-center justify-between mb-3">
             <button type="button" onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
@@ -197,7 +207,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
               className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
               style={{ color: 'var(--color-brand)', background: 'rgba(28,58,47,0.07)' }}
             >
-              Aujourd'hui
+              Aujourd&apos;hui
             </button>
             <button
               type="button"
@@ -208,7 +218,8 @@ export default function DatePicker({ value, onChange, className = '', min, place
               Fermer
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

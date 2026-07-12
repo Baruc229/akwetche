@@ -443,7 +443,7 @@ export default function TontineDetail() {
             <form onSubmit={handleAddMembre} className="space-y-4">
               <div>
                 <label className="field-label">Nom</label>
-                <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="field-input" required />
+                <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="field-input" placeholder="Nom complet du membre" required />
               </div>
               <button type="submit" className="btn-primary w-full">Ajouter</button>
             </form>
