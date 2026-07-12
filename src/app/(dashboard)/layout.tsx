@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faUsers, faPlus, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
 import ExpiredModal from "@/components/subscription/ExpiredModal";
+import QuickTransactionModal from "@/components/QuickTransactionModal";
 
 type UserData = {
   id: number;
@@ -124,6 +125,9 @@ export default function DashboardLayout({
   const [confirmDeleteNotif, setConfirmDeleteNotif] = useState<Notification | null>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
+  const [quickTxOpen, setQuickTxOpen] = useState(false);
+  const quickMenuRef = useRef<HTMLDivElement>(null);
 
   const handleSetCurrency = useCallback((c: CurrencyCode) => {
     setActiveCurrency(c);
@@ -159,6 +163,9 @@ export default function DashboardLayout({
     function handleClick(e: MouseEvent) {
       if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
         setAccountMenuOpen(false);
+      }
+      if (quickMenuRef.current && !quickMenuRef.current.contains(e.target as Node)) {
+        setQuickMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -317,6 +324,20 @@ export default function DashboardLayout({
    const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => pathname === path || (path !== '/admin' && path !== '/dashboard' && pathname.startsWith(path)))?.[1] || 'Akwetche';
 
    const avatarInitial = user.name?.charAt(0)?.toUpperCase() || '?';
+
+   function QuickActionBtn({ icon, label, hint, onClick }: { icon: any; label: string; hint: string; onClick: () => void }) {
+    return (
+      <button onClick={onClick} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all hover:bg-[var(--color-brand-subtle)] text-left" style={{color:'var(--color-ink)'}}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'var(--color-brand-subtle)'}}>
+          <FontAwesomeIcon icon={icon} className="w-4 h-4" style={{color:'var(--color-brand)'}} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium">{label}</p>
+          <p className="text-xs" style={{color:'var(--color-muted)'}}>{hint}</p>
+        </div>
+      </button>
+    );
+   }
 
   return (
    <DashboardContext.Provider value={ctxValue}>
@@ -521,8 +542,53 @@ export default function DashboardLayout({
               <h1 className="text-lg font-semibold" style={{fontFamily:'var(--font-display)', color:'var(--color-ink)'}}>{pageTitle}</h1>
             </div>
 
-            {/* Right: bell + avatar */}
-            <div className="flex items-center gap-3">
+            {/* Right: quick action + bell + avatar */}
+            <div className="flex items-center gap-2">
+              {/* Quick action button (desktop) */}
+              <div className="relative hidden lg:block" ref={quickMenuRef}>
+                <button
+                  onClick={() => setQuickMenuOpen(!quickMenuOpen)}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--color-brand-subtle)]"
+                  style={{color:'var(--color-muted)'}}
+                  aria-label="Action rapide"
+                >
+                  <FontAwesomeIcon icon={faPlus} className="w-[18px] h-[18px]" />
+                </button>
+                {quickMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-56 z-[100] bg-[var(--color-surface)] rounded-xl shadow-xl border border-[var(--color-border)] overflow-hidden animate-scale-in" style={{transformOrigin:'top right'}}>
+                    <div className="p-1.5">
+                      <QuickActionBtn
+                        icon={faPlus}
+                        label="Nouvelle transaction"
+                        hint="Sans navigation"
+                        onClick={() => { setQuickMenuOpen(false); setQuickTxOpen(true); }}
+                      />
+                      {commercialMode && (
+                        <>
+                          <QuickActionBtn
+                            icon={faBagShopping}
+                            label="Nouvelle vente"
+                            hint="Naviguer →"
+                            onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/sales?action=create"); }}
+                          />
+                          <QuickActionBtn
+                            icon={faBox}
+                            label="Nouveau produit"
+                            hint="Naviguer →"
+                            onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/products?action=create"); }}
+                          />
+                        </>
+                      )}
+                      <QuickActionBtn
+                        icon={faPeopleGroup}
+                        label="Cotisation tontine"
+                        hint="Naviguer →"
+                        onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={() => setNotifDrawerOpen(true)}
                 className="relative p-2 rounded-lg transition-all"
@@ -618,16 +684,41 @@ export default function DashboardLayout({
 
         {showExpiredModal && <ExpiredModal />}
 
-        {/* Mobile bottom nav — 4 items */}
+        {/* Mobile bottom nav — 4 items + FAB central */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden" style={{background:'var(--color-surface)', borderTop:'1px solid var(--color-border)', padding:'6px 0 calc(6px + env(safe-area-inset-bottom))'}}>
-          <div className="flex">
-            {[
+          <div className="flex items-center">
+            {([
               { href: "/dashboard", label: "Accueil", icon: faHouse },
               { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+            ] as const).map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex-1 flex flex-col items-center gap-[3px] py-[6px] px-1"
+                  style={{color: isActive ? 'var(--color-brand)' : 'var(--color-muted)', fontSize:'10.5px', fontWeight: isActive ? 600 : 500, fontFamily:'var(--font-body)'}}
+                >
+                  <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            {/* Central FAB */}
+            <div className="flex-none relative" style={{width:'56px'}}>
+              <button
+                onClick={() => setQuickMenuOpen(true)}
+                className="absolute left-1/2 -translate-x-1/2 bottom-0 w-12 h-12 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:opacity-90"
+                style={{marginBottom:'-4px'}}
+                aria-label="Action rapide"
+              >
+                <FontAwesomeIcon icon={faPlus} className="w-5 h-5" />
+              </button>
+            </div>
+            {([
               { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
               { href: "#menu", label: "Menu", icon: faBars },
-            ].map((item) => {
-              const isActive = item.href !== "#menu" && (pathname === item.href || pathname.startsWith(item.href));
+            ] as const).map((item) => {
               if (item.href === "#menu") {
                 return (
                   <button
@@ -641,6 +732,7 @@ export default function DashboardLayout({
                   </button>
                 );
               }
+              const isActive = pathname === item.href || pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
@@ -774,6 +866,58 @@ export default function DashboardLayout({
         </div>
       </div>
     )}
+
+    {/* Mobile bottom sheet — actions rapides */}
+    {quickMenuOpen && (
+      <>
+        <div className="fixed inset-0 z-50 lg:hidden bg-black/40 animate-fade-in" onClick={() => setQuickMenuOpen(false)} />
+        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
+            <h3 className="text-base font-semibold text-ink">Actions rapides</h3>
+            <button onClick={() => setQuickMenuOpen(false)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+              <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="p-3 space-y-1">
+            <QuickActionBtn
+              icon={faPlus}
+              label="Nouvelle transaction"
+              hint="Sans navigation"
+              onClick={() => { setQuickMenuOpen(false); setQuickTxOpen(true); }}
+            />
+            {commercialMode && (
+              <>
+                <QuickActionBtn
+                  icon={faBagShopping}
+                  label="Nouvelle vente"
+                  hint="Naviguer →"
+                  onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/sales?action=create"); }}
+                />
+                <QuickActionBtn
+                  icon={faBox}
+                  label="Nouveau produit"
+                  hint="Naviguer →"
+                  onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/products?action=create"); }}
+                />
+              </>
+            )}
+            <QuickActionBtn
+              icon={faPeopleGroup}
+              label="Cotisation tontine"
+              hint="Naviguer →"
+              onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }}
+            />
+          </div>
+        </div>
+      </>
+    )}
+
+    {/* Quick transaction modal (overlay, sans navigation) */}
+    <QuickTransactionModal
+      open={quickTxOpen}
+      onClose={() => setQuickTxOpen(false)}
+      onSuccess={() => fetchNotifications()}
+    />
 
     <style>{`
       /* Sidebar scrollbar styles */

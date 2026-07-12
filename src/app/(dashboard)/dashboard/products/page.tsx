@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
@@ -133,9 +133,18 @@ export default function ProductsPage() {
     }
   }
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     document.title = "Produits — Akwetche";
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      openCreate();
+      router.replace("/dashboard/products");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user) return;

@@ -20,34 +20,60 @@ export async function GET(req: NextRequest) {
 
     const budgetsWithSpent = await Promise.all(
       budgets.map(async (b) => {
-        const spent = await prisma.transaction.aggregate({
-          where: {
-            userId,
-            type: "expense",
-            categoryId: b.categoryId,
-            scope: b.scope,
-            date: { gte: monthStart, lt: monthEnd },
-          },
-          _sum: { amount: true },
-        });
-        return { ...b, spent: spent._sum.amount || 0 };
+        const [spent, earned] = await Promise.all([
+          prisma.transaction.aggregate({
+            where: {
+              userId,
+              type: "expense",
+              categoryId: b.categoryId,
+              scope: b.scope,
+              date: { gte: monthStart, lt: monthEnd },
+            },
+            _sum: { amount: true },
+          }),
+          prisma.transaction.aggregate({
+            where: {
+              userId,
+              type: "income",
+              categoryId: b.categoryId,
+              scope: b.scope,
+              date: { gte: monthStart, lt: monthEnd },
+            },
+            _sum: { amount: true },
+          }),
+        ]);
+        return { ...b, spent: spent._sum.amount || 0, earned: earned._sum.amount || 0 };
       })
     );
 
-    const totalExpensesByScope = await prisma.transaction.groupBy({
-      by: ["scope"],
-      where: {
-        userId,
-        type: "expense",
-        date: { gte: monthStart, lt: monthEnd },
-      },
-      _sum: { amount: true },
-    });
+    const [totalExpensesByScope, totalIncomeByScope] = await Promise.all([
+      prisma.transaction.groupBy({
+        by: ["scope"],
+        where: {
+          userId,
+          type: "expense",
+          date: { gte: monthStart, lt: monthEnd },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.groupBy({
+        by: ["scope"],
+        where: {
+          userId,
+          type: "income",
+          date: { gte: monthStart, lt: monthEnd },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
 
     return ok({
       budgets: budgetsWithSpent,
       totalExpenses: Object.fromEntries(
         totalExpensesByScope.map((g) => [g.scope, g._sum.amount || 0])
+      ),
+      totalIncome: Object.fromEntries(
+        totalIncomeByScope.map((g) => [g.scope, g._sum.amount || 0])
       ),
     });
   } catch {

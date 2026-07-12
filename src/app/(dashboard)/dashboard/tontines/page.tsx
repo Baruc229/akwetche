@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
@@ -22,6 +23,8 @@ type Tontine = {
 };
 
 export default function TontinesPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [tontines, setTontines] = useState<Tontine[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -54,6 +57,13 @@ export default function TontinesPage() {
     document.title = "Mes Tontines — Akwetche";
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setShowCreate(true);
+      router.replace("/dashboard/tontines");
+    }
+  }, [searchParams]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();

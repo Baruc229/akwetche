@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark, faTrash, faPen, faStar, faBagShopping, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
@@ -134,9 +134,18 @@ export default function SalesPage() {
     }
   }
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     document.title = "Ventes — Akwetche";
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      openNewModal();
+      router.replace("/dashboard/sales");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user) return;
