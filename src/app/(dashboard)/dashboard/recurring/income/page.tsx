@@ -302,7 +302,7 @@ export default function RevenusRecurrentsPage() {
 
         {/* Desktop: centered modal */}
         <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
-          <div className="card max-w-md w-full shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold">{editingId ? "Modifier" : "Nouveau"} revenu récurrent</h2>
               <button onClick={() => { resetForm(); setShowForm(false); }} className="text-xs text-muted hover:text-ink">Annuler</button>
