@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBox, faPlus, faTriangleExclamation, faBoxArchive, faArrowDown, faArrowUp, faXmark, faRotateLeft, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faBox, faPlus, faTriangleExclamation, faBoxArchive, faArrowDown, faArrowUp, faXmark, faRotateLeft, faEye, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
@@ -364,37 +364,34 @@ export default function StockPage() {
         )}
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile — full page */}
       {replenishProduct && (
-        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setReplenishProduct(null)}>
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-border">
-              <h3 className="text-lg font-semibold text-ink">Réapprovisionner</h3>
-              <button onClick={() => setReplenishProduct(null)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
-                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+          <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+            <button onClick={() => setReplenishProduct(null)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+              <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+            </button>
+            <h3 className="text-base font-semibold text-ink">Réapprovisionner</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-5">
+            <form onSubmit={handleReplenish} className="space-y-4">
+              <div>
+                <label className="field-label">Produit</label>
+                <p className="text-sm font-medium text-ink bg-sand rounded-xl px-3 py-2.5">{replenishProduct.name}</p>
+              </div>
+              <div>
+                <label className="field-label">Quantité</label>
+                <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
+              </div>
+              <div>
+                <label className="field-label">Note (optionnelle)</label>
+                <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="ex: Livraison fournisseur" />
+              </div>
+              {replenishError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{replenishError}</p></div>}
+              <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
+                {submitting ? "En cours..." : "Ajouter au stock"}
               </button>
-            </div>
-            <div className="p-5">
-              <form onSubmit={handleReplenish} className="space-y-4">
-                <div>
-                  <label className="field-label">Produit</label>
-                  <p className="text-sm font-medium text-ink bg-sand rounded-xl px-3 py-2.5">{replenishProduct.name}</p>
-                </div>
-                <div>
-                  <label className="field-label">Quantité</label>
-                  <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
-                </div>
-                <div>
-                  <label className="field-label">Note (optionnelle)</label>
-                  <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="ex: Livraison fournisseur" />
-                </div>
-                {replenishError && <p className="text-[var(--color-neg)] text-sm bg-[var(--color-neg-bg)] p-3 rounded-xl">{replenishError}</p>}
-                <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
-                  {submitting ? "En cours..." : "Ajouter au stock"}
-                </button>
-              </form>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -408,18 +405,18 @@ export default function StockPage() {
             </div>
             <form onSubmit={handleReplenish} className="space-y-4">
               <div>
-                <label className="block text-sm text-muted mb-1">Produit</label>
+                <label className="field-label">Produit</label>
                 <p className="text-sm font-medium text-ink bg-sand rounded-xl px-3 py-2.5">{replenishProduct.name}</p>
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Quantité</label>
+                <label className="field-label">Quantité</label>
                 <input type="number" value={replenishQty} onChange={(e) => setReplenishQty(e.target.value)} className="input-field" min="1" required />
               </div>
               <div>
-                <label className="block text-sm text-muted mb-1">Note (optionnelle)</label>
+                <label className="field-label">Note (optionnelle)</label>
                 <input type="text" value={replenishNote} onChange={(e) => setReplenishNote(e.target.value)} className="input-field" placeholder="ex: Livraison fournisseur" />
               </div>
-              {replenishError && <p className="text-[var(--color-neg)] text-sm bg-[var(--color-neg-bg)] p-3 rounded-xl">{replenishError}</p>}
+              {replenishError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{replenishError}</p></div>}
               <button type="submit" disabled={submitting} className="btn-primary w-full py-3 disabled:opacity-50">
                 {submitting ? "En cours..." : "Ajouter au stock"}
               </button>

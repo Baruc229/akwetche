@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faXmark, faTrash, faPen, faStar, faBagShopping, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faXmark, faTrash, faPen, faStar, faBagShopping, faTriangleExclamation, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import PremiumLock from "@/components/subscription/PremiumLock";
@@ -529,20 +529,31 @@ export default function SalesPage() {
         </div>
       )}
 
-      {/* Bottom sheet (mobile) */}
+      {/* Mobile — full page */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={closeModal}>
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="relative bg-[var(--color-surface)] rounded-t-[20px] sm:rounded-2xl w-full sm:max-w-md shadow-xl animate-slide-up sm:animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-border rounded-t-[20px] sm:rounded-t-2xl">
+        <div className="fixed inset-0 z-50 sm:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+          <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+            <button onClick={closeModal} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+              <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+            </button>
+            <h3 className="text-base font-semibold text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-5">
+            {renderForm()}
+          </div>
+        </div>
+      )}
+      {/* Desktop modal */}
+      {showModal && (
+        <div className="hidden sm:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full sm:max-w-md shadow-xl animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
               <h3 className="font-display font-semibold text-base text-text-1">{editingSale ? "Modifier la vente" : "Nouvelle vente"}</h3>
               <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center text-text-3 hover:text-text-1 rounded-lg hover:bg-sand transition-colors">
                 <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-5">
-              {renderForm()}
-            </div>
+            {renderForm()}
           </div>
         </div>
       )}

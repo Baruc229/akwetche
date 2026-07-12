@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen, faTrash, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faTrash, faXmark, faTriangleExclamation, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
@@ -471,106 +471,103 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Bottom sheet form (mobile) */}
+      {/* Mobile — full page */}
       {showModal && (
-        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setShowModal(false)}>
-          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-          <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-border">
-              <h3 className="text-lg font-semibold text-ink font-display">{editProduct ? "Modifier" : "Nouveau"} produit</h3>
-              <button onClick={() => setShowModal(false)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
-                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-5">
-              <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+          <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+            <button onClick={() => setShowModal(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+              <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+            </button>
+            <h3 className="text-base font-semibold text-ink font-display">{editProduct ? "Modifier" : "Nouveau"} produit</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="field-label">Nom du produit *</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="input-field"
+                  placeholder="ex: Sac à main"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="field-label">Nom du produit *</label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="input-field"
-                    placeholder="ex: Sac à main"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="field-label">Prix d&apos;achat</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={form.purchasePrice}
-                        onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
-                        className="input-field pl-16"
-                        min="0"
-                        step="0.01"
-                        placeholder="0"
-                      />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
-                        {currency === "EUR" ? "EUR" : "FCFA"}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="field-label">Prix de vente</label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={form.salePrice}
-                        onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                        className="input-field pl-16"
-                        min="0"
-                        step="0.01"
-                        placeholder="0"
-                      />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
-                        {currency === "EUR" ? "EUR" : "FCFA"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {!editProduct && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="field-label">Stock initial</label>
-                      <input
-                        type="number"
-                        value={form.stock}
-                        onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                        className="input-field"
-                        min="0"
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                )}
-                {salePriceNum > 0 && (
-                  <div className="flex items-center gap-2 bg-[var(--color-pos-bg)] rounded-xl px-4 py-3 text-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-pos)] shrink-0">
-                      <line x1="12" y1="19" x2="12" y2="5" />
-                      <polyline points="5 12 12 5 19 12" />
-                    </svg>
-                    <span className="text-[var(--color-pos)] font-medium">
-                      Bénéfice unitaire : <strong>{formatCurrency(liveMarginFCFA, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                  <label className="field-label">Prix d&apos;achat</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={form.purchasePrice}
+                      onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })}
+                      className="input-field pl-16"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
+                      {currency === "EUR" ? "EUR" : "FCFA"}
                     </span>
                   </div>
-                )}
-                {error && (
-                  <div className="flex items-center gap-2 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-xl px-4 py-3 text-sm">
-                    <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[var(--color-neg)] shrink-0" />
-                    <p className="text-[var(--color-neg)]">{error}</p>
+                </div>
+                <div>
+                  <label className="field-label">Prix de vente</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={form.salePrice}
+                      onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                      className="input-field pl-16"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted pointer-events-none">
+                      {currency === "EUR" ? "EUR" : "FCFA"}
+                    </span>
                   </div>
-                )}
-                <button
-                  type="submit"
-                  className="btn-primary w-full"
-                >
-                  {editProduct ? "Enregistrer" : "Créer le produit"}
-                </button>
-              </form>
-            </div>
+                </div>
+              </div>
+              {!editProduct && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="field-label">Stock initial</label>
+                    <input
+                      type="number"
+                      value={form.stock}
+                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                      className="input-field"
+                      min="0"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              )}
+              {salePriceNum > 0 && (
+                <div className="flex items-center gap-2 bg-[var(--color-pos-bg)] rounded-xl px-4 py-3 text-sm">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-pos)] shrink-0">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                  <span className="text-[var(--color-pos)] font-medium">
+                    Bénéfice unitaire : <strong>{formatCurrency(liveMarginFCFA, currency)}</strong> (<strong>{liveMarginRate.toFixed(0)}%</strong>)
+                  </span>
+                </div>
+              )}
+              {error && (
+                <div className="flex items-center gap-2 bg-[var(--color-neg-bg)] border border-[var(--color-neg)]/20 rounded-xl px-4 py-3 text-sm">
+                  <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 text-[var(--color-neg)] shrink-0" />
+                  <p className="text-[var(--color-neg)]">{error}</p>
+                </div>
+              )}
+              <button
+                type="submit"
+                className="btn-primary w-full py-3 disabled:opacity-50"
+              >
+                {editProduct ? "Enregistrer" : "Créer le produit"}
+              </button>
+            </form>
           </div>
         </div>
       )}

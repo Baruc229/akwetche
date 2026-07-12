@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faXmark, faTriangleExclamation, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -161,18 +161,15 @@ export default function QuickTransactionModal({ open, onClose, onSuccess }: Prop
 
   return (
     <>
-      {/* Mobile drawer */}
-      <div className="fixed inset-0 z-50 md:hidden" onClick={onClose}>
-        <div className="absolute inset-0 bg-black/40 animate-fade-in" />
-        <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
-          <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
-            <h3 className="text-lg font-semibold text-ink">Nouvelle transaction</h3>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
-              <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="p-5">{content}</div>
+      {/* Mobile — full page */}
+      <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+        <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+          <button onClick={onClose} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+            <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+          </button>
+          <h3 className="text-base font-semibold text-ink">Nouvelle transaction</h3>
         </div>
+        <div className="flex-1 overflow-y-auto p-5">{content}</div>
       </div>
       {/* Desktop modal */}
       <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
