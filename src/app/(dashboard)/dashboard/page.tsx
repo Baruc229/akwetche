@@ -767,7 +767,7 @@ export default function DashboardPage() {
                   </button>
                   <h3 className="text-base font-semibold text-ink">Nouvelle transaction</h3>
                 </div>
-                <form onSubmit={handleAddTransaction} className="flex-1 flex flex-col overflow-hidden">
+                <form onSubmit={handleAddTransaction} className="flex-1 flex flex-col min-h-0">
                   <div className="flex-1 overflow-y-auto p-5 space-y-4">{formFields}</div>
                   <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">{submitFooter}</div>
                 </form>

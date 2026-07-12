@@ -554,7 +554,7 @@ export default function TransactionsPage() {
             </button>
             <h3 className="text-base font-semibold text-ink">{editTx ? "Modifier" : "Nouvelle transaction"}</h3>
           </div>
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {commercialMode && (
               <div className="flex gap-2">
@@ -570,7 +570,7 @@ export default function TransactionsPage() {
                 <label className="field-label">Montant</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                  <input type="text" inputMode="numeric" pattern="[0-9 ]*" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: formatAmountDisplay(e.target.value) })} className="input-field pl-16" placeholder="ex: 5 000" required />
+                  <input type="text" inputMode="numeric" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: formatAmountDisplay(e.target.value) })} className="input-field pl-16" placeholder="ex: 5 000" autoComplete="off" required />
                 </div>
               </div>
               <div>
@@ -634,7 +634,7 @@ export default function TransactionsPage() {
                 <label className="field-label">Montant</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                  <input type="text" inputMode="numeric" pattern="[0-9 ]*" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: formatAmountDisplay(e.target.value) })} className="input-field pl-16" placeholder="ex: 5 000" required />
+                  <input type="text" inputMode="numeric" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: formatAmountDisplay(e.target.value) })} className="input-field pl-16" placeholder="ex: 5 000" autoComplete="off" required />
                 </div>
               </div>
               <div>

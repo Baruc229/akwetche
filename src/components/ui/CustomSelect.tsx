@@ -41,6 +41,7 @@ export default function CustomSelect({
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
   const selectedIndex = options.findIndex((o) => o.value === value);
@@ -66,9 +67,10 @@ export default function CustomSelect({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (dropdownRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -196,6 +198,7 @@ export default function CustomSelect({
 
   const dropdownContent = open && dropdownPos ? (
     <div
+      ref={dropdownRef}
       className="fixed bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
       style={{
         top: openUp ? "auto" : dropdownPos.top,

@@ -289,7 +289,7 @@ export default function DepensesRecurrentesPage() {
             </button>
             <h1 className="text-base font-bold text-ink truncate">{editingId ? "Modifier" : "Nouvelle"} dépense</h1>
           </div>
-          <form onSubmit={handleSave} className="flex-1 flex flex-col overflow-hidden">
+          <form onSubmit={handleSave} className="flex-1 flex flex-col min-h-0">
             <div className="flex-1 overflow-y-auto p-5 space-y-4">{formFields}</div>
             <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
               {error && <div className="alert-inline neg mb-3 text-sm">{error}</div>}

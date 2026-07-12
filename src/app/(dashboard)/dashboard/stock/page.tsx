@@ -373,7 +373,7 @@ export default function StockPage() {
             </button>
             <h3 className="text-base font-semibold text-ink">Réapprovisionner</h3>
           </div>
-          <form onSubmit={handleReplenish} className="flex-1 flex flex-col overflow-hidden">
+          <form onSubmit={handleReplenish} className="flex-1 flex flex-col min-h-0">
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div>
                 <label className="field-label">Produit</label>

@@ -266,7 +266,7 @@ export default function SalesPage() {
 
   function renderForm() {
     return (
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
             <label className="field-label">Produit</label>
