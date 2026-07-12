@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faCalendarDays, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
@@ -31,6 +31,7 @@ type ScopeSummary = {
 export default function TransactionsPage() {
   const { user, commercialMode, currency } = useDashboard();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [total, setTotal] = useState(0);
@@ -53,6 +54,7 @@ export default function TransactionsPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
@@ -104,6 +106,13 @@ export default function TransactionsPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      openAddModal();
+      router.replace("/dashboard/transactions");
+    }
+  }, [searchParams]);
 
   function getPeriodDates() {
     const now = new Date();
@@ -370,6 +379,12 @@ export default function TransactionsPage() {
         )}
       </div>
 
+      {/* Mobile filter button */}
+      <button onClick={() => setShowMobileFilters(true)} className="sm:hidden flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted hover:text-ink transition-colors" style={{ background: 'var(--color-surface-raised)' }}>
+        <FontAwesomeIcon icon={faFilter} className="w-3.5 h-3.5" />
+        Filtres & Tri
+      </button>
+
       {/* Search & Sort (desktop only) */}
       <div className="hidden sm:flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-xs">
@@ -460,6 +475,14 @@ export default function TransactionsPage() {
                               <span>{tx.category?.name || "Non catégorisé"}</span>
                               {tx.scope === "activity" && <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: 'var(--color-gold)' }}><FontAwesomeIcon icon={faBriefcase} className="w-2.5 h-2.5" /> activité</span>}
                               {tx.scope === "personal" && <span className="inline-flex items-center gap-0.5 font-medium" style={{ color: 'var(--color-brand)' }}><FontAwesomeIcon icon={faUser} className="w-2.5 h-2.5" /> personnel</span>}
+                            </div>
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <button onClick={() => openEditModal(tx)} className="btn-ghost p-1.5" title="Modifier">
+                                <FontAwesomeIcon icon={faPen} className="w-3 h-3" />
+                              </button>
+                              <button onClick={() => setConfirmDeleteTx(tx.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
+                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -646,6 +669,80 @@ export default function TransactionsPage() {
                 return <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">{editTx ? "Enregistrer" : "Ajouter"}</button>;
               })()}
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile filter bottom sheet */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-50 sm:hidden flex flex-col justify-end bg-black/40 animate-fade-in" onClick={() => setShowMobileFilters(false)}>
+          <div className="bg-[var(--color-surface)] rounded-t-2xl shadow-xl animate-slide-up max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-5 py-4 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-ink">Filtres & Tri</h3>
+              <button onClick={() => setShowMobileFilters(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)] text-muted">
+                <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-5">
+              {/* Search */}
+              <div>
+                <label className="field-label">Recherche</label>
+                <div className="relative">
+                  <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                  <input type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="input-field py-2.5 text-sm" style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }} placeholder="Rechercher..." />
+                  {searchInput && (
+                    <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-ink rounded-full">
+                      <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Sort */}
+              <div>
+                <label className="field-label">Trier par</label>
+                <div className="flex gap-2">
+                  {[{v:"date",l:"Date"},{v:"amount",l:"Montant"},{v:"category",l:"Catégorie"}].map((s) => (
+                    <button key={s.v} onClick={() => handleSort(s.v)} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${sort === s.v ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted"}`}>
+                      {s.l}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => setSortOrder(o => o === "asc" ? "desc" : "asc")} className="mt-2 flex items-center gap-1.5 text-xs text-muted hover:text-ink">
+                  <FontAwesomeIcon icon={faArrowsUpDown} className={`w-3 h-3 transition-transform ${sortOrder === "asc" ? "rotate-180" : ""}`} />
+                  {sortOrder === "asc" ? "Croissant" : "Décroissant"}
+                </button>
+              </div>
+
+              {/* Type filter */}
+              <div>
+                <label className="field-label">Type</label>
+                <div className="flex gap-2">
+                  {[{v:"all",l:"Tous"},{v:"expense",l:"Dépenses"},{v:"income",l:"Revenus"}].map((f) => (
+                    <button key={f.v} onClick={() => { setFilter(f.v); setPage(0); }} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${filter === f.v ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted"}`}>
+                      {f.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scope filter */}
+              {commercialMode && (
+                <div>
+                  <label className="field-label">Portée</label>
+                  <div className="flex gap-2">
+                    {[{v:"all",l:"Toutes"},{v:"personal",l:"Personnel"},{v:"activity",l:"Activité"}].map((s) => (
+                      <button key={s.v} onClick={() => { setScopeFilter(s.v); setPage(0); }} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${scopeFilter === s.v ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted"}`}>
+                        {s.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="sticky bottom-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] px-5 py-4">
+              <button onClick={() => setShowMobileFilters(false)} className="btn-primary w-full py-3">Appliquer</button>
+            </div>
           </div>
         </div>
       )}
