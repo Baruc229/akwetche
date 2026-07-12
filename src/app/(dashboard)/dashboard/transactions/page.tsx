@@ -65,7 +65,6 @@ export default function TransactionsPage() {
     categoryId: "",
     date: new Date().toISOString().split('T')[0],
     scope: "personal",
-    note: "",
   });
   const [txError, setTxError] = useState("");
 
@@ -76,11 +75,11 @@ export default function TransactionsPage() {
     if (showModal && prev !== currency) {
       if (editTx) {
         // Mode édition : valeur de base connue
-        setFormData(f => ({ ...f, amount: String(toDisplayCurrency(editTx.amount, currency)) }));
+        setFormData(f => ({ ...f, amount: formatAmountDisplay(String(toDisplayCurrency(editTx.amount, currency))) }));
       } else if (formData.amount) {
         // Mode ajout : convertir depuis l'ancienne devise
-        const baseVal = toStorageCurrency(parseFloat(formData.amount) || 0, prev);
-        setFormData(f => ({ ...f, amount: String(toDisplayCurrency(baseVal, currency)) }));
+        const baseVal = toStorageCurrency(parseFloat(parseAmountInput(formData.amount)) || 0, prev);
+        setFormData(f => ({ ...f, amount: formatAmountDisplay(String(toDisplayCurrency(baseVal, currency))) }));
       }
       prevCurrencyRef.current = currency;
     }
@@ -178,9 +177,19 @@ export default function TransactionsPage() {
     loadSummary();
   }, [page, filter, scopeFilter, period, customStart, customEnd, search, sort, sortOrder]);
 
+  function formatAmountDisplay(raw: string): string {
+    const digits = raw.replace(/[^\d]/g, "");
+    if (!digits) return "";
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  function parseAmountInput(raw: string): string {
+    return raw.replace(/[^\d]/g, "");
+  }
+
   function openAddModal() {
     setEditTx(null);
-    setFormData({ type: "expense", amount: "", description: "", categoryId: "", date: new Date().toISOString().split('T')[0], scope: "personal", note: "" });
+    setFormData({ type: "expense", amount: "", description: "", categoryId: "", date: new Date().toISOString().split('T')[0], scope: "personal" });
     setTxError("");
     setShowModal(true);
   }
@@ -189,12 +198,11 @@ export default function TransactionsPage() {
     setEditTx(tx);
     setFormData({
       type: tx.type,
-      amount: String(toDisplayCurrency(tx.amount, currency)),
+      amount: formatAmountDisplay(String(toDisplayCurrency(tx.amount, currency))),
       description: tx.description,
       categoryId: String(tx.category?.id ?? ""),
       date: tx.date ? new Date(tx.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       scope: tx.scope,
-      note: "",
     });
     setTxError("");
     setShowModal(true);
@@ -209,7 +217,7 @@ export default function TransactionsPage() {
     e.preventDefault();
     setTxError("");
 
-    if (!formData.amount || Number(formData.amount) <= 0) { setTxError("Le montant doit être supérieur à 0"); return; }
+    if (!formData.amount || Number(parseAmountInput(formData.amount)) <= 0) { setTxError("Le montant doit être supérieur à 0"); return; }
     if (!formData.description.trim()) { setTxError("La description est requise"); return; }
     if (!formData.categoryId) { setTxError("La catégorie est requise"); return; }
     if (!formData.date) { setTxError("La date est requise"); return; }
@@ -225,8 +233,7 @@ export default function TransactionsPage() {
     try {
       const url = editTx ? `/api/transactions/${editTx.id}` : "/api/transactions";
       const method = editTx ? "PUT" : "POST";
-      const body: Record<string, unknown> = { type: formData.type, amount: toStorageCurrency(Number(formData.amount), currency), description: formData.description, categoryId: Number(formData.categoryId), date: formData.date, scope: formData.scope };
-      if (formData.note) body.note = formData.note;
+      const body: Record<string, unknown> = { type: formData.type, amount: toStorageCurrency(Number(parseAmountInput(formData.amount)), currency), description: formData.description, categoryId: Number(formData.categoryId), date: formData.date, scope: formData.scope };
 
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -563,7 +570,7 @@ export default function TransactionsPage() {
                 <label className="field-label">Montant</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
+                  <input type="text" inputMode="numeric" pattern="[0-9 ]*" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: formatAmountDisplay(e.target.value) })} className="input-field pl-16" placeholder="ex: 5 000" required />
                 </div>
               </div>
               <div>
@@ -577,10 +584,6 @@ export default function TransactionsPage() {
               <div>
                 <label className="field-label">Date</label>
                 <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
-              </div>
-              <div>
-                <label className="field-label">Note (optionnelle)</label>
-                <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
               </div>
               {!editTx && limits && !limits.isPremium && user?.role === "user" && (
                 <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
@@ -631,7 +634,7 @@ export default function TransactionsPage() {
                 <label className="field-label">Montant</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
-                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
+                  <input type="text" inputMode="numeric" pattern="[0-9 ]*" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: formatAmountDisplay(e.target.value) })} className="input-field pl-16" placeholder="ex: 5 000" required />
                 </div>
               </div>
               <div>
@@ -645,10 +648,6 @@ export default function TransactionsPage() {
               <div>
                 <label className="field-label">Date</label>
                 <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
-              </div>
-              <div>
-                <label className="field-label">Note (optionnelle)</label>
-                <textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
               </div>
               {!editTx && limits && !limits.isPremium && user?.role === "user" && (
                 <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
