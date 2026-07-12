@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, toStorageCurrency } from "@/lib/utils";
+import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { formatCurrency, toStorageCurrency, toDisplayCurrency } from "@/lib/utils";
 import { detectCurrency, setActiveCurrency, type CurrencyCode } from "@/lib/currency";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [categories, setCategories] = useState<{ id: number; name: string; icon: string; type: string }[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
-  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false });
+  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0], note: "" });
   const [txError, setTxError] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [limits, setLimits] = useState<{
@@ -132,6 +132,12 @@ export default function DashboardPage() {
   async function handleAddTransaction(e: React.FormEvent) {
     e.preventDefault();
     setTxError("");
+
+    if (!newTx.amount || Number(newTx.amount) <= 0) { setTxError("Le montant doit être supérieur à 0"); return; }
+    if (!newTx.description.trim()) { setTxError("La description est requise"); return; }
+    if (!newTx.categoryId) { setTxError("La catégorie est requise"); return; }
+    if (!newTx.date) { setTxError("La date est requise"); return; }
+
     if (limits && !limits.isPremium && user?.role === "user") {
       const atLimit = newTx.type === "income"
         ? limits.incomeCount >= limits.maxFreeIncome
@@ -142,10 +148,12 @@ export default function DashboardPage() {
       }
     }
     try {
+      const body: Record<string, unknown> = { type: newTx.type, amount: toStorageCurrency(Number(newTx.amount) || 0, activeCurrency), description: newTx.description, categoryId: Number(newTx.categoryId), date: newTx.date, scope: newTx.scope, recurring: newTx.recurring };
+      if (newTx.note) body.note = newTx.note;
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newTx, amount: toStorageCurrency(Number(newTx.amount) || 0, activeCurrency), categoryId: Number(newTx.categoryId) }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -153,11 +161,11 @@ export default function DashboardPage() {
         return;
       }
       setShowModal(false);
-      setNewTx({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false });
+      setNewTx({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0], note: "" });
       loadData();
       fetch("/api/user/limits").then(r => r.json()).then(setLimits);
     } catch {
-      setTxError("Erreur");
+      setTxError("Erreur réseau");
     }
   }
 
@@ -664,185 +672,128 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Modal Nouvelle transaction */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="card max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-ink">Nouvelle transaction</h3>
-              <button onClick={() => setShowModal(false)} className="text-muted hover:text-ink">
-                <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleAddTransaction} className="space-y-4">
-              {commercialMode && (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewTx({ ...newTx, scope: "personal" })}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                      newTx.scope === "personal"
-                        ? "bg-[var(--color-brand)] text-white"
-                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
-                    }`}
-                  >
-                    Personnel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewTx({ ...newTx, scope: "activity" })}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                      newTx.scope === "activity"
-                        ? "bg-[var(--color-gold)] text-white"
-                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
-                    }`}
-                  >
-                    Activité
-                  </button>
-                </div>
-              )}
+      {/* Modal Nouvelle transaction — form content */}
+      {(() => {
+        const atLimit = limits && !limits.isPremium && user?.role === "user" && (
+          (newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
+          (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense)
+        );
+        const formContent = (
+          <form onSubmit={handleAddTransaction} className="space-y-4">
+            {commercialMode && (
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setNewTx({ ...newTx, type: "expense" })}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      newTx.type === "expense"
-                        ? "bg-[var(--color-neg)] text-white"
-                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
-                    }`}
-                  >
-                    Dépense
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewTx({ ...newTx, type: "income" })}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      newTx.type === "income"
-                        ? "bg-[var(--color-pos)] text-white"
-                        : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"
-                    }`}
-                >
-                  Revenu
+                <button type="button" onClick={() => setNewTx({ ...newTx, scope: "personal" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${newTx.scope === "personal" ? "bg-[var(--color-brand)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Personnel</button>
+                <button type="button" onClick={() => setNewTx({ ...newTx, scope: "activity" })} className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${newTx.scope === "activity" ? "bg-[var(--color-gold)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Activité</button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setNewTx({ ...newTx, type: "expense", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${newTx.type === "expense" ? "bg-[var(--color-neg)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Dépense</button>
+              <button type="button" onClick={() => setNewTx({ ...newTx, type: "income", categoryId: "" })} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${newTx.type === "income" ? "bg-[var(--color-pos)] text-white shadow-sm" : "bg-[var(--color-border)] text-muted hover:bg-[var(--color-surface-raised)]"}`}>Revenu</button>
+            </div>
+            <div>
+              <label className="field-label">Montant</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm font-semibold pointer-events-none">{activeCurrency === "XOF" ? "FCFA" : "EUR"}</span>
+                <input type="number" value={newTx.amount} onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })} className="input-field pl-16" placeholder="ex: 5000" required min="1" />
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Description</label>
+              <input type="text" value={newTx.description} onChange={(e) => setNewTx({ ...newTx, description: e.target.value })} className="input-field" placeholder="ex: Achat alimentation" required />
+            </div>
+            <div>
+              <label className="field-label">Catégorie</label>
+              <CustomSelect
+                options={(() => {
+                  const isPrem = limits?.isPremium || false;
+                  const ofType = categories.filter((c: any) => c.type === newTx.type).sort((a: any, b: any) => a.id - b.id);
+                  if (isPrem) return ofType.map((c: any) => ({ value: String(c.id), label: c.name }));
+                  const active = ofType.filter((c: any) => activeCategoryIds.includes(c.id));
+                  const locked = ofType.filter((c: any) => !activeCategoryIds.includes(c.id));
+                  if (locked.length === 0) return active.map((c: any) => ({ value: String(c.id), label: c.name }));
+                  return [
+                    ...active.map((c: any) => ({ value: String(c.id), label: c.name })),
+                    { value: "__sep__", label: "Nécessitent Premium", separator: true },
+                    ...locked.map((c: any) => ({ value: String(c.id), label: c.name, disabled: true, disabledReason: "Premium requis" })),
+                  ];
+                })()}
+                value={newTx.categoryId}
+                onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
+                placeholder="Sélectionner..."
+              />
+            </div>
+            <div>
+              <label className="field-label">Date</label>
+              <input type="date" value={newTx.date} onChange={(e) => setNewTx({ ...newTx, date: e.target.value })} className="input-field" required />
+            </div>
+            <div>
+              <label className="field-label">Note (optionnelle)</label>
+              <textarea value={newTx.note} onChange={(e) => setNewTx({ ...newTx, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
+            </div>
+            {newTx.type === "expense" && (
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setNewTx({ ...newTx, recurring: !newTx.recurring })} className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold transition-all ${newTx.recurring ? "bg-[var(--color-brand)] text-white" : "bg-[var(--color-border)] text-transparent"}`}>
+                  {newTx.recurring ? "✓" : ""}
                 </button>
+                <label className="text-sm text-muted cursor-pointer select-none" onClick={() => setNewTx({ ...newTx, recurring: !newTx.recurring })}>
+                  Dépense récurrente (loyer, abonnement…)
+                </label>
               </div>
-
-              <div>
-                <label className="field-label">Montant</label>
-                <input
-                  type="number"
-                  value={newTx.amount}
-                  onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                  className="field-input"
-                  placeholder="ex: 5000"
-                  required
-                  min="1"
-                />
-              </div>
-
-              <div>
-                <label className="field-label">Description</label>
-                <input
-                  type="text"
-                  value={newTx.description}
-                  onChange={(e) => setNewTx({ ...newTx, description: e.target.value })}
-                  className="field-input"
-                  placeholder="ex: Achat alimentation"
-                  required
-                />
-              </div>
-
-              {newTx.type === "expense" && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewTx({ ...newTx, recurring: !newTx.recurring })}
-                    className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold transition-all ${
-                      newTx.recurring
-                        ? "bg-[var(--color-brand)] text-white"
-                        : "bg-[var(--color-border)] text-transparent"
-                    }`}
-                  >
-                    {newTx.recurring ? "✓" : ""}
-                  </button>
-                  <label className="text-sm text-muted cursor-pointer select-none" onClick={() => setNewTx({ ...newTx, recurring: !newTx.recurring })}>
-                    Dépense récurrente (loyer, abonnement…)
-                  </label>
+            )}
+            {limits && !limits.isPremium && user?.role === "user" && (
+              <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-medium" style={{ color: 'var(--color-warn)' }}>{newTx.type === "income" ? "Revenus" : "Dépenses"} ce mois</span>
+                  <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>{newTx.type === "income" ? limits.incomeCount : limits.expenseCount}/{newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}</span>
                 </div>
-              )}
-
-              <div>
-                <label className="field-label">Catégorie</label>
-                <CustomSelect
-                  options={(() => {
-                    const isPrem = limits?.isPremium || false;
-                    const ofType = categories.filter((c: any) => c.type === newTx.type).sort((a: any, b: any) => a.id - b.id);
-                    if (isPrem) return ofType.map((c: any) => ({ value: String(c.id), label: c.name }));
-                    const active = ofType.filter((c: any) => activeCategoryIds.includes(c.id));
-                    const locked = ofType.filter((c: any) => !activeCategoryIds.includes(c.id));
-                    if (locked.length === 0) return active.map((c: any) => ({ value: String(c.id), label: c.name }));
-                    return [
-                      ...active.map((c: any) => ({ value: String(c.id), label: c.name })),
-                      { value: "__sep__", label: "Nécessitent Premium", separator: true },
-                      ...locked.map((c: any) => ({ value: String(c.id), label: c.name, disabled: true, disabledReason: "Premium requis" })),
-                    ];
-                  })()}
-                  value={newTx.categoryId}
-                  onChange={(v) => setNewTx({ ...newTx, categoryId: v })}
-                  placeholder="Sélectionner..."
-                />
+                {(newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) || (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
+                  <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
+                ) : (
+                  <p className="text-xs" style={{ color: 'var(--color-warn)' }}>{Math.max(0, (newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (newTx.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)</p>
+                )}
               </div>
-
-              {limits && !limits.isPremium && user?.role === "user" && (
-                <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-medium" style={{ color: 'var(--color-warn)' }}>
-                      {newTx.type === "income" ? "Revenus" : "Dépenses"} ce mois
-                    </span>
-                    <span className="font-semibold" style={{ color: 'var(--color-warn)' }}>
-                      {newTx.type === "income" ? limits.incomeCount : limits.expenseCount}/{newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense}
-                    </span>
+            )}
+            {txError && <div className="alert-inline neg"><FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" /><p>{txError}</p></div>}
+            <button type="submit" disabled={!!atLimit} className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed">Ajouter</button>
+          </form>
+        );
+        return (
+          <>
+            {/* Mobile drawer */}
+            {showModal && (
+              <div className="fixed inset-0 z-50 md:hidden" onClick={() => setShowModal(false)}>
+                <div className="absolute inset-0 bg-black/40 animate-fade-in" />
+                <div className="absolute bottom-0 left-0 right-0 bg-[var(--color-surface)] rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+                  <div className="sticky top-0 bg-[var(--color-surface)] z-10 flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
+                    <h3 className="text-lg font-semibold text-ink">Nouvelle transaction</h3>
+                    <button onClick={() => setShowModal(false)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                      <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+                    </button>
                   </div>
-                  {(newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
-                  (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense) ? (
-                    <p className="text-xs" style={{ color: 'var(--color-neg)' }}>Limite mensuelle atteinte. Passez à Premium.</p>
-                  ) : (
-                    <p className="text-xs" style={{ color: 'var(--color-warn)' }}>
-                      {Math.max(0, (newTx.type === "income" ? limits.maxFreeIncome : limits.maxFreeExpense) - (newTx.type === "income" ? limits.incomeCount : limits.expenseCount))} transaction(s) restante(s)
-                    </p>
-                  )}
+                  <div className="p-5">{formContent}</div>
                 </div>
-              )}
-
-              {txError && (
-                <div className="alert-inline neg">
-                  <FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p>{txError}</p>
+              </div>
+            )}
+            {/* Desktop modal */}
+            {showModal && (
+              <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in">
+                <div className="card max-w-md shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-semibold text-ink">Nouvelle transaction</h3>
+                    <button onClick={() => setShowModal(false)} className="text-muted hover:text-ink">
+                      <FontAwesomeIcon icon={faXmark} className="w-4 h-4" />
+                    </button>
+                  </div>
+                  {formContent}
                 </div>
-              )}
-
-              {(() => {
-                const atLimit = limits && !limits.isPremium && user?.role === "user" && (
-                  (newTx.type === "income" && limits.incomeCount >= limits.maxFreeIncome) ||
-                  (newTx.type === "expense" && limits.expenseCount >= limits.maxFreeExpense)
-                );
-                return (
-                  <button type="submit" disabled={!!atLimit} className="btn-primary w-full">
-                    Ajouter
-                  </button>
-                );
-              })()}
-            </form>
-          </div>
-        </div>
-      )}
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* FAB mobile */}
-      <button
-        onClick={() => setShowModal(true)}
-        className="sm:hidden fixed bottom-24 right-5 z-50 bg-[var(--color-brand)] text-white w-14 h-14 flex items-center justify-center shadow-[0_4px_20px_rgba(28,58,47,0.3)] active:scale-95 transition-transform"
-        style={{ borderRadius: "16px" }}
-        aria-label="Nouvelle transaction"
-      >
+      <button onClick={() => setShowModal(true)} aria-label="Nouvelle transaction" className="fixed bottom-20 right-4 z-40 lg:hidden w-14 h-14 bg-[var(--color-brand)] text-white rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity animate-fade-in">
         <FontAwesomeIcon icon={faPlus} className="w-6 h-6" />
       </button>
 

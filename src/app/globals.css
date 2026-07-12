@@ -269,6 +269,7 @@ select.field-input {
 .animate-fade-in   { animation: fadeIn   0.22s ease forwards; }
 .animate-scale-in  { animation: scaleIn  0.20s cubic-bezier(0.16,1,0.3,1) forwards; }
 .animate-slide-up  { animation: slideUp  0.22s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-slide-in  { animation: slideUp  0.22s cubic-bezier(0.16,1,0.3,1) forwards; }
 .animate-drawer    { animation: drawerUp    0.26s cubic-bezier(0.16,1,0.3,1) forwards; }
 .animate-drawer-right { animation: drawerRight 0.26s cubic-bezier(0.16,1,0.3,1) forwards; }
 
