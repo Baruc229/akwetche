@@ -434,8 +434,8 @@ export default function TontineDetail() {
 
       {/* New Membre Modal */}
       {showNewMembre && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowNewMembre(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewMembre(false)}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-ink">Nouveau membre</h3>
               <button onClick={() => setShowNewMembre(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} /></button>
@@ -453,8 +453,8 @@ export default function TontineDetail() {
 
       {/* New Cotisation Modal */}
       {showNewCotisation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowNewCotisation(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewCotisation(false)}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-ink">Enregistrer un paiement</h3>
               <button onClick={() => setShowNewCotisation(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} /></button>
@@ -486,8 +486,8 @@ export default function TontineDetail() {
 
       {/* New Tour Modal */}
       {showNewTour && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowNewTour(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewTour(false)}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-ink">Nouveau tour</h3>
               <button onClick={() => setShowNewTour(false)}><FontAwesomeIcon icon={faXmark} /></button>
@@ -523,8 +523,8 @@ export default function TontineDetail() {
 
       {/* Dist Modal */}
       {showDistribution && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowDistribution(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowDistribution(false)}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-ink">Planifier distribution</h3>
               <button onClick={() => setShowDistribution(false)}><FontAwesomeIcon icon={faXmark} /></button>

@@ -145,8 +145,8 @@ export default function TontinesPage() {
       )}
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { setShowCreate(false); setError(""); }}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-lg shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-ink">Nouvelle tontine</h3>
               <button onClick={() => { setShowCreate(false); setError(""); }} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>

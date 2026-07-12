@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [categories, setCategories] = useState<{ id: number; name: string; icon: string; type: string }[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
-  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0], note: "" });
+  const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0] });
   const [txError, setTxError] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [limits, setLimits] = useState<{
@@ -149,7 +149,6 @@ export default function DashboardPage() {
     }
     try {
       const body: Record<string, unknown> = { type: newTx.type, amount: toStorageCurrency(Number(newTx.amount) || 0, activeCurrency), description: newTx.description, categoryId: Number(newTx.categoryId), date: newTx.date, scope: newTx.scope, recurring: newTx.recurring };
-      if (newTx.note) body.note = newTx.note;
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,7 +160,7 @@ export default function DashboardPage() {
         return;
       }
       setShowModal(false);
-      setNewTx({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0], note: "" });
+      setNewTx({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0] });
       loadData();
       fetch("/api/user/limits").then(r => r.json()).then(setLimits);
     } catch {
@@ -725,10 +724,6 @@ export default function DashboardPage() {
             <div>
               <label className="field-label">Date</label>
               <input type="date" value={newTx.date} onChange={(e) => setNewTx({ ...newTx, date: e.target.value })} className="input-field" required />
-            </div>
-            <div>
-              <label className="field-label">Note (optionnelle)</label>
-              <textarea value={newTx.note} onChange={(e) => setNewTx({ ...newTx, note: e.target.value })} className="input-field resize-none" rows={2} placeholder="Ajouter une note..." />
             </div>
             {newTx.type === "expense" && (
               <div className="flex items-center gap-2">
