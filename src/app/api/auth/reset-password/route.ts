@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
+import { hashPassword, generateToken } from "@/lib/auth";
 import { badRequest, ok } from "@/lib/api";
+import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +28,16 @@ export async function POST(req: NextRequest) {
     });
 
     await prisma.verificationToken.delete({ where: { id: record.id } });
+
+    const jwtToken = generateToken(record.userId);
+    const cookieStore = await cookies();
+    cookieStore.set("token", jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+    });
 
     return ok({ message: "Mot de passe réinitialisé avec succès." });
   } catch (error) {

@@ -139,7 +139,7 @@ export default function DepensesRecurrentesPage() {
   if (loading) return (
     <div className="space-y-4 animate-pulse">
       <div className="card overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-neg) 0%, #b91c1c 100%)' }}>
-        <div className="p-5">
+        <div className="p-3 sm:p-5">
           <div className="flex items-center gap-3 mb-6">
             <div className="skeleton w-10 h-10 rounded-xl" />
             <div className="space-y-2"><div className="skeleton h-5 w-48" /><div className="skeleton h-3 w-32" /></div>
@@ -149,7 +149,7 @@ export default function DepensesRecurrentesPage() {
         </div>
         <div className="grid grid-cols-3" style={{ background:'rgba(255,255,255,0.1)' }}>
           {[1,2,3].map(i => (
-            <div key={i} className="p-3" style={{ background:'rgba(0,0,0,0.15)' }}>
+            <div key={i} className="p-2 sm:p-3" style={{ background:'rgba(0,0,0,0.15)' }}>
               <div className="skeleton h-3 w-12 mb-1.5" style={{ background:'rgba(255,255,255,0.3)' }} />
               <div className="skeleton h-5 w-8" style={{ background:'rgba(255,255,255,0.3)' }} />
             </div>
@@ -157,8 +157,8 @@ export default function DepensesRecurrentesPage() {
         </div>
       </div>
       {[1,2,3].map(i => (
-        <div key={i} className="card flex items-center gap-4 px-5 py-4">
-          <div className="skeleton w-14 h-14 rounded-xl shrink-0" />
+        <div key={i} className="card flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4">
+          <div className="skeleton w-12 h-12 sm:w-14 sm:h-14 rounded-xl shrink-0" />
           <div className="flex-1 space-y-2">
             <div className="skeleton h-4 w-3/4" />
             <div className="skeleton h-3 w-24" />
@@ -175,158 +175,115 @@ export default function DepensesRecurrentesPage() {
     const catIcon = t.category?.icon ? t.category.icon : (Object.entries(FALLBACK_ICONS).find(([key]) => t.name.toLowerCase().includes(key))?.[1] || faCreditCard);
 
     return (
-      <div className="card flex items-center gap-4 px-5 py-4">
-        {/* Date badge */}
-        <div className="w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center leading-none" style={{
-          background: isDue ? (isGenerated ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)') : 'var(--color-brand-subtle)',
-          border: `1.5px solid ${isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-neg)') : 'transparent'}`,
-        }}>
-          <span className="text-[10px] font-semibold" style={{
-            color: isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-neg)') : 'var(--color-muted)',
-          }}>{isDue ? (isGenerated ? 'FAIT' : 'DU') : 'JOUR'}</span>
-          <span className="text-xl font-bold" style={{
-            color: isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-neg)') : 'var(--color-ink)',
-          }}>{t.dayOfMonth}</span>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold truncate">{t.name}</p>
-            {t.scope === "activity" && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>Activité</span>
-            )}
-            {!t.active && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-sand text-muted">Inactive</span>
-            )}
+      <div className="card px-3 sm:px-5 py-3 sm:py-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-xl flex flex-col items-center justify-center leading-none" style={{
+            background: isDue ? (isGenerated ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)') : 'var(--color-brand-subtle)',
+            border: `1.5px solid ${isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-neg)') : 'transparent'}`,
+          }}>
+            <span className="text-[10px] font-semibold" style={{
+              color: isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-neg)') : 'var(--color-muted)',
+            }}>{isDue ? (isGenerated ? 'FAIT' : 'DU') : 'JOUR'}</span>
+            <span className="text-lg sm:text-xl font-bold" style={{
+              color: isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-neg)') : 'var(--color-ink)',
+            }}>{t.dayOfMonth}</span>
           </div>
-          <p className="text-xs text-muted mt-0.5 flex items-center gap-1.5 flex-wrap">
-            {catIcon && <FontAwesomeIcon icon={catIcon} className="w-3 h-3" style={{color:'var(--color-muted)'}} />}
-            <span>{t.category?.name || 'Sans catégorie'}</span>
-          </p>
-        </div>
 
-        {/* Amount */}
-        <div className="text-right shrink-0">
-          <p className="text-base font-bold text-neg tabular-nums leading-none">{formatCurrency(t.amount)}</p>
-          <p className="text-[10px] text-muted mt-0.5">/ mois</p>
-        </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-semibold truncate">{t.name}</p>
+              {t.scope === "activity" && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>Activité</span>
+              )}
+              {!t.active && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-sand text-muted">Inactive</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-muted flex items-center gap-1.5 flex-wrap">
+                {catIcon && <FontAwesomeIcon icon={catIcon} className="w-3 h-3" style={{color:'var(--color-muted)'}} />}
+                <span>{t.category?.name || 'Sans catégorie'}</span>
+              </p>
+              <span className="text-xs font-bold text-neg tabular-nums sm:hidden">{formatCurrency(t.amount)}<span className="text-[10px] text-muted font-normal">/m</span></span>
+            </div>
+          </div>
 
-        {/* Status */}
-        <div className="shrink-0">
-          {isDue && !isGenerated && t.active ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>
-              <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
-              En attente
-            </div>
-          ) : isGenerated ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-pos-bg text-pos">
-              <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
-              Généré
-            </div>
-          ) : t.active ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold" style={{background:'var(--color-brand-subtle)', color:'var(--color-muted)'}}>
-              <FontAwesomeIcon icon={faCalendar} className="w-3 h-3" />
-              J+{t.dayOfMonth - today}
-            </div>
-          ) : null}
-        </div>
+          <div className="hidden sm:block text-right shrink-0">
+            <p className="text-base font-bold text-neg tabular-nums leading-none">{formatCurrency(t.amount)}</p>
+            <p className="text-[10px] text-muted mt-0.5">/ mois</p>
+          </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button onClick={() => handleToggleActive(t)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title={t.active ? "Désactiver" : "Activer"}>
-            <FontAwesomeIcon icon={t.active ? faCircleCheck : faCircle} className="w-4 h-4" />
-          </button>
-          <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title="Modifier">
-            <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={() => handleDelete(t.id)} className="p-1.5 rounded-lg hover:bg-neg-bg text-muted hover:text-neg transition-all" title="Supprimer">
-            <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
-          </button>
+          <div className="shrink-0">
+            {isDue && !isGenerated && t.active ? (
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>
+                <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
+                <span className="hidden sm:inline">En attente</span>
+                <span className="sm:hidden">...</span>
+              </div>
+            ) : isGenerated ? (
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold bg-pos-bg text-pos">
+                <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
+                <span className="hidden sm:inline">Généré</span>
+                <span className="sm:hidden">✓</span>
+              </div>
+            ) : t.active ? (
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold" style={{background:'var(--color-brand-subtle)', color:'var(--color-muted)'}}>
+                <FontAwesomeIcon icon={faCalendar} className="w-3 h-3" />
+                J+{t.dayOfMonth - today}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button onClick={() => handleToggleActive(t)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title={t.active ? "Désactiver" : "Activer"}>
+              <FontAwesomeIcon icon={t.active ? faCircleCheck : faCircle} className="w-4 h-4" />
+            </button>
+            <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title="Modifier">
+              <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => handleDelete(t.id)} className="p-1.5 rounded-lg hover:bg-neg-bg text-muted hover:text-neg transition-all" title="Supprimer">
+              <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Hero header */}
-      <div className="card overflow-hidden" style={{
-        background: 'linear-gradient(135deg, var(--color-neg) 0%, #b91c1c 100%)',
-      }}>
-        <div className="flex items-center justify-between p-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:'rgba(255,255,255,0.2)'}}>
-                <FontAwesomeIcon icon={faArrowTrendDown} className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">Dépenses récurrentes</h1>
-                <p className="text-xs text-white/70">Abonnements, loyers, charges mensuelles</p>
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-white mt-4 tabular-nums">{formatCurrency(totalMonthly)}</p>
-            <p className="text-xs text-white/60 mt-0.5">Total mensuel des dépenses actives</p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all" style={{background:'rgba(255,255,255,0.2)', color:'white'}}>
-              <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-              Ajouter
-            </button>
-            <button onClick={handleGenerate} disabled={genLoading} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all" style={{background:'rgba(255,255,255,0.12)', color:'white'}}>
-              <FontAwesomeIcon icon={genLoading ? faSpinner : faBolt} className={`w-4 h-4 ${genLoading ? "animate-spin" : ""}`} />
-              Générer
-            </button>
-          </div>
-        </div>
-        {/* Mini stats row */}
-        <div className="grid grid-cols-3 gap-px" style={{background:'rgba(255,255,255,0.1)'}}>
-          <div className="p-3" style={{background:'rgba(0,0,0,0.15)'}}>
-            <p className="text-[10px] text-white/60">Actives</p>
-            <p className="text-sm font-bold text-white">{activeTemplates.length}/{templates.length}</p>
-          </div>
-          <div className="p-3" style={{background:'rgba(0,0,0,0.15)'}}>
-            <p className="text-[10px] text-white/60">Générées</p>
-            <p className="text-sm font-bold text-white">{generatedCount}</p>
-          </div>
-          <div className="p-3" style={{background:'rgba(0,0,0,0.15)'}}>
-            <p className="text-[10px] text-white/60">En attente</p>
-            <p className="text-sm font-bold text-amber-200">{pendingCount}</p>
-          </div>
-        </div>
+  if (showForm) return (
+    <div className="flex flex-col h-[100dvh] sm:h-auto">
+      <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-[var(--color-surface)] border-b sm:hidden">
+        <button onClick={() => { resetForm(); setShowForm(false); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-sand transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 rotate-180"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </button>
+        <h1 className="text-base font-bold text-ink truncate">{editingId ? "Modifier" : "Nouvelle"} dépense</h1>
       </div>
 
-      {/* Gen result */}
-      {genResult && (
-        <div className="card text-sm p-3 flex items-center gap-2" style={{background:'var(--color-pos-bg)', color:'var(--color-pos)'}}>
-          <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4" />
-          {genResult}
-        </div>
-      )}
-
-      {/* Form */}
-      {showForm && (
-        <div className="card" style={{borderLeft:'3px solid var(--color-neg)'}}>
-          <h2 className="text-sm font-semibold mb-4">{editingId ? "Modifier" : "Nouvelle"} dépense récurrente</h2>
-          <form onSubmit={handleSave} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-0 sm:py-0">
+        <div className="card sm:mt-4 sm:mx-auto sm:max-w-lg" style={{borderLeft:'3px solid var(--color-neg)'}}>
+          <div className="hidden sm:flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold">{editingId ? "Modifier" : "Nouvelle"} dépense récurrente</h2>
+            <button onClick={() => { resetForm(); setShowForm(false); }} className="text-xs text-muted hover:text-ink">Annuler</button>
+          </div>
+          <form id="recurring-form" onSubmit={handleSave} className="flex flex-col gap-3 sm:space-y-3 sm:block">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-muted mb-1">Nom</label>
+                <label className="field-label">Nom</label>
                 <input type="text" value={formName} onChange={e => setFormName(e.target.value)} className="input-field text-sm" placeholder="ex: Loyer, Netflix" required />
               </div>
               <div>
-                <label className="block text-xs text-muted mb-1">Montant</label>
+                <label className="field-label">Montant</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xs font-semibold pointer-events-none">{currency === "XOF" ? "FCFA" : "EUR"}</span>
                   <input type="number" value={formAmount} onChange={e => setFormAmount(e.target.value)} className="input-field text-sm pl-14" min="0" step="any" required />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-muted mb-1">Jour d'échéance</label>
+                <label className="field-label">Jour d'échéance</label>
                 <input type="number" value={formDayOfMonth} onChange={e => setFormDayOfMonth(e.target.value)} className="input-field text-sm" min="1" max={daysInMonth} required />
               </div>
               <div>
-                <label className="block text-xs text-muted mb-1">Catégorie</label>
+                <label className="field-label">Catégorie</label>
                 <select value={formCategoryId} onChange={e => setFormCategoryId(e.target.value)} className="input-field text-sm">
                   <option value="">Sans catégorie</option>
                   {categories.filter(c => c.type === "expense").map(c => (
@@ -335,8 +292,8 @@ export default function DepensesRecurrentesPage() {
                 </select>
               </div>
               {commercialMode && (
-                <div>
-                  <label className="block text-xs text-muted mb-1">Portée</label>
+                <div className="sm:col-span-2">
+                  <label className="field-label">Portée</label>
                   <select value={formScope} onChange={e => setFormScope(e.target.value as "personal" | "activity")} className="input-field text-sm">
                     <option value="personal">Personnel</option>
                     <option value="activity">Activité</option>
@@ -344,20 +301,80 @@ export default function DepensesRecurrentesPage() {
                 </div>
               )}
             </div>
-            {error && <p className="text-neg text-sm">{error}</p>}
-            <div className="flex gap-2 justify-end pt-2">
-              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="btn-secondary text-sm">Annuler</button>
+            {error && <p className="alert-inline neg text-sm">{error}</p>}
+            <div className="flex gap-2 justify-end pt-2 sm:block">
+              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="btn-secondary text-sm hidden sm:inline-flex">Annuler</button>
               <button type="submit" className="btn-primary text-sm" style={{background:'var(--color-neg)', borderColor:'var(--color-neg)'}}>{editingId ? "Enregistrer" : "Créer"}</button>
             </div>
           </form>
         </div>
+      </div>
+
+      <div className="sticky bottom-0 shrink-0 px-4 py-3 bg-[var(--color-surface)] border-t sm:hidden">
+        <button type="submit" form="recurring-form" className="btn-primary w-full py-3 text-sm" style={{background:'var(--color-neg)', borderColor:'var(--color-neg)'}}>
+          {editingId ? "Enregistrer" : "Créer"}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="card overflow-hidden" style={{
+        background: 'linear-gradient(135deg, var(--color-neg) 0%, #b91c1c 100%)',
+      }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-3 sm:p-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center" style={{background:'rgba(255,255,255,0.2)'}}>
+                <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-white">Dépenses récurrentes</h1>
+                <p className="text-[10px] sm:text-xs text-white/70">Abonnements, loyers, charges mensuelles</p>
+              </div>
+            </div>
+            <p className="text-2xl sm:text-3xl font-bold text-white mt-3 sm:mt-4 tabular-nums">{formatCurrency(totalMonthly)}</p>
+            <p className="text-[10px] sm:text-xs text-white/60 mt-0.5">Total mensuel des dépenses actives</p>
+          </div>
+          <div className="flex gap-2 sm:flex-col">
+            <button onClick={() => { resetForm(); setShowForm(true); }} className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all" style={{background:'rgba(255,255,255,0.2)', color:'white'}}>
+              <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+              Ajouter
+            </button>
+            <button onClick={handleGenerate} disabled={genLoading} className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all" style={{background:'rgba(255,255,255,0.12)', color:'white'}}>
+              <FontAwesomeIcon icon={genLoading ? faSpinner : faBolt} className={`w-4 h-4 ${genLoading ? "animate-spin" : ""}`} />
+              Générer
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-px" style={{background:'rgba(255,255,255,0.1)'}}>
+          <div className="p-2 sm:p-3" style={{background:'rgba(0,0,0,0.15)'}}>
+            <p className="text-[9px] sm:text-[10px] text-white/60">Actives</p>
+            <p className="text-xs sm:text-sm font-bold text-white">{activeTemplates.length}/{templates.length}</p>
+          </div>
+          <div className="p-2 sm:p-3" style={{background:'rgba(0,0,0,0.15)'}}>
+            <p className="text-[9px] sm:text-[10px] text-white/60">Générées</p>
+            <p className="text-xs sm:text-sm font-bold text-white">{generatedCount}</p>
+          </div>
+          <div className="p-2 sm:p-3" style={{background:'rgba(0,0,0,0.15)'}}>
+            <p className="text-[9px] sm:text-[10px] text-white/60">En attente</p>
+            <p className="text-xs sm:text-sm font-bold text-amber-200">{pendingCount}</p>
+          </div>
+        </div>
+      </div>
+
+      {genResult && (
+        <div className="card text-sm p-3 flex items-center gap-2" style={{background:'var(--color-pos-bg)', color:'var(--color-pos)'}}>
+          <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4" />
+          {genResult}
+        </div>
       )}
 
-      {/* Empty state */}
       {templates.length === 0 ? (
-        <div className="card p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{background:'var(--color-neg-bg)'}}>
-            <FontAwesomeIcon icon={faArrowTrendDown} className="w-7 h-7" style={{color:'var(--color-neg)'}} />
+        <div className="card p-8 sm:p-12 text-center">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{background:'var(--color-neg-bg)'}}>
+            <FontAwesomeIcon icon={faArrowTrendDown} className="w-6 h-6 sm:w-7 sm:h-7" style={{color:'var(--color-neg)'}} />
           </div>
           <p className="text-base font-medium mb-1">Aucune dépense récurrente</p>
           <p className="text-sm text-muted mb-5">Ajoutez vos abonnements, loyers et charges mensuelles</p>
@@ -368,7 +385,6 @@ export default function DepensesRecurrentesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Past due section */}
           {pastTemplates.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-2 px-1">
@@ -388,7 +404,6 @@ export default function DepensesRecurrentesPage() {
             </div>
           )}
 
-          {/* Future section */}
           {futureTemplates.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-2 px-1">
@@ -403,7 +418,6 @@ export default function DepensesRecurrentesPage() {
             </div>
           )}
 
-          {/* Inactive section */}
           {inactiveCount > 0 && (
             <details className="group">
               <summary className="flex items-center gap-2 mb-2 px-1 cursor-pointer text-muted hover:text-ink transition-colors">

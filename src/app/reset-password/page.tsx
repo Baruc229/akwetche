@@ -18,11 +18,17 @@ export default function ResetPasswordPage() {
  const [success, setSuccess] = useState(false);
  const [loading, setLoading] = useState(false);
 
- useEffect(() => {
- if (!token) {
- setError("Lien de réinitialisation invalide ou manquant.");
- }
- }, [token]);
+  useEffect(() => {
+  if (!token) {
+  setError("Lien de réinitialisation invalide ou manquant.");
+  }
+  }, [token]);
+
+  useEffect(() => {
+  if (success) {
+  router.push("/dashboard");
+  }
+  }, [success, router]);
 
  async function handleSubmit(e: React.FormEvent) {
  e.preventDefault();
@@ -101,12 +107,9 @@ export default function ResetPasswordPage() {
   <p className="text-muted text-sm mb-6">
   Votre mot de passe a été réinitialisé avec succès.
   </p>
-  <a
-  href="/login"
-  className="btn-primary inline-flex items-center justify-center px-6 py-3 text-sm"
-  >
-  Se connecter
-  </a>
+  <p className="text-sm text-muted">
+  Redirection vers le tableau de bord...
+  </p>
   </div>
   ) : (
   <>
