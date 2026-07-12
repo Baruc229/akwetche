@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrash, faCircleCheck, faCircle, faPen, faBolt, faSpinner, faArrowTrendUp, faClock, faCalendar, faCheck, faMoneyBillWave, faBriefcase, faHandHoldingDollar, faBuilding, faChartLine, faGift, faHandshake } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../../layout";
 import { formatCurrency, toStorageCurrency, toDisplayCurrency, roundByCurrency } from "@/lib/utils";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type Template = {
   id: number;
@@ -21,16 +22,6 @@ type Template = {
 };
 
 type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
-
-const FALLBACK_ICONS: Record<string, any> = {
-  salaire: faBriefcase, paie: faBriefcase,
-  pension: faHandHoldingDollar, retraite: faHandHoldingDollar,
-  loyer: faBuilding, location: faBuilding, immobilier: faBuilding,
-  investissement: faChartLine, dividende: faChartLine, bourse: faChartLine,
-  don: faGift, cadeau: faGift,
-  freelance: faHandshake, consult: faHandshake, contrat: faHandshake,
-  activité: faMoneyBillWave, business: faMoneyBillWave, commerce: faMoneyBillWave,
-};
 
 export default function RevenusRecurrentsPage() {
   const { commercialMode, currency } = useDashboard();
@@ -50,6 +41,14 @@ export default function RevenusRecurrentsPage() {
 
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const today = new Date().getDate();
+
+  const categoryOptions = [
+    { value: "", label: "Sans catégorie" },
+    ...categories
+      .filter(c => c.type === "income")
+      .sort((a, b) => a.id - b.id)
+      .map(c => ({ value: String(c.id), label: c.name })),
+  ];
 
   async function loadData() {
     try {
@@ -157,13 +156,13 @@ export default function RevenusRecurrentsPage() {
         </div>
       </div>
       {[1,2,3].map(i => (
-        <div key={i} className="card flex items-center gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4">
-          <div className="skeleton w-12 h-12 sm:w-14 sm:h-14 rounded-xl shrink-0" />
+        <div key={i} className="card flex items-center gap-3 px-3 py-3">
+          <div className="skeleton w-10 h-10 rounded-lg shrink-0" />
           <div className="flex-1 space-y-2">
             <div className="skeleton h-4 w-3/4" />
-            <div className="skeleton h-3 w-24" />
+            <div className="skeleton h-3 w-20" />
           </div>
-          <div className="skeleton h-6 w-20 shrink-0" />
+          <div className="skeleton h-5 w-16 shrink-0" />
         </div>
       ))}
     </div>
@@ -172,78 +171,69 @@ export default function RevenusRecurrentsPage() {
   function TemplateCard({ t }: { t: Template }) {
     const isDue = t.dayOfMonth <= today;
     const isGenerated = t.generatedThisMonth > 0;
-    const catIcon = t.category?.icon ? t.category.icon : (Object.entries(FALLBACK_ICONS).find(([key]) => t.name.toLowerCase().includes(key))?.[1] || faMoneyBillWave);
+
+    const statusBadge = isDue && !isGenerated && t.active ? (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>
+        <FontAwesomeIcon icon={faClock} className="w-2.5 h-2.5" />
+        <span className="hidden sm:inline">À recevoir</span>
+      </span>
+    ) : isGenerated ? (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-pos-bg text-pos">
+        <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" />
+        <span className="hidden sm:inline">Reçu</span>
+      </span>
+    ) : t.active ? (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold" style={{background:'var(--color-brand-subtle)', color:'var(--color-muted)'}}>
+        <FontAwesomeIcon icon={faCalendar} className="w-2.5 h-2.5" />
+        J+{t.dayOfMonth - today}
+      </span>
+    ) : null;
 
     return (
-      <div className="card px-3 sm:px-5 py-3 sm:py-4">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-xl flex flex-col items-center justify-center leading-none" style={{
+      <div className="card px-3 py-3 sm:px-4 sm:py-3">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-lg flex flex-col items-center justify-center leading-none" style={{
             background: isDue ? (isGenerated ? 'var(--color-pos-bg)' : 'var(--color-pos-bg)') : 'var(--color-brand-subtle)',
             border: `1.5px solid ${isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-gold)') : 'var(--color-brand)'}`,
           }}>
-            <span className="text-[10px] font-semibold" style={{
+            <span className="text-[8px] sm:text-[9px] font-bold uppercase" style={{
               color: isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-gold)') : 'var(--color-muted)',
-            }}>{isDue ? (isGenerated ? 'FAIT' : 'À RECEVOIR') : 'JOUR'}</span>
-            <span className="text-lg sm:text-xl font-bold" style={{
+            }}>{isDue ? (isGenerated ? 'FAIT' : 'À RECEVOIR') : ''}</span>
+            <span className="text-base sm:text-lg font-bold" style={{
               color: isDue ? (isGenerated ? 'var(--color-pos)' : 'var(--color-gold)') : 'var(--color-ink)',
             }}>{t.dayOfMonth}</span>
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5">
               <p className="text-sm font-semibold truncate">{t.name}</p>
               {t.scope === "activity" && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>Activité</span>
+                <span className="text-[9px] font-semibold px-1 py-0.5 rounded-full shrink-0" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>Act.</span>
               )}
               {!t.active && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-sand text-muted">Inactif</span>
+                <span className="text-[9px] font-semibold px-1 py-0.5 rounded-full bg-sand text-muted shrink-0">Off</span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-xs text-muted flex items-center gap-1.5 flex-wrap">
-                {catIcon && <FontAwesomeIcon icon={catIcon} className="w-3 h-3" style={{color:'var(--color-muted)'}} />}
-                <span>{t.category?.name || 'Sans catégorie'}</span>
-              </p>
-              <span className="text-xs font-bold text-pos tabular-nums sm:hidden">{formatCurrency(t.amount)}<span className="text-[10px] text-muted font-normal">/m</span></span>
+              <p className="text-[11px] text-muted truncate">{t.category?.name || 'Sans catégorie'}</p>
+              {statusBadge}
             </div>
           </div>
 
-          <div className="hidden sm:block text-right shrink-0">
-            <p className="text-base font-bold text-pos tabular-nums leading-none">{formatCurrency(t.amount)}</p>
-            <p className="text-[10px] text-muted mt-0.5">/ mois</p>
-          </div>
-
-          <div className="shrink-0">
-            {isDue && !isGenerated && t.active ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold" style={{background:'rgba(255,183,77,0.15)', color:'var(--color-gold)'}}>
-                <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
-                <span className="hidden sm:inline">À recevoir</span>
-                <span className="sm:hidden">...</span>
-              </div>
-            ) : isGenerated ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold bg-pos-bg text-pos">
-                <FontAwesomeIcon icon={faCheck} className="w-3 h-3" />
-                <span className="hidden sm:inline">Reçu</span>
-                <span className="sm:hidden">✓</span>
-              </div>
-            ) : t.active ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold" style={{background:'var(--color-brand-subtle)', color:'var(--color-muted)'}}>
-                <FontAwesomeIcon icon={faCalendar} className="w-3 h-3" />
-                J+{t.dayOfMonth - today}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="flex items-center gap-0.5 shrink-0">
-            <button onClick={() => handleToggleActive(t)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title={t.active ? "Désactiver" : "Activer"}>
-              <FontAwesomeIcon icon={t.active ? faCircleCheck : faCircle} className="w-4 h-4" />
-            </button>
-            <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg hover:bg-sand text-muted hover:text-ink transition-all" title="Modifier">
-              <FontAwesomeIcon icon={faPen} className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={() => handleDelete(t.id)} className="p-1.5 rounded-lg hover:bg-neg-bg text-muted hover:text-neg transition-all" title="Supprimer">
-              <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <p className="text-sm font-bold text-pos tabular-nums leading-none">{formatCurrency(t.amount)}</p>
+            <p className="text-[9px] text-muted">/ mois</p>
+            <div className="flex items-center gap-0.5">
+              <button onClick={() => handleToggleActive(t)} className="p-1 rounded-md hover:bg-sand text-muted hover:text-ink transition-all" title={t.active ? "Désactiver" : "Activer"}>
+                <FontAwesomeIcon icon={t.active ? faCircleCheck : faCircle} className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => openEdit(t)} className="p-1 rounded-md hover:bg-sand text-muted hover:text-ink transition-all" title="Modifier">
+                <FontAwesomeIcon icon={faPen} className="w-3 h-3" />
+              </button>
+              <button onClick={() => handleDelete(t.id)} className="p-1 rounded-md hover:bg-neg-bg text-muted hover:text-neg transition-all" title="Supprimer">
+                <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -284,12 +274,12 @@ export default function RevenusRecurrentsPage() {
               </div>
               <div>
                 <label className="field-label">Catégorie</label>
-                <select value={formCategoryId} onChange={e => setFormCategoryId(e.target.value)} className="input-field text-sm">
-                  <option value="">Sans catégorie</option>
-                  {categories.filter(c => c.type === "income").map(c => (
-                    <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  options={categoryOptions}
+                  value={formCategoryId}
+                  onChange={(v) => setFormCategoryId(v)}
+                  placeholder="Sélectionner..."
+                />
               </div>
               {commercialMode && (
                 <div className="sm:col-span-2">
@@ -302,8 +292,8 @@ export default function RevenusRecurrentsPage() {
               )}
             </div>
             {error && <p className="alert-inline neg text-sm">{error}</p>}
-            <div className="flex gap-2 justify-end pt-2 sm:block">
-              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="btn-secondary text-sm hidden sm:inline-flex">Annuler</button>
+            <div className="hidden sm:flex gap-2 justify-end pt-2">
+              <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="btn-secondary text-sm">Annuler</button>
               <button type="submit" className="btn-primary text-sm" style={{background:'var(--color-pos)', borderColor:'var(--color-pos)'}}>{editingId ? "Enregistrer" : "Créer"}</button>
             </div>
           </form>
