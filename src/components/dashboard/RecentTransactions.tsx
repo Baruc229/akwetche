@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRight, faClock, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faChartLine, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
 import { getIconByKey } from "@/lib/categoryIcons";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 
@@ -39,7 +39,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
       {transactions.length === 0 ? (
         <div className="text-center py-8">
           <div className="w-12 h-12 bg-[#F2EDE4] rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <FontAwesomeIcon icon={faClock} className="w-5 h-5 text-[#9BA89D]" />
+            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1C3A2F]" />
           </div>
           <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Aucune opération pour le moment</p>
           {onAdd && (

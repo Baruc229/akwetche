@@ -14,7 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+import { formatCurrency, toStorageCurrency, toDisplayCurrency } from "@/lib/utils";
 
 type ScopeSummary = {
   income: number;
@@ -361,8 +361,30 @@ export default function DashboardPage() {
       )}
 
       {/* Hero Card */}
-      <div className="card-hero">
-        <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
+      <div className="card-hero" style={{ background: 'linear-gradient(155deg, #1B2E28, #142320)' }}>
+        <div className="flex items-center justify-between">
+          <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
+          {(() => {
+            if (balanceHistory.length < 8) return null;
+            const recent7 = balanceHistory.slice(-7);
+            const prev7 = balanceHistory.slice(-14, -7);
+            if (recent7.length < 2 || prev7.length < 2) return null;
+            const recentChange = recent7[recent7.length - 1].balance - recent7[0].balance;
+            const prevChange = prev7[prev7.length - 1].balance - prev7[0].balance;
+            if (prevChange === 0) return null;
+            const pctChange = ((recentChange - prevChange) / Math.abs(prevChange)) * 100;
+            if (!isFinite(pctChange)) return null;
+            const isUp = pctChange >= 0;
+            return (
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(74,222,128,0.18)', color: '#4ADE80' }}
+              >
+                {isUp ? '▲' : '▼'} {Math.abs(pctChange).toFixed(0)}%
+              </span>
+            );
+          })()}
+        </div>
         <p className={`text-amount text-5xl text-white mt-1 ${isNegative ? "text-[var(--color-neg)]" : ""}`}>
           {formatCurrency(totalBalance)}
         </p>
@@ -383,7 +405,7 @@ export default function DashboardPage() {
             <p className="text-amount text-lg" style={{ color: 'var(--color-neg)' }}>{formatCurrency(totalExpense)}</p>
           </div>
         </div>
-        <div className="bar-row">
+        <div className="bar-row mb-2">
           <div className="bar-head">
             <div className="bar-label" style={{ color: 'rgba(255,255,255,0.7)' }}>
               <FontAwesomeIcon icon={faPiggyBank} className="w-4 h-4 text-white/40" />
@@ -397,39 +419,26 @@ export default function DashboardPage() {
         </div>
         {(() => {
           if (balanceHistory.length === 0) return null;
-          const firstB = balanceHistory[0].balance;
-          const lastB = balanceHistory[balanceHistory.length - 1].balance;
-          const trendUp = lastB >= firstB;
-          const sparkColor = trendUp ? '#4ADE80' : '#EF4444';
+          const last7 = balanceHistory.slice(-7);
+          const balances = last7.map(d => d.balance);
+          const minB = Math.min(...balances);
+          const maxB = Math.max(...balances);
+          const range = maxB - minB || 1;
           return (
-            <div className="h-[50px] mt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={balanceHistory} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
-                  <defs>
-                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={sparkColor} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={sparkColor} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <Tooltip
-                    contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-                    labelStyle={{ fontWeight: 600, marginBottom: 2 }}
-                    formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
-                    labelFormatter={(label: any) => new Date(label).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                    cursor={false}
+            <div className="flex items-end gap-1 h-[30px]">
+              {last7.map((d, i) => {
+                const h = Math.max(4, ((d.balance - minB) / range) * 26);
+                return (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-t-sm"
+                    style={{
+                      height: `${h}px`,
+                      background: 'linear-gradient(to bottom, #4ADE80, rgba(74,222,128,0.15))',
+                    }}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="balance"
-                    stroke={sparkColor}
-                    strokeWidth={2}
-                    fill="url(#sparkGrad)"
-                    dot={false}
-                    activeDot={{ r: 4, fill: sparkColor, stroke: '#fff', strokeWidth: 2 }}
-                    isAnimationActive={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+                );
+              })}
             </div>
           );
         })()}

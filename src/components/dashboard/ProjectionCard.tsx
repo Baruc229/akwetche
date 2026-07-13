@@ -49,8 +49,17 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
     chartData.push({ day: futureDay, pastValue: null, futureValue: projectedRemaining, label: `${futureDay}` });
   }
 
+  const isLimitedHistory = (() => {
+    if (chartData.length <= 3) return true;
+    let changes = 0;
+    for (let i = 1; i < chartData.length; i++) {
+      if (chartData[i].pastValue !== null && chartData[i - 1].pastValue !== null && chartData[i].pastValue !== chartData[i - 1].pastValue) changes++;
+    }
+    return changes < 2;
+  })();
+
   return (
-    <div className="bg-white rounded-[18px] p-5">
+    <div className="bg-white rounded-[18px] p-5 overflow-hidden">
       <div className="flex items-center gap-2 mb-1">
         <div className="w-2 h-2 rounded-full bg-[#B94A3E] shrink-0" />
         <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
@@ -59,7 +68,7 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       </div>
       <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Estimation fin de mois</p>
 
-      <div className="h-[60px] mb-3">
+      <div className="h-[60px] mb-3 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
             <defs>
@@ -103,6 +112,12 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {isLimitedHistory && (
+        <p className="text-[11px] text-[#9BA89D] font-[family-name:var(--font-inter)] text-center mb-3 leading-relaxed italic">
+          Historique limité — la projection s&apos;affine à mesure que vous utilisez l&apos;application.
+        </p>
+      )}
 
       {hasBreakdown && (
         <div className="mb-3 rounded-xl border border-[#E8E4DC] overflow-hidden">
