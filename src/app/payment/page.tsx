@@ -379,7 +379,7 @@ export default function PaymentPage() {
 
  <div className="min-h-[200px]">
  {method === "card" && clientSecret && (
- <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#1C3A2F" } } }}>
+ <Elements key={clientSecret} stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#000000" } } }}>
  <StripeCardForm onStatus={setStatus} onSuccess={handleSuccess} />
  </Elements>
  )}

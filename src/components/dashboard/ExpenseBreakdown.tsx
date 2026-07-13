@@ -56,7 +56,7 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
         <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Cette semaine</p>
         <div className="text-center py-8">
           <div className="w-12 h-12 bg-[#F2EDE4] rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1C3A2F]" />
+            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#000000]" />
           </div>
           <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Aucune dépense cette semaine</p>
         </div>
