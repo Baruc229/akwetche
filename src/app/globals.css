@@ -3,9 +3,9 @@
 @theme inline {
   /* Marque */
   --color-brand: #000000;
-  --color-brand-hover: #244A3C;
-  --color-brand-active: #2E5E4A;
-  --color-brand-subtle: #EBF2EE;
+  --color-brand-hover: #1A1A1A;
+  --color-brand-active: #333333;
+  --color-brand-subtle: #F0F0F0;
 
   /* Accent */
   --color-gold: #C9A84C;
