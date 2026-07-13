@@ -419,14 +419,17 @@ export default function DashboardPage() {
         </div>
         {(() => {
           if (balanceHistory.length < 2) return null;
+          const slice = balanceHistory.slice(-7);
+          const trendUp = slice[slice.length - 1].balance >= slice[0].balance;
+          const color = trendUp ? '#4ADE80' : '#EF4444';
           return (
             <div className="h-[30px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={balanceHistory.slice(-7)} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
+                <AreaChart data={slice} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
                   <defs>
                     <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4ADE80" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#4ADE80" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+                      <stop offset="100%" stopColor={color} stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <Tooltip
@@ -438,11 +441,11 @@ export default function DashboardPage() {
                   <Area
                     type="monotone"
                     dataKey="balance"
-                    stroke="#4ADE80"
+                    stroke={color}
                     strokeWidth={1.5}
                     fill="url(#heroGrad)"
                     dot={false}
-                    activeDot={{ r: 3, fill: '#4ADE80', stroke: '#fff', strokeWidth: 1.5 }}
+                    activeDot={{ r: 3, fill: color, stroke: '#fff', strokeWidth: 1.5 }}
                     isAnimationActive={false}
                   />
                 </AreaChart>
