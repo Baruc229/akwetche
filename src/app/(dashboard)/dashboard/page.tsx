@@ -14,6 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
+import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
 type ScopeSummary = {
   income: number;
@@ -418,36 +419,35 @@ export default function DashboardPage() {
         </div>
         {(() => {
           if (balanceHistory.length < 2) return null;
-          const pts = balanceHistory.slice(-7);
-          const vals = pts.map(d => d.balance);
-          const lo = Math.min(...vals);
-          const hi = Math.max(...vals);
-          const span = hi - lo || 1;
-          const W = 280, H = 30, P = 4;
-          const coords = vals.map((v, i) => ({
-            x: P + (i / (pts.length - 1)) * (W - P * 2),
-            y: P + (1 - (v - lo) / span) * (H - P * 2),
-          }));
-          let curve = `M ${coords[0].x} ${coords[0].y}`;
-          for (let i = 0; i < coords.length - 1; i++) {
-            const c0 = coords[Math.max(0, i - 1)];
-            const c1 = coords[i];
-            const c2 = coords[i + 1];
-            const c3 = coords[Math.min(coords.length - 1, i + 2)];
-            curve += ` C ${c1.x + (c2.x - c0.x) / 6} ${c1.y + (c2.y - c0.y) / 6}, ${c2.x - (c3.x - c1.x) / 6} ${c2.y - (c3.y - c1.y) / 6}, ${c2.x} ${c2.y}`;
-          }
-          const fill = curve + ` L ${coords[coords.length - 1].x} ${H} L ${coords[0].x} ${H} Z`;
           return (
-            <svg viewBox={`0 0 ${W} ${H}`} className="w-full block" style={{ height: H }}>
-              <defs>
-                <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#4ADE80" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#4ADE80" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <path d={fill} fill="url(#heroGrad)" />
-              <path d={curve} fill="none" stroke="#4ADE80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <div className="h-[30px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={balanceHistory.slice(-7)} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
+                  <defs>
+                    <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#4ADE80" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#4ADE80" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '11px', padding: '4px 8px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                    formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
+                    labelFormatter={(_l: any) => ''}
+                    cursor={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="balance"
+                    stroke="#4ADE80"
+                    strokeWidth={1.5}
+                    fill="url(#heroGrad)"
+                    dot={false}
+                    activeDot={{ r: 3, fill: '#4ADE80', stroke: '#fff', strokeWidth: 1.5 }}
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           );
         })()}
       </div>
