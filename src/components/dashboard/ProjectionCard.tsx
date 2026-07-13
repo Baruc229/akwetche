@@ -3,7 +3,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 type DailyBalance = { date: string; balance: number };
 
@@ -70,17 +70,14 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
 
       <div className="h-[60px] mb-3 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
-            <defs>
-              <linearGradient id="projPastGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={chartColor} stopOpacity={0.02} />
-              </linearGradient>
-              <linearGradient id="projFutureGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColor} stopOpacity={0.1} />
-                <stop offset="95%" stopColor={chartColor} stopOpacity={0.01} />
-              </linearGradient>
-            </defs>
+          <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 9, fill: '#9BA89D' }}
+              axisLine={false}
+              tickLine={false}
+              interval={Math.max(0, Math.floor(chartData.length / 4))}
+            />
             <Tooltip
               contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
               labelStyle={{ fontWeight: 600, marginBottom: 2 }}
@@ -88,28 +85,28 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
               labelFormatter={(label: any) => `Jour ${label}`}
               cursor={false}
             />
-            <Area
+            <Line
               type="monotone"
               dataKey="pastValue"
               stroke={chartColor}
               strokeWidth={2}
-              fill="url(#projPastGrad)"
-              dot={false}
-              activeDot={false}
+              dot={{ fill: chartColor, strokeWidth: 0, r: 2.5 }}
+              activeDot={{ r: 4, fill: chartColor, stroke: '#fff', strokeWidth: 1.5 }}
+              connectNulls={false}
               isAnimationActive={false}
             />
-            <Area
+            <Line
               type="monotone"
               dataKey="futureValue"
               stroke={chartColor}
               strokeWidth={2}
-              strokeDasharray="4 3"
-              fill="url(#projFutureGrad)"
-              dot={false}
-              activeDot={false}
+              strokeDasharray="6 4"
+              dot={{ fill: chartColor, strokeWidth: 0, r: 2, opacity: 0.5 }}
+              activeDot={{ r: 4, fill: chartColor, stroke: '#fff', strokeWidth: 1.5 }}
+              connectNulls={false}
               isAnimationActive={false}
             />
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
 
