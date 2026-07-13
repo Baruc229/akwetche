@@ -14,7 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 type ScopeSummary = {
   income: number;
@@ -422,33 +422,32 @@ export default function DashboardPage() {
           const slice = balanceHistory.slice(-7);
           const trendUp = slice[slice.length - 1].balance >= slice[0].balance;
           const color = trendUp ? '#4ADE80' : '#EF4444';
+          const DAY_LABELS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+          const chartData = slice.map(d => {
+            const dt = new Date(d.date);
+            return { day: DAY_LABELS[dt.getDay()], balance: d.balance };
+          });
           return (
-            <div className="h-[30px]">
+            <div className="h-[45px] mt-1">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={slice} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
-                  <defs>
-                    <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity={0.25} />
-                      <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
+                <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                  <XAxis dataKey="day" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.35)' }} axisLine={false} tickLine={false} interval={0} />
                   <Tooltip
                     contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '11px', padding: '4px 8px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
                     formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
-                    labelFormatter={(_l: any) => ''}
+                    labelFormatter={(label: any) => label}
                     cursor={false}
                   />
-                  <Area
+                  <Line
                     type="monotone"
                     dataKey="balance"
                     stroke={color}
-                    strokeWidth={1.5}
-                    fill="url(#heroGrad)"
-                    dot={false}
-                    activeDot={{ r: 3, fill: color, stroke: '#fff', strokeWidth: 1.5 }}
+                    strokeWidth={2}
+                    dot={{ fill: color, strokeWidth: 0, r: 2.5 }}
+                    activeDot={{ r: 4, fill: color, stroke: '#fff', strokeWidth: 1.5 }}
                     isAnimationActive={false}
                   />
-                </AreaChart>
+                </LineChart>
               </ResponsiveContainer>
             </div>
           );
