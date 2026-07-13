@@ -417,28 +417,37 @@ export default function DashboardPage() {
           </div>
         </div>
         {(() => {
-          if (balanceHistory.length === 0) return null;
-          const last7 = balanceHistory.slice(-7);
-          const balances = last7.map(d => d.balance);
-          const minB = Math.min(...balances);
-          const maxB = Math.max(...balances);
-          const range = maxB - minB || 1;
+          if (balanceHistory.length < 2) return null;
+          const pts = balanceHistory.slice(-7);
+          const vals = pts.map(d => d.balance);
+          const lo = Math.min(...vals);
+          const hi = Math.max(...vals);
+          const span = hi - lo || 1;
+          const W = 280, H = 30, P = 4;
+          const coords = vals.map((v, i) => ({
+            x: P + (i / (pts.length - 1)) * (W - P * 2),
+            y: P + (1 - (v - lo) / span) * (H - P * 2),
+          }));
+          let curve = `M ${coords[0].x} ${coords[0].y}`;
+          for (let i = 0; i < coords.length - 1; i++) {
+            const c0 = coords[Math.max(0, i - 1)];
+            const c1 = coords[i];
+            const c2 = coords[i + 1];
+            const c3 = coords[Math.min(coords.length - 1, i + 2)];
+            curve += ` C ${c1.x + (c2.x - c0.x) / 6} ${c1.y + (c2.y - c0.y) / 6}, ${c2.x - (c3.x - c1.x) / 6} ${c2.y - (c3.y - c1.y) / 6}, ${c2.x} ${c2.y}`;
+          }
+          const fill = curve + ` L ${coords[coords.length - 1].x} ${H} L ${coords[0].x} ${H} Z`;
           return (
-            <div className="flex items-end gap-1 h-[30px]">
-              {last7.map((d, i) => {
-                const h = Math.max(4, ((d.balance - minB) / range) * 26);
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-t-sm"
-                    style={{
-                      height: `${h}px`,
-                      background: 'linear-gradient(to bottom, #4ADE80, rgba(74,222,128,0.15))',
-                    }}
-                  />
-                );
-              })}
-            </div>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full block" style={{ height: H }}>
+              <defs>
+                <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#4ADE80" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#4ADE80" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <path d={fill} fill="url(#heroGrad)" />
+              <path d={curve} fill="none" stroke="#4ADE80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           );
         })()}
       </div>
