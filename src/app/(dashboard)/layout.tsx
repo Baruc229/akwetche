@@ -494,17 +494,21 @@ export default function DashboardLayout({
           <div className={`sticky bottom-0 -mx-3 px-3 pb-2 pt-3 ${!sidebarCollapsed ? 'border-t border-white/10' : ''}`} style={{background:'var(--color-brand)'}}>
             {!sidebarCollapsed && isPremium && (
               <label className="flex items-center gap-3 px-3 py-2 text-sm text-white/52 cursor-pointer hover:bg-white/7 rounded-lg transition-all">
-                <input
-                  type="checkbox"
-                  checked={commercialMode}
-                  onChange={(e) => {
-                    setCommercialMode(e.target.checked);
-                    if (e.target.checked && !user?.activityActivated) {
-                      fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
-                    }
-                  }}
-                  className="w-4 h-4 rounded accent-[var(--color-gold)]"
-                />
+                <div className="relative shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={commercialMode}
+                    onChange={(e) => {
+                      setCommercialMode(e.target.checked);
+                      if (e.target.checked && !user?.activityActivated) {
+                        fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {});
+                      }
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 rounded-full bg-white/15 peer-checked:bg-[#C9A84C] transition-colors" />
+                  <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white/60 peer-checked:translate-x-4 transition-transform" />
+                </div>
                 <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
                 Mode activité
               </label>
