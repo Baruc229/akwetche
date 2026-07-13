@@ -920,14 +920,10 @@ export default function DashboardLayout({
     />
 
     <style>{`
-      /* Sidebar scrollbar styles */
-      .sidebar-scroll { scrollbar-width: thin; }
-      .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-      .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-      .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
-      .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
-      .sidebar-scroll--collapsed { overflow-y: auto; scrollbar-width: none; }
-      .sidebar-scroll--collapsed::-webkit-scrollbar { width: 0; }
+      /* Sidebar scrollbar hidden */
+      .sidebar-scroll { scrollbar-width: none; }
+      .sidebar-scroll::-webkit-scrollbar { width: 0; }
+      .sidebar-scroll--collapsed { overflow-y: auto; }
 
       /* Tooltip hover delay for collapsed sidebar */
       .sidebar-tooltip { transition-delay: 0ms; }
