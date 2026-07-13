@@ -38,7 +38,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
         <div className="bg-[#F2EDE4] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(28,58,47,0.08)" }}>
-              <FontAwesomeIcon icon={faWallet} className="w-7 h-7 text-[#000000]" />
+              <FontAwesomeIcon icon={faWallet} className="w-7 h-7 text-[#1A1A1A]" />
             </div>
             <h3 className="text-[20px] font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A]">
               Votre solde de départ
@@ -68,7 +68,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
                 value={balanceInput}
                 onChange={(e) => setBalanceInput(e.target.value)}
                 placeholder="ex: 150000"
-                className="w-full h-12 bg-white rounded-xl border border-[#E0D8CC] px-4 pl-16 text-sm text-[#1A1A1A] outline-none focus:border-[#000000] transition-colors"
+                className="w-full h-12 bg-white rounded-xl border border-[#E0D8CC] px-4 pl-16 text-sm text-[#1A1A1A] outline-none focus:border-[#1A1A1A] transition-colors"
                 min="0"
               />
             </div>
@@ -81,7 +81,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
             <button
               onClick={handleContinue}
               disabled={saving}
-              className="w-full h-12 bg-[#000000] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#000000]/90 transition-colors cursor-pointer disabled:opacity-50"
+              className="w-full h-12 bg-[#1A1A1A] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#1A1A1A]/90 transition-colors cursor-pointer disabled:opacity-50"
             >
               {saving ? "..." : "Continuer"}
             </button>
@@ -97,7 +97,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
         <div className="bg-[#F2EDE4] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(28,58,47,0.08)" }}>
-              <FontAwesomeIcon icon={faSun} className="w-7 h-7 text-[#000000]" style={{ strokeWidth: 1.8 }} />
+              <FontAwesomeIcon icon={faSun} className="w-7 h-7 text-[#1A1A1A]" style={{ strokeWidth: 1.8 }} />
             </div>
             <h3 className="text-[20px] font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A]">
               Bienvenue sur Akwetche
@@ -117,7 +117,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
           <div className="space-y-2 mb-6">
             <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(28,58,47,0.08)" }}>
-                <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-[#000000]" />
+                <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-[#1A1A1A]" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)]">Revenus</p>
@@ -126,7 +126,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
             </div>
             <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(28,58,47,0.08)" }}>
-                <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-[#000000]" />
+                <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-[#1A1A1A]" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-[#1A1A1A] font-[family-name:var(--font-inter)]">Dépenses</p>
@@ -138,7 +138,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
           <div className="space-y-3">
             <button
               onClick={() => router.push("/dashboard/settings")}
-              className="w-full h-12 bg-[#000000] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#000000]/90 transition-colors cursor-pointer"
+              className="w-full h-12 bg-[#1A1A1A] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#1A1A1A]/90 transition-colors cursor-pointer"
             >
               Ajouter des catégories
             </button>

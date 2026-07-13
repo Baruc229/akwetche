@@ -2,9 +2,9 @@
 
 @theme inline {
   /* Marque */
-  --color-brand: #000000;
-  --color-brand-hover: #1A1A1A;
-  --color-brand-active: #333333;
+  --color-brand: #1A1A1A;
+  --color-brand-hover: #0D0D0D;
+  --color-brand-active: #262626;
   --color-brand-subtle: #F0F0F0;
 
   /* Accent */
@@ -41,7 +41,7 @@
 
   /* Barres de progression */
   --color-bar-track: #E7ECE9;
-  --color-bar-brand: #000000;
+  --color-bar-brand: #1A1A1A;
   --color-bar-pos: #0D7A4B;
   --color-bar-warn: #D97706;
   --color-bar-neg: #B91C1C;
@@ -49,11 +49,11 @@
   --color-bar-neutral: #94A3A0;
 
   /* backward-compat aliases */
-  --color-green-deep: #000000;
-  --color-green: #000000;
+  --color-green-deep: #1A1A1A;
+  --color-green: #1A1A1A;
   --color-gold-pale: #F7F0D6;
-  --color-forest: #000000;
-  --color-forest-light: #000000;
+  --color-forest: #1A1A1A;
+  --color-forest-light: #1A1A1A;
   --color-ochre: #C9A84C;
   --color-ochre-light: #F7F0D6;
   --color-sand: #F5F7F6;
@@ -66,7 +66,7 @@
   --color-text-3: #6B7A72;
   --color-white-6: rgba(255,255,255,0.06);
   --color-surface: #FFFFFF;
-  --color-primary: #000000;
+  --color-primary: #1A1A1A;
   --color-accent: #C9A84C;
   --color-danger: #B91C1C;
   --color-success: #0D7A4B;
