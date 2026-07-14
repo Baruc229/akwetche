@@ -115,7 +115,7 @@ export default function CustomSelect({
     }
   }, [open, value]);
 
-  const handleOpen = useCallback(() => {
+  const handleOpen = () => {
     if (disabled) return;
     if (isSmallScreen) {
       setSearchMode(true);
@@ -123,7 +123,7 @@ export default function CustomSelect({
       computePosition();
       setOpen((prev) => !prev);
     }
-  }, [disabled, isSmallScreen]);
+  };
 
   const handleSelect = useCallback((val: string) => {
     onChange(val);
