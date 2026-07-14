@@ -118,10 +118,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
 
       {hasBreakdown && (
         <div className="mb-3 rounded-xl border border-[#E8E4DC] overflow-hidden">
-          <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#FAF8F5]">
-            <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Solde actuel</span>
-            <span className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] tabular-nums">{formatCurrency(totalBalance)}</span>
-          </div>
           {pendingRecurringExpense > 0 && (
             <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E8E4DC]">
               <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
