@@ -145,67 +145,134 @@ export default function TontinesPage() {
       )}
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { setShowCreate(false); setError(""); }}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-lg shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-ink">Nouvelle tontine</h3>
-              <button onClick={() => { setShowCreate(false); setError(""); }} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+        <>
+          {/* Mobile — full page */}
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <button onClick={() => { setShowCreate(false); setError(""); }} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+              </button>
+              <h3 className="text-base font-semibold text-ink">Nouvelle tontine</h3>
             </div>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="field-label">Nom</label>
-                <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="input-field" placeholder="ex: Tontine 2026" required />
-              </div>
-              <div>
-                <label className="field-label">Type</label>
-                <CustomSelect
-                  options={[{ value: "vivres_fin_annee", label: "Vivres / Fin d'année" }, { value: "rotative_simple", label: "Rotative simple" }]}
-                  value={newTnt.type}
-                  onChange={v => setNewTnt({...newTnt, type: v})}
-                />
-              </div>
-              <div>
-                <label className="field-label">Montant cotisation</label>
-                <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
-              </div>
-              <div>
-                <label className="field-label">Fréquence (tous les X jours)</label>
-                <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
-              </div>
-              <div>
-                <label className="field-label">Date de début</label>
-                <DatePicker value={newTnt.dateDebut} onChange={v => setNewTnt({...newTnt, dateDebut: v})} />
-              </div>
-              <div>
-                <label className="field-label">Commission organisateur</label>
-                <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="0" min="0" />
-                <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
-              </div>
-              <div>
-                <label className="field-label">Portée commission</label>
-                <CustomSelect
-                  options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
-                  value={newTnt.scopeCommission}
-                  onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
-                />
-              </div>
-              {newTnt.type === "rotative_simple" && (
+            <div className="flex-1 overflow-y-auto p-5">
+              <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="field-label">Nombre de tours</label>
-                  <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" />
+                  <label className="field-label">Nom</label>
+                  <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="input-field" placeholder="ex: Tontine 2026" required />
                 </div>
-              )}
-              {newTnt.type === "vivres_fin_annee" && (
                 <div>
-                  <label className="field-label">Date de distribution</label>
-                  <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                  <label className="field-label">Type</label>
+                  <CustomSelect
+                    options={[{ value: "vivres_fin_annee", label: "Vivres / Fin d'année" }, { value: "rotative_simple", label: "Rotative simple" }]}
+                    value={newTnt.type}
+                    onChange={v => setNewTnt({...newTnt, type: v})}
+                  />
                 </div>
-              )}
-              {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
-              <button type="submit" className="btn-primary w-full">Créer</button>
-            </form>
+                <div>
+                  <label className="field-label">Montant cotisation</label>
+                  <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
+                </div>
+                <div>
+                  <label className="field-label">Fréquence (tous les X jours)</label>
+                  <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                </div>
+                <div>
+                  <label className="field-label">Date de début</label>
+                  <DatePicker value={newTnt.dateDebut} onChange={v => setNewTnt({...newTnt, dateDebut: v})} />
+                </div>
+                <div>
+                  <label className="field-label">Commission organisateur</label>
+                  <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="0" min="0" />
+                  <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
+                </div>
+                <div>
+                  <label className="field-label">Portée commission</label>
+                  <CustomSelect
+                    options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
+                    value={newTnt.scopeCommission}
+                    onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
+                  />
+                </div>
+                {newTnt.type === "rotative_simple" && (
+                  <div>
+                    <label className="field-label">Nombre de tours</label>
+                    <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" />
+                  </div>
+                )}
+                {newTnt.type === "vivres_fin_annee" && (
+                  <div>
+                    <label className="field-label">Date de distribution</label>
+                    <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                  </div>
+                )}
+                {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
+                <button type="submit" className="btn-primary w-full py-3">Créer</button>
+              </form>
+            </div>
           </div>
-        </div>
+          {/* Desktop — centered popup */}
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { setShowCreate(false); setError(""); }}>
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-lg shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-ink">Nouvelle tontine</h3>
+                <button onClick={() => { setShowCreate(false); setError(""); }} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div>
+                  <label className="field-label">Nom</label>
+                  <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="input-field" placeholder="ex: Tontine 2026" required />
+                </div>
+                <div>
+                  <label className="field-label">Type</label>
+                  <CustomSelect
+                    options={[{ value: "vivres_fin_annee", label: "Vivres / Fin d'année" }, { value: "rotative_simple", label: "Rotative simple" }]}
+                    value={newTnt.type}
+                    onChange={v => setNewTnt({...newTnt, type: v})}
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Montant cotisation</label>
+                  <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
+                </div>
+                <div>
+                  <label className="field-label">Fréquence (tous les X jours)</label>
+                  <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                </div>
+                <div>
+                  <label className="field-label">Date de début</label>
+                  <DatePicker value={newTnt.dateDebut} onChange={v => setNewTnt({...newTnt, dateDebut: v})} />
+                </div>
+                <div>
+                  <label className="field-label">Commission organisateur</label>
+                  <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="0" min="0" />
+                  <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
+                </div>
+                <div>
+                  <label className="field-label">Portée commission</label>
+                  <CustomSelect
+                    options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
+                    value={newTnt.scopeCommission}
+                    onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
+                  />
+                </div>
+                {newTnt.type === "rotative_simple" && (
+                  <div>
+                    <label className="field-label">Nombre de tours</label>
+                    <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" />
+                  </div>
+                )}
+                {newTnt.type === "vivres_fin_annee" && (
+                  <div>
+                    <label className="field-label">Date de distribution</label>
+                    <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                  </div>
+                )}
+                {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
+                <button type="submit" className="btn-primary w-full">Créer</button>
+              </form>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
