@@ -201,8 +201,7 @@ export default function CustomSelect({
       ref={dropdownRef}
       className="fixed bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
       style={{
-        top: openUp ? "auto" : dropdownPos.top,
-        bottom: openUp ? `calc(100vh - ${dropdownPos.top}px)` : "auto",
+        top: dropdownPos.top,
         left: dropdownPos.left,
         width: dropdownPos.width,
         maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
