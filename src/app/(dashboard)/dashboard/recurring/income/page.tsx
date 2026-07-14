@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrash, faCircleCheck, faCircle, faPen, faBolt, faSpinner, faArrowTrendUp, faClock, faCalendar, faCheck, faMoneyBillWave, faBriefcase, faHandHoldingDollar, faBuilding, faChartLine, faGift, faHandshake } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../../layout";
@@ -25,6 +26,8 @@ type Category = { id: number; name: string; icon: string; type: string; archived
 
 export default function RevenusRecurrentsPage() {
   const { commercialMode, currency } = useDashboard();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +68,14 @@ export default function RevenusRecurrentsPage() {
   }
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      resetForm();
+      setShowForm(true);
+      router.replace("/dashboard/recurring/income");
+    }
+  }, [searchParams]);
 
   function resetForm() {
     setFormName(""); setFormAmount(""); setFormScope("personal");

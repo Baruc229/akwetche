@@ -50,6 +50,15 @@ const DashboardContext = createContext<DashboardContextType>({
 
 export const useDashboard = () => useContext(DashboardContext);
 
+const CREATE_ROUTES = [
+  "/dashboard/transactions",
+  "/dashboard/products",
+  "/dashboard/sales",
+  "/dashboard/tontines",
+  "/dashboard/recurring/expenses",
+  "/dashboard/recurring/income",
+];
+
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
   '/dashboard/transactions': 'Transactions',
@@ -592,6 +601,18 @@ export default function DashboardLayout({
                         hint="Naviguer →"
                         onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }}
                       />
+                      <QuickActionBtn
+                        icon={faArrowTrendDown}
+                        label="Dépense récurrente"
+                        hint="Naviguer →"
+                        onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/expenses?action=create"); }}
+                      />
+                      <QuickActionBtn
+                        icon={faArrowTrendUp}
+                        label="Revenu récurrent"
+                        hint="Naviguer →"
+                        onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/income?action=create"); }}
+                      />
                     </div>
                   </div>
                 )}
@@ -714,7 +735,15 @@ export default function DashboardLayout({
             {/* Central FAB */}
             <div className="flex-none relative" style={{width:'56px'}}>
               <button
-                onClick={() => setQuickMenuOpen(true)}
+                onClick={() => {
+                  const isHome = pathname === "/dashboard";
+                  const hasCreate = CREATE_ROUTES.some(r => pathname === r || pathname.startsWith(r + "/"));
+                  if (isHome || !hasCreate) {
+                    setQuickMenuOpen(true);
+                  } else {
+                    router.push(pathname + "?action=create");
+                  }
+                }}
                 className="absolute left-1/2 -translate-x-1/2 bottom-0 w-12 h-12 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center active:scale-95 transition-transform hover:opacity-90"
                 style={{marginBottom:'-4px'}}
                 aria-label="Action rapide"
@@ -913,6 +942,18 @@ export default function DashboardLayout({
               label="Cotisation tontine"
               hint="Naviguer →"
               onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }}
+            />
+            <QuickActionBtn
+              icon={faArrowTrendDown}
+              label="Dépense récurrente"
+              hint="Naviguer →"
+              onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/expenses?action=create"); }}
+            />
+            <QuickActionBtn
+              icon={faArrowTrendUp}
+              label="Revenu récurrent"
+              hint="Naviguer →"
+              onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/income?action=create"); }}
             />
           </div>
         </div>

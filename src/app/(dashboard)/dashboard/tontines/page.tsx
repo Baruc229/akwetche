@@ -207,10 +207,6 @@ export default function TontinesPage() {
           </div>
         </div>
       )}
-
-      <button onClick={() => setShowCreate(true)} className="sm:hidden fixed bottom-24 right-5 z-40 w-14 h-14 flex items-center justify-center bg-[var(--color-brand)] text-white shadow-[0_4px_20px_rgba(28,58,47,0.3)] active:scale-95 transition-transform" style={{ borderRadius: "16px" }}>
-        <FontAwesomeIcon icon={faPlus} className="w-6 h-6" />
-      </button>
     </div>
   );
 }
