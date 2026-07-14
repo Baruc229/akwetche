@@ -128,6 +128,7 @@ export default function DashboardLayout({
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [quickTxOpen, setQuickTxOpen] = useState(false);
   const quickMenuRef = useRef<HTMLDivElement>(null);
+  const quickSheetRef = useRef<HTMLDivElement>(null);
 
   const handleSetCurrency = useCallback((c: CurrencyCode) => {
     setActiveCurrency(c);
@@ -164,7 +165,9 @@ export default function DashboardLayout({
       if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
         setAccountMenuOpen(false);
       }
-      if (quickMenuRef.current && !quickMenuRef.current.contains(e.target as Node)) {
+      const inDesktopMenu = quickMenuRef.current?.contains(e.target as Node) ?? false;
+      const inMobileSheet = quickSheetRef.current?.contains(e.target as Node) ?? false;
+      if (!inDesktopMenu && !inMobileSheet) {
         setQuickMenuOpen(false);
       }
     }
@@ -875,7 +878,7 @@ export default function DashboardLayout({
     {quickMenuOpen && (
       <>
         <div className="fixed inset-0 z-50 lg:hidden bg-black/40 animate-fade-in" onClick={() => setQuickMenuOpen(false)} />
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+        <div ref={quickSheetRef} className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
             <h3 className="text-base font-semibold text-ink">Actions rapides</h3>
             <button onClick={() => setQuickMenuOpen(false)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
