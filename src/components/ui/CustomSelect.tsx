@@ -35,7 +35,6 @@ export default function CustomSelect({
   className = "",
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
-  const [openUp, setOpenUp] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [canScroll, setCanScroll] = useState(false);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -51,15 +50,9 @@ export default function CustomSelect({
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const contentHeight = options.length * OPTION_HEIGHT + 16;
-    const dropdownH = Math.min(contentHeight, DROPDOWN_MAX_HEIGHT);
-    const spaceBelow = window.innerHeight - rect.bottom - 8;
-    const spaceAbove = rect.top - 8;
-    setOpenUp(spaceBelow < dropdownH && spaceAbove >= dropdownH);
     setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
     setDropdownPos({
-      top: spaceBelow >= dropdownH || spaceBelow < dropdownH && spaceAbove < dropdownH
-        ? rect.bottom + 4
-        : rect.top - dropdownH - 4,
+      top: rect.bottom + 4,
       left: rect.left,
       width: rect.width,
     });
