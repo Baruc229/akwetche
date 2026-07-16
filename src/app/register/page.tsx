@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -56,7 +57,9 @@ export default function RegisterPage() {
   const phonePrefix = getPhonePrefix(countryCode);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPhone(phonePrefix);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryCode]);
 
  async function handleSubmit(e: React.FormEvent) {
@@ -121,7 +124,7 @@ export default function RegisterPage() {
               Cliquez sur le lien pour activer votre compte.
             </p>
             <div className="alert-inline warn text-sm">
-              <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
+              <p className="font-medium mb-1">Vous ne trouvez pas l&apos;email ?</p>
               <p>Vérifiez vos spams ou réessayez dans quelques minutes.</p>
             </div>
             <a
@@ -142,13 +145,13 @@ export default function RegisterPage() {
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
   <div className="w-full max-w-lg animate-scale-in">
-  <a
+  <Link
   href="/"
   className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink mb-8 transition-colors"
   >
   <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
   Retour
-  </a>
+  </Link>
 
   {step === "plan" && (
   <div className="card p-8">
@@ -162,7 +165,7 @@ export default function RegisterPage() {
   Choisissez votre plan
   </h1>
   <p className="text-muted text-sm mt-1">
-  Sélectionnez l'offre qui correspond à vos besoins
+  Sélectionnez l&apos;offre qui correspond à vos besoins
   </p>
   </div>
 
@@ -304,10 +307,10 @@ export default function RegisterPage() {
   type={showPassword ? "text" : "password"}
   value={password}
   onChange={(e) => setPassword(e.target.value)}
-  placeholder="Minimum 6 caractères"
+  placeholder="Minimum 8 caractères"
   className="input-field pl-12 pr-10"
   required
-  minLength={6}
+  minLength={8}
   />
   <button
   type="button"

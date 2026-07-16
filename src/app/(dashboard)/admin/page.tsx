@@ -93,7 +93,7 @@ export default function AdminOverview() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-2xl text-text-1">Administration</h1>
-          <p className="text-text-3 text-sm mt-0.5">Vue d'ensemble de la plateforme</p>
+          <p className="text-text-3 text-sm mt-0.5">Vue d&apos;ensemble de la plateforme</p>
         </div>
         {user?.role === "super_admin" && (
           <button
@@ -111,7 +111,7 @@ export default function AdminOverview() {
         {stats && stats.failedLoginsToday > 0 && (
           <div className="alert-inline neg">
             <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0" />
-            <span className="flex-1">{stats.failedLoginsToday} tentative(s) échouée(s) aujourd'hui sur {stats.loginAttemptsToday} totales</span>
+            <span className="flex-1">{stats.failedLoginsToday} tentative(s) échouée(s) aujourd&apos;hui sur {stats.loginAttemptsToday} totales</span>
             <button onClick={() => router.push('/admin/security')} className="flex items-center gap-1 text-xs font-medium text-neg/70 hover:text-neg shrink-0">
               Détail <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5" />
             </button>
@@ -146,7 +146,7 @@ export default function AdminOverview() {
             <p className="text-amount text-2xl text-ink">{s.value}</p>
             {(s.sub > 0 || s.label === "Utilisateurs") && (
               <p className={`text-[11px] font-medium mt-1 ${s.sub > 0 ? "text-pos" : "text-muted"}`}>
-                {s.sub > 0 ? `+${s.sub}` : "0"} aujourd'hui
+                {s.sub > 0 ? `+${s.sub}` : "0"} aujourd&apos;hui
               </p>
             )}
           </div>
@@ -292,7 +292,7 @@ export default function AdminOverview() {
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Mot de passe</label>
-                  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" placeholder="Minimum 6 caractères" required minLength={6} />
+                  <input type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="input-field" placeholder="Minimum 8 caractères" required minLength={8} />
                 </div>
                 <div>
                   <label className="block text-[11.5px] font-sans font-medium text-text-3 mb-1.5">Rôle</label>

@@ -16,13 +16,8 @@ export default function ResetPasswordPage() {
  const [showPassword, setShowPassword] = useState(false);
  const [error, setError] = useState("");
  const [success, setSuccess] = useState(false);
- const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-  if (!token) {
-  setError("Lien de réinitialisation invalide ou manquant.");
-  }
-  }, [token]);
+  const [loading, setLoading] = useState(false);
+  const [initError] = useState(() => !token ? "Lien de réinitialisation invalide ou manquant." : "");
 
   useEffect(() => {
   if (success) {
@@ -39,7 +34,7 @@ export default function ResetPasswordPage() {
  return;
  }
  if (password.length < 6) {
- setError("Le mot de passe doit contenir au moins 6 caractères.");
+ setError("Le mot de passe doit contenir au moins 8 caractères.");
  return;
  }
 
@@ -138,10 +133,10 @@ export default function ResetPasswordPage() {
   type={showPassword ? "text" : "password"}
   value={password}
   onChange={(e) => setPassword(e.target.value)}
-  placeholder="Minimum 6 caractères"
+  placeholder="Minimum 8 caractères"
   className="input-field pl-10 pr-10"
   required
-  minLength={6}
+  minLength={8}
   />
   <button
   type="button"
@@ -166,13 +161,13 @@ export default function ResetPasswordPage() {
   placeholder="Retaper le mot de passe"
   className="input-field pl-10"
   required
-  minLength={6}
+  minLength={8}
   />
   </div>
   </div>
 
-  {error && (
-    <p className="alert-inline neg text-sm">{error}</p>
+  {(error || initError) && (
+    <p className="alert-inline neg text-sm">{error || initError}</p>
   )}
 
   <button
