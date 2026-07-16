@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faUsers, faPlus, faUpRightFromSquare, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faPlus, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { type IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -84,7 +85,7 @@ type Notification = {
   actor: { id: number; name: string } | null;
 };
 
-const NOTIF_ICONS: Record<string, any> = {
+const NOTIF_ICONS: Record<string, IconDefinition> = {
   subscription: faCrown,
   product: faBox,
   sale: faCartShopping,
@@ -104,6 +105,20 @@ function timeAgo(dateStr: string): string {
   if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
   if (diff < 172800) return "Hier";
   return `Il y a ${Math.floor(diff / 86400)} jours`;
+}
+
+function QuickActionBtn({ icon, label, hint, onClick }: { icon: IconDefinition; label: string; hint: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all hover:bg-[var(--color-brand-subtle)] text-left" style={{color:'var(--color-ink)'}}>
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'var(--color-brand-subtle)'}}>
+        <FontAwesomeIcon icon={icon} className="w-4 h-4" style={{color:'var(--color-brand)'}} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium">{label}</p>
+        <p className="text-xs" style={{color:'var(--color-muted)'}}>{hint}</p>
+      </div>
+    </button>
+  );
 }
 
 export default function DashboardLayout({
@@ -129,7 +144,6 @@ export default function DashboardLayout({
   const [notifTab, setNotifTab] = useState<"new" | "unread" | "read">("unread");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
-  const [notifLoading, setNotifLoading] = useState(false);
   const [busyIds, setBusyIds] = useState<Set<number>>(new Set());
   const [markingAll, setMarkingAll] = useState(false);
   const [confirmDeleteNotif, setConfirmDeleteNotif] = useState<Notification | null>(null);
@@ -154,7 +168,9 @@ export default function DashboardLayout({
     });
   }, []);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotificationsRef = useRef<() => void>(() => {});
+
+  const doFetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications?limit=50");
       if (res.ok) {
@@ -166,10 +182,14 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    fetchNotificationsRef.current = doFetchNotifications;
+  }, [doFetchNotifications]);
+
+  useEffect(() => {
+    fetchNotificationsRef.current();
+    const interval = setInterval(() => fetchNotificationsRef.current(), 30000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -287,15 +307,15 @@ export default function DashboardLayout({
     if (n.link) router.push(n.link);
   }
 
+  const [now] = useState(() => Date.now());
   const notifFiltered = useMemo(() => {
-    const now = Date.now();
     const day = 86400000;
     return notifications.filter(n => {
       if (notifTab === "new") return !n.read && (now - new Date(n.createdAt).getTime()) < day;
       if (notifTab === "unread") return !n.read;
       return n.read;
     });
-  }, [notifications, notifTab]);
+  }, [notifications, notifTab, now]);
 
     const ctxValue = useMemo(() => ({ user, setUser, commercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency]);
 
@@ -339,20 +359,6 @@ export default function DashboardLayout({
 
    const avatarInitial = user.name?.charAt(0)?.toUpperCase() || '?';
 
-   function QuickActionBtn({ icon, label, hint, onClick }: { icon: any; label: string; hint: string; onClick: () => void }) {
-    return (
-      <button onClick={onClick} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all hover:bg-[var(--color-brand-subtle)] text-left" style={{color:'var(--color-ink)'}}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'var(--color-brand-subtle)'}}>
-          <FontAwesomeIcon icon={icon} className="w-4 h-4" style={{color:'var(--color-brand)'}} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium">{label}</p>
-          <p className="text-xs" style={{color:'var(--color-muted)'}}>{hint}</p>
-        </div>
-      </button>
-    );
-   }
-
   return (
    <DashboardContext.Provider value={ctxValue}>
     <div className="min-h-screen flex flex-col lg:flex-row" style={{background:'var(--color-bg)'}}>
@@ -367,6 +373,7 @@ export default function DashboardLayout({
         <div className={`flex items-center shrink-0 ${sidebarCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
           <Link href="/dashboard" className={`flex items-center gap-2 ${sidebarCollapsed ? '' : ''}`}>
             <div className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/15" style={{background:'#0D1B35'}}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
             </div>
             <span className={`text-lg font-bold text-white font-[family-name:var(--font-display)] transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Akwetche</span>
@@ -975,7 +982,7 @@ export default function DashboardLayout({
     <QuickTransactionModal
       open={quickTxOpen}
       onClose={() => setQuickTxOpen(false)}
-      onSuccess={() => fetchNotifications()}
+      onSuccess={() => doFetchNotifications()}
     />
 
     {/* Help panel */}

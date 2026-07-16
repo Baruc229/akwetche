@@ -7,22 +7,24 @@ import {
   generateEmailToken,
 } from "@/lib/auth";
 
+const BCRYPT_TIMEOUT = 15000;
+
 describe("auth — Hachage de mot de passe", () => {
   it("hashPassword retourne un hash différent du mot de passe", async () => {
     const hash = await hashPassword("monpassword123");
     expect(hash).not.toBe("monpassword123");
     expect(hash.length).toBeGreaterThan(20);
-  });
+  }, BCRYPT_TIMEOUT);
 
   it("comparePassword retourne vrai pour le bon mot de passe", async () => {
     const hash = await hashPassword("testpassword");
     expect(await comparePassword("testpassword", hash)).toBe(true);
-  });
+  }, BCRYPT_TIMEOUT);
 
   it("comparePassword retourne faux pour un mauvais mot de passe", async () => {
     const hash = await hashPassword("testpassword");
     expect(await comparePassword("wrongpassword", hash)).toBe(false);
-  });
+  }, BCRYPT_TIMEOUT);
 
   it("deux hashes du même mot de passe sont différents (salt)", async () => {
     const hash1 = await hashPassword("samepassword");
@@ -30,7 +32,7 @@ describe("auth — Hachage de mot de passe", () => {
     expect(hash1).not.toBe(hash2);
     expect(await comparePassword("samepassword", hash1)).toBe(true);
     expect(await comparePassword("samepassword", hash2)).toBe(true);
-  }, 15000);
+  }, BCRYPT_TIMEOUT);
 });
 
 describe("auth — JWT Tokens", () => {
