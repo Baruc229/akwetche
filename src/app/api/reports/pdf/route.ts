@@ -2,35 +2,79 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api";
 import {
+  getStartOfWeek, getEndOfWeek,
   getStartOfMonth, getEndOfMonth,
+  getStartOfYear, getEndOfYear,
 } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils";
+
+const PERIOD_LABELS: Record<string, string> = {
+  weekly: "hebdomadaire",
+  monthly: "mensuel",
+  yearly: "annuel",
+};
+
+const COLORS = ["#0D1B35", "#142D54", "#C9A84C", "#dc2626", "#7c3aed", "#0891b2", "#be123c", "#ca8a04"];
 
 export async function GET(req: NextRequest) {
   try {
     const userId = await requireAuth();
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get("type") || "monthly";
     const now = new Date();
-    const startDate = getStartOfMonth(now);
-    const endDate = getEndOfMonth(now);
+
+    let startDate: Date;
+    let endDate: Date;
+
+    if (type === "weekly") {
+      startDate = getStartOfWeek(now);
+      endDate = getEndOfWeek(now);
+    } else if (type === "yearly") {
+      startDate = getStartOfYear(now);
+      endDate = getEndOfYear(now);
+    } else {
+      startDate = getStartOfMonth(now);
+      endDate = getEndOfMonth(now);
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, initialBalance: true, initialBalanceActivity: true, role: true, subscription: { select: { status: true } } },
+      select: {
+        name: true,
+        initialBalance: true,
+        initialBalanceActivity: true,
+        role: true,
+        subscription: { select: { status: true } },
+      },
     });
 
     if (!user) return new Response("User not found", { status: 404 });
 
+    const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
+    const catFilter = isPremium ? {} : { archived: false };
+
     const transactions = await prisma.transaction.findMany({
-      where: { userId, date: { gte: startDate, lte: endDate } },
+      where: { userId, date: { gte: startDate, lte: endDate }, category: catFilter },
       include: { category: true },
       orderBy: { date: "desc" },
     });
 
-    const income = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-    const savings = income - expense;
-    const savingsRate = income > 0 ? ((savings / income) * 100).toFixed(0) : "—";
+    const allIncome = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    const allExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const allSavings = allIncome - allExpense;
+    const savingsRate = allIncome > 0 ? ((allSavings / allIncome) * 100).toFixed(0) : "—";
 
+    const personalIncome = transactions.filter(t => t.type === "income" && t.scope === "personal").reduce((s, t) => s + t.amount, 0);
+    const personalExpense = transactions.filter(t => t.type === "expense" && t.scope === "personal").reduce((s, t) => s + t.amount, 0);
+    const personalSavings = personalIncome - personalExpense;
+
+    const activityIncome = transactions.filter(t => t.type === "income" && t.scope === "activity").reduce((s, t) => s + t.amount, 0);
+    const activityExpense = transactions.filter(t => t.type === "expense" && t.scope === "activity").reduce((s, t) => s + t.amount, 0);
+    const activitySavings = activityIncome - activityExpense;
+
+    const hasActivity = activityIncome > 0 || activityExpense > 0 || (user?.initialBalanceActivity || 0) > 0;
+
+    // Categories breakdown
     const byCat: Record<string, number> = {};
     transactions.filter(t => t.type === "expense").forEach(t => {
       const name = t.category?.name || "Non catégorisé";
@@ -38,85 +82,170 @@ export async function GET(req: NextRequest) {
     });
     const sortedCats = Object.entries(byCat).sort(([, a], [, b]) => b - a);
 
+    // Commercial data
+    const salesData = await prisma.sale.findMany({
+      where: { userId, date: { gte: startDate, lte: endDate } },
+      include: { product: true },
+    });
+    const totalRevenue = salesData.reduce((s, sale) => s + sale.totalAmount, 0);
+    const totalProfit = salesData.reduce((s, sale) => s + sale.profit, 0);
+    const products = await prisma.product.findMany({ where: { userId } });
+    const stockValue = products.reduce((s, p) => s + p.purchasePrice * p.stock, 0);
+    const hasCommercial = salesData.length > 0 || products.length > 0;
+
+    // Transaction rows
     const txRows = transactions.map(t => `
       <tr>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#666;font-size:12px">${new Date(t.date).toLocaleDateString("fr-FR")}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#1c1917;font-size:13px">${t.description}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#a8a29e;font-size:12px">${t.category?.name || "—"}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#1B3A6B;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? formatCurrency(t.amount) : ""}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#dc2626;font-size:13px;text-align:right;font-weight:500">${t.type === "expense" ? formatCurrency(t.amount) : ""}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#64748b;font-size:12px">${new Date(t.date).toLocaleDateString("fr-FR")}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px">${t.description}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:12px">${t.category?.name || "—"}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:11px;text-align:center">${t.scope === "activity" ? "Activité" : "Perso"}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? formatCurrency(t.amount) : ""}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#dc2626;font-size:13px;text-align:right;font-weight:500">${t.type === "expense" ? formatCurrency(t.amount) : ""}</td>
       </tr>`).join("");
 
     const catRows = sortedCats.map(([name, amount], i) => {
-      const pct = expense > 0 ? (amount / expense * 100).toFixed(0) : "0";
-      const colors = ["#1B3A6B", "#142D54", "#d97706", "#dc2626", "#7c3aed", "#0891b2", "#be123c", "#ca8a04"];
+      const pct = allExpense > 0 ? (amount / allExpense * 100).toFixed(0) : "0";
       return `
       <tr>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colors[i % colors.length]};margin-right:8px;vertical-align:middle"></span>${name}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;text-align:right;font-weight:500">${formatCurrency(amount)}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;text-align:right;color:#a8a29e">${pct}%</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS[i % COLORS.length]};margin-right:8px;vertical-align:middle"></span>${name}
+        </td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;font-weight:500">${formatCurrency(amount)}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;color:#94a3b8">${pct}%</td>
       </tr>`;
     }).join("");
 
+    const periodLabel = PERIOD_LABELS[type] || "mensuel";
+    const dateRange = `${startDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} → ${endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`;
+    const generatedAt = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
     const html = `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Rapport mensuel — Akwetche</title>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Rapport ${periodLabel} — Akwetche</title>
 <style>
-  @page { margin: 20mm 15mm; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1c1917; background: #fff; margin: 0; padding: 0; }
-  .header { text-align: center; padding: 20px 0 30px; border-bottom: 2px solid #1B3A6B; }
-  .header h1 { color: #1B3A6B; margin: 0; font-size: 24px; }
-  .header p { color: #a8a29e; margin: 4px 0 0; font-size: 13px; }
-  .summary { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
-  .summary-item { text-align: center; padding: 10px 20px; }
-  .summary-item .label { color: #a8a29e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .summary-item .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
-  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-  th { background: #fafaf9; padding: 8px 12px; text-align: left; font-size: 11px; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e7e5e4; }
+  @page { margin: 18mm 15mm; size: A4; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; background: #fff; margin: 0; padding: 0; }
+
+  .header { text-align: center; padding: 24px 0 28px; border-bottom: 3px solid #0D1B35; }
+  .header h1 { color: #0D1B35; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .header .subtitle { color: #C9A84C; margin: 4px 0 0; font-size: 14px; font-weight: 600; }
+  .header .date { color: #94a3b8; font-size: 11px; margin-top: 8px; }
+
+  .summary { display: flex; justify-content: center; gap: 0; margin: 24px 0; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+  .summary-item { text-align: center; padding: 16px 24px; flex: 1; }
+  .summary-item:not(:last-child) { border-right: 1px solid #e2e8f0; }
+  .summary-item .label { color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+  .summary-item .value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+
+  .section-title { font-size: 15px; color: #0D1B35; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #C9A84C; font-weight: 700; }
+
+  .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  .scope-card { padding: 14px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; }
+  .scope-card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; font-weight: 700; }
+  .scope-card p { margin: 2px 0; font-size: 13px; }
+  .scope-card .val { font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; font-weight: 700; }
   td { font-size: 13px; }
-  h2 { font-size: 16px; color: #1c1917; margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #f0f0ee; }
-  .footer { text-align: center; color: #a8a29e; font-size: 11px; margin-top: 30px; padding-top: 16px; border-top: 1px solid #f0f0ee; }
-  @media print { .no-print { display: none; } body { background: #fff; } }
+
+  .footer { text-align: center; color: #94a3b8; font-size: 10px; margin-top: 36px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+
+  @media print { .no-print { display: none !important; } body { background: #fff; } }
+  @media (max-width: 600px) {
+    .summary { flex-direction: column; }
+    .summary-item:not(:last-child) { border-right: none; border-bottom: 1px solid #e2e8f0; }
+    .scope-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
   <div class="header">
     <h1>Akwetche</h1>
-    <p>Rapport mensuel — ${startDate.toLocaleDateString("fr-FR")} au ${endDate.toLocaleDateString("fr-FR")}</p>
-    <p style="color:#666;font-size:12px;margin-top:8px">Généré le ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+    <p class="subtitle">Rapport ${periodLabel}</p>
+    <p class="date">${dateRange}</p>
+    <p class="date">Généré le ${generatedAt}</p>
   </div>
 
   <div class="summary">
-    <div class="summary-item"><div class="label">Revenus</div><div class="value" style="color:#1B3A6B">${formatCurrency(income)}</div></div>
-    <div class="summary-item"><div class="label">Dépenses</div><div class="value" style="color:#dc2626">${formatCurrency(expense)}</div></div>
-    <div class="summary-item"><div class="label">Solde</div><div class="value" style="color:${savings >= 0 ? "#1B3A6B" : "#dc2626"}">${formatCurrency(savings)}</div></div>
-    <div class="summary-item"><div class="label">Taux d'épargne</div><div class="value">${savingsRate}%</div></div>
+    <div class="summary-item">
+      <div class="label">Revenus</div>
+      <div class="value" style="color:#0D1B35">${formatCurrency(allIncome)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Dépenses</div>
+      <div class="value" style="color:#dc2626">${formatCurrency(allExpense)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Solde</div>
+      <div class="value" style="color:${allSavings >= 0 ? "#0D1B35" : "#dc2626"}">${formatCurrency(allSavings)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Taux d'épargne</div>
+      <div class="value">${savingsRate}%</div>
+    </div>
   </div>
 
+  ${hasActivity ? `
+  <p class="section-title">Situation par périmètre</p>
+  <div class="scope-grid">
+    <div class="scope-card">
+      <h4>Personnel</h4>
+      <p>Reçus : <span class="val" style="color:#0D1B35">${formatCurrency(personalIncome)}</span></p>
+      <p>Dépensés : <span class="val" style="color:#dc2626">${formatCurrency(personalExpense)}</span></p>
+      <p>Épargne : <span class="val" style="color:${personalSavings >= 0 ? "#0D1B35" : "#dc2626"}">${formatCurrency(personalSavings)}</span></p>
+    </div>
+    <div class="scope-card">
+      <h4>Activité</h4>
+      <p>Reçus : <span class="val" style="color:#C9A84C">${formatCurrency(activityIncome)}</span></p>
+      <p>Dépensés : <span class="val" style="color:#dc2626">${formatCurrency(activityExpense)}</span></p>
+      <p>Épargne : <span class="val" style="color:${activitySavings >= 0 ? "#0D1B35" : "#dc2626"}">${formatCurrency(activitySavings)}</span></p>
+    </div>
+  </div>` : ""}
+
+  ${hasCommercial ? `
+  <p class="section-title">Activité commerciale</p>
+  <div class="summary">
+    <div class="summary-item">
+      <div class="label">Chiffre d'affaires</div>
+      <div class="value" style="color:#C9A84C">${formatCurrency(totalRevenue)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Profit</div>
+      <div class="value" style="color:#0D1B35">${formatCurrency(totalProfit)}</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Valeur stock</div>
+      <div class="value">${formatCurrency(stockValue)}</div>
+    </div>
+  </div>` : ""}
+
   ${sortedCats.length > 0 ? `
-  <h2>Répartition des dépenses</h2>
+  <p class="section-title">Répartition des dépenses</p>
   <table>
     <thead><tr><th>Catégorie</th><th style="text-align:right">Montant</th><th style="text-align:right">%</th></tr></thead>
     <tbody>${catRows}</tbody>
   </table>` : ""}
 
-  <h2>Détail des transactions</h2>
+  <p class="section-title">Détail des transactions</p>
   <table>
-    <thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th style="text-align:right">Revenu</th><th style="text-align:right">Dépense</th></tr></thead>
-    <tbody>${txRows || `<tr><td colspan="5" style="text-align:center;padding:20px;color:#a8a29e">Aucune transaction ce mois-ci</td></tr>`}</tbody>
+    <thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th style="text-align:center">Périmètre</th><th style="text-align:right">Revenu</th><th style="text-align:right">Dépense</th></tr></thead>
+    <tbody>${txRows || `<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Aucune transaction pour cette période</td></tr>`}</tbody>
   </table>
 
   <div class="footer">
-    <p>Akwetche — Gestion financière personnelle</p>
+    <p><strong>Akwetche</strong> — Gestion financière personnelle</p>
     <p>${new Date().getFullYear()} Akwetche. Tous droits réservés.</p>
   </div>
 
-  <div class="no-print" style="text-align:center;margin-top:16px">
-    <button onclick="window.print()" style="background:#1B3A6B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Télécharger en PDF</button>
-    <button onclick="window.close()" style="background:#e7e5e4;color:#1c1917;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-left:8px">Fermer</button>
+  <div class="no-print" style="text-align:center;margin-top:20px">
+    <button onclick="window.print()" style="background:#0D1B35;color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Télécharger en PDF</button>
+    <button onclick="window.close()" style="background:#e2e8f0;color:#1e293b;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-left:8px">Fermer</button>
   </div>
 
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
+  <script>window.onload = function() { setTimeout(function() { window.print(); }, 400); };</script>
 </body>
 </html>`;
 

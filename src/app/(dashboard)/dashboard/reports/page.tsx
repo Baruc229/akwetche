@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { formatCurrency } from "@/lib/utils";
 import { CATEGORY_COLORS } from "@/lib/colors";
 
@@ -39,18 +39,6 @@ const PERIODS = [
   { value: "yearly", label: "Cette année" },
 ];
 
-function formatDateRange(start: string, end: string) {
-  try {
-    const opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
-    const d1 = new Date(start);
-    const d2 = new Date(end);
-    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return "";
-    return `${d1.toLocaleDateString("fr-FR", opts)} → ${d2.toLocaleDateString("fr-FR", opts)}`;
-  } catch {
-    return "";
-  }
-}
-
 function safePeriod(data: ReportData | null) {
   if (!data?.period?.start || !data?.period?.end) return null;
   try {
@@ -63,6 +51,20 @@ function safePeriod(data: ReportData | null) {
   }
 }
 
+function EvolutionBadge({ value, invert }: { value: string | null; invert?: boolean }) {
+  if (!value) return <span className="text-text-3 text-[11px]">—</span>;
+  const num = parseFloat(value);
+  const isUp = num > 0;
+  const color = invert
+    ? (isUp ? "text-neg" : "text-pos")
+    : (isUp ? "text-pos" : "text-neg");
+  return (
+    <span className={`text-[11px] font-semibold ${color}`}>
+      {isUp ? "+" : ""}{num.toFixed(0)}%
+    </span>
+  );
+}
+
 export default function ReportsPage() {
   const [period, setPeriod] = useState("monthly");
   const [data, setData] = useState<ReportData | null>(null);
@@ -73,15 +75,16 @@ export default function ReportsPage() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
+    let active = true;
     fetch(`/api/reports?type=${period}`)
       .then((res) => res.json())
-      .then(setData)
-      .finally(() => setLoading(false));
+      .then((d) => { if (active) { setData(d); setLoading(false); } })
+      .catch(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [period]);
 
   function handleDownload() {
-    window.print();
+    window.open(`/api/reports/pdf?type=${period}`, "_blank");
   }
 
   const periodLabel = PERIODS.find(p => p.value === period)?.label || "";
@@ -95,6 +98,9 @@ export default function ReportsPage() {
     if (entries.length === 0) return "";
     return entries[0][0];
   }
+
+  const hasCommercial = data && (data.commercial.revenue > 0 || data.commercial.productCount > 0);
+  const hasActivity = data && (data.activity.current.income > 0 || data.activity.current.expense > 0 || data.initialBalanceActivity > 0);
 
   if (loading) {
     return (
@@ -183,20 +189,29 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* 4 KPIs */}
+          {/* 4 KPIs with evolutions */}
           <div className="grid grid-cols-2 gap-3">
             <div className="card-inset min-w-0 overflow-hidden">
-              <p className="text-label">Volume total</p>
+              <div className="flex items-center justify-between">
+                <p className="text-label">Volume total</p>
+                <EvolutionBadge value={data.evolution.income} />
+              </div>
               <p className="text-amount text-lg text-pos mt-1 truncate">{formatCurrency(data.current.income + data.current.expense)}</p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Revenus + Dépenses</p>
             </div>
             <div className="card-inset min-w-0 overflow-hidden">
-              <p className="text-label">Taux d&apos;épargne</p>
+              <div className="flex items-center justify-between">
+                <p className="text-label">Taux d&apos;épargne</p>
+                <EvolutionBadge value={data.evolution.savings} invert />
+              </div>
               <p className="text-amount text-lg text-pos mt-1">{savingsRate.toFixed(0)}%</p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">{savingsRate >= 20 ? "Excellent" : savingsRate >= 5 ? "Correct" : "Faible"}</p>
             </div>
             <div className="card-inset min-w-0 overflow-hidden">
-              <p className="text-label">Moyenne / jour</p>
+              <div className="flex items-center justify-between">
+                <p className="text-label">Moyenne / jour</p>
+                <EvolutionBadge value={data.evolution.expense} invert />
+              </div>
               <p className="text-amount text-lg text-gold mt-1 truncate">{formatCurrency(avgDaily)}</p>
               <p className="text-[10.5px] text-text-3 mt-0.5 truncate">Dépense quotidienne</p>
             </div>
@@ -209,6 +224,74 @@ export default function ReportsPage() {
             </div>
           </div>
 
+          {/* Activité commerciale */}
+          {hasCommercial && (
+            <div className="bg-bg-card rounded-[18px] border border-border p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
+                  <circle cx="12" cy="12" r="10" /><path d="M16 8l-8 8M8.5 8.5l7 7" />
+                </svg>
+                <h2 className="text-sm font-semibold text-ink">Activité commerciale</h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="bg-bg rounded-xl p-3">
+                  <p className="text-[10px] text-text-3 mb-0.5">Chiffre d&apos;affaires</p>
+                  <p className="font-semibold text-gold text-sm">{formatCurrency(data.commercial.revenue)}</p>
+                </div>
+                <div className="bg-bg rounded-xl p-3">
+                  <p className="text-[10px] text-text-3 mb-0.5">Profit</p>
+                  <p className="font-semibold text-pos text-sm">{formatCurrency(data.commercial.profit)}</p>
+                </div>
+                <div className="bg-bg rounded-xl p-3">
+                  <p className="text-[10px] text-text-3 mb-0.5">Valeur stock</p>
+                  <p className="font-semibold text-text-1 text-sm">{formatCurrency(data.commercial.stockValue)}</p>
+                </div>
+                <div className="bg-bg rounded-xl p-3">
+                  <p className="text-[10px] text-text-3 mb-0.5">Produits</p>
+                  <p className="font-semibold text-text-1 text-sm">{data.commercial.productCount}</p>
+                </div>
+                <div className="bg-bg rounded-xl p-3">
+                  <p className="text-[10px] text-text-3 mb-0.5">Ruptures de stock</p>
+                  <p className="font-semibold text-neg text-sm">{data.commercial.outOfStock}</p>
+                </div>
+              </div>
+
+              {data.commercial.mostProfitable.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-[10px] text-text-3 uppercase tracking-widest font-semibold mb-2">Les plus rentables</p>
+                  <div className="space-y-2">
+                    {data.commercial.mostProfitable.slice(0, 3).map((p) => (
+                      <div key={p.name} className="flex items-center justify-between bg-bg rounded-xl px-3 py-2">
+                        <div>
+                          <p className="text-sm font-semibold text-text-1">{p.name}</p>
+                          <p className="text-[10.5px] text-text-3">{p.quantity} vendu{p.quantity > 1 ? "s" : ""}</p>
+                        </div>
+                        <p className="text-sm font-bold text-pos">{formatCurrency(p.total)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {data.commercial.mostSold.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[10px] text-text-3 uppercase tracking-widest font-semibold mb-2">Les plus vendus</p>
+                  <div className="space-y-2">
+                    {data.commercial.mostSold.slice(0, 3).map((p) => (
+                      <div key={p.name} className="flex items-center justify-between bg-bg rounded-xl px-3 py-2">
+                        <div>
+                          <p className="text-sm font-semibold text-text-1">{p.name}</p>
+                          <p className="text-[10.5px] text-text-3">{formatCurrency(p.total)} CA</p>
+                        </div>
+                        <p className="text-sm font-bold text-ink">{p.quantity} vendu{p.quantity > 1 ? "s" : ""}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Situation financière */}
           <div className="bg-bg-card rounded-[18px] border border-border p-5">
             <div className="flex items-center gap-2 mb-4">
@@ -219,9 +302,14 @@ export default function ReportsPage() {
             </div>
 
             {/* Personnel */}
-            <div className="mb-4">
+            <div className={hasActivity ? "mb-4" : ""}>
               <div className="flex items-center gap-2 pb-2 mb-3 border-b border-border">
                 <span className="text-[9.5px] font-bold uppercase tracking-widest text-text-3">Personnel</span>
+                {data.personal.evolution.income && (
+                  <span className="ml-auto text-[10px] text-text-3">
+                    Évolution revenus : <EvolutionBadge value={data.personal.evolution.income} />
+                  </span>
+                )}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <div className="bg-bg rounded-xl p-3">
@@ -242,10 +330,15 @@ export default function ReportsPage() {
             </div>
 
             {/* Activité */}
-            {(data.activity.current.income > 0 || data.activity.current.expense > 0 || data.initialBalanceActivity > 0) && (
+            {hasActivity && (
               <div>
                 <div className="flex items-center gap-2 pb-2 mb-3 border-b border-border">
                   <span className="text-[9.5px] font-bold uppercase tracking-widest text-gold">Activité</span>
+                  {data.activity.evolution.income && (
+                    <span className="ml-auto text-[10px] text-text-3">
+                      Évolution revenus : <EvolutionBadge value={data.activity.evolution.income} />
+                    </span>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   <div className="bg-bg rounded-xl p-3">
@@ -267,7 +360,7 @@ export default function ReportsPage() {
             )}
           </div>
 
-          {/* Comparison table */}
+          {/* Comparison table with evolutions */}
           <div className="bg-bg-card rounded-[18px] border border-border p-5">
             <div className="flex items-center gap-2 mb-4">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
@@ -277,11 +370,14 @@ export default function ReportsPage() {
             </div>
             <div className="sm:hidden space-y-3">
               {[
-                { label: "Revenus", current: data.current.income, previous: data.previous.income, currentColor: "text-text-1", previousColor: "text-text-3" },
-                { label: "Dépenses", current: data.current.expense, previous: data.previous.expense, currentColor: "text-neg", previousColor: "text-text-3" },
+                { label: "Revenus", current: data.current.income, previous: data.previous.income, currentColor: "text-text-1", previousColor: "text-text-3", evolution: data.evolution.income, invert: false },
+                { label: "Dépenses", current: data.current.expense, previous: data.previous.expense, currentColor: "text-neg", previousColor: "text-text-3", evolution: data.evolution.expense, invert: true },
               ].map((r) => (
                 <div key={r.label} className="py-2 border-b border-border">
-                  <p className="text-[11.5px] font-semibold text-text-1 mb-1.5">{r.label}</p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[11.5px] font-semibold text-text-1">{r.label}</p>
+                    <EvolutionBadge value={r.evolution} invert={r.invert} />
+                  </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-text-3">{periodLabel} :</span>
                     <span className={`font-semibold ${r.currentColor}`}>{formatCurrency(r.current)}</span>
@@ -293,7 +389,10 @@ export default function ReportsPage() {
                 </div>
               ))}
               <div className="py-2 rounded-xl px-3" style={{ backgroundColor: "var(--color-surface-raised)" }}>
-                <p className="text-[11.5px] font-semibold text-text-1 mb-1.5">Épargne</p>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[11.5px] font-semibold text-text-1">Épargne</p>
+                  <EvolutionBadge value={data.evolution.savings} invert />
+                </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-text-3">{periodLabel} :</span>
                   <span className="font-bold text-pos">{formatCurrency(Math.max(0, data.current.savings))}</span>
@@ -305,25 +404,28 @@ export default function ReportsPage() {
               </div>
             </div>
             <div className="hidden sm:block">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 pb-2 border-b border-border">
+              <div className="grid grid-cols-4 gap-2 sm:gap-3 pb-2 border-b border-border">
                   <span className="text-label">Libellé</span>
                   <span className="text-label text-right">{periodLabel}</span>
                   <span className="text-label text-right">{previousLabel}</span>
+                  <span className="text-label text-right">Évolution</span>
                 </div>
                 {/* Revenus */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border" style={{ backgroundColor: "var(--color-surface-raised)" }}>
+                <div className="grid grid-cols-4 gap-2 sm:gap-3 py-3 border-t border-border" style={{ backgroundColor: "var(--color-surface-raised)" }}>
                   <span className="text-sm text-ink pl-3">Revenus</span>
                   <span className="text-sm font-semibold text-ink text-right truncate">{formatCurrency(data.current.income)}</span>
                   <span className="text-sm text-muted text-right truncate">{formatCurrency(data.previous.income)}</span>
+                  <span className="text-right"><EvolutionBadge value={data.evolution.income} /></span>
                 </div>
                 {/* Dépenses */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 border-t border-border">
+                <div className="grid grid-cols-4 gap-2 sm:gap-3 py-3 border-t border-border">
                   <span className="text-sm text-ink">Dépenses</span>
                   <span className="text-sm font-semibold text-neg text-right truncate">{formatCurrency(data.current.expense)}</span>
                   <span className="text-sm text-muted text-right truncate">{formatCurrency(data.previous.expense)}</span>
+                  <span className="text-right"><EvolutionBadge value={data.evolution.expense} invert /></span>
                 </div>
                 {/* Épargne */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 py-3 mt-1 rounded-xl" style={{ backgroundColor: "var(--color-surface-raised)" }}>
+                <div className="grid grid-cols-4 gap-2 sm:gap-3 py-3 mt-1 rounded-xl" style={{ backgroundColor: "var(--color-surface-raised)" }}>
                   <span className="text-sm font-semibold text-ink pl-3">Épargne</span>
                   <span className="text-sm font-bold text-pos text-right truncate pr-3">
                     {formatCurrency(Math.max(0, data.current.savings))}
@@ -331,6 +433,7 @@ export default function ReportsPage() {
                   <span className="text-sm text-muted text-right truncate pr-3">
                     {formatCurrency(Math.max(0, data.previous.savings))}
                   </span>
+                  <span className="text-right"><EvolutionBadge value={data.evolution.savings} invert /></span>
                 </div>
             </div>
           </div>
