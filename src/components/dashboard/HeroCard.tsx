@@ -50,10 +50,10 @@ export default function HeroCard({ totalBalance, totalIncome, totalExpense, savi
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
           <div className="flex items-center gap-1.5 text-sm">
-            <FontAwesomeIcon icon={faArrowTrendUp} className="w-3 h-3 text-[#6ECFA0]" />
+            <FontAwesomeIcon icon={faArrowTrendUp} className="w-3 h-3 text-[#C9A84C]" />
             <span className="font-[family-name:var(--font-inter)] text-xs text-white/50">Reçus</span>
           </div>
-          <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#6ECFA0] mt-0.5">
+          <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#C9A84C] mt-0.5">
             {formatCurrency(totalIncome)}
           </p>
         </div>

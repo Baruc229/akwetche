@@ -58,7 +58,7 @@ function buildAdminEmailHtml(type: AdminEventType, data: Record<string, unknown>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/dashboard/admin" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Voir dans le tableau de bord</a>
+          <a href="${APP_URL}/dashboard/admin" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Voir dans le tableau de bord</a>
         </td>
       </tr>
     </table>`;
@@ -91,7 +91,7 @@ function buildDigestEmailHtml(events: { type: AdminEventType; data: Record<strin
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/dashboard/admin" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Accéder à l'administration</a>
+          <a href="${APP_URL}/dashboard/admin" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Accéder à l'administration</a>
         </td>
       </tr>
     </table>`;

@@ -60,12 +60,12 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
               <div key={tx.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                    isIncome ? "bg-[#3A8C68]/10" : "bg-[#FCECEA]"
+                    isIncome ? "bg-[#0D7A4B]/10" : "bg-[#FCECEA]"
                   }`}
                 >
                   <FontAwesomeIcon
                     icon={icon}
-                    className={`w-3.5 h-3.5 ${isIncome ? "text-[#3A8C68]" : "text-[#B94A3E]"}`}
+                    className={`w-3.5 h-3.5 ${isIncome ? "text-[#0D7A4B]" : "text-[#B94A3E]"}`}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -75,7 +75,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
                     </p>
                     <span
                       className={`text-sm font-[family-name:var(--font-dm-sans)] font-bold tabular-nums shrink-0 whitespace-nowrap ${
-                        isIncome ? "text-[#3A8C68]" : "text-[#B94A3E]"
+                        isIncome ? "text-[#0D7A4B]" : "text-[#B94A3E]"
                       }`}
                     >
                       {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}

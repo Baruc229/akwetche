@@ -42,7 +42,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
           <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">
             Bénéfice
           </p>
-          <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold mt-1 tabular-nums" style={{ color: savings >= 0 ? '#3A8C68' : '#B94A3E' }}>
+          <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold mt-1 tabular-nums" style={{ color: savings >= 0 ? '#0D7A4B' : '#B94A3E' }}>
             {formatCurrency(savings)}
           </p>
           <p className="text-[10px] text-[#9BA89D] mt-0.5 font-[family-name:var(--font-inter)]">

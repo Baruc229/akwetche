@@ -139,14 +139,14 @@ function buildInvoiceEmail(userName: string, amount: number, currency: string, p
   return `
     <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 20px">Bonjour ${userName},</p>
 
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin:0 0 24px">
+    <div style="background:#F0F4FA;border:1px solid #B8CCF0;border-radius:8px;padding:12px 16px;margin:0 0 24px">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td>
-            <span style="color:#059669;font-size:14px;font-weight:600">&#10003; Paiement confirmé</span>
+            <span style="color:#1B3A6B;font-size:14px;font-weight:600">&#10003; Paiement confirmé</span>
           </td>
           <td align="right">
-            <span style="display:inline-block;background:#059669;color:#ffffff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;text-transform:uppercase">Payé</span>
+            <span style="display:inline-block;background:#1B3A6B;color:#ffffff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;text-transform:uppercase">Payé</span>
           </td>
         </tr>
       </table>
@@ -225,7 +225,7 @@ export function sendExpiryReminderEmail(to: string, daysLeft: number, userName: 
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/payment" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Renouveler maintenant</a>
+          <a href="${APP_URL}/payment" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Renouveler maintenant</a>
         </td>
       </tr>
     </table>
@@ -237,7 +237,7 @@ export function sendExpiryReminderEmail(to: string, daysLeft: number, userName: 
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/payment" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Renouveler mon abonnement</a>
+          <a href="${APP_URL}/payment" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Renouveler mon abonnement</a>
         </td>
       </tr>
     </table>`;
@@ -260,7 +260,7 @@ export function sendWeeklyRenewalReminderEmail(to: string, userName: string, wee
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/payment" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Renouveler maintenant</a>
+          <a href="${APP_URL}/payment" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Renouveler maintenant</a>
         </td>
       </tr>
     </table>

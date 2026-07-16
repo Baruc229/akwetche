@@ -130,16 +130,16 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           {pendingRecurringIncome > 0 && (
             <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E8E4DC]">
               <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#2D5A27]" />
+                <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#0D7A4B]" />
                 Revenus récurrents en attente
               </span>
-              <span className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#2D5A27] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
+              <span className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#0D7A4B] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
             </div>
           )}
         </div>
       )}
 
-      <div className="rounded-xl p-4 border-l-[3px]" style={{ background: isNegative ? '#FCECEA' : '#E8F5E9', borderColor: isNegative ? '#B94A3E' : '#2D5A27' }}>
+      <div className="rounded-xl p-4 border-l-[3px]" style={{ background: isNegative ? '#FCECEA' : '#E6F7EF', borderColor: isNegative ? '#B94A3E' : '#0D7A4B' }}>
         <p className="text-xs text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>
         <p
           className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold"

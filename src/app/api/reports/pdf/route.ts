@@ -43,13 +43,13 @@ export async function GET(req: NextRequest) {
         <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#666;font-size:12px">${new Date(t.date).toLocaleDateString("fr-FR")}</td>
         <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#1c1917;font-size:13px">${t.description}</td>
         <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#a8a29e;font-size:12px">${t.category?.name || "—"}</td>
-        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#059669;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? formatCurrency(t.amount) : ""}</td>
+        <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#1B3A6B;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? formatCurrency(t.amount) : ""}</td>
         <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee;color:#dc2626;font-size:13px;text-align:right;font-weight:500">${t.type === "expense" ? formatCurrency(t.amount) : ""}</td>
       </tr>`).join("");
 
     const catRows = sortedCats.map(([name, amount], i) => {
       const pct = expense > 0 ? (amount / expense * 100).toFixed(0) : "0";
-      const colors = ["#059669", "#0d9488", "#d97706", "#dc2626", "#7c3aed", "#0891b2", "#be123c", "#ca8a04"];
+      const colors = ["#1B3A6B", "#142D54", "#d97706", "#dc2626", "#7c3aed", "#0891b2", "#be123c", "#ca8a04"];
       return `
       <tr>
         <td style="padding:6px 12px;border-bottom:1px solid #f0f0ee"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colors[i % colors.length]};margin-right:8px;vertical-align:middle"></span>${name}</td>
@@ -64,8 +64,8 @@ export async function GET(req: NextRequest) {
 <style>
   @page { margin: 20mm 15mm; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1c1917; background: #fff; margin: 0; padding: 0; }
-  .header { text-align: center; padding: 20px 0 30px; border-bottom: 2px solid #059669; }
-  .header h1 { color: #059669; margin: 0; font-size: 24px; }
+  .header { text-align: center; padding: 20px 0 30px; border-bottom: 2px solid #1B3A6B; }
+  .header h1 { color: #1B3A6B; margin: 0; font-size: 24px; }
   .header p { color: #a8a29e; margin: 4px 0 0; font-size: 13px; }
   .summary { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
   .summary-item { text-align: center; padding: 10px 20px; }
@@ -87,9 +87,9 @@ export async function GET(req: NextRequest) {
   </div>
 
   <div class="summary">
-    <div class="summary-item"><div class="label">Revenus</div><div class="value" style="color:#059669">${formatCurrency(income)}</div></div>
+    <div class="summary-item"><div class="label">Revenus</div><div class="value" style="color:#1B3A6B">${formatCurrency(income)}</div></div>
     <div class="summary-item"><div class="label">Dépenses</div><div class="value" style="color:#dc2626">${formatCurrency(expense)}</div></div>
-    <div class="summary-item"><div class="label">Solde</div><div class="value" style="color:${savings >= 0 ? "#059669" : "#dc2626"}">${formatCurrency(savings)}</div></div>
+    <div class="summary-item"><div class="label">Solde</div><div class="value" style="color:${savings >= 0 ? "#1B3A6B" : "#dc2626"}">${formatCurrency(savings)}</div></div>
     <div class="summary-item"><div class="label">Taux d'épargne</div><div class="value">${savingsRate}%</div></div>
   </div>
 
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
   </div>
 
   <div class="no-print" style="text-align:center;margin-top:16px">
-    <button onclick="window.print()" style="background:#059669;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Télécharger en PDF</button>
+    <button onclick="window.print()" style="background:#1B3A6B;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Télécharger en PDF</button>
     <button onclick="window.close()" style="background:#e7e5e4;color:#1c1917;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-left:8px">Fermer</button>
   </div>
 

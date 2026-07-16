@@ -148,7 +148,7 @@ export default function RevenusRecurrentsPage() {
 
   if (loading) return (
     <div className="space-y-4 animate-pulse">
-      <div className="card overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-pos) 0%, #15803d 100%)' }}>
+      <div className="card overflow-hidden" style={{ background: 'var(--color-pos)' }}>
         <div className="p-3 sm:p-5">
           <div className="flex items-center gap-3 mb-6">
             <div className="skeleton w-10 h-10 rounded-xl" />
@@ -333,7 +333,7 @@ export default function RevenusRecurrentsPage() {
   return (
     <div className="space-y-4">
       <div className="card overflow-hidden" style={{
-        background: 'linear-gradient(135deg, var(--color-pos) 0%, #15803d 100%)',
+        background: 'var(--color-pos)',
       }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-3 sm:p-5">
           <div>

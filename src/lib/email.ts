@@ -13,9 +13,9 @@ export function emailLayout(title: string, content: string): string {
       <td align="center">
         <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden">
           <tr>
-            <td style="background:linear-gradient(135deg,#059669,#0d9488);padding:32px 24px;text-align:center">
+            <td style="background:linear-gradient(135deg,#1B3A6B,#142D54);padding:32px 24px;text-align:center">
               <h1 style="color:#ffffff;font-size:24px;margin:0;font-weight:700">Akwetche</h1>
-              <p style="color:#a7f3d0;font-size:14px;margin:4px 0 0">Gestion financière personnelle</p>
+              <p style="color:#B8CCF0;font-size:14px;margin:4px 0 0">Gestion financière personnelle</p>
             </td>
           </tr>
           <tr>
@@ -98,7 +98,7 @@ export function verificationEmailHtml(token: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${url}" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Confirmer mon email</a>
+          <a href="${url}" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Confirmer mon email</a>
         </td>
       </tr>
     </table>
@@ -114,7 +114,7 @@ export function resetPasswordEmailHtml(token: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${url}" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Réinitialiser mon mot de passe</a>
+          <a href="${url}" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Réinitialiser mon mot de passe</a>
         </td>
       </tr>
     </table>

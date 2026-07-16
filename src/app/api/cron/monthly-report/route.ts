@@ -58,9 +58,9 @@ export async function GET(req: NextRequest) {
 
     <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
       <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
-        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #059669" colspan="2"><span style="color:#059669;font-size:13px;font-weight:700">Utilisateurs</span></td></tr>
+        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #1B3A6B" colspan="2"><span style="color:#1B3A6B;font-size:13px;font-weight:700">Utilisateurs</span></td></tr>
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Total utilisateurs</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:600">${totalUsers}</td></tr>
-        <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Nouveaux ce mois</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#059669;text-align:right;font-weight:600">+${newUsers}</td></tr>
+        <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Nouveaux ce mois</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#1B3A6B;text-align:right;font-weight:600">+${newUsers}</td></tr>
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Abonnés Premium (total)</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#d97706;text-align:right;font-weight:600">${totalPremium}</td></tr>
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Nouveaux Premium ce mois</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#d97706;text-align:right;font-weight:600">+${newPremium}</td></tr>
       </table>
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
 
     <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
       <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
-        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #059669" colspan="2"><span style="color:#059669;font-size:13px;font-weight:700">Activité</span></td></tr>
+        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #1B3A6B" colspan="2"><span style="color:#1B3A6B;font-size:13px;font-weight:700">Activité</span></td></tr>
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Transactions ce mois</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:600">${totalTransactions}</td></tr>
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Volume total</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right;font-weight:600">${txVolume._sum.amount?.toLocaleString("fr-FR") || 0} FCFA</td></tr>
         <tr><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Abonnements actifs</td><td style="padding:10px 16px;border-bottom:1px solid #f0f0ee;color:#d97706;text-align:right;font-weight:600">${subsActive}</td></tr>
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
     ${countryRows ? `
     <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
       <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
-        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #059669" colspan="2"><span style="color:#059669;font-size:13px;font-weight:700">Répartition par pays</span></td></tr>
+        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #1B3A6B" colspan="2"><span style="color:#1B3A6B;font-size:13px;font-weight:700">Répartition par pays</span></td></tr>
         ${countryRows}
       </table>
     </div>
@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
     ${currencyRows ? `
     <div style="border:1px solid #e7e5e4;border-radius:10px;overflow:hidden;margin:0 0 24px">
       <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px">
-        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #059669" colspan="2"><span style="color:#059669;font-size:13px;font-weight:700">Répartition par devise</span></td></tr>
+        <tr><td style="background:#fafaf9;padding:14px 16px;border-bottom:2px solid #1B3A6B" colspan="2"><span style="color:#1B3A6B;font-size:13px;font-weight:700">Répartition par devise</span></td></tr>
         ${currencyRows}
       </table>
     </div>
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px">
       <tr>
         <td align="center">
-          <a href="${APP_URL}/dashboard/admin" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Accéder à l'administration</a>
+          <a href="${APP_URL}/dashboard/admin" style="display:inline-block;background:#1B3A6B;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">Accéder à l'administration</a>
         </td>
       </tr>
     </table>

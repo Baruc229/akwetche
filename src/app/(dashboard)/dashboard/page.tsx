@@ -378,7 +378,7 @@ export default function DashboardPage() {
             return (
               <span
                 className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(74,222,128,0.18)', color: '#4ADE80' }}
+                style={{ background: 'rgba(201,168,76,0.18)', color: '#C9A84C' }}
               >
                 {isUp ? '▲' : '▼'} {Math.abs(pctChange).toFixed(0)}%
               </span>
@@ -421,7 +421,7 @@ export default function DashboardPage() {
           if (balanceHistory.length < 2) return null;
           const slice = balanceHistory.slice(-7);
           const trendUp = slice[slice.length - 1].balance >= slice[0].balance;
-          const color = trendUp ? '#4ADE80' : '#EF4444';
+          const color = trendUp ? '#C9A84C' : '#EF4444';
           const DAY_LABELS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
           const chartData = slice.map(d => {
             const dt = new Date(d.date);
