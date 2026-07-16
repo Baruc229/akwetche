@@ -27,7 +27,7 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
     ? dailyBalances[dailyBalances.length - 1].balance
     : projectedRemaining + (dailyAvgExpense * daysLeft);
 
-  const chartColor = projectedRemaining >= lastRealBalance ? '#2D5A27' : '#B94A3E';
+  const chartColor = projectedRemaining >= lastRealBalance ? '#0D7A4B' : '#B94A3E';
 
   const chartData: { day: number; pastValue: number | null; futureValue: number | null; label: string }[] = [];
 
@@ -66,14 +66,14 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           Projection
         </h2>
       </div>
-      <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Estimation fin de mois</p>
+      <p className="text-xs text-[#94A3B8] mb-4 font-[family-name:var(--font-inter)]">Estimation fin de mois</p>
 
       <div className="h-[60px] mb-3 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 9, fill: '#9BA89D' }}
+              tick={{ fontSize: 9, fill: '#94A3B8' }}
               axisLine={false}
               tickLine={false}
               interval={Math.max(0, Math.floor(chartData.length / 4))}
@@ -111,16 +111,16 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       </div>
 
       {isLimitedHistory && (
-        <p className="text-[11px] text-[#9BA89D] font-[family-name:var(--font-inter)] text-center mb-3 leading-relaxed italic">
+        <p className="text-[11px] text-[#94A3B8] font-[family-name:var(--font-inter)] text-center mb-3 leading-relaxed italic">
           Historique limité — la projection s&apos;affine à mesure que vous utilisez l&apos;application.
         </p>
       )}
 
       {hasBreakdown && (
-        <div className="mb-3 rounded-xl border border-[#E8E4DC] overflow-hidden">
+        <div className="mb-3 rounded-xl border border-[#E2E8F0] overflow-hidden">
           {pendingRecurringExpense > 0 && (
-            <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E8E4DC]">
-              <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
+            <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E2E8F0]">
+              <span className="text-xs text-[#94A3B8] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
                 <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
                 Dépenses récurrentes en attente
               </span>
@@ -128,8 +128,8 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
             </div>
           )}
           {pendingRecurringIncome > 0 && (
-            <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E8E4DC]">
-              <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
+            <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E2E8F0]">
+              <span className="text-xs text-[#94A3B8] font-[family-name:var(--font-inter)] flex items-center gap-1.5">
                 <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#0D7A4B]" />
                 Revenus récurrents en attente
               </span>
@@ -140,10 +140,10 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       )}
 
       <div className="rounded-xl p-4 border-l-[3px]" style={{ background: isNegative ? '#FCECEA' : '#E6F7EF', borderColor: isNegative ? '#B94A3E' : '#0D7A4B' }}>
-        <p className="text-xs text-[#9BA89D] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>
+        <p className="text-xs text-[#94A3B8] mb-1 font-[family-name:var(--font-inter)]">Solde estimé</p>
         <p
           className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold"
-          style={{ letterSpacing: "-0.5px", color: isNegative ? '#B94A3E' : '#2D5A27' }}
+          style={{ letterSpacing: "-0.5px", color: isNegative ? '#B94A3E' : '#0D7A4B' }}
         >
           {formatCurrency(projectedRemaining)}
         </p>
@@ -163,7 +163,7 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       {initialBalanceMissing && (
         <div className="flex items-start gap-2 mt-3">
           <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5 text-[#C9A84C] shrink-0 mt-0.5" />
-          <p className="text-[11px] text-[#9BA89D] font-[family-name:var(--font-inter)] leading-relaxed">
+          <p className="text-[11px] text-[#94A3B8] font-[family-name:var(--font-inter)] leading-relaxed">
             Solde de départ non renseigné — cette estimation reflète uniquement vos revenus et dépenses enregistrés.
             Ajoutez votre solde de départ dans les paramètres pour une projection plus précise.
           </p>
@@ -171,14 +171,14 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       )}
 
       <div className="grid grid-cols-2 gap-3 mt-4">
-        <div className="bg-[#F2EDE4] rounded-xl p-3">
-          <p className="text-[10px] text-[#9BA89D] font-[family-name:var(--font-inter)]">Moy./jour</p>
+        <div className="bg-[#F1F5F9] rounded-xl p-3">
+          <p className="text-[10px] text-[#94A3B8] font-[family-name:var(--font-inter)]">Moy./jour</p>
           <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mt-0.5 tabular-nums">
             {formatCurrency(dailyAvgExpense)}
           </p>
         </div>
-        <div className="bg-[#F2EDE4] rounded-xl p-3">
-          <p className="text-[10px] text-[#9BA89D] font-[family-name:var(--font-inter)]">Jours restants</p>
+        <div className="bg-[#F1F5F9] rounded-xl p-3">
+          <p className="text-[10px] text-[#94A3B8] font-[family-name:var(--font-inter)]">Jours restants</p>
           <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mt-0.5">
             {daysLeft}
           </p>

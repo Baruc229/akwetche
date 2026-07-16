@@ -73,7 +73,7 @@ export default function AuthFeaturePanel() {
             <div key={i} className="group">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-white/20 transition-colors">
-                  <FontAwesomeIcon icon={f.icon} className="w-5 h-5 text-[#C4862A]" />
+                  <FontAwesomeIcon icon={f.icon} className="w-5 h-5 text-[#D97706]" />
                 </div>
                 <div>
                   <p className="text-white font-semibold text-sm">{f.title}</p>
@@ -81,7 +81,7 @@ export default function AuthFeaturePanel() {
                   <div className="mt-2 space-y-1">
                     {f.points.map((pt) => (
                       <div key={pt} className="flex items-center gap-1.5">
-                        <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5 text-[#C4862A]" />
+                        <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5 text-[#D97706]" />
                         <span className="text-white/50 text-[11px]">{pt}</span>
                       </div>
                     ))}

@@ -35,7 +35,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40">
       {step === "balance" ? (
-        <div className="bg-[#F2EDE4] rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="bg-[#F1F5F9] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
               <FontAwesomeIcon icon={faWallet} className="w-7 h-7 text-[#1A2744]" />
@@ -68,7 +68,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
                 value={balanceInput}
                 onChange={(e) => setBalanceInput(e.target.value)}
                 placeholder="ex: 150000"
-                className="w-full h-12 bg-white rounded-xl border border-[#E0D8CC] px-4 pl-16 text-sm text-[#1A2744] outline-none focus:border-[#1B3A6B] transition-colors"
+                className="w-full h-12 bg-white rounded-xl border border-[#E2E8F0] px-4 pl-16 text-sm text-[#1A2744] outline-none focus:border-[#1B3A6B] transition-colors"
                 min="0"
               />
             </div>
@@ -94,7 +94,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
           </div>
         </div>
       ) : (
-        <div className="bg-[#F2EDE4] rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="bg-[#F1F5F9] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
               <FontAwesomeIcon icon={faSun} className="w-7 h-7 text-[#1A2744]" style={{ strokeWidth: 1.8 }} />

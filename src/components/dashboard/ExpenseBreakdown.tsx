@@ -22,14 +22,14 @@ function renderBar(cat: CatItem, pct: number, color: string) {
     <div key={cat.name}>
       <div className="flex justify-between text-sm mb-1 font-[family-name:var(--font-inter)]">
         <span className="text-[#1A2744] flex items-center gap-1.5">
-          <FontAwesomeIcon icon={icon} className="w-3.5 h-3.5 text-[#9BA89D]" />
+          <FontAwesomeIcon icon={icon} className="w-3.5 h-3.5 text-[#94A3B8]" />
           {cat.name}
         </span>
-        <span className="text-[#9BA89D] font-medium tabular-nums">
-          {pctDisplay}% <span className="text-[#9BA89D]/60">{formatCurrency(absAmount)}</span>
+        <span className="text-[#94A3B8] font-medium tabular-nums">
+          {pctDisplay}% <span className="text-[#94A3B8]/60">{formatCurrency(absAmount)}</span>
         </span>
       </div>
-      <div className="h-1.5 bg-[#F2EDE4] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}99)` }}
@@ -53,12 +53,12 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
             Répartition des dépenses
           </h2>
         </div>
-        <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Cette semaine</p>
+        <p className="text-xs text-[#94A3B8] mb-4 font-[family-name:var(--font-inter)]">Cette semaine</p>
         <div className="text-center py-8">
-          <div className="w-12 h-12 bg-[#F2EDE4] rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mx-auto mb-3">
             <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1A2744]" />
           </div>
-          <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Aucune dépense cette semaine</p>
+          <p className="text-sm text-[#94A3B8] font-[family-name:var(--font-inter)]">Aucune dépense cette semaine</p>
         </div>
       </div>
     );
@@ -72,13 +72,13 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
           Répartition des dépenses
         </h2>
       </div>
-      <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Cette semaine</p>
+      <p className="text-xs text-[#94A3B8] mb-4 font-[family-name:var(--font-inter)]">Cette semaine</p>
 
       <div className="space-y-4">
         {personal.length > 0 && (
           <div>
             {commercialMode && (
-              <div className="text-[9.5px] font-[family-name:var(--font-inter)] font-semibold text-[#9BA89D] uppercase tracking-wider mb-3 pb-1 border-b border-[#E0D8CC]">
+              <div className="text-[9.5px] font-[family-name:var(--font-inter)] font-semibold text-[#94A3B8] uppercase tracking-wider mb-3 pb-1 border-b border-[#E2E8F0]">
                 Personnel
               </div>
             )}
@@ -93,7 +93,7 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
 
         {commercialMode && activity.length > 0 && (
           <div>
-            <div className="text-[9.5px] font-[family-name:var(--font-inter)] font-semibold text-[#9BA89D] uppercase tracking-wider mb-3 pb-1 border-b border-[#E0D8CC]">
+            <div className="text-[9.5px] font-[family-name:var(--font-inter)] font-semibold text-[#94A3B8] uppercase tracking-wider mb-3 pb-1 border-b border-[#E2E8F0]">
               Activité
             </div>
             <div className="space-y-3">

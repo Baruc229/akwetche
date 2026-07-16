@@ -13,11 +13,11 @@ export default function BudgetsPage() {
         <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mb-2">
           Budgets
         </h1>
-        <p className="text-sm text-[#9BA89D] mb-6 leading-relaxed">
+        <p className="text-sm text-[#94A3B8] mb-6 leading-relaxed">
           Fixez des limites par catégorie et suivez vos dépenses en temps réel.
           Cette fonctionnalité arrive très bientôt.
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F7F0DF] text-sm font-medium" style={{ color: 'var(--color-gold)' }}>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FEF3DC] text-sm font-medium" style={{ color: 'var(--color-gold)' }}>
           <FontAwesomeIcon icon={faLock} className="w-4 h-4" />
           Bientôt disponible
         </div>

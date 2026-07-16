@@ -208,7 +208,7 @@ export default function CustomSelect({
           maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
           overscrollBehavior: "contain",
           scrollbarWidth: "thin",
-          scrollbarColor: "#d4d0c8 #f5f3f0",
+          scrollbarColor: "#CBD5E1 #F1F5F9",
         }}
       >
           {options.length === 0 ? (

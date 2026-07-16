@@ -38,10 +38,10 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
 
       {transactions.length === 0 ? (
         <div className="text-center py-8">
-          <div className="w-12 h-12 bg-[#F2EDE4] rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mx-auto mb-3">
             <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1A2744]" />
           </div>
-          <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Aucune opération pour le moment</p>
+          <p className="text-sm text-[#94A3B8] font-[family-name:var(--font-inter)]">Aucune opération pour le moment</p>
           {onAdd && (
             <button
               onClick={onAdd}
@@ -52,7 +52,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
           )}
         </div>
       ) : (
-        <div className="divide-y divide-[#E0D8CC]">
+        <div className="divide-y divide-[#E2E8F0]">
           {transactions.map((tx) => {
             const isIncome = tx.type === "income";
             const icon = getIconByKey(tx.category?.icon);
@@ -82,11 +82,11 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">
+                    <span className="text-xs text-[#94A3B8] font-[family-name:var(--font-inter)]">
                       {tx.category?.name || "Non catégorisé"}
                     </span>
-                    <span className="text-[#9BA89D]/40 text-xs">·</span>
-                    <span className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">
+                    <span className="text-[#94A3B8]/40 text-xs">·</span>
+                    <span className="text-xs text-[#94A3B8] font-[family-name:var(--font-inter)]">
                       {formatDateShort(tx.date)}
                     </span>
                     {tx.scope === "activity" && (

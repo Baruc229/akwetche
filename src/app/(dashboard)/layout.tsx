@@ -656,7 +656,7 @@ export default function DashboardLayout({
                         </div>
                       </div>
                       <div className="mt-3 flex items-center gap-2">
-                        <span className="badge" style={user.plan === 'premium' || user.role !== 'user' ? {background:'var(--color-gold-light)', color:'#7A5800'} : {background:'var(--color-brand-subtle)', color:'var(--color-brand)'}}>
+                        <span className="badge" style={user.plan === 'premium' || user.role !== 'user' ? {background:'var(--color-gold-light)', color:'#92400E'} : {background:'var(--color-brand-subtle)', color:'var(--color-brand)'}}>
                           {user.plan === 'premium' || user.role !== 'user' ? 'Premium' : 'Gratuit'}
                         </span>
                         {user.subscription?.status === 'active' && (

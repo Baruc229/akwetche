@@ -15,7 +15,7 @@ function fmtMonth(m: string) {
   return MONTH_LABELS[parseInt(p[1]) - 1] || m;
 }
 
-const PIE_COLORS = ['#2E7D6F', '#C4862A', '#D4593B', '#5B8C5A', '#A67B5B', '#7F8C8D', '#27AE60', '#E67E22'];
+const PIE_COLORS = ['#1B3A6B', '#F5A623', '#B91C1C', '#0D7A4B', '#D97706', '#64748B', '#7C3AED', '#C4A088'];
 
 export default function AdminAnalytics() {
   const { user } = useDashboard();
