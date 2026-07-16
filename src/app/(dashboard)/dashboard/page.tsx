@@ -816,11 +816,6 @@ export default function DashboardPage() {
         );
       })()}
 
-      {/* FAB mobile */}
-      <button onClick={() => setShowModal(true)} aria-label="Nouvelle transaction" className="fixed bottom-20 right-4 z-40 lg:hidden w-14 h-14 bg-[var(--color-brand)] text-white rounded-full shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity animate-fade-in">
-        <FontAwesomeIcon icon={faPlus} className="w-6 h-6" />
-      </button>
-
       {showOnboarding && (
         <OnboardingModal onClose={completeOnboarding} currency={user?.baseCurrency} countryCode={user?.countryCode} />
       )}
