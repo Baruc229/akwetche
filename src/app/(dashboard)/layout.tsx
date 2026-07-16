@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faUsers, faPlus, faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faUser, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faRotate, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faUsers, faPlus, faUpRightFromSquare, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
 import ExpiredModal from "@/components/subscription/ExpiredModal";
 import QuickTransactionModal from "@/components/QuickTransactionModal";
+import HelpPanel from "@/components/HelpPanel";
 
 type UserData = {
   id: number;
@@ -136,6 +137,7 @@ export default function DashboardLayout({
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [quickTxOpen, setQuickTxOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const quickMenuRef = useRef<HTMLDivElement>(null);
   const quickSheetRef = useRef<HTMLDivElement>(null);
 
@@ -630,6 +632,15 @@ export default function DashboardLayout({
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setHelpOpen(true)}
+                className="p-2 rounded-lg transition-all"
+                style={{color:'var(--color-muted)'}}
+                aria-label="Aide"
+                title="Comprendre les calculs"
+              >
+                <FontAwesomeIcon icon={faCircleQuestion} className="w-5 h-5" />
+              </button>
 
               {/* Account avatar */}
               <div className="relative" ref={accountMenuRef}>
@@ -966,6 +977,9 @@ export default function DashboardLayout({
       onClose={() => setQuickTxOpen(false)}
       onSuccess={() => fetchNotifications()}
     />
+
+    {/* Help panel */}
+    <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
 
     <style>{`
       /* Sidebar scrollbar hidden */
