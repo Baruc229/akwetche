@@ -10,7 +10,7 @@ export default function BudgetsPage() {
         <div className="w-20 h-20 rounded-[20px] flex items-center justify-center mx-auto mb-5" style={{ background: 'var(--color-brand-subtle)' }}>
           <FontAwesomeIcon icon={faSackDollar} className="w-9 h-9" style={{ color: 'var(--color-brand)' }} />
         </div>
-        <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mb-2">
+        <h1 className="text-2xl font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mb-2">
           Budgets
         </h1>
         <p className="text-sm text-[#9BA89D] mb-6 leading-relaxed">

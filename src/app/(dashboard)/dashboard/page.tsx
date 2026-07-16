@@ -361,7 +361,7 @@ export default function DashboardPage() {
       )}
 
       {/* Hero Card */}
-      <div className="card-hero" style={{ background: 'linear-gradient(155deg, #0D0D0D, #1A1A1A)' }}>
+      <div className="card-hero" style={{ background: '#0D1B35' }}>
         <div className="flex items-center justify-between">
           <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
           {(() => {

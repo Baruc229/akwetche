@@ -62,7 +62,7 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
     <div className="bg-white rounded-[18px] p-5 overflow-hidden">
       <div className="flex items-center gap-2 mb-1">
         <div className="w-2 h-2 rounded-full bg-[#B94A3E] shrink-0" />
-        <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+        <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A2744]">
           Projection
         </h2>
       </div>
@@ -173,13 +173,13 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       <div className="grid grid-cols-2 gap-3 mt-4">
         <div className="bg-[#F2EDE4] rounded-xl p-3">
           <p className="text-[10px] text-[#9BA89D] font-[family-name:var(--font-inter)]">Moy./jour</p>
-          <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5 tabular-nums">
+          <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mt-0.5 tabular-nums">
             {formatCurrency(dailyAvgExpense)}
           </p>
         </div>
         <div className="bg-[#F2EDE4] rounded-xl p-3">
           <p className="text-[10px] text-[#9BA89D] font-[family-name:var(--font-inter)]">Jours restants</p>
-          <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-0.5">
+          <p className="text-sm font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mt-0.5">
             {daysLeft}
           </p>
         </div>

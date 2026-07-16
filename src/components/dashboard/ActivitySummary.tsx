@@ -21,7 +21,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
           <FontAwesomeIcon icon={faBriefcase} className="w-5 h-5 text-[#C9A84C]" />
         </div>
         <div>
-          <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+          <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A2744]">
             Mon activité
           </h2>
           <p className="text-xs text-[#9BA89D] font-[family-name:var(--font-inter)]">Résumé commercial du mois</p>
@@ -53,7 +53,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
           <p className="text-[10px] text-[#9BA89D] uppercase tracking-wider font-[family-name:var(--font-inter)]">
             Marge
           </p>
-          <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A1A1A] mt-1">
+          <p className="text-base font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744] mt-1">
             {marginRate === null ? "—" : marginRate === -100 ? "-100 % (déficit)" : marginRate.toFixed(0) + " %"}
           </p>
           <p className="text-[10px] text-[#9BA89D] mt-0.5 font-[family-name:var(--font-inter)]">

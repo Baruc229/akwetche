@@ -25,7 +25,7 @@ export default function HeroCard({ totalBalance, totalIncome, totalExpense, savi
   }
 
   return (
-    <div className="bg-[#1A1A1A] rounded-[20px] p-5 md:p-6 text-white">
+    <div className="bg-[#0D1B35] rounded-[20px] p-5 md:p-6 text-white">
       <div className="mb-2">
         <p className="text-xs text-white/50 font-[family-name:var(--font-inter)]">Solde actuel</p>
         <p

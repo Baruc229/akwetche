@@ -213,7 +213,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
                 setOpen(false);
               }}
               className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-              style={{ color: 'var(--color-brand)', background: 'rgba(28,58,47,0.07)' }}
+              style={{ color: 'var(--color-brand)', background: 'rgba(27,58,107,0.07)' }}
             >
               Aujourd&apos;hui
             </button>

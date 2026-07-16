@@ -24,7 +24,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
   return (
     <div className="bg-white rounded-[18px] p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+        <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A2744]">
           Dernières opérations
         </h2>
         <a
@@ -39,7 +39,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
       {transactions.length === 0 ? (
         <div className="text-center py-8">
           <div className="w-12 h-12 bg-[#F2EDE4] rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1A1A1A]" />
+            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1A2744]" />
           </div>
           <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Aucune opération pour le moment</p>
           {onAdd && (
@@ -70,7 +70,7 @@ export default function RecentTransactions({ transactions, onAdd }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-[#1A1A1A] truncate font-[family-name:var(--font-inter)]">
+                    <p className="text-sm font-medium text-[#1A2744] truncate font-[family-name:var(--font-inter)]">
                       {tx.description}
                     </p>
                     <span

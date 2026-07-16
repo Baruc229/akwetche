@@ -21,7 +21,7 @@ function renderBar(cat: CatItem, pct: number, color: string) {
   return (
     <div key={cat.name}>
       <div className="flex justify-between text-sm mb-1 font-[family-name:var(--font-inter)]">
-        <span className="text-[#1A1A1A] flex items-center gap-1.5">
+        <span className="text-[#1A2744] flex items-center gap-1.5">
           <FontAwesomeIcon icon={icon} className="w-3.5 h-3.5 text-[#9BA89D]" />
           {cat.name}
         </span>
@@ -49,14 +49,14 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
       <div className="bg-white rounded-[18px] p-5">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-2 h-2 rounded-full bg-[#C9A84C] shrink-0" />
-          <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+          <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A2744]">
             Répartition des dépenses
           </h2>
         </div>
         <p className="text-xs text-[#9BA89D] mb-4 font-[family-name:var(--font-inter)]">Cette semaine</p>
         <div className="text-center py-8">
           <div className="w-12 h-12 bg-[#F2EDE4] rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1A1A1A]" />
+            <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-[#1A2744]" />
           </div>
           <p className="text-sm text-[#9BA89D] font-[family-name:var(--font-inter)]">Aucune dépense cette semaine</p>
         </div>
@@ -68,7 +68,7 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
     <div className="bg-white rounded-[18px] p-5">
       <div className="flex items-center gap-2 mb-1">
         <div className="w-2 h-2 rounded-full bg-[#C9A84C] shrink-0" />
-        <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A1A1A]">
+        <h2 className="text-sm font-[family-name:var(--font-inter)] font-semibold text-[#1A2744]">
           Répartition des dépenses
         </h2>
       </div>

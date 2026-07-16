@@ -41,7 +41,7 @@ const features = [
 
 export default function AuthFeaturePanel() {
   return (
-    <div className="hidden lg:flex flex-col justify-between px-12 py-12 bg-[#1E4D35] relative overflow-hidden">
+    <div className="hidden lg:flex flex-col justify-between px-12 py-12 bg-[#0D1B35] relative overflow-hidden">
       {/* Décorations de fond */}
       <div className="absolute inset-0 opacity-[0.03]">
         <div className="absolute top-20 -right-20 w-80 h-80 rounded-full bg-white" />
