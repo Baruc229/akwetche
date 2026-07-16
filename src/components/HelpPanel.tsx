@@ -34,6 +34,7 @@ import {
   faStopCircle,
   faSackDollar,
   faCircleDollarToSlot,
+  faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
 
 type HelpItem = {
