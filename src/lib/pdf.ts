@@ -2,12 +2,14 @@ import puppeteer, { type Browser } from "puppeteer-core";
 
 let _browser: Browser | null = null;
 
+const CHROMIUM_URL = "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.x64.tar";
+
 async function getBrowser(): Promise<Browser> {
   if (_browser && _browser.connected) return _browser;
 
   if (process.env.VERCEL) {
-    const chromium = await import("@sparticuz/chromium");
-    const execPath = await chromium.default.executablePath();
+    const chromium = await import("@sparticuz/chromium-min");
+    const execPath = await chromium.default.executablePath(CHROMIUM_URL);
     _browser = await puppeteer.launch({
       args: chromium.default.args,
       executablePath: execPath,

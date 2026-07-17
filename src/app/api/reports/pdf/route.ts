@@ -17,7 +17,7 @@ const PERIOD_LABELS: Record<string, string> = {
 
 const COLORS = ["#0D1B35", "#142D54", "#C9A84C", "#dc2626", "#7c3aed", "#0891b2", "#be123c", "#ca8a04"];
 
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 export async function GET(req: NextRequest) {
   try {
