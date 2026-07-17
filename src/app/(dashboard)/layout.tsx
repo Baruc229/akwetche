@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faPlus, faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowsUpDown, faChartBar, faGear, faBox, faArrowTrendUp, faBars, faXmark, faChevronDown, faShield, faHouse, faBell, faSpinner, faCrown, faCartShopping, faUserGear, faBagShopping, faStar, faArrowRightFromBracket, faOutdent, faIndent, faTag, faSackDollar, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faPlus, faCircleQuestion, faCoins } from '@fortawesome/free-solid-svg-icons';
 import { type IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from "next/link";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
@@ -696,6 +696,18 @@ export default function DashboardLayout({
                   {savingCurrency && displayCurrency === "XOF" ? <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" /> : "EUR"}
                 </button>
               </div>
+
+              {/* Currency toggle — mobile single button */}
+              <button
+                onClick={handleTopbarCurrencyToggle}
+                disabled={savingCurrency}
+                className="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{border:'1px solid var(--color-border)', color:'var(--color-muted)'}}
+                title={`Basculer en ${displayCurrency === "EUR" ? "FCFA" : "EUR"}`}
+              >
+                {savingCurrency ? <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" /> : <FontAwesomeIcon icon={faCoins} className="w-3 h-3" />}
+                <span>{displayCurrency === "EUR" ? "EUR" : "FCFA"}</span>
+              </button>
 
               {/* Account avatar */}
               <div className="relative" ref={accountMenuRef}>
