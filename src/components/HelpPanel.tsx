@@ -340,51 +340,22 @@ export default function HelpPanel({ open, onClose }: { open: boolean; onClose: (
 
   if (!open) return null;
 
-  function handleDownloadPDF() {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    let content = "";
-    for (const section of HELP_SECTIONS) {
-      content += `<h2 style="color:#0D1B35;font-size:16px;margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid #C9A84C;font-family:var(--font-display)">${section.category}</h2>`;
-      for (const item of section.items) {
-        content += `
-        <div style="margin-bottom:16px;padding:14px 16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0">
-          <h3 style="color:#0D1B35;font-size:14px;margin:0 0 6px;font-weight:600">${item.title}</h3>
-          <p style="color:#64748b;font-size:12px;margin:0 0 8px;font-style:italic">${item.short}</p>
-          <p style="color:#1e293b;font-size:13px;line-height:1.6;margin:0">${item.detail}</p>
-          ${item.formula ? `<div style="margin-top:10px;padding:8px 12px;background:#e0f2fe;border-radius:6px;font-family:monospace;font-size:12px;color:#0369a1;border:1px solid #bae6fd">${item.formula}</div>` : ""}
-        </div>`;
-      }
+  async function handleDownloadPDF() {
+    try {
+      const res = await fetch("/api/help/pdf");
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "guide-akwetche.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent
     }
-
-    printWindow.document.write(`<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Guide Akwetche — Comprendre les calculs</title>
-  <style>
-    @page { margin: 18mm 15mm; size: A4; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; background: #fff; margin: 0; padding: 24px; }
-    h1 { color: #0D1B35; font-size: 26px; margin: 0 0 4px; text-align: center; }
-    .subtitle { color: #64748b; font-size: 13px; text-align: center; margin-bottom: 24px; }
-    .date { color: #94a3b8; font-size: 11px; text-align: center; margin-bottom: 32px; }
-    .footer { text-align: center; color: #94a3b8; font-size: 10px; margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-  </style>
-</head>
-<body>
-  <h1>Akwetche</h1>
-  <p class="subtitle">Guide complet — Comprendre les calculs et fonctionnalités</p>
-  <p class="date">Généré le ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
-  ${content}
-  <div class="footer">
-    <p>Akwetche — Gestion financière personnelle</p>
-    <p>${new Date().getFullYear()} Akwetche. Tous droits réservés.</p>
-  </div>
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 400); };</script>
-</body>
-</html>`);
-    printWindow.document.close();
   }
 
   return (
