@@ -403,7 +403,7 @@ export default function DashboardLayout({
           <div className={`flex items-center gap-1 ${sidebarCollapsed ? 'hidden' : ''}`}>
             <button
               onClick={() => setHelpOpen(true)}
-              className="lg:flex hidden items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
               title="Comprendre les calculs"
             >
               <FontAwesomeIcon icon={faCircleQuestion} className="w-4 h-4" />
