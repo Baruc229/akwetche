@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWallet, faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faBagShopping, faChartBar, faGlobe, faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faUser, faEye, faEyeSlash, faArrowLeft, faCheck, faCrown, faStar, faPhone } from '@fortawesome/free-solid-svg-icons';
 import CustomSelect from "@/components/ui/CustomSelect";
 import AuthFeaturePanel from "@/components/auth/AuthFeaturePanel";
 import { COUNTRY_OPTIONS, getCurrencyForCountry, getPhonePrefix, validatePhoneMessage, validateName } from "@/lib/currency";
@@ -40,7 +40,7 @@ const PLANS = [
 ];
 
 export default function RegisterPage() {
- const [step, setStep] = useState<"plan" | "form" | "done">("plan");
+  const [step, setStep] = useState<"plan" | "form">("plan");
  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -50,26 +50,30 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{ country?: string; phone?: string; name?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ country?: string; phone?: string; name?: string; email?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const detectedCurrency = getCurrencyForCountry(countryCode);
   const phonePrefix = getPhonePrefix(countryCode);
 
+  const prevCountryRef = useRef(countryCode);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPhone(phonePrefix);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (prevCountryRef.current !== countryCode) {
+      prevCountryRef.current = countryCode;
+      setPhone(getPhonePrefix(countryCode));
+    }
   }, [countryCode]);
 
  async function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
   setError("");
 
-  const errs: { country?: string; phone?: string; name?: string } = {};
+  const errs: { country?: string; phone?: string; name?: string; email?: string } = {};
   const nameErr = validateName(name);
   if (nameErr) errs.name = nameErr;
   if (!countryCode) errs.country = "Veuillez sélectionner un pays";
+  if (!email.trim()) errs.email = "L'email est requis";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = "Format d'email invalide";
   const phoneErr = validatePhoneMessage(countryCode, phone);
   if (phoneErr) errs.phone = phoneErr;
   setFieldErrors(errs);
@@ -104,42 +108,6 @@ export default function RegisterPage() {
  setLoading(false);
  }
  }
-
-  if (step === "done") {
-  return (
-  <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      <div className="flex items-center justify-center px-6 py-12 bg-[var(--color-surface)]">
-        <div className="w-full max-w-md text-center animate-scale-in">
-          <div className="card p-8">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-9 h-9 bg-[var(--color-brand)] rounded-xl flex items-center justify-center shadow-sm">
-                <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-ink mb-2">
-              Vérifiez votre email
-            </h1>
-            <p className="text-muted text-sm mb-6">
-              Un email de confirmation a été envoyé à <strong>{email}</strong>.
-              Cliquez sur le lien pour activer votre compte.
-            </p>
-            <div className="alert-inline warn text-sm">
-              <p className="font-medium mb-1">Vous ne trouvez pas l&apos;email ?</p>
-              <p>Vérifiez vos spams ou réessayez dans quelques minutes.</p>
-            </div>
-            <a
-              href="/login"
-              className="inline-block mt-6 text-sm text-[var(--color-brand)] hover:text-[var(--color-brand)] font-medium"
-            >
-              Aller à la connexion
-            </a>
-          </div>
-        </div>
-      </div>
-  <AuthFeaturePanel />
-  </div>
-  );
-  }
 
   return (
   <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -289,12 +257,18 @@ export default function RegisterPage() {
   <input
   type="email"
   value={email}
-  onChange={(e) => setEmail(e.target.value)}
+  onChange={(e) => {
+    setEmail(e.target.value);
+    setFieldErrors((prev) => ({ ...prev, email: undefined }));
+  }}
   placeholder="exemple@email.com"
-  className="input-field pl-12"
+  className={`input-field pl-12 ${fieldErrors.email ? "border-[var(--color-neg)]" : ""}`}
   required
   />
   </div>
+  {fieldErrors.email && (
+    <p className="text-[var(--color-neg)] text-xs mt-1">{fieldErrors.email}</p>
+  )}
   </div>
 
   <div>
@@ -355,6 +329,8 @@ export default function RegisterPage() {
   <FontAwesomeIcon icon={faPhone} className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
   <input
     type="tel"
+    inputMode="numeric"
+    pattern="[0-9+]*"
     value={phone}
     onChange={(e) => {
       const val = e.target.value;

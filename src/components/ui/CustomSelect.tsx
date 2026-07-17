@@ -71,6 +71,17 @@ export default function CustomSelect({
 
   useEffect(() => {
     if (!open) return;
+    function updatePosition() { computePosition(); }
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") { setOpen(false); return; }
       if (!listRef.current) return;
