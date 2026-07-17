@@ -2,52 +2,57 @@ import puppeteer, { type Browser } from "puppeteer-core";
 
 let _browser: Browser | null = null;
 
-async function getExecutablePath(): Promise<string> {
-  if (process.env.VERCEL) {
-    const chromium = await import("@sparticuz/chromium-min");
-    return chromium.default.executablePath() as Promise<string>;
-  }
-
-  const { accessSync } = await import("fs");
-  const localPaths = [
-    process.env.PUPPETEER_EXECUTABLE_PATH || "",
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/chromium",
-  ].filter(Boolean);
-
-  for (const p of localPaths) {
-    try {
-      accessSync(p);
-      return p;
-    } catch {
-      continue;
-    }
-  }
-
-  throw new Error(
-    "No Chromium/Chrome executable found. Install Chrome or set PUPPETEER_EXECUTABLE_PATH."
-  );
-}
-
 async function getBrowser(): Promise<Browser> {
   if (_browser && _browser.connected) return _browser;
 
-  const executablePath = await getExecutablePath();
+  if (process.env.VERCEL) {
+    const chromium = await import("@sparticuz/chromium");
+    const execPath = await chromium.default.executablePath();
+    _browser = await puppeteer.launch({
+      args: chromium.default.args,
+      executablePath: execPath,
+      headless: true,
+    });
+  } else {
+    const { accessSync } = await import("fs");
+    const localPaths = [
+      process.env.PUPPETEER_EXECUTABLE_PATH || "",
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/usr/bin/google-chrome",
+      "/usr/bin/chromium-browser",
+      "/usr/bin/chromium",
+    ].filter(Boolean);
 
-  _browser = await puppeteer.launch({
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-    ],
-    executablePath,
-    headless: true,
-  });
+    let execPath = "";
+    for (const p of localPaths) {
+      try {
+        accessSync(p);
+        execPath = p;
+        break;
+      } catch {
+        continue;
+      }
+    }
+
+    if (!execPath) {
+      throw new Error(
+        "No Chromium/Chrome executable found. Install Chrome or set PUPPETEER_EXECUTABLE_PATH."
+      );
+    }
+
+    _browser = await puppeteer.launch({
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+      executablePath: execPath,
+      headless: true,
+    });
+  }
 
   return _browser;
 }
