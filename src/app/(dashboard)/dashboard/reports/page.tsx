@@ -83,8 +83,22 @@ export default function ReportsPage() {
     return () => { active = false; };
   }, [period]);
 
-  function handleDownload() {
-    window.open(`/api/reports/pdf?type=${period}`, "_blank");
+  async function handleDownload() {
+    try {
+      const res = await fetch(`/api/reports/pdf?type=${period}`);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rapport-${period === "weekly" ? "hebdomadaire" : period === "yearly" ? "annuel" : "mensuel"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent
+    }
   }
 
   const periodLabel = PERIODS.find(p => p.value === period)?.label || "";

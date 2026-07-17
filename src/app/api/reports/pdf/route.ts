@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api";
+import { generatePdf } from "@/lib/pdf";
 import {
   getStartOfWeek, getEndOfWeek,
   getStartOfMonth, getEndOfMonth,
@@ -153,7 +154,6 @@ export async function GET(req: NextRequest) {
 
   .footer { text-align: center; color: #94a3b8; font-size: 10px; margin-top: 36px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
 
-  @media print { .no-print { display: none !important; } body { background: #fff; } }
   @media (max-width: 600px) {
     .summary { flex-direction: column; }
     .summary-item:not(:last-child) { border-right: none; border-bottom: 1px solid #e2e8f0; }
@@ -240,18 +240,19 @@ export async function GET(req: NextRequest) {
     <p>${new Date().getFullYear()} Akwetche. Tous droits réservés.</p>
   </div>
 
-  <div class="no-print" style="text-align:center;margin-top:20px">
-    <button onclick="window.print()" style="background:#0D1B35;color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Télécharger en PDF</button>
-    <button onclick="window.close()" style="background:#e2e8f0;color:#1e293b;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-left:8px">Fermer</button>
-  </div>
-
-  <script>window.onload = function() { setTimeout(function() { window.print(); }, 400); };</script>
 </body>
 </html>`;
 
-    return new Response(html, {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
+    const pdfBuffer = await generatePdf(html);
+
+    const periodSlug = type === "weekly" ? "hebdomadaire" : type === "yearly" ? "annuel" : "mensuel";
+    const filename = `rapport-${periodSlug}-${now.toISOString().slice(0, 7)}.pdf`;
+
+    const headers = new Headers();
+    headers.set("Content-Type", "application/pdf");
+    headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+
+    return new Response(new Uint8Array(pdfBuffer).buffer, { headers });
   } catch {
     return new Response("Non autorisé", { status: 401 });
   }
