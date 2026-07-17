@@ -25,13 +25,9 @@ import {
   faPeopleGroup,
   faMoneyBillTrendUp,
   faFileInvoice,
-  faCrown,
   faDownload,
-  faCreditCard,
   faExchangeAlt,
   faCalendarCheck,
-  faShieldHalved,
-  faStopCircle,
   faSackDollar,
   faCircleDollarToSlot,
   faGlobe,
@@ -310,32 +306,6 @@ const HELP_SECTIONS: { category: string; items: HelpItem[] }[] = [
     ],
   },
   {
-    category: "Abonnement & Limits",
-    items: [
-      {
-        icon: faCrown,
-        title: "Plan Gratuit vs Premium",
-        short: "Les différences entre les deux plans.",
-        detail:
-          "Gratuit : 20 revenus et 20 dépenses par mois, 3 catégories par type, pas de mode commercial. Premium : tout illimité + mode activité commerciale + rapports PDF + tontines.",
-      },
-      {
-        icon: faCreditCard,
-        title: "Paiement & Renouvellement",
-        short: "Comment fonctionne l'abonnement Premium.",
-        detail:
-          "Premium coûte 5 000 FCFA / 7,99 EUR par mois. Vous pouvez payer par Stripe (carte bancaire), PayPal ou FedaPay (Mobile Money). L'abonnement est actif 30 jours. Un email de rappel est envoyé avant expiration.",
-      },
-      {
-        icon: faStopCircle,
-        title: "Expiration",
-        short: "Quand votre abonnement arrive à fin.",
-        detail:
-          "Quand Premium expire, vous revenez au plan gratuit. Vos données sont intactes mais les catégories au-delà de la limite sont archivées. Vous pouvez réactiver à tout moment.",
-      },
-    ],
-  },
-  {
     category: "Devise & Affichage",
     items: [
       {
@@ -352,25 +322,6 @@ const HELP_SECTIONS: { category: string; items: HelpItem[] }[] = [
         short: "La devise par défaut dépend de votre pays.",
         detail:
           "Bénin, Togo, Burkina Faso, Côte d'Ivoire → FCFA (XOF). France, Belgique → Euro (EUR). Vous pouvez changer la devise d'affichage dans les paramètres.",
-      },
-    ],
-  },
-  {
-    category: "Sécurité",
-    items: [
-      {
-        icon: faShieldHalved,
-        title: "Authentification",
-        short: "Comment votre compte est protégé.",
-        detail:
-          "Votre mot de passe est haché (bcrypt, 12 rounds). La session est un token JWT stocké en cookie httpOnly (30 jours, glissant). Après 5 tentatives échouées, le compte est verrouillé 15 minutes.",
-      },
-      {
-        icon: faShieldHalved,
-        title: "Vérification d'email",
-        short: "Pourquoi on vous demande de vérifier votre email.",
-        detail:
-          "Un email de vérification est envoyé à l'inscription. Vous devez cliquer sur le lien pour activer votre compte. Sans vérification, certaines fonctionnalités sont limitées.",
       },
     ],
   },
