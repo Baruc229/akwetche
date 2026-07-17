@@ -337,16 +337,19 @@ const HELP_SECTIONS: { category: string; items: HelpItem[] }[] = [
 export default function HelpPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   if (!open) return null;
 
   async function handleDownloadPDF() {
     setDownloading(true);
+    setPdfError(null);
     try {
       const res = await fetch("/api/help/pdf");
       if (!res.ok) {
-        console.error("[Help PDF] HTTP", res.status, await res.text());
+        const msg = await res.text().catch(() => "Erreur inconnue");
+        setPdfError(`Erreur ${res.status}: ${msg}`);
         return;
       }
       const blob = await res.blob();
@@ -359,7 +362,7 @@ export default function HelpPanel({ open, onClose }: { open: boolean; onClose: (
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("[Help PDF] Error:", err);
+      setPdfError(`Erreur réseau: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setDownloading(false);
     }
@@ -429,6 +432,12 @@ export default function HelpPanel({ open, onClose }: { open: boolean; onClose: (
           <p className="text-xs leading-relaxed" style={{ color: "var(--color-muted)" }}>
             Cliquez sur un élément pour comprendre comment il est calculé. Vous pouvez aussi télécharger ce guide en PDF.
           </p>
+
+          {pdfError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-[11px] text-red-700">
+              {pdfError}
+            </div>
+          )}
 
           {HELP_SECTIONS.map((section) => (
             <div key={section.category}>

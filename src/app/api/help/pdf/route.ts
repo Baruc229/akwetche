@@ -138,6 +138,8 @@ function buildHelpHTML(): string {
 </html>`;
 }
 
+export const maxDuration = 60;
+
 export async function GET() {
   try {
     const html = buildHelpHTML();

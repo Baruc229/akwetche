@@ -84,13 +84,16 @@ export default function ReportsPage() {
   }, [period]);
 
   const [downloading, setDownloading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   async function handleDownload() {
     setDownloading(true);
+    setPdfError(null);
     try {
       const res = await fetch(`/api/reports/pdf?type=${period}`);
       if (!res.ok) {
-        console.error("[PDF] HTTP", res.status, await res.text());
+        const msg = await res.text().catch(() => "Erreur inconnue");
+        setPdfError(`Erreur ${res.status}: ${msg}`);
         return;
       }
       const blob = await res.blob();
@@ -103,7 +106,7 @@ export default function ReportsPage() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("[PDF] Error:", err);
+      setPdfError(`Erreur réseau: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setDownloading(false);
     }
@@ -161,6 +164,12 @@ export default function ReportsPage() {
           {downloading ? "Génération..." : "Rapport"}
         </button>
       </div>
+
+      {pdfError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-xs text-red-700 no-print">
+          {pdfError}
+        </div>
+      )}
 
       {/* Period selector */}
       <div className="flex items-center gap-1.5 no-print">
