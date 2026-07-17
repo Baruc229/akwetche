@@ -400,9 +400,18 @@ export default function DashboardLayout({
             </div>
             <span className={`text-lg font-bold text-white font-[family-name:var(--font-display)] transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Akwetche</span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white">
-            <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
-          </button>
+          <div className={`flex items-center gap-1 ${sidebarCollapsed ? 'hidden' : ''}`}>
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="lg:flex hidden items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
+              title="Comprendre les calculs"
+            >
+              <FontAwesomeIcon icon={faCircleQuestion} className="w-4 h-4" />
+            </button>
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all">
+              <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Nav */}
@@ -661,15 +670,6 @@ export default function DashboardLayout({
                   </span>
                 )}
               </button>
-              <button
-                onClick={() => setHelpOpen(true)}
-                className="p-2 rounded-lg transition-all"
-                style={{color:'var(--color-muted)'}}
-                aria-label="Aide"
-                title="Comprendre les calculs"
-              >
-                <FontAwesomeIcon icon={faCircleQuestion} className="w-5 h-5" />
-              </button>
 
               {/* Currency toggle */}
               <div className="hidden md:flex items-center rounded-lg overflow-hidden" style={{border:'1px solid var(--color-border)'}}>
@@ -701,12 +701,11 @@ export default function DashboardLayout({
               <button
                 onClick={handleTopbarCurrencyToggle}
                 disabled={savingCurrency}
-                className="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{border:'1px solid var(--color-border)', color:'var(--color-muted)'}}
+                className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-all"
+                style={{color:'var(--color-muted)'}}
                 title={`Basculer en ${displayCurrency === "EUR" ? "FCFA" : "EUR"}`}
               >
-                {savingCurrency ? <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" /> : <FontAwesomeIcon icon={faCoins} className="w-3 h-3" />}
-                <span>{displayCurrency === "EUR" ? "EUR" : "FCFA"}</span>
+                {savingCurrency ? <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 animate-spin" /> : <FontAwesomeIcon icon={faCoins} className="w-4 h-4" />}
               </button>
 
               {/* Account avatar */}
