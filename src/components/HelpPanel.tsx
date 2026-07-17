@@ -202,6 +202,13 @@ const HELP_SECTIONS: { category: string; items: HelpItem[] }[] = [
         detail:
           "En plan gratuit, vous pouvez créer jusqu'à 3 catégories de revenus et 3 catégories de dépenses. Avec Premium, c'est illimité. Les catégories archivées ne comptent pas dans la limite.",
       },
+      {
+        icon: faExchangeAlt,
+        title: "Limite de transactions",
+        short: "5 revenus et 5 dépenses par mois en plan gratuit.",
+        detail:
+          "En plan gratuit, vous pouvez créer jusqu'à 5 transactions de revenus et 5 transactions de dépenses par mois. Avec Premium, c'est illimité. La limite se réinitialise chaque mois.",
+      },
     ],
   },
   {

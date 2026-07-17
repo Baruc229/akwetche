@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrash, faLock, faTag } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTrash, faLock } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { EXPENSE_ICONS, INCOME_ICONS, getDefaultIconForName } from "@/lib/categoryIcons";
 
@@ -17,9 +17,8 @@ export default function CategoriesPage() {
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
   const [newCatName, setNewCatName] = useState("");
-  const [newCatType, setNewCatType] = useState<"income" | "expense">("expense");
-  const [newCatIcon, setNewCatIcon] = useState("");
-  const [catError, setCatError] = useState("");
+  const [newCatIcons, setNewCatIcons] = useState<{ income: string; expense: string }>({ income: "", expense: "" });
+  const [catErrors, setCatErrors] = useState<{ income: string; expense: string }>({ income: "", expense: "" });
   const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
   const [presetLoading, setPresetLoading] = useState(false);
   const [archivedOpen, setArchivedOpen] = useState<"income" | "expense" | null>(null);
@@ -35,11 +34,14 @@ export default function CategoriesPage() {
       setCategories(data.categories || []);
       setActiveCategoryIds(data.activeCategoryIds || []);
       setIsPremium(data.isPremium || false);
-    } catch { setCatError("Impossible de charger les catégories"); }
+    } catch { setCatErrors({ income: "Impossible de charger les catégories", expense: "Impossible de charger les catégories" }); }
     finally { setLoading(false); }
   }
 
-  useEffect(() => { loadCategories(); }, []);
+  useEffect(() => {
+    async function init() { await loadCategories(); }
+    init();
+  }, []);
 
   function getUsedIcons(type: "income" | "expense"): string[] {
     return categories
@@ -51,26 +53,22 @@ export default function CategoriesPage() {
     return ICON_SETS[type].filter(i => !getUsedIcons(type).includes(i.key));
   }
 
-  function resetForm() {
-    setNewCatName(""); setNewCatIcon(""); setCatError("");
-  }
-
-  async function handleAddCategory(e: React.FormEvent) {
+  async function handleAddCategory(e: React.FormEvent, type: "income" | "expense") {
     e.preventDefault();
-    setCatError("");
+    setCatErrors(prev => ({ ...prev, [type]: "" }));
     if (!newCatName.trim()) return;
-    const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === newCatType).length;
+    const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
     if (isFree && activeOfType >= limit) {
-      setCatError(`Limite gratuite atteinte (${limit} catégories par type max).`);
+      setCatErrors(prev => ({ ...prev, [type]: `Limite gratuite atteinte (${limit} catégories par type max).` }));
       return;
     }
 
-    const iconKey = newCatIcon || getDefaultIconForName(newCatName);
+    const iconKey = newCatIcons[type] || getDefaultIconForName(newCatName);
 
-    const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: iconKey, type: newCatType, archived: false };
+    const optimistic: Category = { id: Date.now(), name: newCatName.trim(), icon: iconKey, type, archived: false };
     setCategories(prev => [...prev, optimistic]);
     setActiveCategoryIds(prev => [...prev, optimistic.id]);
-    setNewCatName(""); setNewCatIcon("");
+    setNewCatName(""); setNewCatIcons(prev => ({ ...prev, [type]: "" }));
     try {
       const res = await fetch("/api/categories", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -80,7 +78,7 @@ export default function CategoriesPage() {
       if (!res.ok) {
         setCategories(prev => prev.filter(c => c.id !== optimistic.id));
         setActiveCategoryIds(prev => prev.filter(id => id !== optimistic.id));
-        setCatError(data.error || "Erreur");
+        setCatErrors(prev => ({ ...prev, [type]: data.error || "Erreur" }));
         return;
       }
       setCategories(prev => prev.map(c => c.id === optimistic.id ? data.category : c));
@@ -88,7 +86,7 @@ export default function CategoriesPage() {
     } catch {
       setCategories(prev => prev.filter(c => c.id !== optimistic.id));
       setActiveCategoryIds(prev => prev.filter(id => id !== optimistic.id));
-      setCatError("Erreur");
+      setCatErrors(prev => ({ ...prev, [type]: "Erreur" }));
     }
   }
 
@@ -114,6 +112,7 @@ export default function CategoriesPage() {
 
   async function addPresetCategories(type: "income" | "expense") {
     setPresetLoading(true);
+    setCatErrors(prev => ({ ...prev, [type]: "" }));
     const presets = type === "income"
       ? [
           { name: "Salaire", icon: "salary" },
@@ -135,16 +134,18 @@ export default function CategoriesPage() {
           { name: "Vêtements", icon: "clothing" },
           { name: "Autres dépenses", icon: "palette" },
         ];
-    for (const p of presets) {
-      const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
-      if (isFree && activeOfType >= limit) break;
-      try {
-        const res = await fetch("/api/categories", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: p.name, type, icon: p.icon }),
-        });
-        if (res.ok) await loadCategories();
-      } catch {}
+    try {
+      const res = await fetch("/api/categories/bulk", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories: presets.map(p => ({ name: p.name, type, icon: p.icon })) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCatErrors(prev => ({ ...prev, [type]: data.error || "Erreur" }));
+      }
+      await loadCategories();
+    } catch {
+      setCatErrors(prev => ({ ...prev, [type]: "Erreur lors de l'ajout" }));
     }
     setPresetLoading(false);
   }
@@ -194,7 +195,7 @@ export default function CategoriesPage() {
           const activeCats = categories.filter(c => !c.archived && c.type === type);
           const archivedCats = categories.filter(c => c.archived && c.type === type);
           const availIcons = availableIcons(type);
-          const selectedIconDef = ICON_SETS[type].find(i => i.key === newCatIcon);
+          const selectedIconDef = ICON_SETS[type].find(i => i.key === newCatIcons[type]);
 
           return (
             <div key={type} className="mb-6 last:mb-0">
@@ -249,16 +250,12 @@ export default function CategoriesPage() {
                 </details>
               )}
 
-              <form onSubmit={handleAddCategory} className="pt-3 border-t border-border space-y-3">
+              <form onSubmit={(e) => handleAddCategory(e, type)} className="pt-3 border-t border-border space-y-3">
                 <label className="text-xs text-muted font-medium">Nouvelle catégorie</label>
                 <div className="flex items-end gap-2">
                   <div className="flex-1">
-                    <input type="text" value={newCatName} onChange={e => { setNewCatName(e.target.value); if (!newCatIcon && e.target.value) setNewCatIcon(getDefaultIconForName(e.target.value)); }} className="input-field text-sm" placeholder="ex: courses, salaire" disabled={isFree && activeOfType >= limit} />
+                    <input type="text" value={newCatName} onChange={e => { setNewCatName(e.target.value); if (!newCatIcons[type] && e.target.value) setNewCatIcons(prev => ({ ...prev, [type]: getDefaultIconForName(e.target.value) })); }} className="input-field text-sm" placeholder="ex: courses, salaire" disabled={isFree && activeOfType >= limit} />
                   </div>
-                  <select value={newCatType} onChange={e => { setNewCatType(e.target.value as "income" | "expense"); setNewCatIcon(""); }} className="input-field text-sm" style={{ padding: '8px 24px 8px 12px', width: 'auto' }}>
-                    <option value="expense">Dépense</option>
-                    <option value="income">Revenu</option>
-                  </select>
                   <button type="submit" disabled={isFree && activeOfType >= limit} className="btn-primary py-2.5 px-3 text-sm disabled:opacity-40">
                     <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
                   </button>
@@ -275,9 +272,9 @@ export default function CategoriesPage() {
                         <button
                           key={item.key}
                           type="button"
-                          onClick={() => setNewCatIcon(item.key)}
+                          onClick={() => setNewCatIcons(prev => ({ ...prev, [type]: item.key }))}
                           className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
-                            newCatIcon === item.key
+                            newCatIcons[type] === item.key
                               ? 'ring-2 ring-brand bg-brand-subtle text-brand'
                               : 'bg-sand text-muted hover:bg-border hover:text-ink'
                           }`}
@@ -288,7 +285,7 @@ export default function CategoriesPage() {
                       ))}
                     </div>
                   )}
-                  {selectedIconDef && newCatIcon && (
+                  {selectedIconDef && newCatIcons[type] && (
                     <p className="text-xs text-muted mt-1">
                       Sélectionné : <FontAwesomeIcon icon={selectedIconDef.icon} className="w-3 h-3 mr-1" />
                       {selectedIconDef.label}
@@ -296,7 +293,7 @@ export default function CategoriesPage() {
                   )}
                 </div>
               </form>
-              {catError && <p className="text-neg text-sm mt-2">{catError}</p>}
+              {catErrors[type] && <p className="text-neg text-sm mt-2">{catErrors[type]}</p>}
             </div>
           );
         })}

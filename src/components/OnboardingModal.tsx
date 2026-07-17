@@ -21,7 +21,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
       await fetch("/api/user", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initialBalance: toStorageCurrency(val, dc as any) }),
+        body: JSON.stringify({ initialBalance: toStorageCurrency(val, dc) }),
       });
     }
     setStep("welcome");
@@ -137,7 +137,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
 
           <div className="space-y-3">
             <button
-              onClick={() => router.push("/dashboard/settings")}
+              onClick={() => router.push("/dashboard/categories")}
               className="w-full h-12 bg-[#1B3A6B] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#1B3A6B]/90 transition-colors cursor-pointer"
             >
               Ajouter des catégories
