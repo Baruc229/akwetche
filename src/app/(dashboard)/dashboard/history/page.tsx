@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowTrendUp, faArrowTrendDown, faDownload, faSearch, faFilePdf, faCalendarDays, faXmark, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useDashboard } from "@/app/(dashboard)/layout";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -25,6 +26,7 @@ type Category = {
 };
 
 export default function HistoryPage() {
+  const { currency: _currency } = useDashboard();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-import { detectCurrency } from "@/lib/currency";
+import { useDashboard } from "@/app/(dashboard)/layout";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 
@@ -23,6 +23,7 @@ type Tontine = {
 };
 
 export default function TontinesPage() {
+  const { currency: _currency } = useDashboard();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tontines, setTontines] = useState<Tontine[]>([]);

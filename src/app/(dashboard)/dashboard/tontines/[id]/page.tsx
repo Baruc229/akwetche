@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
+import { useDashboard } from "@/app/(dashboard)/layout";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -38,6 +39,7 @@ type Tontine = {
 };
 
 export default function TontineDetail() {
+  const { currency: _currency } = useDashboard();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [tontine, setTontine] = useState<Tontine | null>(null);

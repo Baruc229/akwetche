@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { formatCurrency } from "@/lib/utils";
+import { useDashboard } from "@/app/(dashboard)/layout";
 import { CATEGORY_COLORS } from "@/lib/colors";
 
 type StatsBlock = {
@@ -66,6 +67,7 @@ function EvolutionBadge({ value, invert }: { value: string | null; invert?: bool
 }
 
 export default function ReportsPage() {
+  const { currency: _currency } = useDashboard();
   const [period, setPeriod] = useState("monthly");
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
