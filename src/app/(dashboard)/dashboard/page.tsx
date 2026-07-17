@@ -6,7 +6,7 @@ import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, toStorageCurrency, toDisplayCurrency } from "@/lib/utils";
-import { detectCurrency, setActiveCurrency, type CurrencyCode } from "@/lib/currency";
+import { detectCurrency } from "@/lib/currency";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
 import OnboardingModal from "@/components/OnboardingModal";
@@ -39,7 +39,7 @@ type Transaction = {
 };
 
 export default function DashboardPage() {
-  const { user, commercialMode, setCurrency } = useDashboard();
+  const { user, commercialMode } = useDashboard();
   const router = useRouter();
   const [monthPersonal, setMonthPersonal] = useState<ScopeSummary | null>(null);
   const [monthActivity, setMonthActivity] = useState<ScopeSummary | null>(null);
@@ -65,12 +65,6 @@ export default function DashboardPage() {
   const [subLoading, setSubLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
-  const isEuro = activeCurrency === "EUR";
-  function handleToggle() {
-    const next: CurrencyCode = isEuro ? "XOF" : "EUR";
-    setActiveCurrency(next);
-    setCurrency(next);
-  }
 
   async function loadData() {
     try {
@@ -388,12 +382,7 @@ export default function DashboardPage() {
         <p className={`text-amount text-5xl text-white mt-1 ${isNegative ? "text-[var(--color-neg)]" : ""}`}>
           {formatCurrency(totalBalance)}
         </p>
-        <button
-          onClick={handleToggle}
-          className="text-xs text-white/40 hover:text-white/70 transition-colors mb-4 underline underline-offset-2 decoration-white/20 cursor-pointer"
-        >
-          {isEuro ? "Voir en FCFA" : "Voir en EUR"}
-        </button>
+        <p className="text-xs text-white/40 mb-4">{activeCurrency === "EUR" ? "Devise affichée : EUR" : "Devise affichée : FCFA"}</p>
         <div className="h-px bg-white/10 mb-4" />
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="card-inset" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>

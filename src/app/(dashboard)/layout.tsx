@@ -152,6 +152,7 @@ export default function DashboardLayout({
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [quickTxOpen, setQuickTxOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [savingCurrency, setSavingCurrency] = useState(false);
   const quickMenuRef = useRef<HTMLDivElement>(null);
   const quickSheetRef = useRef<HTMLDivElement>(null);
 
@@ -159,6 +160,27 @@ export default function DashboardLayout({
     setActiveCurrency(c);
     setDisplayCurrency(c);
   }, []);
+
+  const handleTopbarCurrencyToggle = useCallback(async () => {
+    if (savingCurrency) return;
+    const next: CurrencyCode = displayCurrency === "EUR" ? "XOF" : "EUR";
+    setSavingCurrency(true);
+    setActiveCurrency(next);
+    setDisplayCurrency(next);
+    try {
+      const res = await fetch("/api/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency: next }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      }
+    } catch {} finally {
+      setSavingCurrency(false);
+    }
+  }, [displayCurrency, savingCurrency]);
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed(prev => {
@@ -648,6 +670,32 @@ export default function DashboardLayout({
               >
                 <FontAwesomeIcon icon={faCircleQuestion} className="w-5 h-5" />
               </button>
+
+              {/* Currency toggle */}
+              <div className="hidden md:flex items-center rounded-lg overflow-hidden" style={{border:'1px solid var(--color-border)'}}>
+                <button
+                  onClick={displayCurrency === "XOF" ? undefined : handleTopbarCurrencyToggle}
+                  disabled={savingCurrency}
+                  className="px-2.5 py-1.5 text-xs font-semibold transition-all"
+                  style={{
+                    background: displayCurrency === "XOF" ? 'var(--color-brand)' : 'transparent',
+                    color: displayCurrency === "XOF" ? 'white' : 'var(--color-muted)',
+                  }}
+                >
+                  {savingCurrency && displayCurrency === "EUR" ? <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" /> : "FCFA"}
+                </button>
+                <button
+                  onClick={displayCurrency === "EUR" ? undefined : handleTopbarCurrencyToggle}
+                  disabled={savingCurrency}
+                  className="px-2.5 py-1.5 text-xs font-semibold transition-all"
+                  style={{
+                    background: displayCurrency === "EUR" ? 'var(--color-brand)' : 'transparent',
+                    color: displayCurrency === "EUR" ? 'white' : 'var(--color-muted)',
+                  }}
+                >
+                  {savingCurrency && displayCurrency === "XOF" ? <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" /> : "EUR"}
+                </button>
+              </div>
 
               {/* Account avatar */}
               <div className="relative" ref={accountMenuRef}>
