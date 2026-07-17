@@ -348,7 +348,8 @@ export default function HelpPanel({ open, onClose }: { open: boolean; onClose: (
     try {
       const res = await fetch("/api/help/pdf");
       if (!res.ok) {
-        const msg = await res.text().catch(() => "Erreur inconnue");
+        let msg = "Erreur inconnue";
+        try { const j = await res.json(); msg = j.error || msg; } catch { msg = await res.text().catch(() => msg); }
         setPdfError(`Erreur ${res.status}: ${msg}`);
         return;
       }

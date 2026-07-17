@@ -92,7 +92,8 @@ export default function ReportsPage() {
     try {
       const res = await fetch(`/api/reports/pdf?type=${period}`);
       if (!res.ok) {
-        const msg = await res.text().catch(() => "Erreur inconnue");
+        let msg = "Erreur inconnue";
+        try { const j = await res.json(); msg = j.error || msg; } catch { msg = await res.text().catch(() => msg); }
         setPdfError(`Erreur ${res.status}: ${msg}`);
         return;
       }

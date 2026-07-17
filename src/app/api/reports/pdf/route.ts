@@ -257,6 +257,7 @@ export async function GET(req: NextRequest) {
     return new Response(new Uint8Array(pdfBuffer).buffer, { headers });
   } catch (err) {
     console.error("[reports/pdf] Error:", err);
-    return new Response("Erreur lors de la génération du PDF", { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: msg }), { status: 500, headers: { "Content-Type": "application/json" } });
   }
 }
