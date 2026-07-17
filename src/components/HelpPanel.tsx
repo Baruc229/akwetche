@@ -336,14 +336,19 @@ const HELP_SECTIONS: { category: string; items: HelpItem[] }[] = [
 
 export default function HelpPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   if (!open) return null;
 
   async function handleDownloadPDF() {
+    setDownloading(true);
     try {
       const res = await fetch("/api/help/pdf");
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.error("[Help PDF] HTTP", res.status, await res.text());
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -353,8 +358,10 @@ export default function HelpPanel({ open, onClose }: { open: boolean; onClose: (
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch {
-      // silent
+    } catch (err) {
+      console.error("[Help PDF] Error:", err);
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -396,11 +403,16 @@ export default function HelpPanel({ open, onClose }: { open: boolean; onClose: (
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleDownloadPDF}
-              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--color-brand-subtle)]"
+              disabled={downloading}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all hover:bg-[var(--color-brand-subtle)] disabled:opacity-50"
               style={{ color: "var(--color-brand)" }}
               title="Télécharger le guide en PDF"
             >
-              <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
+              {downloading ? (
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+              ) : (
+                <FontAwesomeIcon icon={faDownload} className="w-4 h-4" />
+              )}
             </button>
             <button
               onClick={onClose}

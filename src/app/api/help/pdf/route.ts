@@ -149,7 +149,8 @@ export async function GET() {
         "Content-Disposition": 'attachment; filename="guide-akwetche.pdf"',
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("[help/pdf] Error:", err);
     return NextResponse.json({ error: "Erreur lors de la génération du PDF" }, { status: 500 });
   }
 }

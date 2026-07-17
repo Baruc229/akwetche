@@ -83,10 +83,16 @@ export default function ReportsPage() {
     return () => { active = false; };
   }, [period]);
 
+  const [downloading, setDownloading] = useState(false);
+
   async function handleDownload() {
+    setDownloading(true);
     try {
       const res = await fetch(`/api/reports/pdf?type=${period}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.error("[PDF] HTTP", res.status, await res.text());
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -96,8 +102,10 @@ export default function ReportsPage() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch {
-      // silent
+    } catch (err) {
+      console.error("[PDF] Error:", err);
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -140,12 +148,17 @@ export default function ReportsPage() {
         </div>
         <button
           onClick={handleDownload}
-          className="inline-flex items-center gap-2 bg-transparent border-[1.5px] border-brand text-brand font-bold text-xs px-3 py-2 rounded-xl hover:bg-brand-subtle transition-colors no-print"
+          disabled={downloading}
+          className="inline-flex items-center gap-2 bg-transparent border-[1.5px] border-brand text-brand font-bold text-xs px-3 py-2 rounded-xl hover:bg-brand-subtle transition-colors no-print disabled:opacity-50"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Rapport
+          {downloading ? (
+            <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          )}
+          {downloading ? "Génération..." : "Rapport"}
         </button>
       </div>
 

@@ -5,20 +5,19 @@ let _browser: Browser | null = null;
 async function getExecutablePath(): Promise<string> {
   if (process.env.VERCEL) {
     const chromium = await import("@sparticuz/chromium-min");
-    return chromium.default.executablePath(
-      "https://github.com/nicoboss/vercel-chromium/releases/download/131.0.0/chromium-v131.0.0-pack.tar"
-    ) as Promise<string>;
+    return chromium.default.executablePath() as Promise<string>;
   }
 
   const { accessSync } = await import("fs");
   const localPaths = [
+    process.env.PUPPETEER_EXECUTABLE_PATH || "",
     "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/usr/bin/google-chrome",
     "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
-  ];
+  ].filter(Boolean);
 
   for (const p of localPaths) {
     try {

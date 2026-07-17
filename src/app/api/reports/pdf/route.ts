@@ -253,7 +253,8 @@ export async function GET(req: NextRequest) {
     headers.set("Content-Disposition", `attachment; filename="${filename}"`);
 
     return new Response(new Uint8Array(pdfBuffer).buffer, { headers });
-  } catch {
-    return new Response("Non autorisé", { status: 401 });
+  } catch (err) {
+    console.error("[reports/pdf] Error:", err);
+    return new Response("Erreur lors de la génération du PDF", { status: 500 });
   }
 }
