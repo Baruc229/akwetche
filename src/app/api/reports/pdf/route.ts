@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
       where: { id: userId },
       select: {
         name: true,
+        currency: true,
         initialBalance: true,
         initialBalanceActivity: true,
         role: true,
@@ -52,6 +53,9 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) return new Response("User not found", { status: 404 });
+
+    const userCurrency = (user.currency === "EUR" || user.currency === "XOF") ? user.currency : "XOF";
+    const fmt = (amount: number) => formatCurrency(amount, userCurrency);
 
     const isPremium = user?.subscription?.status === "active" || user?.role !== "user";
     const catFilter = isPremium ? {} : { archived: false };
@@ -103,8 +107,8 @@ export async function GET(req: NextRequest) {
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px">${t.description}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:12px">${t.category?.name || "—"}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:11px;text-align:center">${t.scope === "activity" ? "Activité" : "Perso"}</td>
-        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? formatCurrency(t.amount) : ""}</td>
-        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#dc2626;font-size:13px;text-align:right;font-weight:500">${t.type === "expense" ? formatCurrency(t.amount) : ""}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? fmt(t.amount) : ""}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#dc2626;font-size:13px;text-align:right;font-weight:500">${t.type === "expense" ? fmt(t.amount) : ""}</td>
       </tr>`).join("");
 
     const catRows = sortedCats.map(([name, amount], i) => {
@@ -114,7 +118,7 @@ export async function GET(req: NextRequest) {
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee">
           <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS[i % COLORS.length]};margin-right:8px;vertical-align:middle"></span>${name}
         </td>
-        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;font-weight:500">${formatCurrency(amount)}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;font-weight:500">${fmt(amount)}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;color:#94a3b8">${pct}%</td>
       </tr>`;
     }).join("");
@@ -174,15 +178,15 @@ export async function GET(req: NextRequest) {
   <div class="summary">
     <div class="summary-item">
       <div class="label">Revenus</div>
-      <div class="value" style="color:#0D1B35">${formatCurrency(allIncome)}</div>
+      <div class="value" style="color:#0D1B35">${fmt(allIncome)}</div>
     </div>
     <div class="summary-item">
       <div class="label">Dépenses</div>
-      <div class="value" style="color:#dc2626">${formatCurrency(allExpense)}</div>
+      <div class="value" style="color:#dc2626">${fmt(allExpense)}</div>
     </div>
     <div class="summary-item">
       <div class="label">Solde</div>
-      <div class="value" style="color:${allSavings >= 0 ? "#0D1B35" : "#dc2626"}">${formatCurrency(allSavings)}</div>
+      <div class="value" style="color:${allSavings >= 0 ? "#0D1B35" : "#dc2626"}">${fmt(allSavings)}</div>
     </div>
     <div class="summary-item">
       <div class="label">Taux d'épargne</div>
@@ -190,37 +194,39 @@ export async function GET(req: NextRequest) {
     </div>
   </div>
 
-  ${hasActivity ? `
-  <p class="section-title">Situation par périmètre</p>
+  <p class="section-title">Situation financière</p>
   <div class="scope-grid">
     <div class="scope-card">
       <h4>Personnel</h4>
-      <p>Reçus : <span class="val" style="color:#0D1B35">${formatCurrency(personalIncome)}</span></p>
-      <p>Dépensés : <span class="val" style="color:#dc2626">${formatCurrency(personalExpense)}</span></p>
-      <p>Épargne : <span class="val" style="color:${personalSavings >= 0 ? "#0D1B35" : "#dc2626"}">${formatCurrency(personalSavings)}</span></p>
+      <p>Solde de départ : <span class="val">${fmt(user.initialBalance || 0)}</span></p>
+      <p>Reçus : <span class="val" style="color:#0D1B35">${fmt(personalIncome)}</span></p>
+      <p>Dépensés : <span class="val" style="color:#dc2626">${fmt(personalExpense)}</span></p>
+      <p>Solde actuel : <span class="val" style="color:${(user.initialBalance || 0) + personalSavings >= 0 ? "#0D1B35" : "#dc2626"};font-size:14px">${fmt((user.initialBalance || 0) + personalSavings)}</span></p>
     </div>
+    ${hasActivity ? `
     <div class="scope-card">
       <h4>Activité</h4>
-      <p>Reçus : <span class="val" style="color:#C9A84C">${formatCurrency(activityIncome)}</span></p>
-      <p>Dépensés : <span class="val" style="color:#dc2626">${formatCurrency(activityExpense)}</span></p>
-      <p>Épargne : <span class="val" style="color:${activitySavings >= 0 ? "#0D1B35" : "#dc2626"}">${formatCurrency(activitySavings)}</span></p>
-    </div>
-  </div>` : ""}
+      <p>Solde de départ : <span class="val">${fmt(user.initialBalanceActivity || 0)}</span></p>
+      <p>Reçus : <span class="val" style="color:#C9A84C">${fmt(activityIncome)}</span></p>
+      <p>Dépensés : <span class="val" style="color:#dc2626">${fmt(activityExpense)}</span></p>
+      <p>Solde actuel : <span class="val" style="color:${(user.initialBalanceActivity || 0) + activitySavings >= 0 ? "#0D1B35" : "#dc2626"};font-size:14px">${fmt((user.initialBalanceActivity || 0) + activitySavings)}</span></p>
+    </div>` : ""}
+  </div>
 
   ${hasCommercial ? `
   <p class="section-title">Activité commerciale</p>
   <div class="summary">
     <div class="summary-item">
       <div class="label">Chiffre d'affaires</div>
-      <div class="value" style="color:#C9A84C">${formatCurrency(totalRevenue)}</div>
+      <div class="value" style="color:#C9A84C">${fmt(totalRevenue)}</div>
     </div>
     <div class="summary-item">
       <div class="label">Profit</div>
-      <div class="value" style="color:#0D1B35">${formatCurrency(totalProfit)}</div>
+      <div class="value" style="color:#0D1B35">${fmt(totalProfit)}</div>
     </div>
     <div class="summary-item">
       <div class="label">Valeur stock</div>
-      <div class="value">${formatCurrency(stockValue)}</div>
+      <div class="value">${fmt(stockValue)}</div>
     </div>
   </div>` : ""}
 
