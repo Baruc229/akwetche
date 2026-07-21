@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faGear, faUser, faPlus, faTrash, faFloppyDisk, faTag, faGlobe, faTriangleExclamation, faRotateLeft, faCreditCard, faUpRightFromSquare, faRightFromBracket, faCrown, faShield, faLock, faCheck, faCircleCheck, faStar, faXmark, faArrowRight, faEye, faEyeSlash, faDesktop, faLaptop, faMobileScreen, faGlobeAmericas, faRightFromBracket as faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { formatCurrency, resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, toDisplayCurrency, toStorageCurrency, roundByCurrency, type CurrencyCode } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -48,7 +48,7 @@ const ALL_FEATURES = [
 export default function SettingsPage() {
   const { user, setUser, currency: activeCurrency, setCurrency: setDashboardCurrency } = useDashboard();
   const router = useRouter();
-  const [settingsTab, setSettingsTab] = useState<"abonnement" | "profil" | "mot-de-passe" | "categories" | "danger">("profil");
+  const [settingsTab, setSettingsTab] = useState<"abonnement" | "profil" | "securite" | "notifications" | "categories" | "about" | "danger">("profil");
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,8 +80,10 @@ export default function SettingsPage() {
   const [catError, setCatError] = useState("");
   const [presetLoading, setPresetLoading] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
- const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
- const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deactivateLoading, setDeactivateLoading] = useState(false);
  const [resetLoading, setResetLoading] = useState(false);
   const [resetDone, setResetDone] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -99,6 +101,9 @@ export default function SettingsPage() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [sessions, setSessions] = useState<{ id: number; ipAddress: string; userAgent: string; lastActive: string; createdAt: string; isCurrent: boolean }[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [disconnectAllLoading, setDisconnectAllLoading] = useState(false);
 
  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
  const isPremium = user?.subscription?.status === "active" || isAdmin;
@@ -131,6 +136,10 @@ export default function SettingsPage() {
     loadCategories();
     loadSubscription();
   }, []);
+
+  useEffect(() => {
+    if (settingsTab === "securite") loadSessions();
+  }, [settingsTab]);
 
   // Convertir les soldes affichés quand la devise change
   useEffect(() => {
@@ -168,6 +177,29 @@ export default function SettingsPage() {
   setActiveCategoryIds(data.activeCategoryIds || []);
   } catch (e) { setLoadError("Impossible de charger les catégories."); console.error(e); }
   finally { setLoading(false); }
+  }
+
+  async function loadSessions() {
+    setSessionsLoading(true);
+    try {
+      const res = await fetch("/api/user/sessions");
+      if (res.ok) { const data = await res.json(); setSessions(data.sessions || []); }
+    } catch {} finally { setSessionsLoading(false); }
+  }
+
+  async function handleDisconnectSession(id: number) {
+    try {
+      await fetch(`/api/user/sessions/${id}`, { method: "DELETE" });
+      setSessions(prev => prev.filter(s => s.id !== id));
+    } catch {}
+  }
+
+  async function handleDisconnectAll() {
+    setDisconnectAllLoading(true);
+    try {
+      await fetch("/api/user/sessions", { method: "DELETE" });
+      setSessions(prev => prev.filter(s => s.isCurrent));
+    } catch {} finally { setDisconnectAllLoading(false); }
   }
 
   async function handleSaveProfile(e: React.FormEvent) {
@@ -288,6 +320,14 @@ export default function SettingsPage() {
  await fetch("/api/auth/delete-account", { method: "POST" });
  router.push("/");
  } catch { setDeleteLoading(false); setShowDeleteAccountModal(false); }
+ }
+
+ async function handleDeactivateAccount() {
+  setDeactivateLoading(true);
+  try {
+    await fetch("/api/auth/deactivate-account", { method: "POST" });
+    router.push("/");
+  } catch { setDeactivateLoading(false); setShowDeactivateModal(false); }
  }
 
  async function handleLogout() {
@@ -416,8 +456,10 @@ export default function SettingsPage() {
   const TABS = [
     { key: "abonnement" as const, label: "Abonnement" },
     { key: "profil" as const, label: "Profil" },
-    { key: "mot-de-passe" as const, label: "Mot de passe" },
+    { key: "securite" as const, label: "Connexion et sécurité" },
+    { key: "notifications" as const, label: "Notifications" },
     { key: "categories" as const, label: "Catégories" },
+    { key: "about" as const, label: "À propos" },
     { key: "danger" as const, label: "Danger" },
   ];
 
@@ -704,13 +746,14 @@ export default function SettingsPage() {
  </>
  )}
 
- {/* PASSWORD */}
- {settingsTab === "mot-de-passe" && (
- <>
- <p className="text-label mb-3">Mot de passe</p>
- <div className="card">
- <form onSubmit={handleChangePassword} className="space-y-4">
- <div>
+{/* CONNEXION ET SÉCURITÉ */}
+{settingsTab === "securite" && (
+<>
+{/* Mot de passe */}
+<p className="text-label mb-3">Mot de passe</p>
+<div className="card">
+<form onSubmit={handleChangePassword} className="space-y-4">
+<div>
   <label className="field-label">Mot de passe actuel</label>
   <div style={{ position: "relative" }}>
     <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field pr-10" placeholder="Mot de passe actuel" required />
@@ -719,8 +762,8 @@ export default function SettingsPage() {
       <FontAwesomeIcon icon={showCurrent ? faEyeSlash : faEye} />
     </button>
   </div>
- </div>
- <div>
+</div>
+<div>
   <label className="field-label">Nouveau mot de passe</label>
   <div style={{ position: "relative" }}>
     <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field pr-10" placeholder="Nouveau mot de passe" minLength={8} required />
@@ -729,9 +772,9 @@ export default function SettingsPage() {
       <FontAwesomeIcon icon={showNew ? faEyeSlash : faEye} />
     </button>
   </div>
- <p className="text-xs text-muted mt-1">Minimum 8 caractères.</p>
- </div>
- <div>
+  <p className="text-xs text-muted mt-1">Minimum 8 caractères.</p>
+</div>
+<div>
   <label className="field-label">Confirmer le nouveau mot de passe</label>
   <div style={{ position: "relative" }}>
     <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field pr-10" placeholder="Confirmer le mot de passe" minLength={8} required />
@@ -740,16 +783,118 @@ export default function SettingsPage() {
       <FontAwesomeIcon icon={showConfirm ? faEyeSlash : faEye} />
     </button>
   </div>
- </div>
+</div>
   {passwordError && <p className="text-sm text-neg">{passwordError}</p>}
  <button type="submit" className="btn-primary flex items-center gap-2 text-sm">
  <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
  {passwordSaved ? "Mis à jour ✓" : "Modifier le mot de passe"}
  </button>
- </form>
- </div>
- </>
- )}
+</form>
+</div>
+
+{/* Sessions actives */}
+<p className="text-label mb-3 mt-6">Sessions actives</p>
+<div className="card">
+  <p className="text-sm text-muted mb-4">Appareils connectés à votre compte. Déconnectez les sessions que vous ne reconnaissez pas.</p>
+  {sessionsLoading ? (
+    <div className="space-y-3">
+      {[1, 2].map(i => <div key={i} className="skeleton h-16 w-full rounded-xl" />)}
+    </div>
+  ) : (
+    <div className="space-y-3">
+      {sessions.map(s => {
+        const ua = s.userAgent || "";
+        const isMobile = /Mobile|Android|iPhone|iPad/i.test(ua);
+        const isTablet = /iPad|Tablet/i.test(ua);
+        const deviceIcon = isMobile ? faMobileScreen : isTablet ? faLaptop : faDesktop;
+        const browserMatch = ua.match(/(Chrome|Firefox|Safari|Edge|Opera|OPR)\/[\d.]+/);
+        const browser = browserMatch ? browserMatch[0].split("/")[0] : "Navigateur inconnu";
+        const osMatch = ua.match(/(Windows NT 10|Mac OS X|Linux|Android|iOS|iPhone OS)[\s;)]*/i);
+        const os = osMatch ? osMatch[1].replace("NT 10", "Windows 10").replace("Mac OS X", "macOS") : "Système inconnu";
+        const ago = (() => {
+          const diff = Math.floor((Date.now() - new Date(s.lastActive).getTime()) / 1000);
+          if (diff < 60) return "À l'instant";
+          if (diff < 3600) return `Il y a ${Math.floor(diff / 60)} min`;
+          if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)} h`;
+          return `Il y a ${Math.floor(diff / 86400)} j`;
+        })();
+        return (
+          <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)]" style={{ background: s.isCurrent ? 'var(--color-brand-subtle)' : 'var(--color-surface-raised)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: s.isCurrent ? 'var(--color-brand)' : 'var(--color-border)', color: s.isCurrent ? 'white' : 'var(--color-muted)' }}>
+              <FontAwesomeIcon icon={deviceIcon} className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-ink truncate">{browser} · {os}</p>
+                {s.isCurrent && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--color-brand)] text-white shrink-0">Cet appareil</span>}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-muted">{s.ipAddress || "IP inconnue"}</span>
+                <span className="text-muted/40 text-xs">·</span>
+                <span className="text-xs text-muted">{ago}</span>
+              </div>
+            </div>
+            {!s.isCurrent && (
+              <button onClick={() => handleDisconnectSession(s.id)} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:bg-[var(--color-neg-bg)]" style={{ color: 'var(--color-neg)' }}>
+                <FontAwesomeIcon icon={faRightFromBracket} className="w-3 h-3 mr-1" />
+                Déconnecter
+              </button>
+            )}
+          </div>
+        );
+      })}
+      {sessions.length === 0 && (
+        <p className="text-sm text-muted text-center py-4">Aucune session active.</p>
+      )}
+    </div>
+  )}
+  {sessions.filter(s => !s.isCurrent).length > 0 && (
+    <button onClick={handleDisconnectAll} disabled={disconnectAllLoading} className="mt-4 w-full py-2.5 rounded-xl text-sm font-medium border border-[var(--color-neg)] transition-all hover:bg-[var(--color-neg-bg)]" style={{ color: 'var(--color-neg)' }}>
+      {disconnectAllLoading ? "Déconnexion..." : "Déconnecter tous les autres appareils"}
+    </button>
+  )}
+</div>
+   </>
+   )}
+
+  {/* NOTIFICATIONS */}
+  {settingsTab === "notifications" && (
+  <>
+  <p className="text-label mb-3">Notifications</p>
+  <div className="card space-y-4">
+    <p className="text-sm text-muted">Choisissez les notifications que vous souhaitez recevoir.</p>
+    {[
+      { key: "transaction", label: "Transactions", desc: "Quand une transaction est créée ou modifiée" },
+      { key: "tontine", label: "Tontines", desc: "Rappels de cotisation et mises à jour" },
+      { key: "sale", label: "Ventes", desc: "Nouvelles ventes et changements de statut" },
+      { key: "stock", label: "Stock", desc: "Alertes de stock bas" },
+      { key: "subscription", label: "Abonnement", desc: "Renouvellements et changements de plan" },
+      { key: "system", label: "Système", desc: "Mises à jour et maintenance" },
+    ].map(item => (
+      <div key={item.key} className="flex items-center justify-between py-2">
+        <div>
+          <p className="text-sm font-medium text-ink">{item.label}</p>
+          <p className="text-xs text-muted mt-0.5">{item.desc}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-border text-brand accent-[var(--color-brand)]" />
+            Email
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-border text-brand accent-[var(--color-brand)]" />
+            In-app
+          </label>
+        </div>
+      </div>
+    ))}
+    <button className="btn-primary w-full justify-center flex items-center gap-2 text-sm">
+      <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
+      Enregistrer les préférences
+    </button>
+  </div>
+  </>
+  )}
 
   {/* CATEGORIES */}
   {settingsTab === "categories" && (
@@ -765,16 +910,77 @@ export default function SettingsPage() {
    </>
    )}
 
+  {/* À PROPOS */}
+  {settingsTab === "about" && (
+  <>
+  <p className="text-label mb-3">À propos</p>
+  <div className="card space-y-4">
+    <div className="flex items-center gap-3">
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'var(--color-brand)', color: 'white' }}>
+        <span className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)' }}>A</span>
+      </div>
+      <div>
+        <p className="text-base font-bold text-ink" style={{ fontFamily: 'var(--font-display)' }}>Akwetche</p>
+        <p className="text-xs text-muted">Version 1.0.0</p>
+      </div>
+    </div>
+    <p className="text-sm text-muted">Gestion de finances personnelle et commerciale. Simple, clair, efficace.</p>
+    <div className="space-y-1">
+      <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm text-ink hover:bg-[var(--color-brand-subtle)] transition-colors">
+        <FontAwesomeIcon icon={faGlobeAmericas} className="w-4 h-4 text-muted" />
+        Site officiel
+        <FontAwesomeIcon icon={faUpRightFromSquare} className="w-3 h-3 text-muted ml-auto" />
+      </a>
+      <a href="/mentions-legales" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm text-ink hover:bg-[var(--color-brand-subtle)] transition-colors">
+        <FontAwesomeIcon icon={faShield} className="w-4 h-4 text-muted" />
+        Mentions légales
+        <FontAwesomeIcon icon={faUpRightFromSquare} className="w-3 h-3 text-muted ml-auto" />
+      </a>
+      <a href="/cgu" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm text-ink hover:bg-[var(--color-brand-subtle)] transition-colors">
+        <FontAwesomeIcon icon={faLock} className="w-4 h-4 text-muted" />
+        Conditions générales d&apos;utilisation
+        <FontAwesomeIcon icon={faUpRightFromSquare} className="w-3 h-3 text-muted ml-auto" />
+      </a>
+      <a href="/politique-confidentialite" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm text-ink hover:bg-[var(--color-brand-subtle)] transition-colors">
+        <FontAwesomeIcon icon={faShield} className="w-4 h-4 text-muted" />
+        Politique de confidentialité
+        <FontAwesomeIcon icon={faUpRightFromSquare} className="w-3 h-3 text-muted ml-auto" />
+      </a>
+      <a href="mailto:support@akwetche.com" className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm text-ink hover:bg-[var(--color-brand-subtle)] transition-colors">
+        <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 text-muted" />
+        Contacter le support
+      </a>
+    </div>
+  </div>
+  </>
+  )}
+
  {/* DANGER ZONE */}
  {settingsTab === "danger" && (
  <>
  <p className="text-label mb-3">Zone de danger</p>
- <div className="card" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
+
+ {/* Désactivation — réversible */}
+ <div className="card" style={{ borderColor: "var(--color-warn-border, #E5E7EB)", background: "var(--color-warn-bg, #FFFBEB)" }}>
  <div className="flex items-center gap-3 mb-3">
- <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
+ <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-warn, #D97706)" }} />
+ <h2 className="text-base font-semibold" style={{ color: "var(--color-warn, #D97706)" }}>Désactiver mon compte</h2>
+ </div>
+ <p className="text-sm mb-1" style={{ color: "var(--color-body)" }}>Votre compte sera masqué et vous serez déconnecté. Vous pouvez le réactiver à tout moment en vous reconnectant avec votre email et mot de passe.</p>
+ <p className="text-xs mb-3" style={{ color: "var(--color-muted)" }}>Aucune donnée ne sera supprimée.</p>
+ <button onClick={() => setShowDeactivateModal(true)} className="flex items-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all hover:bg-amber-50" style={{ borderColor: "var(--color-warn, #D97706)", color: "var(--color-warn, #D97706)" }}>
+ <FontAwesomeIcon icon={faLock} className="w-4 h-4" />
+ Désactiver mon compte
+ </button>
+ </div>
+
+ {/* Réinitialisation — irréversible */}
+ <div className="card mt-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
+ <div className="flex items-center gap-3 mb-3">
+ <FontAwesomeIcon icon={faRotateLeft} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
  <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Réinitialisation</h2>
  </div>
- <p className="text-sm" style={{ color: "var(--color-body)" }}>Supprime toutes vos données. Action irréversible.</p>
+ <p className="text-sm" style={{ color: "var(--color-body)" }}>Supprime toutes vos données (transactions, ventes, produits, catégories). Votre compte reste actif.</p>
  <button onClick={() => setShowResetModal(true)} className="btn-danger flex items-center gap-2 mt-4">
  <FontAwesomeIcon icon={faRotateLeft} className="w-4 h-4" />
  Réinitialiser toutes les données
@@ -782,12 +988,14 @@ export default function SettingsPage() {
    {resetDone && <p className="mt-3 text-sm px-3 py-2 rounded-xl text-pos bg-pos-bg"><FontAwesomeIcon icon={faCheck} className="w-4 h-4 mr-1" /> Données réinitialisées.</p>}
  </div>
 
+ {/* Suppression — définitive */}
  <div className="card mt-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
  <div className="flex items-center gap-3 mb-3">
  <FontAwesomeIcon icon={faTrash} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
  <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Supprimer mon compte</h2>
  </div>
- <p className="text-sm" style={{ color: "var(--color-body)" }}>Supprime définitivement votre compte et toutes vos données.</p>
+ <p className="text-sm mb-1" style={{ color: "var(--color-body)" }}>Supprime définitivement votre compte et toutes vos données. Cette action est irréversible.</p>
+ <p className="text-xs mb-3 font-medium" style={{ color: "var(--color-neg)" }}>Vous ne pourrez pas récupérer votre compte.</p>
  <button onClick={() => setShowDeleteAccountModal(true)} className="btn-danger flex items-center gap-2 mt-4">
  <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
  Supprimer définitivement
@@ -804,7 +1012,8 @@ export default function SettingsPage() {
  </>
  )}
 
- <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
+ <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible. Toutes vos données seront définitivement supprimées." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
+ <ConfirmModal open={showDeactivateModal} title="Désactiver votre compte ?" message="Vous serez déconnecté. Vous pourrez réactiver votre compte en vous reconnectant." confirmLabel={deactivateLoading ? "Désactivation..." : "Oui, désactiver"} cancelLabel="Annuler" variant="warning" onConfirm={handleDeactivateAccount} onCancel={() => setShowDeactivateModal(false)} />
  <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />
   <ConfirmModal open={confirmDeleteCat !== null} title="Supprimer cette catégorie ?" message="Cette catégorie sera définitivement supprimée. Les transactions liées ne seront plus associées à une catégorie." confirmLabel="Oui, supprimer" cancelLabel="Annuler" variant="warning" onConfirm={() => handleDeleteCategory(confirmDeleteCat!)} onCancel={() => setConfirmDeleteCat(null)} />
  </div>

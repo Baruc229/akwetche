@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { loginAttempts: 0, lockedUntil: null },
+      data: { loginAttempts: 0, lockedUntil: null, status: "active" },
     });
 
     await prisma.loginLog.create({
@@ -70,6 +70,10 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60,
       path: "/",
+    });
+
+    await prisma.session.create({
+      data: { token, userId: user.id, ipAddress: ip, userAgent },
     });
 
     return ok({

@@ -38,6 +38,7 @@ model User {
   subscriptionHistory SubscriptionHistory[]
   verificationTokens VerificationToken[]
   loginLogs          LoginLog[]
+  sessions           Session[]
   notifications           Notification[]              @relation("UserNotifications")
   actedNotifications       Notification[]              @relation("NotificationActor")
   recurringTemplates       RecurringTemplate[]
@@ -75,6 +76,20 @@ model LoginLog {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress  String   @default("")
+  userAgent  String   @default("")
+  lastActive DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
 }
 
 model Notification {
