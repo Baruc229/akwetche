@@ -1,9 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-import { LineChart, Line, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { Line, XAxis, ResponsiveContainer, Tooltip, Area, ComposedChart } from 'recharts';
 
 type DailyBalance = { date: string; balance: number };
 
@@ -18,6 +19,29 @@ type Props = {
   pendingRecurringIncome?: number;
 };
 
+type ChartPoint = {
+  day: number;
+  label: string;
+  pastValue: number | null;
+  futureValue: number | null;
+  optimistic: number | null;
+  pessimistic: number | null;
+};
+
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; dataKey: string }>; label?: string }) {
+  if (!active || !payload || payload.length === 0) return null;
+  const main = payload.find(p => p.dataKey === "futureValue" || p.dataKey === "pastValue");
+  if (!main) return null;
+  return (
+    <div className="bg-white rounded-xl px-3 py-2 shadow-lg border border-gray-100 text-xs">
+      <p className="font-semibold text-[#1A2744] mb-0.5">Jour {label}</p>
+      <p className="font-bold" style={{ color: main.value < 0 ? '#B94A3E' : '#0D7A4B' }}>
+        {formatCurrency(main.value)}
+      </p>
+    </div>
+  );
+}
+
 export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances, initialBalanceMissing, totalBalance = 0, pendingRecurringExpense = 0, pendingRecurringIncome = 0 }: Props) {
   const isNegative = projectedRemaining < 0;
   const dayOfMonth = new Date().getDate();
@@ -29,34 +53,56 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
 
   const chartColor = projectedRemaining >= lastRealBalance ? '#0D7A4B' : '#B94A3E';
 
-  const chartData: { day: number; pastValue: number | null; futureValue: number | null; label: string }[] = [];
+  const chartData = useMemo<ChartPoint[]>(() => {
+    const data: ChartPoint[] = [];
 
-  if (dailyBalances && dailyBalances.length > 0) {
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const monthDays = dailyBalances.filter(d => new Date(d.date) >= startOfMonth);
-    for (const d of monthDays) {
-      const dayNum = new Date(d.date).getDate();
-      chartData.push({ day: dayNum, pastValue: d.balance, futureValue: null, label: `${dayNum}` });
+    if (dailyBalances && dailyBalances.length > 0) {
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const monthDays = dailyBalances.filter(d => new Date(d.date) >= startOfMonth);
+      for (const d of monthDays) {
+        const dayNum = new Date(d.date).getDate();
+        data.push({ day: dayNum, label: `${dayNum}`, pastValue: d.balance, futureValue: null, optimistic: null, pessimistic: null });
+      }
     }
-  }
 
-  if (chartData.length > 0) {
-    chartData[chartData.length - 1].futureValue = chartData[chartData.length - 1].pastValue;
-  }
+    if (data.length > 0) {
+      data[data.length - 1].futureValue = data[data.length - 1].pastValue;
+    }
 
-  const futureDay = dayOfMonth + daysLeft;
-  if (futureDay > dayOfMonth) {
-    chartData.push({ day: futureDay, pastValue: null, futureValue: projectedRemaining, label: `${futureDay}` });
-  }
+    const dailyAvgPonctuel = dayOfMonth > 0 ? (totalBalance - (dailyBalances && dailyBalances.length > 0 ? dailyBalances[dailyBalances.length - 1].balance : totalBalance) + pendingRecurringExpense - pendingRecurringIncome) / dayOfMonth : dailyAvgExpense;
 
-  const isLimitedHistory = (() => {
+    const base = (data.length > 0 ? data[data.length - 1].pastValue : totalBalance) ?? totalBalance;
+
+    for (let i = 1; i <= daysLeft; i++) {
+      const futureDay = dayOfMonth + i;
+      const dailyDrop = dailyAvgPonctuel > 0 ? dailyAvgPonctuel * i : 0;
+      const futureVal = base - pendingRecurringExpense - dailyDrop + pendingRecurringIncome;
+      const optVal = base - pendingRecurringExpense * 0.7 - dailyDrop * 0.75 + pendingRecurringIncome * 1.1;
+      const pessVal = base - pendingRecurringExpense * 1.3 - dailyDrop * 1.25 + pendingRecurringIncome * 0.9;
+
+      data.push({
+        day: futureDay,
+        label: `${daysLeft - i + 1}j`,
+        pastValue: null,
+        futureValue: futureVal,
+        optimistic: optVal,
+        pessimistic: pessVal,
+      });
+    }
+
+    return data;
+  }, [dailyBalances, dayOfMonth, daysLeft, totalBalance, dailyAvgExpense, pendingRecurringExpense, pendingRecurringIncome]);
+
+  const isLimitedHistory = useMemo(() => {
     if (chartData.length <= 3) return true;
     let changes = 0;
     for (let i = 1; i < chartData.length; i++) {
       if (chartData[i].pastValue !== null && chartData[i - 1].pastValue !== null && chartData[i].pastValue !== chartData[i - 1].pastValue) changes++;
     }
     return changes < 2;
-  })();
+  }, [chartData]);
+
+  const xInterval = Math.max(0, Math.floor(chartData.length / 5));
 
   return (
     <div className="bg-white rounded-[18px] p-5 overflow-hidden">
@@ -66,34 +112,55 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           Projection
         </h2>
       </div>
-      <p className="text-xs text-[#94A3B8] mb-4 font-[family-name:var(--font-inter)]">Estimation fin de mois</p>
+      <p className="text-xs text-[#94A3B8] mb-4 font-[family-name:var(--font-inter)]">Estimation jour par jour</p>
 
-      <div className="h-[60px] mb-3 overflow-hidden">
+      <div className="h-[80px] mb-3 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+          <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+            <defs>
+              <linearGradient id="projOptimistic" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0D7A4B" stopOpacity={0.12} />
+                <stop offset="100%" stopColor="#0D7A4B" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="projPessimistic" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#B94A3E" stopOpacity={0.02} />
+                <stop offset="100%" stopColor="#B94A3E" stopOpacity={0.12} />
+              </linearGradient>
+            </defs>
             <XAxis
               dataKey="label"
               tick={{ fontSize: 9, fill: '#94A3B8' }}
               axisLine={false}
               tickLine={false}
-              interval={Math.max(0, Math.floor(chartData.length / 4))}
+              interval={xInterval}
             />
-            <Tooltip
-              contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
-              labelStyle={{ fontWeight: 600, marginBottom: 2 }}
-              formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
-              labelFormatter={(label: any) => `Jour ${label}`}
-              cursor={false}
+            <Tooltip content={<CustomTooltip />} cursor={false} />
+            <Area
+              type="monotone"
+              dataKey="optimistic"
+              stroke="none"
+              fill="url(#projOptimistic)"
+              connectNulls={false}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="pessimistic"
+              stroke="none"
+              fill="url(#projPessimistic)"
+              connectNulls={false}
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
               dataKey="pastValue"
               stroke={chartColor}
-              strokeWidth={2}
+              strokeWidth={2.5}
               dot={{ fill: chartColor, strokeWidth: 0, r: 2.5 }}
               activeDot={{ r: 4, fill: chartColor, stroke: '#fff', strokeWidth: 1.5 }}
               connectNulls={false}
-              isAnimationActive={false}
+              isAnimationActive={true}
+              animationDuration={800}
             />
             <Line
               type="monotone"
@@ -104,9 +171,11 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
               dot={{ fill: chartColor, strokeWidth: 0, r: 2, opacity: 0.5 }}
               activeDot={{ r: 4, fill: chartColor, stroke: '#fff', strokeWidth: 1.5 }}
               connectNulls={false}
-              isAnimationActive={false}
+              isAnimationActive={true}
+              animationDuration={800}
+              animationBegin={400}
             />
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 

@@ -14,7 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import { LineChart, Line, XAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { Area, Line, XAxis, ResponsiveContainer, Tooltip, ComposedChart } from 'recharts';
 
 type ScopeSummary = {
   income: number;
@@ -74,7 +74,7 @@ export default function DashboardPage() {
         fetch("/api/transactions?limit=3"),
         fetch("/api/categories"),
         fetch("/api/user/limits"),
-        fetch("/api/transactions/balance-history?days=30"),
+        fetch("/api/transactions/balance-history?days=60"),
       ]);
       const monthData = await monthRes.json();
       const weekData = await weekRes.json();
@@ -216,6 +216,22 @@ export default function DashboardPage() {
 
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const monthlyBalances = balanceHistory.filter(d => new Date(d.date) >= startOfMonth);
+
+  const prevMonthStart = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+  const prevMonthEnd = new Date(new Date().getFullYear(), new Date().getMonth(), 0);
+  const prevMonthBalances = balanceHistory.filter(d => {
+    const dt = new Date(d.date);
+    return dt >= prevMonthStart && dt <= prevMonthEnd;
+  });
+
+  const heroChartData = monthlyBalances.map(d => {
+    const dayNum = new Date(d.date).getDate();
+    const prevPoint = prevMonthBalances.find(p => new Date(p.date).getDate() === dayNum);
+    return { day: `${dayNum}`, balance: d.balance, prevBalance: prevPoint?.balance ?? null };
+  });
+
+  const heroMin = heroChartData.length > 0 ? Math.min(...heroChartData.map(d => d.balance)) : 0;
+  const heroMax = heroChartData.length > 0 ? Math.max(...heroChartData.map(d => d.balance)) : 0;
 
   return (
     <div className="space-y-3 pb-24 sm:pb-0">
@@ -407,37 +423,76 @@ export default function DashboardPage() {
           </div>
         </div>
         {(() => {
-          if (balanceHistory.length < 2) return null;
-          const slice = balanceHistory.slice(-7);
-          const trendUp = slice[slice.length - 1].balance >= slice[0].balance;
+          if (heroChartData.length < 2) return null;
+          const trendUp = heroChartData[heroChartData.length - 1].balance >= heroChartData[0].balance;
           const color = trendUp ? '#C9A84C' : '#EF4444';
-          const DAY_LABELS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-          const chartData = slice.map(d => {
-            const dt = new Date(d.date);
-            return { day: DAY_LABELS[dt.getDay()], balance: d.balance };
-          });
+          const hasPrev = prevMonthBalances.length >= 2;
           return (
-            <div className="h-[45px] mt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
-                  <XAxis dataKey="day" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.35)' }} axisLine={false} tickLine={false} interval={0} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '11px', padding: '4px 8px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
-                    formatter={(value: any) => [formatCurrency(typeof value === 'number' ? value : 0), 'Solde']}
-                    labelFormatter={(label: any) => label}
-                    cursor={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="balance"
-                    stroke={color}
-                    strokeWidth={2}
-                    dot={{ fill: color, strokeWidth: 0, r: 2.5 }}
-                    activeDot={{ r: 4, fill: color, stroke: '#fff', strokeWidth: 1.5 }}
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="mt-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-white/30 font-[family-name:var(--font-inter)]">
+                  {hasPrev ? `Mois précédent vs actuel` : `Solde du mois`}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-white/40 font-[family-name:var(--font-inter)] tabular-nums">
+                    min {formatCurrency(heroMin)}
+                  </span>
+                  <span className="text-[10px] text-white/40 font-[family-name:var(--font-inter)] tabular-nums">
+                    max {formatCurrency(heroMax)}
+                  </span>
+                </div>
+              </div>
+              <div className="h-[50px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={heroChartData} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                    <defs>
+                      <linearGradient id="heroAreaFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                        <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="day"
+                      tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval={Math.max(0, Math.floor(heroChartData.length / 5))}
+                    />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '11px', padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', background: 'rgba(13,27,53,0.95)', color: '#fff' }}
+                      formatter={(value: string | number | (string | number)[], name: string) => [
+                        formatCurrency(typeof value === 'number' ? value : 0),
+                        name === 'prevBalance' ? 'Mois préc.' : 'Solde'
+                      ]}
+                      labelFormatter={(label: string) => `Jour ${label}`}
+                      cursor={false}
+                    />
+                    {hasPrev && (
+                      <Line
+                        type="monotone"
+                        dataKey="prevBalance"
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth={1.5}
+                        strokeDasharray="4 3"
+                        dot={false}
+                        connectNulls={false}
+                        isAnimationActive={false}
+                      />
+                    )}
+                    <Area
+                      type="monotone"
+                      dataKey="balance"
+                      stroke={color}
+                      strokeWidth={2}
+                      fill="url(#heroAreaFill)"
+                      dot={{ fill: color, strokeWidth: 0, r: 2 }}
+                      activeDot={{ r: 4, fill: color, stroke: '#fff', strokeWidth: 1.5 }}
+                      isAnimationActive={true}
+                      animationDuration={1000}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           );
         })()}
