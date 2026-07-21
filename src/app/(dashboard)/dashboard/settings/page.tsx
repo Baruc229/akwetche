@@ -464,22 +464,22 @@ export default function SettingsPage() {
   ];
 
   return (
- <div className="space-y-6 max-w-2xl">
   <div>
+  <div className="mb-6">
   <h1 className="text-2xl font-bold text-ink">Paramètres</h1>
   <p className="text-muted text-sm mt-0.5">Gérez votre profil et vos paramètres</p>
   </div>
 
   {loadError && (
-  <div className="alert-inline neg">
+  <div className="alert-inline neg mb-6">
   <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0 mt-0.5" />
   <p className="text-sm flex-1">{loadError}</p>
   <button onClick={() => setLoadError(null)} className="shrink-0 hover:opacity-70"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
   </div>
   )}
 
-  {/* Tabs */}
-  <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1" style={{scrollbarWidth:'none'}}>
+  {/* Tabs — mobile (horizontal scroll) */}
+  <div className="lg:hidden flex gap-1 overflow-x-auto pb-4 -mx-1 px-1" style={{scrollbarWidth:'none'}}>
     {TABS.map(tab => (
       <button
         key={tab.key}
@@ -495,6 +495,30 @@ export default function SettingsPage() {
       </button>
     ))}
   </div>
+
+  <div className="flex gap-6">
+  {/* Sidebar navigation — desktop */}
+  <nav className="hidden lg:block w-52 shrink-0">
+    <div className="sticky top-24 space-y-0.5">
+      {TABS.map(tab => (
+        <button
+          key={tab.key}
+          onClick={() => setSettingsTab(tab.key)}
+          className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
+          style={{
+            background: settingsTab === tab.key ? 'var(--color-brand-subtle)' : 'transparent',
+            color: settingsTab === tab.key ? 'var(--color-brand)' : 'var(--color-muted)',
+            fontWeight: settingsTab === tab.key ? 600 : 500,
+          }}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  </nav>
+
+  {/* Content */}
+  <div className="flex-1 min-w-0 space-y-6 max-w-2xl">
 
   {/* ABONNEMENT */}
   {settingsTab === "abonnement" && (
@@ -1016,6 +1040,8 @@ export default function SettingsPage() {
  <ConfirmModal open={showDeactivateModal} title="Désactiver votre compte ?" message="Vous serez déconnecté. Vous pourrez réactiver votre compte en vous reconnectant." confirmLabel={deactivateLoading ? "Désactivation..." : "Oui, désactiver"} cancelLabel="Annuler" variant="warning" onConfirm={handleDeactivateAccount} onCancel={() => setShowDeactivateModal(false)} />
  <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />
   <ConfirmModal open={confirmDeleteCat !== null} title="Supprimer cette catégorie ?" message="Cette catégorie sera définitivement supprimée. Les transactions liées ne seront plus associées à une catégorie." confirmLabel="Oui, supprimer" cancelLabel="Annuler" variant="warning" onConfirm={() => handleDeleteCategory(confirmDeleteCat!)} onCancel={() => setConfirmDeleteCat(null)} />
+ </div>
+ </div>
  </div>
  );
 }
