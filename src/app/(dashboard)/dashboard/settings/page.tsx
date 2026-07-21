@@ -47,7 +47,8 @@ const ALL_FEATURES = [
 
 export default function SettingsPage() {
   const { user, setUser, currency: activeCurrency, setCurrency: setDashboardCurrency } = useDashboard();
- const router = useRouter();
+  const router = useRouter();
+  const [settingsTab, setSettingsTab] = useState<"abonnement" | "profil" | "mot-de-passe" | "categories" | "danger">("profil");
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryIds, setActiveCategoryIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -412,7 +413,15 @@ export default function SettingsPage() {
  );
  }
 
- return (
+  const TABS = [
+    { key: "abonnement" as const, label: "Abonnement" },
+    { key: "profil" as const, label: "Profil" },
+    { key: "mot-de-passe" as const, label: "Mot de passe" },
+    { key: "categories" as const, label: "Catégories" },
+    { key: "danger" as const, label: "Danger" },
+  ];
+
+  return (
  <div className="space-y-6 max-w-2xl">
   <div>
   <h1 className="text-2xl font-bold text-ink">Paramètres</h1>
@@ -427,7 +436,27 @@ export default function SettingsPage() {
   </div>
   )}
 
-  {/* PLAN CARD */}
+  {/* Tabs */}
+  <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1" style={{scrollbarWidth:'none'}}>
+    {TABS.map(tab => (
+      <button
+        key={tab.key}
+        onClick={() => setSettingsTab(tab.key)}
+        className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0"
+        style={{
+          background: settingsTab === tab.key ? 'var(--color-brand)' : 'var(--color-surface)',
+          color: settingsTab === tab.key ? 'white' : 'var(--color-muted)',
+          border: settingsTab === tab.key ? 'none' : '1px solid var(--color-border)',
+        }}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+  {/* ABONNEMENT */}
+  {settingsTab === "abonnement" && (
+  <>
   <p className="text-label mb-3">Abonnement</p>
   <div>
  {isAdmin ? (
@@ -538,18 +567,22 @@ export default function SettingsPage() {
   {subError && <p className="mt-2 text-sm text-neg">{subError}</p>}
  </div>
  )}
- </div>
+  </div>
+  </>
+  )}
 
- {/* PAYMENT BANNER */}
-  {paymentMessage && (
+  {/* PAYMENT BANNER */}
+  {settingsTab === "abonnement" && paymentMessage && (
   <div className={`alert-inline animate-fade-in ${paymentType === "success" ? "pos" : "warn"}`}>
    <FontAwesomeIcon icon={paymentType === "success" ? faCircleCheck : faXmark} className="w-4 h-4 shrink-0 mt-0.5" />
    <span>{paymentMessage}</span>
   </div>
   )}
 
- {/* PROFILE */}
- <p className="text-label mb-3">Profil</p>
+  {/* PROFILE */}
+  {settingsTab === "profil" && (
+  <>
+  <p className="text-label mb-3">Profil</p>
  <div className="card">
  <form onSubmit={handleSaveProfile} className="space-y-4">
   <div>
@@ -668,8 +701,12 @@ export default function SettingsPage() {
  </button>
  </form>
  </div>
+ </>
+ )}
 
  {/* PASSWORD */}
+ {settingsTab === "mot-de-passe" && (
+ <>
  <p className="text-label mb-3">Mot de passe</p>
  <div className="card">
  <form onSubmit={handleChangePassword} className="space-y-4">
@@ -711,8 +748,12 @@ export default function SettingsPage() {
  </button>
  </form>
  </div>
+ </>
+ )}
 
   {/* CATEGORIES */}
+  {settingsTab === "categories" && (
+  <>
   <p className="text-label mb-3">Catégories</p>
   <div className="card">
     <p className="text-sm text-muted mb-3">Gérez vos catégories de revenus et dépenses depuis la page dédiée.</p>
@@ -720,9 +761,13 @@ export default function SettingsPage() {
       <FontAwesomeIcon icon={faTag} className="w-4 h-4" />
       Gérer les catégories →
     </Link>
-  </div>
+   </div>
+   </>
+   )}
 
  {/* DANGER ZONE */}
+ {settingsTab === "danger" && (
+ <>
  <p className="text-label mb-3">Zone de danger</p>
  <div className="card" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
  <div className="flex items-center gap-3 mb-3">
@@ -756,6 +801,8 @@ export default function SettingsPage() {
  Déconnexion
  </button>
  </div>
+ </>
+ )}
 
  <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
  <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />

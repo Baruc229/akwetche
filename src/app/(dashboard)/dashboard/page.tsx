@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown, faTriangleExclamation, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, toStorageCurrency, toDisplayCurrency } from "@/lib/utils";
 import { detectCurrency } from "@/lib/currency";
 import { CATEGORY_COLORS } from "@/lib/colors";
@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [newTx, setNewTx] = useState({ type: "expense", amount: "", description: "", categoryId: "", scope: "personal", recurring: false, date: new Date().toISOString().split('T')[0] });
   const [txError, setTxError] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingExpanded, setOnboardingExpanded] = useState(false);
   const [limits, setLimits] = useState<{
     isPremium: boolean;
     incomeCount: number;
@@ -304,76 +305,76 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Bannière solde initial */}
-      {personalSummary && user?.initialBalance === 0 && user?.initialBalanceActivity === 0 && (totalIncome > 0 || totalExpense > 0) && (
-        <div className="card">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
-              <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-ink">Solde initial non défini</p>
-              <p className="text-sm text-muted mt-1">
-                Pour des projections précises, indiquez l&apos;argent que vous aviez avant de commencer dans les paramètres.
-              </p>
-              <a
-                href="/dashboard/settings"
-                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
-              >
-                Définir mon solde initial
-                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
-              </a>
-            </div>
+      {/* Bannière onboarding — solde initial & trésorerie */}
+      {(() => {
+        const needsPersonalBalance = personalSummary && user?.initialBalance === 0 && (totalIncome > 0 || totalExpense > 0);
+        const needsActivityBalance = commercialMode && user?.initialBalanceActivity === 0 && monthActivity && (monthActivity.income + monthActivity.expense > 0);
+        const count = (needsPersonalBalance ? 1 : 0) + (needsActivityBalance ? 1 : 0);
+        if (count === 0) return null;
+        return (
+          <div className="card">
+            <button onClick={() => setOnboardingExpanded(!onboardingExpanded)} className="w-full flex items-center gap-3 text-left">
+              <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+                <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-ink">{count} réglage{count > 1 ? 's' : ''} à finaliser</p>
+                {!onboardingExpanded && <p className="text-xs text-muted mt-0.5">Pour des projections plus précises</p>}
+              </div>
+              <FontAwesomeIcon icon={faChevronDown} className="w-4 h-4 text-muted transition-transform" style={{transform: onboardingExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}} />
+            </button>
+            {onboardingExpanded && (
+              <div className="mt-3 pt-3 space-y-3" style={{borderTop:'1px solid var(--color-border)'}}>
+                {needsPersonalBalance && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+                      <FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-ink">Solde initial personnel</p>
+                      <p className="text-xs text-muted mt-0.5">Indiquez l&apos;argent que vous aviez avant de commencer.</p>
+                    </div>
+                  </div>
+                )}
+                {needsActivityBalance && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+                      <FontAwesomeIcon icon={faBriefcase} className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-ink">Trésorerie de départ activité</p>
+                      <p className="text-xs text-muted mt-0.5">Votre activité a des transactions mais aucun solde de départ.</p>
+                    </div>
+                  </div>
+                )}
+                <a href="/dashboard/settings" className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity">
+                  Aller aux paramètres
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+                </a>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {/* Bannière solde activité non renseigné */}
-      {commercialMode && user?.initialBalanceActivity === 0 && monthActivity && (monthActivity.income + monthActivity.expense > 0) && (
-        <div className="card">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
-              <FontAwesomeIcon icon={faBriefcase} className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-ink">Trésorerie de départ non renseignée</p>
-              <p className="text-sm text-muted mt-1">
-                Votre activité commerciale a des transactions mais aucun solde de départ n&apos;a été indiqué.
-                Ajoutez-le dans les paramètres pour des soldes et projections plus précis.
-              </p>
-              <a
-                href="/dashboard/settings"
-                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
-              >
-                Définir ma trésorerie de départ
-                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Hero Card */}
       <div className="card-hero" style={{ background: '#0D1B35' }}>
         <div className="flex items-center justify-between">
           <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
           {(() => {
-            if (balanceHistory.length < 8) return null;
-            const recent7 = balanceHistory.slice(-7);
-            const prev7 = balanceHistory.slice(-14, -7);
-            if (recent7.length < 2 || prev7.length < 2) return null;
-            const recentChange = recent7[recent7.length - 1].balance - recent7[0].balance;
-            const prevChange = prev7[prev7.length - 1].balance - prev7[0].balance;
-            if (prevChange === 0) return null;
-            const pctChange = ((recentChange - prevChange) / Math.abs(prevChange)) * 100;
-            if (!isFinite(pctChange)) return null;
-            const isUp = pctChange >= 0;
+            if (monthlyBalances.length < 2) return null;
+            const firstBalance = monthlyBalances[0].balance;
+            const lastBalance = monthlyBalances[monthlyBalances.length - 1].balance;
+            if (firstBalance === 0) return null;
+            const pctChange = ((lastBalance - firstBalance) / Math.abs(firstBalance)) * 100;
+            if (!isFinite(pctChange) || pctChange === 0) return null;
+            const isUp = pctChange > 0;
             return (
               <span
                 className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: 'rgba(201,168,76,0.18)', color: '#C9A84C' }}
               >
-                {isUp ? '▲' : '▼'} {Math.abs(pctChange).toFixed(0)}%
+                {isUp ? '↑' : '↓'} {Math.abs(pctChange).toFixed(0)}% ce mois
               </span>
             );
           })()}
@@ -381,7 +382,6 @@ export default function DashboardPage() {
         <p className={`text-amount text-5xl text-white mt-1 ${isNegative ? "text-[var(--color-neg)]" : ""}`}>
           {formatCurrency(totalBalance)}
         </p>
-        <p className="text-xs text-white/40 mb-4">{activeCurrency === "EUR" ? "Devise affichée : EUR" : "Devise affichée : FCFA"}</p>
         <div className="h-px bg-white/10 mb-4" />
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="card-inset" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
