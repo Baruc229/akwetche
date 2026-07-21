@@ -38,7 +38,7 @@ type Transaction = {
 };
 
 export default function DashboardPage() {
-  const { user, commercialMode } = useDashboard();
+  const { user, commercialMode, refreshKey } = useDashboard();
   const router = useRouter();
   const [monthPersonal, setMonthPersonal] = useState<ScopeSummary | null>(null);
   const [monthActivity, setMonthActivity] = useState<ScopeSummary | null>(null);
@@ -102,7 +102,7 @@ export default function DashboardPage() {
   useEffect(() => {
     document.title = "Dashboard — Akwetche";
     loadData();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     if (!loading && user && user.onboardingCompleted === false && categories.length === 0) {

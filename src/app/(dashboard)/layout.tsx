@@ -41,6 +41,8 @@ type DashboardContextType = {
   currency: CurrencyCode;
   baseCurrency: CurrencyCode;
   setCurrency: (c: CurrencyCode) => void;
+  refreshKey: number;
+  triggerRefresh: () => void;
 };
 
 const DashboardContext = createContext<DashboardContextType>({
@@ -51,6 +53,8 @@ const DashboardContext = createContext<DashboardContextType>({
   currency: "XOF",
   baseCurrency: "XOF",
   setCurrency: () => {},
+  refreshKey: 0,
+  triggerRefresh: () => {},
 });
 
 export const useDashboard = () => useContext(DashboardContext);
@@ -72,6 +76,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [quickTxOpen, setQuickTxOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const triggerRefresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
   const handleSetCurrency = useCallback((c: CurrencyCode) => {
     setActiveCurrency(c);
@@ -134,7 +140,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
-  const ctxValue = useMemo(() => ({ user, setUser, commercialMode, setCommercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency]);
+  const ctxValue = useMemo(() => ({ user, setUser, commercialMode, setCommercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency, refreshKey, triggerRefresh }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency, refreshKey, triggerRefresh]);
 
   if (loading) {
     return (
@@ -201,7 +207,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <NotificationsDrawer open={notifDrawerOpen} onClose={() => setNotifDrawerOpen(false)} onUnreadChange={setUnread} />
       <QuickActionsSheet open={quickMenuOpen} onClose={() => setQuickMenuOpen(false)} onQuickTxOpen={() => setQuickTxOpen(true)} />
-      <QuickTransactionModal open={quickTxOpen} onClose={() => setQuickTxOpen(false)} />
+      <QuickTransactionModal open={quickTxOpen} onClose={() => setQuickTxOpen(false)} onSuccess={triggerRefresh} />
       <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
     </DashboardContext.Provider>
   );
