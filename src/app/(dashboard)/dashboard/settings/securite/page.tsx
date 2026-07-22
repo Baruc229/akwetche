@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFloppyDisk, faEye, faEyeSlash, faDesktop, faLaptop, faMobileScreen, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-import { useDashboard } from "../../layout";
+import { useDashboard } from "../../../layout";
 
 export default function SecuritePage() {
   const { user } = useDashboard();

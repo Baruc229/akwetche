@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCrown, faShield, faCheck, faLock, faUpRightFromSquare, faTriangleExclamation, faCircleCheck, faXmark, faStar } from "@fortawesome/free-solid-svg-icons";
-import { useDashboard } from "../../layout";
+import { useDashboard } from "../../../layout";
 import { formatCurrency } from "@/lib/utils";
 
 const ALL_FEATURES = [
