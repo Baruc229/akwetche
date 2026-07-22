@@ -8,7 +8,7 @@ export default function AboutPage() {
   useEffect(() => { document.title = "À propos — Akwetche"; }, []);
 
   return (
-    <div className="max-w-2xl mx-auto pb-8">
+    <div className="max-w-lg mx-auto pb-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink">À propos</h1>
         <p className="text-muted text-sm mt-0.5">Informations sur l&apos;application</p>

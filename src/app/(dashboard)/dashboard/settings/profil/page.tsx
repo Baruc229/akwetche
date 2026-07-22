@@ -95,10 +95,10 @@ export default function ProfilPage() {
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
 
   return (
-    <div className="max-w-2xl mx-auto pb-8">
+    <div className="max-w-lg mx-auto pb-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink">Informations sur le compte</h1>
-        <p className="text-muted text-sm mt-0.5">Nom, soldes initaux, pays, devise</p>
+        <p className="text-muted text-sm mt-0.5">Nom, soldes initiaux, pays, devise</p>
       </div>
 
       <div className="card">
@@ -133,48 +133,51 @@ export default function ProfilPage() {
               <p className="text-xs text-muted mt-1">Ce que vous aviez dans votre activité.</p>
             </div>
           )}
-          <div>
-            <label className="field-label">Pays</label>
-            {user?.countryCode && !isAdmin ? (
-              <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
-                <FlagImg code={user.countryCode} />
-                <span>{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
-                <span className="text-xs text-muted ml-auto">Non modifiable</span>
-              </div>
-            ) : (
-              <CustomSelect
-                options={COUNTRY_OPTIONS}
-                value={countryCode}
-                onChange={(v) => { setCountryCode(v); setCurrency(getCountryByCode(v)?.currency || "XOF"); }}
-                placeholder="Sélectionnez votre pays"
-              />
-            )}
-            <p className="text-xs text-muted mt-1">Devise du compte : <strong>{getCountryByCode(countryCode)?.currency || currency}</strong></p>
-          </div>
-          <div>
-            <label className="field-label">Téléphone</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (countryCode) {
-                  const prefix = getPhonePrefix(countryCode);
-                  if (val.startsWith(prefix)) {
-                    setPhone(val);
-                    if (val.length > prefix.length) setPhoneError(validatePhoneMessage(countryCode, val) || "");
-                    else setPhoneError("");
+          {/* Pays + Téléphone — 2 colonnes dès 768px */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">Pays</label>
+              {user?.countryCode && !isAdmin ? (
+                <div className="flex items-center gap-2 input-field bg-sand text-muted cursor-not-allowed opacity-80">
+                  <FlagImg code={user.countryCode} />
+                  <span className="truncate">{getCountryByCode(user.countryCode)?.name || user.countryCode}</span>
+                  <span className="text-xs text-muted ml-auto shrink-0">Non modifiable</span>
+                </div>
+              ) : (
+                <CustomSelect
+                  options={COUNTRY_OPTIONS}
+                  value={countryCode}
+                  onChange={(v) => { setCountryCode(v); setCurrency(getCountryByCode(v)?.currency || "XOF"); }}
+                  placeholder="Sélectionnez votre pays"
+                />
+              )}
+              <p className="text-xs text-muted mt-1">Devise : <strong>{getCountryByCode(countryCode)?.currency || currency}</strong></p>
+            </div>
+            <div>
+              <label className="field-label">Téléphone</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (countryCode) {
+                    const prefix = getPhonePrefix(countryCode);
+                    if (val.startsWith(prefix)) {
+                      setPhone(val);
+                      if (val.length > prefix.length) setPhoneError(validatePhoneMessage(countryCode, val) || "");
+                      else setPhoneError("");
+                    } else {
+                      setPhone(prefix);
+                    }
                   } else {
-                    setPhone(prefix);
+                    setPhone(val);
                   }
-                } else {
-                  setPhone(val);
-                }
-              }}
-              className={`input-field ${phoneError ? "error" : ""}`}
-              placeholder={countryCode ? `${getPhonePrefix(countryCode)} XX XX XX XX` : "+229XXXXXXXX"}
-            />
-            {phoneError && <p className="text-neg text-xs mt-1">{phoneError}</p>}
+                }}
+                className={`input-field ${phoneError ? "error" : ""}`}
+                placeholder={countryCode ? `${getPhonePrefix(countryCode)} XX XX XX XX` : "+229XXXXXXXX"}
+              />
+              {phoneError && <p className="text-neg text-xs mt-1">{phoneError}</p>}
+            </div>
           </div>
           <div>
             <label className="field-label">Devise d&apos;affichage</label>
