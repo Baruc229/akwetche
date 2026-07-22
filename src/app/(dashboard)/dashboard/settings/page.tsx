@@ -8,7 +8,7 @@ import {
   faUser, faShield, faBell, faCrown, faCircleInfo,
   faLock, faRightFromBracket, faChevronRight
 } from "@fortawesome/free-solid-svg-icons";
-import { useDashboard } from "../layout";
+import { useDashboard } from "../../layout";
 
 const MENU_ITEMS = [
   { key: "profil", label: "Informations sur le compte", desc: "Nom, soldes, pays, devise", icon: faUser, href: "/dashboard/settings/profil" },
