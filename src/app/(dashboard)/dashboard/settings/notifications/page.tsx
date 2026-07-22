@@ -8,8 +8,12 @@ export default function NotificationsPage() {
   useEffect(() => { document.title = "Notifications — Akwetche"; }, []);
 
   return (
-    <>
-      <p className="text-label mb-3">Notifications</p>
+    <div className="max-w-2xl mx-auto pb-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-ink">Notifications</h1>
+        <p className="text-muted text-sm mt-0.5">Préférences de notification</p>
+      </div>
+
       <div className="card space-y-4">
         <p className="text-sm text-muted">Choisissez les notifications que vous souhaitez recevoir.</p>
         {[
@@ -42,6 +46,6 @@ export default function NotificationsPage() {
           Enregistrer les préférences
         </button>
       </div>
-    </>
+    </div>
   );
 }

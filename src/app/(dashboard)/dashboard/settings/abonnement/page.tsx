@@ -63,8 +63,11 @@ export default function AbonnementPage() {
   }
 
   return (
-    <>
-      <p className="text-label mb-3">Abonnement</p>
+    <div className="max-w-2xl mx-auto pb-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-ink">Abonnement</h1>
+        <p className="text-muted text-sm mt-0.5">Gérez votre plan et vos fonctionnalités</p>
+      </div>
 
       {isAdmin ? (
         <div className="card-hero">
@@ -225,6 +228,6 @@ export default function AbonnementPage() {
           <span>{paymentMessage}</span>
         </div>
       )}
-    </>
+    </div>
   );
 }

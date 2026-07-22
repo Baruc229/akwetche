@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faRotateLeft, faLock, faRightFromBracket, faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faRotateLeft, faLock, faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function DangerPage() {
@@ -35,11 +35,6 @@ export default function DangerPage() {
     } catch { setDeactivateLoading(false); setShowDeactivateModal(false); }
   }
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-  }
-
   async function handleResetAll() {
     setResetLoading(true);
     try {
@@ -54,7 +49,12 @@ export default function DangerPage() {
   }
 
   return (
-    <>
+    <div className="max-w-2xl mx-auto pb-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-ink">Danger</h1>
+        <p className="text-muted text-sm mt-0.5">Actions sensibles sur votre compte</p>
+      </div>
+
       {loadError && (
         <div className="alert-inline neg mb-4">
           <FontAwesomeIcon icon={faXmark} className="w-5 h-5 shrink-0 mt-0.5" />
@@ -63,10 +63,8 @@ export default function DangerPage() {
         </div>
       )}
 
-      <p className="text-label mb-3">Zone de danger</p>
-
       {/* Désactivation — réversible */}
-      <div className="card" style={{ borderColor: "var(--color-warn-border, #E5E7EB)", background: "var(--color-warn-bg, #FFFBEB)" }}>
+      <div className="card mb-4" style={{ borderColor: "var(--color-warn-border, #E5E7EB)", background: "var(--color-warn-bg, #FFFBEB)" }}>
         <div className="flex items-center gap-3 mb-3">
           <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-warn, #D97706)" }} />
           <h2 className="text-base font-semibold" style={{ color: "var(--color-warn, #D97706)" }}>Désactiver mon compte</h2>
@@ -80,7 +78,7 @@ export default function DangerPage() {
       </div>
 
       {/* Réinitialisation */}
-      <div className="card mt-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
+      <div className="card mb-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
         <div className="flex items-center gap-3 mb-3">
           <FontAwesomeIcon icon={faRotateLeft} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
           <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Réinitialisation</h2>
@@ -94,7 +92,7 @@ export default function DangerPage() {
       </div>
 
       {/* Suppression — définitive */}
-      <div className="card mt-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
+      <div className="card" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
         <div className="flex items-center gap-3 mb-3">
           <FontAwesomeIcon icon={faTrash} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
           <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Supprimer mon compte</h2>
@@ -107,17 +105,9 @@ export default function DangerPage() {
         </button>
       </div>
 
-      {/* LOGOUT */}
-      <div className="border-t border-border pt-6">
-        <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-muted hover:text-neg transition-colors">
-          <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
-          Déconnexion
-        </button>
-      </div>
-
       <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible. Toutes vos données seront définitivement supprimées." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
       <ConfirmModal open={showDeactivateModal} title="Désactiver votre compte ?" message="Vous serez déconnecté. Vous pourrez réactiver votre compte en vous reconnectant." confirmLabel={deactivateLoading ? "Désactivation..." : "Oui, désactiver"} cancelLabel="Annuler" variant="warning" onConfirm={handleDeactivateAccount} onCancel={() => setShowDeactivateModal(false)} />
       <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />
-    </>
+    </div>
   );
 }

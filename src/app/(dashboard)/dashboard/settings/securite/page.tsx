@@ -69,7 +69,12 @@ export default function SecuritePage() {
   }
 
   return (
-    <>
+    <div className="max-w-2xl mx-auto pb-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-ink">Connexion et sécurité</h1>
+        <p className="text-muted text-sm mt-0.5">Mot de passe et sessions actives</p>
+      </div>
+
       {/* Mot de passe */}
       <p className="text-label mb-3">Mot de passe</p>
       <div className="card">
@@ -110,7 +115,6 @@ export default function SecuritePage() {
         </form>
       </div>
 
-      {/* Sessions actives */}
       <p className="text-label mb-3 mt-6">Sessions actives</p>
       <div className="card">
         <p className="text-sm text-muted mb-4">Appareils connectés à votre compte. Déconnectez les sessions que vous ne reconnaissez pas.</p>
@@ -172,6 +176,6 @@ export default function SecuritePage() {
           </button>
         )}
       </div>
-    </>
+    </div>
   );
 }

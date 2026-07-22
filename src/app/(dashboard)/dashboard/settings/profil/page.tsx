@@ -95,8 +95,12 @@ export default function ProfilPage() {
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
 
   return (
-    <>
-      <p className="text-label mb-3">Profil</p>
+    <div className="max-w-2xl mx-auto pb-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-ink">Informations sur le compte</h1>
+        <p className="text-muted text-sm mt-0.5">Nom, soldes initaux, pays, devise</p>
+      </div>
+
       <div className="card">
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div>
@@ -198,6 +202,6 @@ export default function ProfilPage() {
           </button>
         </form>
       </div>
-    </>
+    </div>
   );
 }
