@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, created } from "@/lib/api";
+import { FREE_CATEGORY_LIMIT_PER_TYPE } from "@/lib/limits";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,23 +27,28 @@ export async function POST(req: NextRequest) {
     });
     const existingKeys = new Set(existing.map((c) => `${c.type}:${c.name}`));
 
-    const toCreate = categories.filter(
+    let toCreate = categories.filter(
       (c: { name: string; type: string }) => !existingKeys.has(`${c.type}:${c.name}`)
     );
 
+    let skipped = 0;
     if (!isPremium) {
       const incomeExisting = existing.filter((c) => !c.archived && c.type === "income").length;
       const expenseExisting = existing.filter((c) => !c.archived && c.type === "expense").length;
-      const incomeToAdd = toCreate.filter((c: { type: string }) => c.type === "income").length;
-      const expenseToAdd = toCreate.filter((c: { type: string }) => c.type === "expense").length;
-      const limit = 3;
-      if (incomeExisting + incomeToAdd > limit || expenseExisting + expenseToAdd > limit) {
-        return badRequest(`Limite gratuite atteinte (${limit} catégories par type max). Passez à Premium pour ajouter plus de catégories.`);
-      }
+      const incomeRoom = Math.max(0, FREE_CATEGORY_LIMIT_PER_TYPE - incomeExisting);
+      const expenseRoom = Math.max(0, FREE_CATEGORY_LIMIT_PER_TYPE - expenseExisting);
+      const incomeItems = toCreate.filter((c: { type: string }) => c.type === "income");
+      const expenseItems = toCreate.filter((c: { type: string }) => c.type === "expense");
+      const trimmed = [
+        ...incomeItems.slice(0, incomeRoom),
+        ...expenseItems.slice(0, expenseRoom),
+      ];
+      skipped = toCreate.length - trimmed.length;
+      toCreate = trimmed;
     }
 
     if (toCreate.length === 0) {
-      return created({ categories: [] });
+      return created({ categories: [], skipped });
     }
 
     const createdCategories = await prisma.$transaction(
@@ -53,7 +59,7 @@ export async function POST(req: NextRequest) {
       )
     );
 
-    return created({ categories: createdCategories });
+    return created({ categories: createdCategories, skipped });
   } catch {
     return badRequest("Erreur lors de la création");
   }

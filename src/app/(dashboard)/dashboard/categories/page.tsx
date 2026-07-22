@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrash, faLock } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { EXPENSE_ICONS, INCOME_ICONS, getDefaultIconForName } from "@/lib/categoryIcons";
+import { FREE_CATEGORY_LIMIT_PER_TYPE } from "@/lib/limits";
 
 type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
 
@@ -19,13 +20,14 @@ export default function CategoriesPage() {
   const [newCatName, setNewCatName] = useState("");
   const [newCatIcons, setNewCatIcons] = useState<{ income: string; expense: string }>({ income: "", expense: "" });
   const [catErrors, setCatErrors] = useState<{ income: string; expense: string }>({ income: "", expense: "" });
+  const [catInfos, setCatInfos] = useState<{ income: string; expense: string }>({ income: "", expense: "" });
   const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
   const [presetLoading, setPresetLoading] = useState(false);
   const [archivedOpen, setArchivedOpen] = useState<"income" | "expense" | null>(null);
 
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
   const isFree = !isPremium && !isAdmin;
-  const limit = 3;
+  const limit = FREE_CATEGORY_LIMIT_PER_TYPE;
 
   async function loadCategories() {
     try {
@@ -56,6 +58,7 @@ export default function CategoriesPage() {
   async function handleAddCategory(e: React.FormEvent, type: "income" | "expense") {
     e.preventDefault();
     setCatErrors(prev => ({ ...prev, [type]: "" }));
+    setCatInfos(prev => ({ ...prev, [type]: "" }));
     if (!newCatName.trim()) return;
     const activeOfType = activeCategoryIds.filter(id => categories.find(c => c.id === id)?.type === type).length;
     if (isFree && activeOfType >= limit) {
@@ -113,6 +116,7 @@ export default function CategoriesPage() {
   async function addPresetCategories(type: "income" | "expense") {
     setPresetLoading(true);
     setCatErrors(prev => ({ ...prev, [type]: "" }));
+    setCatInfos(prev => ({ ...prev, [type]: "" }));
     const presets = type === "income"
       ? [
           { name: "Salaire", icon: "salary" },
@@ -142,6 +146,8 @@ export default function CategoriesPage() {
       const data = await res.json();
       if (!res.ok) {
         setCatErrors(prev => ({ ...prev, [type]: data.error || "Erreur" }));
+      } else if (data.skipped > 0) {
+        setCatInfos(prev => ({ ...prev, [type]: `${data.categories.length} catégorie${data.categories.length > 1 ? 's' : ''} ajoutée${data.categories.length > 1 ? 's' : ''}. ${data.skipped} autre${data.skipped > 1 ? 's' : ''} réservée${data.skipped > 1 ? 's' : ''} au plan Premium.` }));
       }
       await loadCategories();
     } catch {
@@ -202,7 +208,7 @@ export default function CategoriesPage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium text-ink">{typeLabel}</h3>
                 {isFree && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${isTypeLocked ? "bg-gold-light text-gold" : "bg-sand text-muted"}`}>({activeOfType}/{limit})</span>}
-                <button onClick={() => addPresetCategories(type)} disabled={presetLoading} className="text-xs text-brand hover:text-brand font-medium disabled:opacity-40">+ Défaut</button>
+                <button onClick={() => addPresetCategories(type)} disabled={presetLoading || isTypeLocked} className="text-xs text-brand hover:text-brand font-medium disabled:opacity-40">{isTypeLocked ? "Limite atteinte" : "+ Défaut"}</button>
               </div>
 
               {activeCats.length === 0 ? (
@@ -294,6 +300,7 @@ export default function CategoriesPage() {
                 </div>
               </form>
               {catErrors[type] && <p className="text-neg text-sm mt-2">{catErrors[type]}</p>}
+              {catInfos[type] && <p className="text-sm mt-2" style={{ color: "var(--color-gold, #B8860B)" }}>{catInfos[type]}</p>}
             </div>
           );
         })}

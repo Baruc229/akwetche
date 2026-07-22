@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok } from "@/lib/api";
+import { FREE_CATEGORY_LIMIT_PER_TYPE } from "@/lib/limits";
 
 export async function GET() {
   try {
@@ -35,9 +36,9 @@ export async function GET() {
       expenseCatCount,
       maxFreeIncome: 5,
       maxFreeExpense: 5,
-      maxFreeIncomeCategories: 3,
-      maxFreeExpenseCategories: 3,
-      maxFreeCategories: 6,
+      maxFreeIncomeCategories: FREE_CATEGORY_LIMIT_PER_TYPE,
+      maxFreeExpenseCategories: FREE_CATEGORY_LIMIT_PER_TYPE,
+      maxFreeCategories: FREE_CATEGORY_LIMIT_PER_TYPE * 2,
     });
   } catch {
     return badRequest("Erreur");

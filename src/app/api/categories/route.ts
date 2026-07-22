@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok, created } from "@/lib/api";
+import { FREE_CATEGORY_LIMIT_PER_TYPE } from "@/lib/limits";
 
 export async function GET() {
   try {
@@ -29,7 +30,7 @@ export async function GET() {
         .filter((c) => !c.archived)
         .filter((c) => {
           seen[c.type as "income" | "expense"]++;
-          return seen[c.type as "income" | "expense"] <= 3;
+          return seen[c.type as "income" | "expense"] <= FREE_CATEGORY_LIMIT_PER_TYPE;
         })
         .map((c) => c.id);
     }
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       });
       const incomeActive = activeByType.find((g) => g.type === "income")?._count.id ?? 0;
       const expenseActive = activeByType.find((g) => g.type === "expense")?._count.id ?? 0;
-      const limit = 3;
+      const limit = FREE_CATEGORY_LIMIT_PER_TYPE;
       if ((type === "income" && incomeActive >= limit) || (type === "expense" && expenseActive >= limit)) {
         return badRequest(`Limite gratuite atteinte (${limit} catégories par type max). Passez à Premium pour ajouter plus de catégories.`);
       }

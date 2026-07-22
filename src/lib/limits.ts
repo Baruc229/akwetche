@@ -1,0 +1,1 @@
+export const FREE_CATEGORY_LIMIT_PER_TYPE = 3;
