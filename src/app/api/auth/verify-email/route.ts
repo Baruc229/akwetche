@@ -17,7 +17,47 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  if (!record || record.type !== "email_verification") {
+  if (!record) {
+    return badRequest("Token invalide");
+  }
+
+  if (record.type === "email_change") {
+    if (record.expiresAt < new Date()) {
+      return badRequest("Token expiré. Relancez le changement d'email.");
+    }
+    const newEmail = req.nextUrl.searchParams.get("newEmail");
+    if (!newEmail) {
+      return badRequest("Nouvel email manquant");
+    }
+    const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+    if (existing && existing.id !== record.userId) {
+      return badRequest("Cet email est déjà utilisé");
+    }
+    await prisma.user.update({
+      where: { id: record.userId },
+      data: { email: newEmail },
+    });
+    await prisma.verificationToken.delete({ where: { id: record.id } });
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="utf-8"><meta http-equiv="refresh" content="3;url=/dashboard/settings/securite"><title>Email modifié</title></head>
+      <body style="font-family:sans-serif;background:#f5f5f0;padding:40px 20px">
+        <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;text-align:center">
+          <div style="width:64px;height:64px;background:#E8F5E9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <svg width="32" height="32" fill="none" stroke="#16A34A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h1 style="color:#1B3A6B;font-size:24px;margin:0 0 8px">Email modifié !</h1>
+          <p style="color:#666;line-height:1.6">Votre adresse email a été mise à jour avec succès. Redirection...</p>
+          <a href="/dashboard/settings/securite" style="display:inline-block;background:#1B3A6B;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">Continuer</a>
+        </div>
+      </body>
+      </html>
+    `;
+    return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  }
+
+  if (record.type !== "email_verification") {
     return badRequest("Token invalide");
   }
 
