@@ -147,7 +147,7 @@ export default function CategoriesPage() {
       if (!res.ok) {
         setCatErrors(prev => ({ ...prev, [type]: data.error || "Erreur" }));
       } else if (data.skipped > 0) {
-        setCatInfos(prev => ({ ...prev, [type]: `${data.categories.length} catégorie${data.categories.length > 1 ? 's' : ''} ajoutée${data.categories.length > 1 ? 's' : ''}. ${data.skipped} autre${data.skipped > 1 ? 's' : ''} réservée${data.skipped > 1 ? 's' : ''} au plan Premium.` }));
+        setCatInfos(prev => ({ ...prev, [type]: `${data.categories.length} catégorie${data.categories.length > 1 ? 's' : ''} par défaut ajoutée${data.categories.length > 1 ? 's' : ''}. ${data.skipped} autre${data.skipped > 1 ? 's' : ''} nécessite Premium (catégories illimitées).` }));
       }
       await loadCategories();
     } catch {

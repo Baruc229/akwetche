@@ -285,7 +285,7 @@ export default function DashboardPage() {
 
       {/* Bannière onboarding — solde initial, trésorerie & catégories */}
       {(() => {
-        const needsPersonalBalance = personalSummary && user?.initialBalance === 0 && (totalIncome > 0 || totalExpense > 0);
+        const needsPersonalBalance = user?.initialBalance === 0;
         const needsActivityBalance = commercialMode && user?.initialBalanceActivity === 0 && monthActivity && (monthActivity.income + monthActivity.expense > 0);
         const needsCategories = categories.length === 0;
         const count = (needsPersonalBalance ? 1 : 0) + (needsActivityBalance ? 1 : 0) + (needsCategories ? 1 : 0);
