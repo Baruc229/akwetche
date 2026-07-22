@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFloppyDisk, faEye, faEyeSlash, faDesktop, faLaptop,
   faMobileScreen, faRightFromBracket, faEnvelope,
-  faPaperPlane, faCheck, faXmark, faKeyRound, faLock
+  faPaperPlane, faCheck, faXmark, faKey, faLock
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import SettingsHeader from "@/components/settings/SettingsHeader";
@@ -208,7 +208,7 @@ export default function SecuritePage() {
             {!editingPassword ? (
               <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-                  <FontAwesomeIcon icon={faKeyRound} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
+                  <FontAwesomeIcon icon={faKey} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted mb-1">Mot de passe</p>
