@@ -4,10 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDashboard } from "../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faLock, faUser, faBriefcase, faPiggyBank, faArrowTrendUp, faArrowDown, faTriangleExclamation, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency, toStorageCurrency, toDisplayCurrency } from "@/lib/utils";
+import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faUser, faBriefcase, faPiggyBank, faTriangleExclamation, faChevronDown, faTags } from '@fortawesome/free-solid-svg-icons';
+import { formatCurrency, toStorageCurrency } from "@/lib/utils";
 import { detectCurrency } from "@/lib/currency";
-import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
 import OnboardingModal from "@/components/OnboardingModal";
 import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
@@ -62,7 +61,6 @@ export default function DashboardPage() {
   } | null>(null);
   const [balanceHistory, setBalanceHistory] = useState<{ date: string; balance: number }[]>([]);
 
-  const [subLoading, setSubLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
 
@@ -99,6 +97,7 @@ export default function DashboardPage() {
     }
   }
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     document.title = "Dashboard — Akwetche";
     loadData();
@@ -109,6 +108,7 @@ export default function DashboardPage() {
       setShowOnboarding(true);
     }
   }, [loading, user, categories]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function completeOnboarding() {
     setShowOnboarding(false);
@@ -257,28 +257,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Bannière configuration catégories */}
-      {categories.length === 0 && (
-        <div className="alert-inline warn">
-          <div className="w-10 h-10 rounded-xl bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
-            <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-ink">Configurez vos catégories</p>
-            <p className="text-sm text-muted mt-1">
-              Avant d&apos;ajouter des transactions, créez des catégories de dépenses et revenus.
-            </p>
-            <a
-              href="/dashboard/categories"
-              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
-            >
-              Configurer mes catégories
-              <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* Bannière plan gratuit */}
       {limits && !limits.isPremium && user?.role === "user" && (
         <div className="card">
@@ -305,11 +283,12 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Bannière onboarding — solde initial & trésorerie */}
+      {/* Bannière onboarding — solde initial, trésorerie & catégories */}
       {(() => {
         const needsPersonalBalance = personalSummary && user?.initialBalance === 0 && (totalIncome > 0 || totalExpense > 0);
         const needsActivityBalance = commercialMode && user?.initialBalanceActivity === 0 && monthActivity && (monthActivity.income + monthActivity.expense > 0);
-        const count = (needsPersonalBalance ? 1 : 0) + (needsActivityBalance ? 1 : 0);
+        const needsCategories = categories.length === 0;
+        const count = (needsPersonalBalance ? 1 : 0) + (needsActivityBalance ? 1 : 0) + (needsCategories ? 1 : 0);
         if (count === 0) return null;
         return (
           <div className="card">
@@ -325,6 +304,17 @@ export default function DashboardPage() {
             </button>
             {onboardingExpanded && (
               <div className="mt-3 pt-3 space-y-3" style={{borderTop:'1px solid var(--color-border)'}}>
+                {needsCategories && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
+                      <FontAwesomeIcon icon={faTags} className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-ink">Configurer vos catégories</p>
+                      <p className="text-xs text-muted mt-0.5">Créez des catégories de dépenses et revenus avant d&apos;ajouter des transactions.</p>
+                    </div>
+                  </div>
+                )}
                 {needsPersonalBalance && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-[var(--color-warn-bg)] flex items-center justify-center shrink-0">
@@ -347,10 +337,20 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )}
-                <a href="/dashboard/settings/profil" className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity">
-                  Modifier mon solde de départ
-                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
-                </a>
+                <div className="flex items-center gap-3">
+                  {needsCategories && (
+                    <a href="/dashboard/categories" className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity">
+                      Configurer mes catégories
+                      <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+                    </a>
+                  )}
+                  {(needsPersonalBalance || needsActivityBalance) && (
+                    <a href="/dashboard/settings/profil" className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity">
+                      Modifier mon solde de départ
+                      <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -575,6 +575,7 @@ export default function DashboardPage() {
                         {monthPersonal!.topCategories && monthPersonal!.topCategories.length > 0 && (
                           <div className="flex flex-wrap items-center gap-1.5 mt-2">
                             <span className="text-xs text-muted">Top catégories :</span>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                             {monthPersonal!.topCategories.slice(0, 3).map((c: any) => (
                               <span key={c.name} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-ink font-medium" style={{ background: 'var(--color-surface-raised)' }}>
                                 {c.name} <span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
@@ -606,6 +607,7 @@ export default function DashboardPage() {
                         {monthActivity!.topCategories && monthActivity!.topCategories.length > 0 && (
                           <div className="flex flex-wrap items-center gap-1.5 mt-2">
                             <span className="text-xs text-muted">Top catégories :</span>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                             {monthActivity!.topCategories.slice(0, 3).map((c: any) => (
                               <span key={c.name} className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-ink font-medium" style={{ background: 'var(--color-surface-raised)' }}>
                                 {c.name} <span className="text-muted font-normal">{formatCurrency(Math.abs(c.amount))}</span>
@@ -680,14 +682,21 @@ export default function DashboardPage() {
               <CustomSelect
                 options={(() => {
                   const isPrem = limits?.isPremium || false;
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const ofType = categories.filter((c: any) => c.type === newTx.type).sort((a: any, b: any) => a.id - b.id);
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   if (isPrem) return ofType.map((c: any) => ({ value: String(c.id), label: c.name }));
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const active = ofType.filter((c: any) => activeCategoryIds.includes(c.id));
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const locked = ofType.filter((c: any) => !activeCategoryIds.includes(c.id));
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   if (locked.length === 0) return active.map((c: any) => ({ value: String(c.id), label: c.name }));
                   return [
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ...active.map((c: any) => ({ value: String(c.id), label: c.name })),
                     { value: "__sep__", label: "Nécessitent Premium", separator: true },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ...locked.map((c: any) => ({ value: String(c.id), label: c.name, disabled: true, disabledReason: "Premium requis" })),
                   ];
                 })()}
