@@ -21,7 +21,7 @@ model User {
   baseCurrency    String   @default("XOF") // devise figée à l'inscription
   countryCode     String?                  // BJ, TG, BF, CI, FR, BE
   phone           String?                  // numéro de téléphone
-  avatarUrl       String?                  // base64 image (256x256 WebP)
+  avatarUrl       String?  @db.Text          // base64 image (256x256 WebP)
   emailVerified DateTime?
   loginAttempts Int      @default(0)
   lockedUntil   DateTime?
@@ -45,6 +45,7 @@ model User {
   recurringTemplates       RecurringTemplate[]
   budgets                  Budget[]
   adminNotificationPref    String                      @default("instant") // "instant" ou "digest"
+  notificationPrefs        Json                        @default("{}")
   onboardingCompleted      Boolean                     @default(false)
 
   tontines                      Tontine[]

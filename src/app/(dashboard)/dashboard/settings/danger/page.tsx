@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faRotateLeft, faLock, faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import ConfirmModal from "@/components/ConfirmModal";
+import SettingsHeader from "@/components/settings/SettingsHeader";
 
 export default function DangerPage() {
   const router = useRouter();
@@ -50,10 +51,7 @@ export default function DangerPage() {
 
   return (
     <div className="max-w-lg mx-auto pb-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Danger</h1>
-        <p className="text-muted text-sm mt-0.5">Actions sensibles sur votre compte</p>
-      </div>
+      <SettingsHeader title="Danger" subtitle="Actions sensibles sur votre compte" />
 
       {loadError && (
         <div className="alert-inline neg mb-4">

@@ -7,9 +7,10 @@ import { useDashboard } from "../../../layout";
 import { resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, toDisplayCurrency, toStorageCurrency, roundByCurrency, type CurrencyCode } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
+import SettingsHeader from "@/components/settings/SettingsHeader";
 
 export default function ProfilPage() {
-  const { user, setUser, currency: activeCurrency, setCurrency: setDashboardCurrency } = useDashboard();
+  const { user, setUser, setCurrency: setDashboardCurrency } = useDashboard();
   const [name, setName] = useState(user?.name || "");
   const [currency, setCurrency] = useState(user?.currency || getCountryByCode(user?.countryCode || "")?.currency || "XOF");
   const [initialBalance, setInitialBalance] = useState(() => {
@@ -86,7 +87,7 @@ export default function ProfilPage() {
       }
       // Update local user state
       setUser({ ...user!, avatarUrl: data.avatarUrl });
-    } catch (e) {
+    } catch {
       setAvatarError("Erreur réseau, réessayez");
     } finally {
       setAvatarLoading(false);
@@ -175,10 +176,7 @@ export default function ProfilPage() {
 
   return (
     <div className="max-w-lg mx-auto pb-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Informations sur le compte</h1>
-        <p className="text-muted text-sm mt-0.5">Nom, soldes initiaux, pays, devise</p>
-      </div>
+      <SettingsHeader title="Informations sur le compte" subtitle="Nom, soldes initiaux, pays, devise" />
 
       <div className="card">
         {/* Avatar */}

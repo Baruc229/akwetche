@@ -266,13 +266,13 @@ export default function DashboardPage() {
           <div className="flex-1">
             <p className="text-sm font-semibold text-ink">Configurez vos catégories</p>
             <p className="text-sm text-muted mt-1">
-              Avant d&apos;ajouter des transactions, créez des catégories de dépenses et revenus dans les paramètres.
+              Avant d&apos;ajouter des transactions, créez des catégories de dépenses et revenus.
             </p>
             <a
-              href="/dashboard/settings"
+              href="/dashboard/categories"
               className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity"
             >
-              Aller aux paramètres
+              Configurer mes catégories
               <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
             </a>
           </div>
@@ -347,8 +347,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )}
-                <a href="/dashboard/settings" className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity">
-                  Aller aux paramètres
+                <a href="/dashboard/settings/profil" className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-gold)] hover:opacity-80 transition-opacity">
+                  Modifier mon solde de départ
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4" />
                 </a>
               </div>

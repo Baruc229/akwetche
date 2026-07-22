@@ -6,7 +6,7 @@ import { ALLOWED_COUNTRY_CODES, getCurrencyForCountry, getPhonePrefix, validateP
 export async function PUT(req: NextRequest) {
   try {
     const userId = await requireAuth();
-    const { name, initialBalance, initialBalanceActivity, currency, adminNotificationPref, phone, countryCode } = await req.json();
+    const { name, initialBalance, initialBalanceActivity, currency, adminNotificationPref, phone, countryCode, onboardingCompleted, avatarUrl, notificationPrefs } = await req.json();
 
     const current = await prisma.user.findUnique({ where: { id: userId } });
     if (!current) return badRequest("Utilisateur introuvable");
@@ -21,6 +21,9 @@ export async function PUT(req: NextRequest) {
     if (initialBalance !== undefined) updateData.initialBalance = parseFloat(initialBalance);
     if (initialBalanceActivity !== undefined) updateData.initialBalanceActivity = parseFloat(initialBalanceActivity);
     if (currency !== undefined) updateData.currency = currency || "XOF";
+    if (onboardingCompleted !== undefined) updateData.onboardingCompleted = onboardingCompleted;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (notificationPrefs !== undefined) updateData.notificationPrefs = notificationPrefs;
     if (phone !== undefined) {
       if (phone && current.countryCode && !validatePhone(current.countryCode, phone)) {
         const phoneErr = validatePhoneMessage(current.countryCode, phone);
@@ -64,6 +67,8 @@ export async function PUT(req: NextRequest) {
         currency: currencyVal, baseCurrency: user.baseCurrency || "XOF",
         role: user.role, adminNotificationPref: user.adminNotificationPref,
         countryCode: user.countryCode, phone: user.phone,
+        avatarUrl: user.avatarUrl, onboardingCompleted: user.onboardingCompleted,
+        notificationPrefs: user.notificationPrefs,
       },
     });
   } catch {

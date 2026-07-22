@@ -3,16 +3,14 @@
 import { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGlobeAmericas, faShield, faLock, faCircleCheck, faUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import SettingsHeader from "@/components/settings/SettingsHeader";
 
 export default function AboutPage() {
   useEffect(() => { document.title = "À propos — Akwetche"; }, []);
 
   return (
     <div className="max-w-lg mx-auto pb-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">À propos</h1>
-        <p className="text-muted text-sm mt-0.5">Informations sur l&apos;application</p>
-      </div>
+      <SettingsHeader title="À propos" subtitle="Informations sur l'application" />
 
       <div className="card space-y-4">
         <div className="flex items-center gap-3">

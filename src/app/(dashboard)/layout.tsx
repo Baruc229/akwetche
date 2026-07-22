@@ -30,6 +30,7 @@ type UserData = {
   activityActivated?: boolean;
   emailVerified?: string | null;
   adminNotificationPref?: string;
+  notificationPrefs?: Record<string, { email?: boolean; inApp?: boolean }>;
   onboardingCompleted?: boolean;
   subscription?: { status: string; amount: number; currency: string; endDate: string; daysRemaining?: number; label?: string; variant?: string } | null;
 };

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCrown, faShield, faCheck, faLock, faUpRightFromSquare, faTriangleExclamation, faCircleCheck, faXmark, faStar } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
-import { formatCurrency } from "@/lib/utils";
+import SettingsHeader from "@/components/settings/SettingsHeader";
 
 const ALL_FEATURES = [
   { key: "transactions", label: "Transactions illimitées", free: false },
@@ -24,8 +24,22 @@ export default function AbonnementPage() {
   const [subError, setSubError] = useState("");
   const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
   const [paymentType, setPaymentType] = useState<"success" | "error" | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const nowRef = useRef(Date.now());
 
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
+
+  const monthlyDisplay = activeCurrency === "XOF" ? "5 000" : "7,99";
+  const yearlyDisplay = activeCurrency === "XOF" ? "50 000" : "79,99";
+  const yearlySavings = activeCurrency === "XOF" ? "~2 mois offerts" : "Économisez 2 mois";
+
+  async function loadSubscription() {
+    try {
+      const res = await fetch("/api/payments/manage-subscription");
+      const data = await res.json();
+      setSubscription(data.subscription);
+    } catch {}
+  }
 
   useEffect(() => {
     document.title = "Abonnement — Akwetche";
@@ -48,26 +62,23 @@ export default function AbonnementPage() {
       window.history.replaceState({}, "", url.toString());
       setTimeout(() => { setPaymentMessage(null); setPaymentType(null); }, 6000);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function loadSubscription() {
+  async function handleSubscribe(period: "monthly" | "yearly") {
+    setSubLoading(true);
+    setSubError("");
     try {
-      const res = await fetch("/api/payments/manage-subscription");
-      const data = await res.json();
-      setSubscription(data.subscription);
-    } catch {}
-  }
-
-  async function handleSubscribe() {
-    router.push("/payment");
+      router.push(`/payment?period=${period}`);
+    } catch {
+      setSubError("Erreur de redirection. Réessayez.");
+      setSubLoading(false);
+    }
   }
 
   return (
     <div className="max-w-lg mx-auto pb-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Abonnement</h1>
-        <p className="text-muted text-sm mt-0.5">Gérez votre plan et vos fonctionnalités</p>
-      </div>
+      <SettingsHeader title="Abonnement" subtitle="Gérez votre plan et vos fonctionnalités" />
 
       {isAdmin ? (
         <div className="card-hero">
@@ -99,64 +110,87 @@ export default function AbonnementPage() {
       ) : (() => {
         const isActive = subscription?.status === "active" || user?.plan === "premium";
         const endDate = subscription?.endDate ? new Date(subscription.endDate) : null;
-        const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : null;
+        const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - nowRef.current) / (1000 * 60 * 60 * 24))) : null;
         const isExpiringSoon = isActive && daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0;
         const isExpired = subscription?.status === "expired" || (daysRemaining !== null && daysRemaining <= 0);
         const isCancelled = subscription?.status === "cancelled" && isActive;
 
         if (isActive && !isExpired) {
           return (
-            <div className="card" style={{ border: isExpiringSoon ? "2px solid var(--color-warn, #F59E0B)" : "2px solid var(--color-gold, #C9A84C)", background: isExpiringSoon ? "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)" : "linear-gradient(135deg, #FFFBEB 0%, #FEF9C3 100%)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: isExpiringSoon ? "rgba(245,158,11,0.15)" : "rgba(201,168,76,0.2)" }}>
-                    <FontAwesomeIcon icon={faCrown} className="w-6 h-6" style={{ color: isExpiringSoon ? "var(--color-warn, #D97706)" : "var(--color-gold, #B8860B)" }} />
+            <div className="space-y-4">
+              {/* Current plan card */}
+              <div className="card" style={{ border: isExpiringSoon ? "2px solid var(--color-warn, #F59E0B)" : "2px solid var(--color-gold, #C9A84C)", background: isExpiringSoon ? "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)" : "linear-gradient(135deg, #FFFBEB 0%, #FEF9C3 100%)" }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: isExpiringSoon ? "rgba(245,158,11,0.15)" : "rgba(201,168,76,0.2)" }}>
+                      <FontAwesomeIcon icon={faCrown} className="w-6 h-6" style={{ color: isExpiringSoon ? "var(--color-warn, #D97706)" : "var(--color-gold, #B8860B)" }} />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-ink">Premium</p>
+                      <p className="text-sm text-muted">Toutes les fonctionnalités débloquées</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-lg font-bold text-ink">Premium</p>
-                    <p className="text-sm text-muted">Toutes les fonctionnalités débloquées</p>
-                  </div>
+                  <span className="badge" style={isExpiringSoon ? { background: "rgba(245,158,11,0.15)", color: "#92400E" } : isCancelled ? { background: "rgba(107,114,128,0.12)", color: "#374151" } : { background: "rgba(34,197,94,0.12)", color: "#166534" }}>
+                    {isCancelled ? "Annulé" : isExpiringSoon ? "Expire bientôt" : "Actif"}
+                  </span>
                 </div>
-                <span className="badge" style={isExpiringSoon ? { background: "rgba(245,158,11,0.15)", color: "#92400E" } : isCancelled ? { background: "rgba(107,114,128,0.12)", color: "#374151" } : { background: "rgba(34,197,94,0.12)", color: "#166534" }}>
-                  {isCancelled ? "Annulé" : isExpiringSoon ? "Expire bientôt" : "Actif"}
-                </span>
-              </div>
 
-              {isExpiringSoon && (
-                <div className="flex items-center gap-3 p-3 rounded-xl mb-4" style={{ background: "rgba(245,158,11,0.12)" }}>
-                  <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0" style={{ color: "var(--color-warn, #D97706)" }} />
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "#92400E" }}>Votre abonnement expire dans {daysRemaining} jour{daysRemaining! > 1 ? "s" : ""}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#A16207" }}>Renouvelez pour continuer à profiter de toutes les fonctionnalités.</p>
+                {isExpiringSoon && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl mb-4" style={{ background: "rgba(245,158,11,0.12)" }}>
+                    <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0" style={{ color: "var(--color-warn, #D97706)" }} />
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: "#92400E" }}>Votre abonnement expire dans {daysRemaining} jour{daysRemaining! > 1 ? "s" : ""}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#A16207" }}>Renouvelez pour continuer à profiter de toutes les fonctionnalités.</p>
+                    </div>
                   </div>
+                )}
+
+                <p className="text-sm text-muted mb-4">
+                  {subscription && `${activeCurrency === "XOF" ? "5 000 FCFA" : "7,99 €"} / mois`}
+                  {endDate && ` · Renouvellement le ${endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
+                  {isCancelled && ` · Accès maintenu jusqu'au ${endDate?.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {ALL_FEATURES.map((f) => (
+                    <div key={f.key} className="flex items-center gap-2 text-sm text-ink">
+                      <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "#16A34A" }} />
+                      {f.label}
+                    </div>
+                  ))}
                 </div>
-              )}
 
-              <p className="text-sm text-muted mb-4">
-                {subscription && `${activeCurrency === "XOF" ? "5 000 FCFA" : "7,99 €"} / mois`}
-                {endDate && ` · Renouvellement le ${endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
-                {isCancelled && ` · Accès maintenu jusqu'au ${endDate?.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {ALL_FEATURES.map((f) => (
-                  <div key={f.key} className="flex items-center gap-2 text-sm text-ink">
-                    <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "#16A34A" }} />
-                    {f.label}
-                  </div>
-                ))}
+                <button onClick={() => handleSubscribe("monthly")} disabled={subLoading} className="btn-primary" style={isExpiringSoon ? { background: "var(--color-warn, #D97706)" } : {}}>
+                  <FontAwesomeIcon icon={faUpRightFromSquare} className="w-4 h-4" />
+                  {subLoading ? "Chargement..." : isExpiringSoon ? "Renouveler maintenant" : "Gérer mon abonnement"}
+                </button>
               </div>
-
-              <button onClick={handleSubscribe} disabled={subLoading} className="btn-primary" style={isExpiringSoon ? { background: "var(--color-warn, #D97706)" } : {}}>
-                <FontAwesomeIcon icon={faUpRightFromSquare} className="w-4 h-4" />
-                {subLoading ? "Chargement..." : isExpiringSoon ? "Renouveler maintenant" : "Gérer mon abonnement"}
-              </button>
             </div>
           );
         }
 
         return (
           <div className="space-y-4">
+            {/* Billing period toggle */}
+            <div className="flex items-center justify-center gap-1 p-1 rounded-xl" style={{ background: "var(--color-surface-raised)" }}>
+              <button
+                onClick={() => setBillingPeriod("monthly")}
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
+                style={{ background: billingPeriod === "monthly" ? "white" : "transparent", color: billingPeriod === "monthly" ? "var(--color-ink)" : "var(--color-muted)", boxShadow: billingPeriod === "monthly" ? "0 1px 3px rgba(0,0,0,0.1)" : "none" }}
+              >
+                Mensuel
+              </button>
+              <button
+                onClick={() => setBillingPeriod("yearly")}
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
+                style={{ background: billingPeriod === "yearly" ? "white" : "transparent", color: billingPeriod === "yearly" ? "var(--color-ink)" : "var(--color-muted)", boxShadow: billingPeriod === "yearly" ? "0 1px 3px rgba(0,0,0,0.1)" : "none" }}
+              >
+                Annuel
+                <span className="ml-1 text-xs font-semibold" style={{ color: "#16A34A" }}>-17%</span>
+              </button>
+            </div>
+
+            {/* Free plan */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -168,7 +202,7 @@ export default function AbonnementPage() {
                     <p className="text-sm text-muted">Fonctionnalités de base</p>
                   </div>
                 </div>
-                <span className="badge" style={{ background: "var(--color-surface-raised)", color: "var(--color-muted)" }}>Actif</span>
+                <span className="badge" style={{ background: "var(--color-surface-raised)", color: "var(--color-muted)" }}>Actuel</span>
               </div>
 
               <div className="space-y-2.5 mb-5">
@@ -188,24 +222,35 @@ export default function AbonnementPage() {
                   </div>
                 ))}
               </div>
-
-              <button onClick={handleSubscribe} disabled={subLoading} className="btn-primary w-full">
-                <FontAwesomeIcon icon={faCrown} className="w-4 h-4" />
-                {subLoading ? "Chargement..." : "Passer au Premium →"}
-              </button>
-              {subError && <p className="mt-2 text-sm text-neg">{subError}</p>}
             </div>
 
+            {/* Premium plan */}
             <div className="card" style={{ border: "2px solid var(--color-gold, #C9A84C)" }}>
-              <p className="text-sm font-semibold text-ink mb-3">Premium</p>
-              <div className="flex items-baseline gap-1 mb-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(201,168,76,0.2)" }}>
+                  <FontAwesomeIcon icon={faCrown} className="w-6 h-6" style={{ color: "var(--color-gold, #B8860B)" }} />
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-ink">Premium</p>
+                  <p className="text-sm text-muted">Tout débloqué</p>
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-3xl font-bold" style={{ color: "var(--color-gold, #B8860B)", fontFamily: "var(--font-dm-sans)" }}>
-                  {activeCurrency === "XOF" ? "5 000" : "7,99"}
+                  {billingPeriod === "monthly" ? monthlyDisplay : yearlyDisplay}
                 </span>
                 <span className="text-sm font-medium text-muted">
-                  {activeCurrency === "XOF" ? "FCFA" : "€"}/mois
+                  {activeCurrency === "XOF" ? "FCFA" : "€"}/{billingPeriod === "monthly" ? "mois" : "an"}
                 </span>
               </div>
+              {billingPeriod === "yearly" && (
+                <p className="text-xs font-medium mb-4" style={{ color: "#16A34A" }}>
+                  {yearlySavings}
+                </p>
+              )}
+              {billingPeriod === "monthly" && <div className="mb-4" />}
+
               <div className="space-y-2.5 mb-5">
                 {ALL_FEATURES.filter(f => !f.free).map((f) => (
                   <div key={f.key} className="flex items-center gap-2.5 text-sm">
@@ -214,9 +259,28 @@ export default function AbonnementPage() {
                   </div>
                 ))}
               </div>
-              <button onClick={handleSubscribe} disabled={subLoading} className="w-full py-3 rounded-xl text-sm font-semibold transition-all text-white" style={{ background: "linear-gradient(135deg, var(--color-gold, #C9A84C), #D4A843)" }}>
-                {subLoading ? "Chargement..." : "Commencer maintenant"}
+
+              <button
+                onClick={() => handleSubscribe(billingPeriod)}
+                disabled={subLoading}
+                className="w-full py-3 rounded-xl text-sm font-semibold transition-all text-white"
+                style={{ background: "linear-gradient(135deg, var(--color-gold, #C9A84C), #D4A843)" }}
+              >
+                {subLoading ? "Chargement..." : `Passer au Premium ${billingPeriod === "monthly" ? "mensuel" : "annuel"}`}
               </button>
+              {subError && <p className="mt-2 text-sm text-neg">{subError}</p>}
+            </div>
+
+            {/* Trust signals */}
+            <div className="flex items-center justify-center gap-6 py-3">
+              <div className="flex items-center gap-1.5 text-xs text-muted">
+                <FontAwesomeIcon icon={faShield} className="w-3.5 h-3.5" />
+                Paiement sécurisé
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted">
+                <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+                Annulation libre
+              </div>
             </div>
           </div>
         );

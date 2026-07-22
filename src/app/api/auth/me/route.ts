@@ -16,7 +16,7 @@ export async function GET() {
       countryCode: true, phone: true, avatarUrl: true,
       emailVerified: true, plan: true, status: true,
       activityActivated: true,
-      adminNotificationPref: true, onboardingCompleted: true,
+      adminNotificationPref: true, onboardingCompleted: true, notificationPrefs: true,
       subscription: { select: { status: true, amount: true, currency: true, endDate: true } },
     },
   });

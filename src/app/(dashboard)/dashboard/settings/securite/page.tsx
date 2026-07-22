@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFloppyDisk, faEye, faEyeSlash, faDesktop, faLaptop, faMobileScreen, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-import { useDashboard } from "../../../layout";
+import SettingsHeader from "@/components/settings/SettingsHeader";
 
 export default function SecuritePage() {
-  const { user } = useDashboard();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,8 +18,6 @@ export default function SecuritePage() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [disconnectAllLoading, setDisconnectAllLoading] = useState(false);
 
-  useEffect(() => { document.title = "Sécurité — Akwetche"; loadSessions(); }, []);
-
   async function loadSessions() {
     setSessionsLoading(true);
     try {
@@ -28,6 +25,8 @@ export default function SecuritePage() {
       if (res.ok) { const data = await res.json(); setSessions(data.sessions || []); }
     } catch {} finally { setSessionsLoading(false); }
   }
+
+  useEffect(() => { document.title = "Sécurité — Akwetche"; loadSessions(); }, []);
 
   async function handleDisconnectSession(id: number) {
     try {
@@ -70,10 +69,7 @@ export default function SecuritePage() {
 
   return (
     <div className="max-w-lg mx-auto pb-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">Connexion et sécurité</h1>
-        <p className="text-muted text-sm mt-0.5">Mot de passe et sessions actives</p>
-      </div>
+      <SettingsHeader title="Connexion et sécurité" subtitle="Mot de passe et sessions actives" />
 
       {/* Mot de passe */}
       <p className="text-label mb-3">Mot de passe</p>
