@@ -104,6 +104,8 @@ export default function SettingsPage() {
   const [sessions, setSessions] = useState<{ id: number; ipAddress: string; userAgent: string; lastActive: string; createdAt: string; isCurrent: boolean }[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [disconnectAllLoading, setDisconnectAllLoading] = useState(false);
+  const [mobileTabOpen, setMobileTabOpen] = useState(false);
+  const tabDropdownRef = useRef<HTMLDivElement>(null);
 
  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
  const isPremium = user?.subscription?.status === "active" || isAdmin;
@@ -140,6 +142,14 @@ export default function SettingsPage() {
   useEffect(() => {
     if (settingsTab === "securite") loadSessions();
   }, [settingsTab]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (tabDropdownRef.current && !tabDropdownRef.current.contains(e.target as Node)) setMobileTabOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // Convertir les soldes affichés quand la devise change
   useEffect(() => {
@@ -478,22 +488,34 @@ export default function SettingsPage() {
   </div>
   )}
 
-  {/* Tabs — mobile (vertical list) */}
-  <div className="lg:hidden space-y-0.5 mb-4">
-    {TABS.map(tab => (
-      <button
-        key={tab.key}
-        onClick={() => setSettingsTab(tab.key)}
-        className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
-        style={{
-          background: settingsTab === tab.key ? 'var(--color-brand-subtle)' : 'transparent',
-          color: settingsTab === tab.key ? 'var(--color-brand)' : 'var(--color-muted)',
-          fontWeight: settingsTab === tab.key ? 600 : 500,
-        }}
-      >
-        {tab.label}
-      </button>
-    ))}
+  {/* Tabs — mobile: dropdown selector */}
+  <div className="lg:hidden mb-4 relative" ref={tabDropdownRef}>
+    <button
+      onClick={() => setMobileTabOpen(!mobileTabOpen)}
+      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all"
+      style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-brand)' }}
+    >
+      {TABS.find(t => t.key === settingsTab)?.label || "Menu"}
+      <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 transition-transform" style={{ transform: mobileTabOpen ? 'rotate(180deg)' : 'rotate(0)', color: 'var(--color-muted)' }} />
+    </button>
+    {mobileTabOpen && (
+      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-50 shadow-xl" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => { setSettingsTab(tab.key); setMobileTabOpen(false); }}
+            className="w-full text-left px-4 py-3 text-sm font-medium transition-all"
+            style={{
+              background: settingsTab === tab.key ? 'var(--color-brand-subtle)' : 'transparent',
+              color: settingsTab === tab.key ? 'var(--color-brand)' : 'var(--color-ink)',
+              fontWeight: settingsTab === tab.key ? 600 : 500,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    )}
   </div>
 
   <div className="flex gap-6">
