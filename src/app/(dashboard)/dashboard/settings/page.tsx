@@ -478,24 +478,22 @@ export default function SettingsPage() {
   </div>
   )}
 
-  {/* Tabs — mobile (horizontal scroll) */}
-  <div className="lg:hidden -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 mb-4 overflow-x-auto" style={{scrollbarWidth:'none', WebkitOverflowScrolling:'touch'}}>
-    <div className="flex gap-1.5 min-w-max pb-1">
+  {/* Tabs — mobile (vertical list) */}
+  <div className="lg:hidden space-y-0.5 mb-4">
     {TABS.map(tab => (
       <button
         key={tab.key}
         onClick={() => setSettingsTab(tab.key)}
-        className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all shrink-0"
+        className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
         style={{
-          background: settingsTab === tab.key ? 'var(--color-brand)' : 'var(--color-surface)',
-          color: settingsTab === tab.key ? 'white' : 'var(--color-muted)',
-          border: settingsTab === tab.key ? 'none' : '1px solid var(--color-border)',
+          background: settingsTab === tab.key ? 'var(--color-brand-subtle)' : 'transparent',
+          color: settingsTab === tab.key ? 'var(--color-brand)' : 'var(--color-muted)',
+          fontWeight: settingsTab === tab.key ? 600 : 500,
         }}
       >
         {tab.label}
       </button>
     ))}
-    </div>
   </div>
 
   <div className="flex gap-6">
