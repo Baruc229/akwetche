@@ -133,18 +133,18 @@ export default function SecuritePage() {
     <div className="max-w-lg mx-auto pb-8">
       <SettingsHeader title="Connexion et sécurité" subtitle="Email, mot de passe et sessions" />
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* ─── EMAIL ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#94A3B8" }}>Email</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Email</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             {!editingEmail ? (
-              <div className="flex items-center gap-4 px-5 py-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
+              <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
                   <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted mb-0.5">Adresse email</p>
+                  <p className="text-xs text-muted mb-1">Adresse email</p>
                   <p className="text-sm font-medium text-ink truncate">{user?.email}</p>
                 </div>
                 <button
@@ -203,15 +203,15 @@ export default function SecuritePage() {
 
         {/* ─── MOT DE PASSE ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#94A3B8" }}>Mot de passe</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Mot de passe</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             {!editingPassword ? (
-              <div className="flex items-center gap-4 px-5 py-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
+              <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
                   <FontAwesomeIcon icon={faKeyRound} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted mb-0.5">Mot de passe</p>
+                  <p className="text-xs text-muted mb-1">Mot de passe</p>
                   <p className="text-sm font-medium text-ink">••••••••••</p>
                 </div>
                 <button
@@ -270,9 +270,9 @@ export default function SecuritePage() {
 
         {/* ─── RÉINITIALISATION ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#94A3B8" }}>Réinitialisation</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Réinitialisation</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
-            <div className="flex items-center gap-4 px-5 py-4">
+            <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-gold-light, #FEF3C7)" }}>
                 <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "#B8860B" }} />
               </div>
@@ -290,7 +290,7 @@ export default function SecuritePage() {
               </button>
             </div>
             {resetMessage && (
-              <div className="px-5 pb-4">
+              <div className="px-5 sm:px-6 pb-5">
                 <p className="text-sm text-pos flex items-center gap-1.5"><FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />{resetMessage}</p>
               </div>
             )}
@@ -299,12 +299,12 @@ export default function SecuritePage() {
 
         {/* ─── SESSIONS ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#94A3B8" }}>Sessions actives</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Sessions actives</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
-            <div className="px-5 pt-4 pb-2">
+            <div className="px-5 sm:px-6 pt-5 pb-2">
               <p className="text-xs text-muted">Appareils connectés à votre compte.</p>
             </div>
-            <div className="px-4 pb-4 space-y-2">
+            <div className="px-4 sm:px-5 pb-5 space-y-3">
               {sessionsLoading ? (
                 <>
                   <div className="skeleton h-16 w-full rounded-xl" />
@@ -328,7 +328,7 @@ export default function SecuritePage() {
                     return `Il y a ${Math.floor(diff / 86400)} j`;
                   })();
                   return (
-                    <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: s.isCurrent ? "var(--color-brand-subtle)" : "var(--color-surface-raised)" }}>
+                    <div key={s.id} className="flex items-center gap-3 p-3.5 rounded-xl" style={{ background: s.isCurrent ? "var(--color-brand-subtle)" : "var(--color-surface-raised)" }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: s.isCurrent ? "var(--color-brand)" : "var(--color-border)", color: s.isCurrent ? "white" : "var(--color-muted)" }}>
                         <FontAwesomeIcon icon={deviceIcon} className="w-5 h-5" />
                       </div>
@@ -358,7 +358,7 @@ export default function SecuritePage() {
               )}
             </div>
             {sessions.filter(s => !s.isCurrent).length > 0 && (
-              <div className="px-5 pb-4">
+              <div className="px-5 sm:px-6 pb-5">
                 <button onClick={handleDisconnectAll} disabled={disconnectAllLoading} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[var(--color-neg)] transition-all hover:bg-[var(--color-neg-bg)]" style={{ color: "var(--color-neg)" }}>
                   {disconnectAllLoading ? "Déconnexion..." : "Déconnecter tous les autres appareils"}
                 </button>

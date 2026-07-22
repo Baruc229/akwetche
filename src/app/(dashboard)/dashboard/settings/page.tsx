@@ -32,16 +32,31 @@ export default function ComptePage() {
 
   const isPremium = planLabel === "Premium" || planLabel === "Admin";
 
-  const phoneDisplay = (() => {
-    if (!user?.phone) return "Non renseigné";
-    return user.phone;
-  })();
+  const phoneDisplay = user?.phone || "Non renseigné";
 
   const currencyDisplay = user?.currency === "EUR" ? "Euro (EUR)" : "CFA (FCFA)";
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
+  }
+
+  function FieldRow({ icon, label, value, href }: { icon: typeof faUser; label: string; value: string; href: string }) {
+    return (
+      <Link
+        href={href}
+        className="flex items-center gap-5 px-5 sm:px-6 py-5 transition-colors hover:bg-[var(--color-brand-subtle)]"
+      >
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
+          <FontAwesomeIcon icon={icon} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-muted mb-1">{label}</p>
+          <p className="text-sm font-medium text-ink truncate">{value}</p>
+        </div>
+        <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
+      </Link>
+    );
   }
 
   return (
@@ -64,14 +79,12 @@ export default function ComptePage() {
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shrink-0"
               style={{ background: "#1B3A6B", border: "3px solid #C9A84C" }}
             >
-              <span className="text-xl sm:text-2xl font-bold" style={{ color: "#F5A623" }}>
-                {initials}
-              </span>
+              <span className="text-xl sm:text-2xl font-bold" style={{ color: "#F5A623" }}>{initials}</span>
             </div>
           )}
           <div className="flex-1 min-w-0">
             <p className="text-lg sm:text-xl font-bold text-white truncate">{user?.name}</p>
-            <p className="text-xs sm:text-sm truncate mt-0.5" style={{ color: "#94A3B8" }}>{user?.email}</p>
+            <p className="text-xs sm:text-sm truncate mt-1" style={{ color: "#94A3B8" }}>{user?.email}</p>
           </div>
         </div>
         {isPremium && (
@@ -84,133 +97,81 @@ export default function ComptePage() {
         )}
       </div>
 
-      {/* Section: Informations personnelles */}
-      <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#94A3B8" }}>
+      {/* ─── INFORMATIONS PERSONNELLES ─── */}
+      <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>
         Informations personnelles
       </p>
 
-      <div className="rounded-2xl overflow-hidden mb-6" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
-        {/* Avatar */}
-        <Link
-          href="/dashboard/settings/profil"
-          className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--color-brand-subtle)]"
-          style={{ borderBottom: "1px solid var(--color-border)" }}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-            <FontAwesomeIcon icon={faCamera} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted mb-1">Photo de profil</p>
-            <p className="text-sm font-medium text-ink truncate">{user?.avatarUrl ? "Photo ajoutée" : "Pas de photo"}</p>
-          </div>
-          <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
-        </Link>
-
-        {/* Nom */}
-        <Link
-          href="/dashboard/settings/profil"
-          className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--color-brand-subtle)]"
-          style={{ borderBottom: "1px solid var(--color-border)" }}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-            <FontAwesomeIcon icon={faUser} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted mb-1">Nom complet</p>
-            <p className="text-sm font-medium text-ink truncate">{user?.name || "Non renseigné"}</p>
-          </div>
-          <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
-        </Link>
-
-        {/* Téléphone */}
-        <Link
-          href="/dashboard/settings/profil"
-          className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--color-brand-subtle)]"
-          style={{ borderBottom: "1px solid var(--color-border)" }}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-            <FontAwesomeIcon icon={faPhone} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted mb-1">Téléphone</p>
-            <p className="text-sm font-medium text-ink truncate">{phoneDisplay}</p>
-          </div>
-          <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
-        </Link>
-
-        {/* Devise */}
-        <Link
-          href="/dashboard/settings/profil"
-          className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--color-brand-subtle)]"
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-            <FontAwesomeIcon icon={faMoneyBill} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted mb-1">Devise</p>
-            <p className="text-sm font-medium text-ink">{currencyDisplay}</p>
-          </div>
-          <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
-        </Link>
+      <div className="space-y-3 mb-8">
+        <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <FieldRow icon={faCamera} label="Photo de profil" value={user?.avatarUrl ? "Photo ajoutée" : "Pas de photo"} href="/dashboard/settings/profil" />
+        </div>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <FieldRow icon={faUser} label="Nom complet" value={user?.name || "Non renseigné"} href="/dashboard/settings/profil" />
+        </div>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <FieldRow icon={faPhone} label="Téléphone" value={phoneDisplay} href="/dashboard/settings/profil" />
+        </div>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <FieldRow icon={faMoneyBill} label="Devise" value={currencyDisplay} href="/dashboard/settings/profil" />
+        </div>
       </div>
 
-      {/* Section: Paramètres */}
-      <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#94A3B8" }}>
+      {/* ─── PARAMÈTRES ─── */}
+      <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>
         Paramètres
       </p>
 
-      <div className="rounded-2xl overflow-hidden mb-6" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+      <div className="space-y-3 mb-8">
         {[
           { label: "Connexion et sécurité", desc: "Email, mot de passe, sessions", icon: faShield, href: "/dashboard/settings/securite" },
           { label: "Notifications", desc: "Préférences par canal", icon: faBell, href: "/dashboard/settings/notifications" },
           { label: "Abonnement", desc: "Gérer votre plan", icon: faCrown, href: "/dashboard/settings/abonnement" },
           { label: "À propos", desc: "Version, liens utiles", icon: faCircleInfo, href: "/dashboard/settings/about" },
-        ].map((item, i, arr) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[var(--color-brand-subtle)]"
-            style={i < arr.length - 1 ? { borderBottom: "1px solid var(--color-border)" } : {}}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-              <FontAwesomeIcon icon={item.icon} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-ink">{item.label}</p>
-              <p className="text-xs mt-0.5 text-muted">{item.desc}</p>
-            </div>
-            <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
-          </Link>
+        ].map((item) => (
+          <div key={item.href} className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+            <Link
+              href={item.href}
+              className="flex items-center gap-5 px-5 sm:px-6 py-5 transition-colors hover:bg-[var(--color-brand-subtle)]"
+            >
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
+                <FontAwesomeIcon icon={item.icon} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-ink">{item.label}</p>
+                <p className="text-xs mt-1 text-muted">{item.desc}</p>
+              </div>
+              <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
+            </Link>
+          </div>
         ))}
       </div>
 
-      {/* Carte danger */}
-      <div
-        className="rounded-2xl overflow-hidden mb-6"
-        style={{ background: "var(--color-surface)", border: "2px solid #B94A3E" }}
-      >
+      {/* ─── DANGER ─── */}
+      <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>
+        Zone sensible
+      </p>
+
+      <div className="rounded-2xl overflow-hidden mb-8" style={{ background: "var(--color-surface)", border: "2px solid #B94A3E" }}>
         <Link
           href="/dashboard/settings/danger"
-          className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-red-50 active:bg-red-50"
+          className="flex items-center gap-5 px-5 sm:px-6 py-5 transition-colors hover:bg-red-50 active:bg-red-50"
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "#FEE8E5" }}
-          >
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FEE8E5" }}>
             <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "#B94A3E" }} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold" style={{ color: "#B94A3E" }}>Désactivation et suppression</p>
-            <p className="text-xs mt-0.5 text-muted">Désactiver ou supprimer votre compte</p>
+            <p className="text-xs mt-1 text-muted">Désactiver ou supprimer votre compte</p>
           </div>
           <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 shrink-0" style={{ color: "#94A3B8" }} />
         </Link>
       </div>
 
-      {/* Bouton Déconnexion */}
+      {/* ─── DÉCONNEXION ─── */}
       <button
         onClick={handleLogout}
-        className="w-full py-3.5 rounded-2xl text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+        className="w-full py-4 rounded-2xl text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
         style={{ background: "#1B3A6B", color: "white" }}
       >
         <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
