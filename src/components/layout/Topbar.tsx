@@ -147,8 +147,11 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
           {/* Account avatar */}
           <div className="relative" ref={accountMenuRef}>
             <button onClick={() => setAccountMenuOpen(!accountMenuOpen)} className="flex items-center gap-1.5 px-1 py-1 rounded-lg transition-all hover:bg-[var(--color-brand-subtle)] cursor-pointer">
-              <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold" style={{background:'var(--color-gold)', color:'var(--color-brand)', outline: accountMenuOpen ? '2px solid var(--color-brand)' : '2px solid transparent', outlineOffset: '2px'}}>
-                {avatarInitial}
+              <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold overflow-hidden shrink-0" style={{background: user?.avatarUrl ? 'transparent' : 'var(--color-gold)', color: 'var(--color-brand)', outline: accountMenuOpen ? '2px solid var(--color-brand)' : '2px solid transparent', outlineOffset: '2px'}}>
+                {user?.avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={user.avatarUrl} alt={user?.name || ""} className="w-full h-full object-cover" />
+                ) : avatarInitial}
               </div>
               <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3 text-muted transition-transform" style={{transform: accountMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)'}} />
             </button>
@@ -156,7 +159,12 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
               <div className="account-menu">
                 <div className="p-4" style={{borderBottom:'1px solid var(--color-border)', background:'var(--color-surface-raised)'}}>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>{avatarInitial}</div>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0 overflow-hidden" style={{background: user?.avatarUrl ? 'transparent' : 'var(--color-gold)', color: 'var(--color-brand)'}}>
+                      {user?.avatarUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={user.avatarUrl} alt={user?.name || ""} className="w-full h-full object-cover" />
+                      ) : avatarInitial}
+                    </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate" style={{color:'var(--color-ink)'}}>{user?.name}</p>
                       <p className="text-xs truncate" style={{color:'var(--color-muted)'}}>{user?.email}</p>
