@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
+import { faFloppyDisk, faCamera, faTrash, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import { resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, toDisplayCurrency, toStorageCurrency, roundByCurrency, type CurrencyCode } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -28,6 +28,85 @@ export default function ProfilPage() {
   const [nameError, setNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processAvatar = useCallback(async (file: File) => {
+    setAvatarError("");
+    // Validate format
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setAvatarError("Format non supporté (JPEG, PNG, WebP uniquement)");
+      return;
+    }
+    // Validate size
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError("Image trop lourde (max 2 Mo)");
+      return;
+    }
+    setAvatarLoading(true);
+    try {
+      const bmp = await createImageBitmap(file);
+      // Validate dimensions
+      if (bmp.width < 200 || bmp.height < 200) {
+        setAvatarError("Dimensions trop petites (min 200×200)");
+        setAvatarLoading(false);
+        return;
+      }
+      // Crop centered square + resize 256×256
+      const size = Math.min(bmp.width, bmp.height);
+      const sx = (bmp.width - size) / 2;
+      const sy = (bmp.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(bmp, sx, sy, size, size, 0, 0, 256, 256);
+      bmp.close();
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error("Erreur canvas")), "image/webp", 0.85);
+      });
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      // Upload
+      const res = await fetch("/api/user/avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: base64 }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAvatarError(data.error || "Erreur lors de l'upload");
+        return;
+      }
+      // Update local user state
+      setUser({ ...user!, avatarUrl: data.avatarUrl });
+    } catch (e) {
+      setAvatarError("Erreur réseau, réessayez");
+    } finally {
+      setAvatarLoading(false);
+    }
+  }, [user, setUser]);
+
+  async function handleDeleteAvatar() {
+    setAvatarLoading(true);
+    setAvatarError("");
+    try {
+      const res = await fetch("/api/user/avatar", { method: "DELETE" });
+      if (res.ok) {
+        setUser({ ...user!, avatarUrl: null });
+      }
+    } catch {
+      setAvatarError("Erreur lors de la suppression");
+    } finally {
+      setAvatarLoading(false);
+    }
+  }
 
   useEffect(() => { document.title = "Profil — Akwetche"; }, []);
 
@@ -102,6 +181,70 @@ export default function ProfilPage() {
       </div>
 
       <div className="card">
+        {/* Avatar */}
+        <div className="flex items-center gap-4 pb-4 mb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+          <div className="relative">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover" style={{ border: "2px solid #C9A84C" }} />
+            ) : (
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: "#1B3A6B", border: "2px solid #C9A84C" }}>
+                <span className="text-2xl font-bold" style={{ color: "#F5A623" }}>
+                  {(() => {
+                    const n = user?.name || "";
+                    const parts = n.trim().split(/\s+/);
+                    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+                    return n.slice(0, 2).toUpperCase();
+                  })()}
+                </span>
+              </div>
+            )}
+            {avatarLoading && (
+              <div className="absolute inset-0 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
+                <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-white animate-spin" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-ink mb-1">Photo de profil</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={{ background: "var(--color-brand-subtle)", color: "var(--color-brand)" }}
+              >
+                <FontAwesomeIcon icon={faCamera} className="w-3 h-3" />
+                {user?.avatarUrl ? "Changer" : "Ajouter"}
+              </button>
+              {user?.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAvatar}
+                  disabled={avatarLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  style={{ background: "var(--color-neg-bg)", color: "var(--color-neg)" }}
+                >
+                  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                  Supprimer
+                </button>
+              )}
+            </div>
+            {avatarError && <p className="text-neg text-xs mt-1.5">{avatarError}</p>}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) processAvatar(file);
+              e.target.value = "";
+            }}
+          />
+        </div>
+
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div>
             <label className="field-label">Nom</label>

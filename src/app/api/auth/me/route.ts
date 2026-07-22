@@ -13,7 +13,7 @@ export async function GET() {
       id: true, name: true, email: true,
       initialBalance: true, initialBalanceActivity: true,
       role: true, currency: true, baseCurrency: true,
-      countryCode: true, phone: true,
+      countryCode: true, phone: true, avatarUrl: true,
       emailVerified: true, plan: true, status: true,
       activityActivated: true,
       adminNotificationPref: true, onboardingCompleted: true,

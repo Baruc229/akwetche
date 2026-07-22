@@ -21,6 +21,7 @@ model User {
   baseCurrency    String   @default("XOF") // devise figée à l'inscription
   countryCode     String?                  // BJ, TG, BF, CI, FR, BE
   phone           String?                  // numéro de téléphone
+  avatarUrl       String?                  // base64 image (256x256 WebP)
   emailVerified DateTime?
   loginAttempts Int      @default(0)
   lockedUntil   DateTime?

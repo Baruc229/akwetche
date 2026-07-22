@@ -24,6 +24,7 @@ type UserData = {
   baseCurrency?: string;
   countryCode?: string | null;
   phone?: string | null;
+  avatarUrl?: string | null;
   plan?: string;
   status?: string;
   activityActivated?: boolean;

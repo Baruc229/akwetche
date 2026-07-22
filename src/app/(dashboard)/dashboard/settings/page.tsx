@@ -52,15 +52,24 @@ export default function ComptePage() {
         style={{ background: "linear-gradient(135deg, #0D1B35 0%, #132848 100%)" }}
       >
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Avatar initiales */}
-          <div
-            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: "#1B3A6B", border: "2px solid #C9A84C" }}
-          >
-            <span className="text-lg sm:text-xl font-bold" style={{ color: "#F5A623" }}>
-              {initials}
-            </span>
-          </div>
+          {/* Avatar */}
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user?.name || "Avatar"}
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover shrink-0"
+              style={{ border: "2px solid #C9A84C" }}
+            />
+          ) : (
+            <div
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: "#1B3A6B", border: "2px solid #C9A84C" }}
+            >
+              <span className="text-lg sm:text-xl font-bold" style={{ color: "#F5A623" }}>
+                {initials}
+              </span>
+            </div>
+          )}
 
           {/* Nom + email */}
           <div className="flex-1 min-w-0">
