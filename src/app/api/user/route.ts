@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, badRequest, ok } from "@/lib/api";
-import { ALLOWED_COUNTRY_CODES, getCurrencyForCountry, getPhonePrefix, validatePhone, validatePhoneMessage, validateName, getCountryByCode } from "@/lib/currency";
+import { ALLOWED_COUNTRY_CODES, getCurrencyForCountry, getPhonePrefix, validatePhone, validatePhoneMessage, validateName } from "@/lib/currency";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -18,9 +18,12 @@ export async function PUT(req: NextRequest) {
       if (nameErr) return badRequest(nameErr);
       updateData.name = name;
     }
-    if (initialBalance !== undefined) updateData.initialBalance = parseFloat(initialBalance);
-    if (initialBalanceActivity !== undefined) updateData.initialBalanceActivity = parseFloat(initialBalanceActivity);
-    if (currency !== undefined) updateData.currency = currency || "XOF";
+    if (initialBalance !== undefined) updateData.initialBalance = parseFloat(String(initialBalance)) || 0;
+    if (initialBalanceActivity !== undefined) updateData.initialBalanceActivity = parseFloat(String(initialBalanceActivity)) || 0;
+    if (currency !== undefined) {
+      if (!["XOF", "EUR"].includes(currency)) return badRequest("Devise invalide");
+      updateData.currency = currency || "XOF";
+    }
     if (onboardingCompleted !== undefined) updateData.onboardingCompleted = onboardingCompleted;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
     if (notificationPrefs !== undefined) updateData.notificationPrefs = notificationPrefs;
@@ -60,15 +63,19 @@ export async function PUT(req: NextRequest) {
     });
 
     const currencyVal = user.currency || user.baseCurrency || "XOF";
+    const subscription = await prisma.subscription.findUnique({ where: { userId: user.id }, select: { status: true, amount: true, currency: true, endDate: true } });
     return ok({
       user: {
         id: user.id, name: user.name, email: user.email,
         initialBalance: user.initialBalance, initialBalanceActivity: user.initialBalanceActivity,
         currency: currencyVal, baseCurrency: user.baseCurrency || "XOF",
-        role: user.role, adminNotificationPref: user.adminNotificationPref,
+        role: user.role, plan: user.plan, status: user.status,
+        adminNotificationPref: user.adminNotificationPref,
         countryCode: user.countryCode, phone: user.phone,
         avatarUrl: user.avatarUrl, onboardingCompleted: user.onboardingCompleted,
         notificationPrefs: user.notificationPrefs,
+        emailVerified: user.emailVerified, activityActivated: user.activityActivated,
+        subscription,
       },
     });
   } catch {

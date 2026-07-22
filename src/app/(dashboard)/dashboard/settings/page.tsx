@@ -8,10 +8,10 @@ import {
   faUser, faShield, faBell, faCrown, faCircleInfo,
   faLock, faRightFromBracket, faChevronRight,
   faPhone, faMoneyBill, faCamera, faFloppyDisk,
-  faXmark, faCheck, faSpinner, faTrash
+  faSpinner, faTrash, faIdCard
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../layout";
-import { setActiveCurrency, getCountryByCode, getPhonePrefix, validatePhoneMessage, validateName, type CurrencyCode } from "@/lib/utils";
+import { setActiveCurrency, getPhonePrefix, validatePhoneMessage, validateName, type CurrencyCode } from "@/lib/utils";
 
 export default function ComptePage() {
   const { user, setUser, currency: activeCurrency, setCurrency: setDashboardCurrency } = useDashboard();
@@ -54,10 +54,13 @@ export default function ComptePage() {
 
   async function handleDeleteAvatar() {
     setAvatarLoading(true);
+    setAvatarError("");
     try {
       const res = await fetch("/api/user/avatar", { method: "DELETE" });
       if (res.ok) setUser({ ...user!, avatarUrl: null });
-    } catch {} finally { setAvatarLoading(false); }
+      else setAvatarError("Erreur lors de la suppression");
+    } catch { setAvatarError("Erreur réseau"); }
+    finally { setAvatarLoading(false); }
   }
 
   // ─── Nom ───
@@ -75,7 +78,9 @@ export default function ComptePage() {
       const res = await fetch("/api/user", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
       const data = await res.json();
       if (res.ok) { setUser(data.user); setEditingName(false); }
-    } catch {} finally { setNameSaving(false); }
+      else setNameError(data.error || "Erreur lors de la sauvegarde");
+    } catch { setNameError("Erreur réseau"); }
+    finally { setNameSaving(false); }
   }
 
   // ─── Téléphone ───
@@ -83,13 +88,6 @@ export default function ComptePage() {
   const [phone, setPhone] = useState(user?.phone || "");
   const [phoneError, setPhoneError] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
-
-  useEffect(() => {
-    if (editingPhone) {
-      const cc = user?.countryCode;
-      if (cc && !phone) setPhone(getPhonePrefix(cc));
-    }
-  }, [editingPhone, user?.countryCode]);
 
   async function handleSavePhone() {
     setPhoneError("");
@@ -102,7 +100,9 @@ export default function ComptePage() {
       const res = await fetch("/api/user", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone }) });
       const data = await res.json();
       if (res.ok) { setUser(data.user); setEditingPhone(false); }
-    } catch {} finally { setPhoneSaving(false); }
+      else setPhoneError(data.error || "Erreur lors de la sauvegarde");
+    } catch { setPhoneError("Erreur réseau"); }
+    finally { setPhoneSaving(false); }
   }
 
   // ─── Devise ───
@@ -111,13 +111,15 @@ export default function ComptePage() {
   async function handleChangeCurrency(next: "XOF" | "EUR") {
     if (next === activeCurrency) return;
     setCurrencySaving(true);
-    setDashboardCurrency(next as CurrencyCode);
-    setActiveCurrency(next as CurrencyCode);
     try {
       const res = await fetch("/api/user", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currency: next }) });
       const data = await res.json();
-      if (res.ok) setUser(data.user);
-    } catch {} finally { setCurrencySaving(false); }
+      if (res.ok) {
+        setDashboardCurrency(next as CurrencyCode);
+        setActiveCurrency(next as CurrencyCode);
+        setUser(data.user);
+      }
+    } finally { setCurrencySaving(false); }
   }
 
   // ─── Init ───
@@ -240,7 +242,7 @@ export default function ComptePage() {
                 <p className="text-xs text-muted mb-1">Téléphone</p>
                 <p className="text-sm font-medium text-ink truncate">{user?.phone || "Non renseigné"}</p>
               </div>
-              <button onClick={() => { setEditingPhone(true); setPhone(user?.phone || ""); setPhoneError(""); }} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all" style={{ background: "var(--color-brand-subtle)", color: "var(--color-brand)" }}>
+              <button onClick={() => { setEditingPhone(true); const initial = user?.phone || (user?.countryCode ? getPhonePrefix(user.countryCode) : ""); setPhone(initial); setPhoneError(""); }} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all" style={{ background: "var(--color-brand-subtle)", color: "var(--color-brand)" }}>
                 Modifier
               </button>
             </div>
@@ -291,6 +293,7 @@ export default function ComptePage() {
 
       <div className="space-y-3 mb-8">
         {[
+          { label: "Profil détaillé", desc: "Pays, soldes initiaux", icon: faIdCard, href: "/dashboard/settings/profil" },
           { label: "Connexion et sécurité", desc: "Email, mot de passe, sessions", icon: faShield, href: "/dashboard/settings/securite" },
           { label: "Notifications", desc: "Préférences par canal", icon: faBell, href: "/dashboard/settings/notifications" },
           { label: "Abonnement", desc: "Gérer votre plan", icon: faCrown, href: "/dashboard/settings/abonnement" },

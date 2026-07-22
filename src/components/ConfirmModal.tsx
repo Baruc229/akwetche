@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 
@@ -10,7 +11,9 @@ type ConfirmModalProps = {
  confirmLabel?: string;
  cancelLabel?: string;
  variant?: "danger" | "warning" | "info";
- onConfirm: () => void;
+ requirePassword?: boolean;
+ passwordLabel?: string;
+ onConfirm: (password?: string) => void;
  onCancel: () => void;
 };
 
@@ -21,9 +24,12 @@ export default function ConfirmModal({
  confirmLabel = "Confirmer",
  cancelLabel = "Annuler",
  variant = "danger",
+ requirePassword = false,
+ passwordLabel = "Confirmez avec votre mot de passe",
  onConfirm,
  onCancel,
 }: ConfirmModalProps) {
+ const [password, setPassword] = useState("");
  if (!open) return null;
 
  const variantStyles = {
@@ -56,6 +62,19 @@ export default function ConfirmModal({
   <h3 className="text-lg font-semibold text-ink">{title}</h3>
   <p className="text-sm text-muted mt-2 leading-relaxed">{message}</p>
   </div>
+  {requirePassword && (
+    <div className="mb-5">
+      <label className="block text-xs font-medium text-muted mb-1.5">{passwordLabel}</label>
+      <input
+        type="password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+        placeholder="Mot de passe"
+        className="input-field w-full"
+        autoFocus
+      />
+    </div>
+  )}
   <div className="flex gap-3">
   <button
   type="button"
@@ -66,8 +85,9 @@ export default function ConfirmModal({
   </button>
   <button
   type="button"
-  onClick={onConfirm}
-  className={`flex-1 py-2.5 rounded-xl text-sm font-medium text-white shadow-sm transition-all ${v.button}`}
+  onClick={() => onConfirm(requirePassword ? password : undefined)}
+  disabled={requirePassword && !password}
+  className={`flex-1 py-2.5 rounded-xl text-sm font-medium text-white shadow-sm transition-all disabled:opacity-50 ${v.button}`}
   >
   {confirmLabel}
   </button>

@@ -37,12 +37,14 @@ export default function NotificationsPage() {
   const [prefs, setPrefs] = useState<PrefsMap>(() => mergePrefs(DEFAULT_PREFS, user?.notificationPrefs));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => { document.title = "Notifications — Akwetche"; }, []);
 
-  useEffect(() => {
-    setPrefs(mergePrefs(DEFAULT_PREFS, user?.notificationPrefs));
-  }, [user?.notificationPrefs]);
+  // Sync prefs when user.notificationPrefs changes externally
+  const savedPrefsKey = JSON.stringify(user?.notificationPrefs);
+  const [syncKey, setSyncKey] = useState(savedPrefsKey);
+  if (savedPrefsKey !== syncKey) { setSyncKey(savedPrefsKey); setPrefs(mergePrefs(DEFAULT_PREFS, user?.notificationPrefs)); }
 
   const togglePref = useCallback((key: string, channel: "email" | "inApp") => {
     setPrefs((prev) => ({
@@ -58,6 +60,7 @@ export default function NotificationsPage() {
   async function handleSave() {
     setSaving(true);
     setSaved(false);
+    setError("");
     try {
       const res = await fetch("/api/user", {
         method: "PUT",
@@ -69,8 +72,10 @@ export default function NotificationsPage() {
         setUser({ ...user!, ...data.user });
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
+      } else {
+        setError(data.error || "Erreur lors de la sauvegarde");
       }
-    } catch {}
+    } catch { setError("Erreur réseau"); }
     setSaving(false);
   }
 
@@ -145,6 +150,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Save button */}
+        {error && <p className="text-sm text-neg text-center">{error}</p>}
         <button
           onClick={handleSave}
           disabled={saving}

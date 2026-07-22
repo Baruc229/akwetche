@@ -40,13 +40,12 @@ export default function SecuritePage() {
 
   // Sessions
   const [sessions, setSessions] = useState<{ id: number; ipAddress: string; userAgent: string; lastActive: string; createdAt: string; isCurrent: boolean }[]>([]);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
   const [disconnectAllLoading, setDisconnectAllLoading] = useState(false);
 
   useEffect(() => { document.title = "Sécurité — Akwetche"; }, []);
 
   useEffect(() => {
-    setSessionsLoading(true);
     fetch("/api/user/sessions")
       .then(r => r.ok ? r.json() : { sessions: [] })
       .then(data => setSessions(data.sessions || []))
@@ -116,17 +115,18 @@ export default function SecuritePage() {
 
   async function handleDisconnectSession(id: number) {
     try {
-      await fetch(`/api/user/sessions/${id}`, { method: "DELETE" });
-      setSessions(prev => prev.filter(s => s.id !== id));
-    } catch {}
+      const res = await fetch(`/api/user/sessions/${id}`, { method: "DELETE" });
+      if (res.ok) setSessions(prev => prev.filter(s => s.id !== id));
+    } catch { /* silent - UI stays unchanged */ }
   }
 
   async function handleDisconnectAll() {
     setDisconnectAllLoading(true);
     try {
-      await fetch("/api/user/sessions", { method: "DELETE" });
-      setSessions(prev => prev.filter(s => s.isCurrent));
-    } catch {} finally { setDisconnectAllLoading(false); }
+      const res = await fetch("/api/user/sessions", { method: "DELETE" });
+      if (res.ok) setSessions(prev => prev.filter(s => s.isCurrent));
+    } catch { /* silent */ }
+    finally { setDisconnectAllLoading(false); }
   }
 
   return (

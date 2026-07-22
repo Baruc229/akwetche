@@ -111,12 +111,7 @@ export default function ProfilPage() {
 
   useEffect(() => { document.title = "Profil — Akwetche"; }, []);
 
-  useEffect(() => {
-    if (countryCode && !user?.countryCode) {
-      setPhone(getPhonePrefix(countryCode));
-    }
-  }, [countryCode]);
-
+   
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (prev !== currency) {
@@ -169,7 +164,7 @@ export default function ProfilPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); setNameError("Erreur réseau lors de la sauvegarde"); }
   }
 
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
@@ -288,7 +283,7 @@ export default function ProfilPage() {
                 <CustomSelect
                   options={COUNTRY_OPTIONS}
                   value={countryCode}
-                  onChange={(v) => { setCountryCode(v); setCurrency(getCountryByCode(v)?.currency || "XOF"); }}
+                  onChange={(v) => { setCountryCode(v); setCurrency(getCountryByCode(v)?.currency || "XOF"); if (!user?.countryCode) setPhone(getPhonePrefix(v)); }}
                   placeholder="Sélectionnez votre pays"
                 />
               )}

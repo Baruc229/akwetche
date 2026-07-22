@@ -20,20 +20,28 @@ export default function DangerPage() {
 
   useEffect(() => { document.title = "Danger — Akwetche"; }, []);
 
-  async function handleDeleteAccount() {
+  async function handleDeleteAccount(password?: string) {
     setDeleteLoading(true);
+    setLoadError(null);
     try {
-      await fetch("/api/auth/delete-account", { method: "POST" });
+      const res = await fetch("/api/auth/delete-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+      const data = await res.json();
+      if (!res.ok) { setLoadError(data.error || "Erreur lors de la suppression."); setShowDeleteAccountModal(false); return; }
       router.push("/");
-    } catch { setDeleteLoading(false); setShowDeleteAccountModal(false); }
+    } catch { setLoadError("Erreur réseau lors de la suppression."); setShowDeleteAccountModal(false); }
+    finally { setDeleteLoading(false); }
   }
 
-  async function handleDeactivateAccount() {
+  async function handleDeactivateAccount(password?: string) {
     setDeactivateLoading(true);
+    setLoadError(null);
     try {
-      await fetch("/api/auth/deactivate-account", { method: "POST" });
+      const res = await fetch("/api/auth/deactivate-account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+      const data = await res.json();
+      if (!res.ok) { setLoadError(data.error || "Erreur lors de la désactivation."); setShowDeactivateModal(false); return; }
       router.push("/");
-    } catch { setDeactivateLoading(false); setShowDeactivateModal(false); }
+    } catch { setLoadError("Erreur réseau lors de la désactivation."); setShowDeactivateModal(false); }
+    finally { setDeactivateLoading(false); }
   }
 
   async function handleResetAll() {
@@ -103,8 +111,8 @@ export default function DangerPage() {
         </button>
       </div>
 
-      <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible. Toutes vos données seront définitivement supprimées." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
-      <ConfirmModal open={showDeactivateModal} title="Désactiver votre compte ?" message="Vous serez déconnecté. Vous pourrez réactiver votre compte en vous reconnectant." confirmLabel={deactivateLoading ? "Désactivation..." : "Oui, désactiver"} cancelLabel="Annuler" variant="warning" onConfirm={handleDeactivateAccount} onCancel={() => setShowDeactivateModal(false)} />
+      <ConfirmModal open={showDeleteAccountModal} title="Supprimer votre compte ?" message="Cette action est irréversible. Toutes vos données seront définitivement supprimées." confirmLabel={deleteLoading ? "Suppression..." : "Oui, supprimer"} cancelLabel="Annuler" variant="danger" requirePassword onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteAccountModal(false)} />
+      <ConfirmModal open={showDeactivateModal} title="Désactiver votre compte ?" message="Vous serez déconnecté. Vous pourrez réactiver votre compte en vous reconnectant." confirmLabel={deactivateLoading ? "Désactivation..." : "Oui, désactiver"} cancelLabel="Annuler" variant="warning" requirePassword onConfirm={handleDeactivateAccount} onCancel={() => setShowDeactivateModal(false)} />
       <ConfirmModal open={showResetModal} title="Réinitialiser toutes les données ?" message="Toutes vos transactions, ventes, produits et catégories seront supprimés." confirmLabel={resetLoading ? "Réinitialisation..." : "Oui, tout supprimer"} cancelLabel="Annuler" variant="danger" onConfirm={handleResetAll} onCancel={() => setShowResetModal(false)} />
     </div>
   );
