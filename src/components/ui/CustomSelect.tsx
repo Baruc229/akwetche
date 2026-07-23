@@ -24,7 +24,6 @@ type CustomSelectProps = {
   className?: string;
 };
 
-const DROPDOWN_MAX_HEIGHT = 256;
 const OPTION_HEIGHT = 52;
 
 export default function CustomSelect({
@@ -38,7 +37,7 @@ export default function CustomSelect({
   const [open, setOpen] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [canScroll, setCanScroll] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number; openAbove?: boolean } | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -50,16 +49,17 @@ export default function CustomSelect({
   function computePosition() {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const contentHeight = Math.min(options.length * OPTION_HEIGHT + 16, DROPDOWN_MAX_HEIGHT);
     const spaceBelow = window.innerHeight - rect.bottom - 8;
     const spaceAbove = rect.top - 8;
-    const openAbove = spaceBelow < contentHeight && spaceAbove > spaceBelow;
-    setCanScroll(options.length * OPTION_HEIGHT + 16 > DROPDOWN_MAX_HEIGHT);
+    const openAbove = spaceBelow < spaceAbove && spaceBelow < 200;
+    const maxH = openAbove ? Math.min(spaceAbove, 400) : Math.min(spaceBelow, 400);
+    const contentHeight = Math.min(options.length * OPTION_HEIGHT + 16, maxH);
+    setCanScroll(options.length * OPTION_HEIGHT + 16 > maxH);
     setDropdownPos({
       top: openAbove ? rect.top - 4 - contentHeight : rect.bottom + 4,
       left: rect.left,
       width: rect.width,
-      openAbove,
+      maxHeight: maxH,
     });
   }
 
@@ -216,7 +216,7 @@ export default function CustomSelect({
         top: dropdownPos.top,
         left: dropdownPos.left,
         width: dropdownPos.width,
-        maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
+        maxHeight: `${dropdownPos.maxHeight}px`,
         zIndex: 100,
       }}
     >
@@ -224,7 +224,7 @@ export default function CustomSelect({
         ref={listRef}
         className="overflow-y-auto custom-select-scrollbar"
         style={{
-          maxHeight: `${DROPDOWN_MAX_HEIGHT}px`,
+          maxHeight: `${dropdownPos.maxHeight}px`,
           overscrollBehavior: "contain",
           scrollbarWidth: "thin",
           scrollbarColor: "#CBD5E1 #F1F5F9",
