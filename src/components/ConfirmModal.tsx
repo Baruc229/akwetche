@@ -3,33 +3,35 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type ConfirmModalProps = {
- open: boolean;
- title: string;
- message: string;
- confirmLabel?: string;
- cancelLabel?: string;
- variant?: "danger" | "warning" | "info";
- requirePassword?: boolean;
- passwordLabel?: string;
- onConfirm: (password?: string) => void;
- onCancel: () => void;
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: "danger" | "warning" | "info";
+  requirePassword?: boolean;
+  passwordLabel?: string;
+  onConfirm: (password?: string) => void;
+  onCancel: () => void;
 };
 
 export default function ConfirmModal({
- open,
- title,
- message,
- confirmLabel = "Confirmer",
- cancelLabel = "Annuler",
- variant = "danger",
- requirePassword = false,
- passwordLabel = "Confirmez avec votre mot de passe",
- onConfirm,
- onCancel,
+  open,
+  title,
+  message,
+  confirmLabel = "Confirmer",
+  cancelLabel = "Annuler",
+  variant = "danger",
+  requirePassword = false,
+  passwordLabel = "Confirmez avec votre mot de passe",
+  onConfirm,
+  onCancel,
 }: ConfirmModalProps) {
  const [password, setPassword] = useState("");
+ useScrollLock(open);
  if (!open) return null;
 
  const variantStyles = {

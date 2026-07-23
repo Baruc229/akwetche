@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 
@@ -44,6 +45,8 @@ export default function TontinesPage() {
     penaliteRetardMontant: "0",
     penaliteRetardDelaiJours: "3",
   });
+
+  useScrollLock(showCreate);
 
   async function loadData() {
     try {
@@ -131,7 +134,7 @@ export default function TontinesPage() {
                 </div>
                 <div className="min-w-0 flex-1 group/name">
                   <p className="text-sm font-semibold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{t.nom}</p>
-                  <p className="text-xs text-muted mt-0.5">
+                  <p className="text-xs text-muted mt-0.5 truncate">
                     {t.type === "rotative_simple" ? "Rotative" : "Vivres/fin d'année"} · {t.membreCount} membre{t.membreCount > 1 ? "s" : ""} · Écart {t.frequence}j · {formatCurrency(t.montantCotisation)}
                   </p>
                 </div>

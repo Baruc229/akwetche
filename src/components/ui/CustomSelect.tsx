@@ -8,6 +8,7 @@ import { faChevronDown, faLock } from '@fortawesome/free-solid-svg-icons';
 type Option = {
   value: string;
   label: string;
+  description?: string;
   icon?: string;
   disabled?: boolean;
   disabledReason?: string;
@@ -24,7 +25,7 @@ type CustomSelectProps = {
 };
 
 const DROPDOWN_MAX_HEIGHT = 256;
-const OPTION_HEIGHT = 44;
+const OPTION_HEIGHT = 52;
 
 export default function CustomSelect({
   options,
@@ -171,7 +172,7 @@ export default function CustomSelect({
                       role="option"
                       disabled={opt.disabled}
                       onClick={() => !opt.disabled && handleSelect(opt.value)}
-                      className={`w-full text-left px-5 py-3.5 text-sm transition-colors min-h-[48px] ${
+                      className={`w-full text-left px-5 py-3 text-sm transition-colors min-h-[48px] ${
                         opt.disabled
                           ? "text-muted cursor-not-allowed"
                           : opt.value === value
@@ -184,6 +185,9 @@ export default function CustomSelect({
                         {opt.icon && <img src={opt.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
                         <span className={`truncate ${opt.disabled ? "opacity-50" : ""}`}>{opt.label}</span>
                       </span>
+                      {opt.description && (
+                        <span className="block text-[11px] text-muted truncate mt-0.5 ml-7">{opt.description}</span>
+                      )}
                       {opt.disabled && (
                         <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
                           <FontAwesomeIcon icon={faLock} className="w-3 h-3" />
@@ -250,7 +254,7 @@ export default function CustomSelect({
                   data-disabled={opt.disabled ? "true" : "false"}
                   disabled={opt.disabled}
                   onClick={() => !opt.disabled && handleSelect(opt.value)}
-                  className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[44px] sm:min-h-[48px] ${
+                  className={`w-full text-left px-4 py-3 text-sm transition-colors min-h-[48px] sm:min-h-[52px] ${
                     opt.disabled
                       ? "text-muted cursor-not-allowed"
                       : opt.value === value
@@ -263,6 +267,9 @@ export default function CustomSelect({
                     {opt.icon && <img src={opt.icon} alt="" className="w-5 h-5 rounded-sm object-cover shrink-0" />}
                     <span className={`truncate ${opt.disabled ? "opacity-50" : ""}`}>{opt.label}</span>
                   </span>
+                  {opt.description && (
+                    <span className="block text-[11px] text-muted truncate mt-0.5 ml-7">{opt.description}</span>
+                  )}
                   {opt.disabled && (
                     <span className="flex items-center gap-1 text-[10px] text-muted shrink-0">
                       <FontAwesomeIcon icon={faLock} className="w-3 h-3" />

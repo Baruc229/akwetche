@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -51,6 +52,7 @@ export default function TontineDetail() {
   const [error, setError] = useState("");
   const [showNewMembre, setShowNewMembre] = useState(false);
   const [newMembreNom, setNewMembreNom] = useState("");
+  const [newMembreContact, setNewMembreContact] = useState("");
   const [membreIdForCotisation, setMembreIdForCotisation] = useState("");
   const [cotisationPeriode, setCotisationPeriode] = useState("");
   const [cotisationMontant, setCotisationMontant] = useState("");
@@ -71,6 +73,10 @@ export default function TontineDetail() {
   const [editMembreContact, setEditMembreContact] = useState("");
   const [cotisationFilter, setCotisationFilter] = useState<string>("tous");
   const [cotisationGroupBy, setCotisationGroupBy] = useState<"none" | "membre">("none");
+
+  useScrollLock(
+    showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null
+  );
 
   async function loadData() {
     try {
@@ -114,14 +120,14 @@ export default function TontineDetail() {
 
   let joursRestants = 0;
   let partProjetee = 0;
-  let nbPeriodesRestantes = 0;
+  let nbPeriodesTotal = 0;
   if (tontine?.dateDistribution) {
     const diff = new Date(tontine.dateDistribution).getTime() - now;
     joursRestants = Math.max(0, Math.round(diff / (1000 * 3600 * 24)));
-    const frequenceJours = parseInt(tontine.frequence) || (tontine.frequence === "journaliere" ? 1 : tontine.frequence === "hebdomadaire" ? 7 : 30);
-    nbPeriodesRestantes = Math.floor(joursRestants / frequenceJours);
-    const projection = totalCollecte + (tontine.montantCotisation - tontine.fraisOrganisateurParDefaut) * actifs.length * nbPeriodesRestantes;
-    partProjetee = actifs.length > 0 ? projection / actifs.length : 0;
+    const frequenceJours = parseInt(tontine.frequence) || 1;
+    const diffDebut = new Date(tontine.dateDistribution).getTime() - new Date(tontine.dateDebut).getTime();
+    nbPeriodesTotal = Math.max(1, Math.floor(diffDebut / (frequenceJours * 1000 * 3600 * 24)) + 1);
+    partProjetee = tontine.montantCotisation * nbPeriodesTotal;
   }
 
   // ROTATIVE: tour en cours
@@ -135,11 +141,11 @@ export default function TontineDetail() {
       const res = await fetch(`/api/tontines/${id}/membres`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom: newMembreNom }),
+        body: JSON.stringify({ nom: newMembreNom, contact: newMembreContact || null }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
-      setShowNewMembre(false); setNewMembreNom("");
+      setShowNewMembre(false); setNewMembreNom(""); setNewMembreContact("");
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -331,9 +337,9 @@ export default function TontineDetail() {
           <Link href="/dashboard/tontines" className="text-muted hover:text-ink transition-colors shrink-0">
             <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
           </Link>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-xl font-bold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{tontine.nom}</h1>
-            <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · Écart {tontine.frequence}j · {formatCurrency(tontine.montantCotisation)}</span>
+            <span className="text-xs text-muted truncate block">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · Écart {tontine.frequence}j · {formatCurrency(tontine.montantCotisation)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -519,7 +525,7 @@ export default function TontineDetail() {
               {actifs.length > 0 && partProjetee > 0 && (
                 <p className="text-sm text-muted mt-1">
                   Part par membre (projetée) : <strong className="text-ink">{formatCurrency(partProjetee)}</strong>
-                  {nbPeriodesRestantes > 0 && <> sur {nbPeriodesRestantes} période(s) ⨯ {actifs.length} membre(s)</>}
+                  {nbPeriodesTotal > 0 && <> sur {nbPeriodesTotal} période(s) ⨯ {actifs.length} membre(s)</>}
                 </p>
               )}
             </div>
@@ -704,6 +710,10 @@ export default function TontineDetail() {
                 <label className="field-label">Nom</label>
                 <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
               </div>
+              <div>
+                <label className="field-label">Contact</label>
+                <input type="text" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+              </div>
               <button type="submit" className="btn-primary w-full">Ajouter</button>
             </form>
           </div>
@@ -722,10 +732,19 @@ export default function TontineDetail() {
               <div>
                 <label className="field-label">Membre</label>
                 <CustomSelect
-                  options={actifs.map(m => ({ value: String(m.id), label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom }))}
+                  options={actifs.map(m => {
+                    const nbCotisations = m.nbPayees || 0;
+                    const montantPaye = m.montantTotalPaye || 0;
+                    const statutBadge = m.nbRetards > 0 ? `${m.nbRetards} retard(s)` : nbCotisations > 0 ? `${nbCotisations} cotisation(s)` : "Aucune cotisation";
+                    return {
+                      value: String(m.id),
+                      label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom,
+                      description: `${formatCurrency(montantPaye)} · ${statutBadge}`,
+                    };
+                  })}
                   value={membreIdForCotisation}
                   onChange={v => setMembreIdForCotisation(v)}
-                  placeholder="Sélectionner"
+                  placeholder="Sélectionner un membre"
                 />
               </div>
               <div>
