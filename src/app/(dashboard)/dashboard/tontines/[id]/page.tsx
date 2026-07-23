@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 type Membre = {
   id: number; nom: string; contact: string | null; ordrePassage: number | null;
   statut: string; _count: { cotisations: number };
+  nbPayees: number; montantTotalPaye: number; nbRetards: number;
 };
 
 type Cotisation = {
@@ -57,8 +58,16 @@ export default function TontineDetail() {
   const [distData, setDistData] = useState({ dateDistribution: "", montantAlloueVivres: "", montantAlloueArgent: "" });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
-  const mParams = { include: { _count: { select: { cotisations: true } } } };
+  const [editMembreNom, setEditMembreNom] = useState("");
+  const [deleteMembreConfirm, setDeleteMembreConfirm] = useState<number | null>(null);
+  const [deleteCotisationConfirm, setDeleteCotisationConfirm] = useState<number | null>(null);
+  const [deleteTourConfirm, setDeleteTourConfirm] = useState<number | null>(null);
+  const [editingCotisation, setEditingCotisation] = useState<number | null>(null);
+  const [editCotisationMontant, setEditCotisationMontant] = useState("");
+  const [detailMembre, setDetailMembre] = useState<number | null>(null);
+  const [editMembreContact, setEditMembreContact] = useState("");
+  const [cotisationFilter, setCotisationFilter] = useState<string>("tous");
+  const [cotisationGroupBy, setCotisationGroupBy] = useState<"none" | "membre">("none");
 
   async function loadData() {
     try {
@@ -77,13 +86,18 @@ export default function TontineDetail() {
     finally { setLoading(false); }
   }
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { loadData(); }, [id]);
-  document.title = tontine ? `${tontine.nom} — Tontine — Akwetche` : "Tontine — Akwetche";
+  /* eslint-enable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    document.title = tontine ? `${tontine.nom} — Tontine — Akwetche` : "Tontine — Akwetche";
+  }, [tontine]);
+
+  const [now] = useState(() => Date.now());
 
   // Calculs
   const actifs = tontine?.membres?.filter(m => m.statut === "actif") || [];
   const cotisationsPayees = tontine?.cotisations?.filter(c => c.statut === "paye" || c.statut === "partiel") || [];
-  const cotisationsEnRetard = tontine?.cotisations?.filter(c => c.statut === "en_retard") || [];
 
   const totalCollecte = cotisationsPayees.reduce((sum, c) => {
     const ratio = c.montantTotal > 0 ? c.montantPaye / c.montantTotal : 1;
@@ -99,7 +113,7 @@ export default function TontineDetail() {
   let partProjetee = 0;
   let nbPeriodesRestantes = 0;
   if (tontine?.dateDistribution) {
-    const diff = new Date(tontine.dateDistribution).getTime() - Date.now();
+    const diff = new Date(tontine.dateDistribution).getTime() - now;
     joursRestants = Math.max(0, Math.round(diff / (1000 * 3600 * 24)));
     const frequenceJours = parseInt(tontine.frequence) || (tontine.frequence === "journaliere" ? 1 : tontine.frequence === "hebdomadaire" ? 7 : 30);
     nbPeriodesRestantes = Math.floor(joursRestants / frequenceJours);
@@ -129,7 +143,55 @@ export default function TontineDetail() {
 
   async function handleRemoveMembre(membreId: number) {
     try {
-      await fetch(`/api/tontines/${id}/membres/${membreId}`, { method: "DELETE" });
+      const res = await fetch(`/api/tontines/${id}/membres/${membreId}`, { method: "DELETE" });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setDeleteMembreConfirm(null);
+      loadData();
+    } catch { setError("Erreur"); }
+  }
+
+  async function handleEditMembre(membreId: number) {
+    if (!editMembreNom.trim()) return;
+    try {
+      const res = await fetch(`/api/tontines/${id}/membres/${membreId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nom: editMembreNom.trim(), contact: editMembreContact || null }),
+      });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setEditingMembre(null);
+      setDetailMembre(null);
+      loadData();
+    } catch { setError("Erreur"); }
+  }
+
+  async function handleEditCotisation(cotisationId: number) {
+    try {
+      const res = await fetch(`/api/tontines/${id}/cotisations/${cotisationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ montantPaye: parseFloat(editCotisationMontant) || 0 }),
+      });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setEditingCotisation(null);
+      loadData();
+    } catch { setError("Erreur"); }
+  }
+
+  async function handleDeleteCotisation(cotisationId: number) {
+    try {
+      const res = await fetch(`/api/tontines/${id}/cotisations/${cotisationId}`, { method: "DELETE" });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setDeleteCotisationConfirm(null);
+      loadData();
+    } catch { setError("Erreur"); }
+  }
+
+  async function handleDeleteTour(tourId: number) {
+    try {
+      const res = await fetch(`/api/tontines/${id}/tours?tourId=${tourId}`, { method: "DELETE" });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setDeleteTourConfirm(null);
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -204,6 +266,48 @@ export default function TontineDetail() {
     </div>
   );
 
+  const detailMembreData = detailMembre ? actifs.find(m => m.id === detailMembre) : null;
+  const cotisationsDuMembre = detailMembre ? tontine?.cotisations?.filter(c => c.membre.id === detailMembre) || [] : [];
+
+  function renderCotisation(c: Cotisation) {
+    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+    const isEditing = editingCotisation === c.id;
+    return (
+      <div key={c.id} className={`flex items-center justify-between py-2 px-1 ${isEditing ? "bg-[var(--color-surface-raised)] rounded-lg" : ""}`}>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-ink truncate">{c.membre.nom}</p>
+          <p className="text-xs text-muted">
+            {new Date(c.periode).toLocaleDateString("fr-FR")}
+            {" · "}{formatCurrency(c.montantPaye)}
+            {c.montantTotal > c.montantPaye && <span className="text-red-400"> / {formatCurrency(c.montantTotal)}</span>}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-2">
+          {c.fraisOrganisateur > 0 && c.statut !== "en_attente" && (
+            <span className="text-xs text-muted hidden sm:inline">comm. {formatCurrency(c.fraisOrganisateur)}</span>
+          )}
+          {isEditing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={editCotisationMontant} onChange={e => setEditCotisationMontant(e.target.value)} className="input-field text-xs py-1 px-2 w-24" min="0" step="0.01" autoFocus />
+              <button onClick={() => handleEditCotisation(c.id)} className="btn-primary-sm text-xs">OK</button>
+              <button onClick={() => setEditingCotisation(null)} className="btn-mono text-xs">X</button>
+            </div>
+          ) : (
+            <>
+              <span className={`badge text-xs ${bandiere}`}>{c.statut}</span>
+              <button onClick={() => { setEditingCotisation(c.id); setEditCotisationMontant(c.montantPaye.toString()); }} className="btn-ghost p-1.5" title="Modifier">
+                <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+              </button>
+              <button onClick={() => setDeleteCotisationConfirm(c.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
+                <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (error || !tontine) return (
     <div className="space-y-3">
       <Link href="/dashboard/tontines" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink transition-colors">
@@ -217,12 +321,12 @@ export default function TontineDetail() {
     <div className="space-y-3 pb-24 sm:pb-0">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 group/name">
           <Link href="/dashboard/tontines" className="text-muted hover:text-ink transition-colors shrink-0">
             <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-ink truncate">{tontine.nom}</h1>
+            <h1 className="text-xl font-bold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{tontine.nom}</h1>
             <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · tts. {tontine.frequence} jours · {formatCurrency(tontine.montantCotisation)}</span>
           </div>
         </div>
@@ -295,19 +399,27 @@ export default function TontineDetail() {
         ) : (
           <div className="divide-y divide-[var(--color-border)]">
             {actifs.map(m => {
-              const cotMembre = tontine.cotisations?.filter(c => c.membre.nom === m.nom) || [];
-              const enRetard = cotMembre.some(c => c.statut === "en_retard" || (c.statut === "en_attente" && new Date(c.periode) < new Date()));
+              const enRetard = m.nbRetards > 0;
               return (
-                <div key={m.id} className="flex items-center justify-between py-2.5">
-                  <div className="flex items-center gap-2">
+                <button key={m.id} onClick={() => { setDetailMembre(m.id); setEditMembreNom(m.nom); setEditMembreContact(m.contact || ""); }} className="w-full flex items-center justify-between py-2.5 text-left hover:bg-[var(--color-surface-raised)] rounded-lg px-1 transition-colors">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${enRetard ? "bg-red-100 dark:bg-red-900/30" : "bg-emerald-100 dark:bg-emerald-900/30"}`}>
                       <FontAwesomeIcon icon={enRetard ? faCircleExclamation : faCheckCircle} className={`w-3.5 h-3.5 ${enRetard ? "text-red-500" : "text-emerald-500"}`} />
                     </div>
-                    <span className="text-sm text-ink font-medium">{m.ordrePassage ? `#${m.ordrePassage} ` : ""}{m.nom}</span>
-                    {enRetard && <span className="badge bg-red-500 text-white text-xs">Retard</span>}
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm text-ink font-medium block truncate">{m.ordrePassage ? `#${m.ordrePassage} ` : ""}{m.nom}</span>
+                      {m.contact && <span className="text-xs text-muted block truncate">{m.contact}</span>}
+                    </div>
+                    {enRetard && <span className="badge bg-red-500 text-white text-xs shrink-0">Retard</span>}
                   </div>
-                  <span className="text-xs text-muted">{cotMembre.filter(c => c.statut === "paye" || c.statut === "partiel").length} cotisation{cotMembre.filter(c => c.statut === "paye" || c.statut === "partiel").length > 1 ? "s" : ""}</span>
-                </div>
+                  <div className="flex items-center gap-3 shrink-0 ml-2 text-right">
+                    <div className="text-xs text-muted">
+                      <span className="font-semibold text-ink">{m.nbPayees}</span>/{m._count.cotisations}
+                      <span className="block">{formatCurrency(m.montantTotalPaye)}</span>
+                    </div>
+                    <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 text-muted/30" />
+                  </div>
+                </button>
               );
             })}
           </div>
@@ -338,6 +450,11 @@ export default function TontineDetail() {
                     <div className="flex items-center gap-2 shrink-0">
                       {estEnCours && (
                         <button onClick={() => handleCloturerTour(tour.id, 0)} className="btn-mono text-xs">Clôturer</button>
+                      )}
+                      {!estEnCours && tontine.statut === "active" && (
+                        <button onClick={() => setDeleteTourConfirm(tour.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
+                          <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                        </button>
                       )}
                       <span className={`badge text-xs ${tour.statut === "en_cours" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>
                         {tour.statut === "en_cours" ? "En cours" : "Clôturé"}
@@ -390,7 +507,7 @@ export default function TontineDetail() {
                   const res = await fetch(`/api/tontines/${id}/distribution`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ statut: "effectue" }),
+                    body: JSON.stringify({ statut: "effectuee" }),
                   });
                   if (res.ok) loadData();
                   else { const d = await res.json(); setError(d.error || "Erreur"); }
@@ -410,29 +527,134 @@ export default function TontineDetail() {
         {(tontine.cotisations || []).length === 0 ? (
           <p className="text-sm text-muted">Aucune cotisation</p>
         ) : (
-          <div className="divide-y divide-[var(--color-border)] max-h-80 overflow-y-auto">
-            {(tontine.cotisations || []).slice().reverse().slice(0, 50).map(c => {
-              const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
-              return (
-                <div key={c.id} className="flex items-center justify-between py-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-ink truncate">{c.membre.nom}</p>
-                    <p className="text-xs text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")} · {formatCurrency(c.montantPaye)}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-2">
-                    {c.fraisOrganisateur > 0 && c.statut !== "en_attente" && (
-                      <span className="text-xs text-muted">comm. {formatCurrency(c.fraisOrganisateur)}</span>
-                    )}
-                    <span className={`badge text-xs ${bandiere}`}>{c.statut}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <>
+            {/* Filtres */}
+            <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+              {["tous", "paye", "partiel", "en_retard", "en_attente"].map(f => (
+                <button key={f} onClick={() => setCotisationFilter(f)} className={`btn-mono text-xs whitespace-nowrap ${cotisationFilter === f ? "!bg-[var(--color-brand-subtle)] !border-[var(--color-brand)] !text-[var(--color-brand)]" : ""}`}>
+                  {f === "tous" ? "Tous" : f === "paye" ? "Payé" : f === "partiel" ? "Partiel" : f === "en_retard" ? "En retard" : "En attente"}
+                </button>
+              ))}
+              <span className="text-xs text-muted/30">|</span>
+              <button onClick={() => setCotisationGroupBy(cotisationGroupBy === "none" ? "membre" : "none")} className={`btn-mono text-xs whitespace-nowrap ${cotisationGroupBy === "membre" ? "!bg-[var(--color-brand-subtle)] !border-[var(--color-brand)] !text-[var(--color-brand)]" : ""}`}>
+                {cotisationGroupBy === "membre" ? "Par membre" : "Par date"}
+              </button>
+            </div>
+            <div className="divide-y divide-[var(--color-border)] max-h-96 overflow-y-auto custom-select-scrollbar">
+              {(() => {
+                const allCotisations = (tontine.cotisations || []).slice().reverse();
+                const filtered = cotisationFilter === "tous" ? allCotisations : allCotisations.filter(c => c.statut === cotisationFilter);
+
+                if (cotisationGroupBy === "membre") {
+                  const grouped = new Map<number, { membre: Membre; cotisations: Cotisation[] }>();
+                  actifs.forEach(m => grouped.set(m.id, { membre: m, cotisations: [] }));
+                  filtered.forEach(c => {
+                    const g = grouped.get(c.membre.id);
+                    if (g) g.cotisations.push(c);
+                  });
+                  return Array.from(grouped.values()).filter(g => g.cotisations.length > 0).map(g => (
+                    <div key={g.membre.id}>
+                      <div className="flex items-center justify-between py-1.5 px-1 bg-[var(--color-surface-raised)]">
+                        <span className="text-xs font-semibold text-ink">{g.membre.ordrePassage ? `#${g.membre.ordrePassage} ` : ""}{g.membre.nom}</span>
+                        <span className="text-xs text-muted">{g.cotisations.length} · {formatCurrency(g.membre.montantTotalPaye)}</span>
+                      </div>
+                      {g.cotisations.map(c => renderCotisation(c))}
+                    </div>
+                  ));
+                }
+
+                return filtered.slice(0, 50).map(c => renderCotisation(c));
+              })()}
+            </div>
+          </>
         )}
       </div>
 
       {/* Modals */}
+
+      {/* Détail Membre Modal */}
+      {detailMembreData && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 animate-fade-in" onClick={() => setDetailMembre(null)}>
+          <div className="bg-[var(--color-surface)] rounded-t-2xl sm:rounded-2xl p-6 w-full max-w-md shadow-xl animate-slide-up sm:animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-ink">{detailMembreData.nom}</h3>
+              <button onClick={() => setDetailMembre(null)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} /></button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="card-inset text-center py-2">
+                <p className="text-label">Payées</p>
+                <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{detailMembreData._count.cotisations}</p>
+              </div>
+              <div className="card-inset text-center py-2">
+                <p className="text-label">Total payé</p>
+                <p className="text-base font-semibold text-ink">{formatCurrency(detailMembreData.montantTotalPaye)}</p>
+              </div>
+              <div className="card-inset text-center py-2">
+                <p className="text-label">Retards</p>
+                <p className={`text-base font-semibold ${detailMembreData.nbRetards > 0 ? "text-red-500" : "text-ink"}`}>{detailMembreData.nbRetards}</p>
+              </div>
+            </div>
+
+            {/* Infos */}
+            {detailMembreData.ordrePassage && (
+              <p className="text-sm text-muted mb-2">Ordre de passage : <strong className="text-ink">#{detailMembreData.ordrePassage}</strong></p>
+            )}
+            {detailMembreData.contact && (
+              <p className="text-sm text-muted mb-2">Contact : <strong className="text-ink">{detailMembreData.contact}</strong></p>
+            )}
+
+            {/* Édition */}
+            {tontine.statut === "active" && (
+              <div className="border-t border-[var(--color-border)] pt-4 mt-4">
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Modifier</p>
+                <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
+                  <div>
+                    <label className="field-label">Nom</label>
+                    <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required />
+                  </div>
+                  <div>
+                    <label className="field-label">Contact</label>
+                    <input type="text" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                  </div>
+                  <button type="submit" className="btn-primary w-full">Enregistrer</button>
+                </form>
+              </div>
+            )}
+
+            {/* Cotisations du membre */}
+            {cotisationsDuMembre.length > 0 && (
+              <div className="border-t border-[var(--color-border)] pt-4 mt-4">
+                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Cotisations ({cotisationsDuMembre.length})</p>
+                <div className="space-y-2">
+                  {cotisationsDuMembre.slice(0, 10).map(c => {
+                    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+                    return (
+                      <div key={c.id} className="flex items-center justify-between py-1.5">
+                        <span className="text-sm text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
+                          <span className={`badge text-xs ${bandiere}`}>{c.statut}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            {tontine.statut === "active" && (
+              <div className="border-t border-[var(--color-border)] pt-4 mt-4">
+                <button onClick={() => { setDetailMembre(null); setDeleteMembreConfirm(detailMembreData.id); }} className="btn-danger-sm w-full justify-center">
+                  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" /> Retirer ce membre
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* New Membre Modal */}
       {showNewMembre && (
@@ -570,6 +792,39 @@ export default function TontineDetail() {
           setShowDeleteConfirm(false);
         }}
         onCancel={() => { setShowDeleteConfirm(false); setError(""); }}
+      />
+
+      {/* Delete Membre Confirm Modal */}
+      <ConfirmModal
+        open={deleteMembreConfirm !== null}
+        title="Retirer le membre"
+        message="Êtes-vous sûr de vouloir retirer ce membre de la tontine ?"
+        confirmLabel="Retirer"
+        variant="danger"
+        onConfirm={() => { if (deleteMembreConfirm !== null) handleRemoveMembre(deleteMembreConfirm); }}
+        onCancel={() => setDeleteMembreConfirm(null)}
+      />
+
+      {/* Delete Cotisation Confirm Modal */}
+      <ConfirmModal
+        open={deleteCotisationConfirm !== null}
+        title="Supprimer la cotisation"
+        message="Êtes-vous sûr de vouloir supprimer cette cotisation ? La commission associée sera aussi supprimée."
+        confirmLabel="Supprimer"
+        variant="danger"
+        onConfirm={() => { if (deleteCotisationConfirm !== null) handleDeleteCotisation(deleteCotisationConfirm); }}
+        onCancel={() => setDeleteCotisationConfirm(null)}
+      />
+
+      {/* Delete Tour Confirm Modal */}
+      <ConfirmModal
+        open={deleteTourConfirm !== null}
+        title="Supprimer le tour"
+        message="Êtes-vous sûr de vouloir supprimer ce tour ?"
+        confirmLabel="Supprimer"
+        variant="danger"
+        onConfirm={() => { if (deleteTourConfirm !== null) handleDeleteTour(deleteTourConfirm); }}
+        onCancel={() => setDeleteTourConfirm(null)}
       />
     </div>
   );

@@ -57,9 +57,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { tontineId },
     include: {
       _count: { select: { cotisations: true } },
+      cotisations: {
+        select: { montantPaye: true, montantTotal: true, statut: true },
+      },
     },
     orderBy: [{ statut: "asc" }, { ordrePassage: "asc" as const }, { nom: "asc" }],
   });
 
-  return ok({ membres });
+  const enriched = membres.map(m => {
+    const nbPayees = m.cotisations.filter(c => c.statut === "paye" || c.statut === "partiel").length;
+    const montantTotalPaye = m.cotisations.reduce((s, c) => s + c.montantPaye, 0);
+    const nbRetards = m.cotisations.filter(c => c.statut === "en_retard").length;
+    return { ...m, nbPayees, montantTotalPaye, nbRetards };
+  });
+
+  return ok({ membres: enriched });
 }

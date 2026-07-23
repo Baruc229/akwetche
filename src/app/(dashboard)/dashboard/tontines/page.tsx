@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -34,7 +34,7 @@ export default function TontinesPage() {
     nom: "",
     type: "vivres_fin_annee",
     montantCotisation: "",
-    frequence: "hebdomadaire",
+    frequence: "",
     dateDebut: "",
     fraisOrganisateurParDefaut: "0",
     scopeCommission: "activite",
@@ -54,6 +54,7 @@ export default function TontinesPage() {
     }
   }
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     document.title = "Mes Tontines — Akwetche";
     loadData();
@@ -65,6 +66,7 @@ export default function TontinesPage() {
       router.replace("/dashboard/tontines");
     }
   }, [searchParams]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -103,9 +105,10 @@ export default function TontinesPage() {
     <div className="space-y-3 pb-24 sm:pb-0">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-ink">Tontines</h1>
-        <button onClick={() => setShowCreate(true)} className="btn-primary hidden sm:flex">
+        <button onClick={() => setShowCreate(true)} className="btn-primary">
           <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-          Créer une tontine
+          <span className="hidden sm:inline">Créer une tontine</span>
+          <span className="sm:hidden">Créer</span>
         </button>
       </div>
 
@@ -123,8 +126,8 @@ export default function TontinesPage() {
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${t.type === "rotative_simple" ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
                   <FontAwesomeIcon icon={t.type === "rotative_simple" ? faHandHoldingDollar : faSackDollar} className={`w-4 h-4 ${t.type === "rotative_simple" ? "text-emerald-600" : "text-amber-600"}`} />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink truncate">{t.nom}</p>
+                <div className="min-w-0 flex-1 group/name">
+                  <p className="text-sm font-semibold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{t.nom}</p>
                   <p className="text-xs text-muted mt-0.5">
                     {t.type === "rotative_simple" ? "Rotative" : "Vivres/fin d'année"} · {t.membreCount} membre{t.membreCount > 1 ? "s" : ""} · {t.frequence} · {formatCurrency(t.montantCotisation)}
                   </p>
@@ -175,7 +178,7 @@ export default function TontinesPage() {
                 </div>
                 <div>
                   <label className="field-label">Fréquence (tous les X jours)</label>
-                  <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
                 </div>
                 <div>
                   <label className="field-label">Date de début</label>
@@ -237,7 +240,7 @@ export default function TontinesPage() {
                 </div>
                 <div>
                   <label className="field-label">Fréquence (tous les X jours)</label>
-                  <input type="number" value={newTnt.frequence === "journaliere" || newTnt.frequence === "hebdomadaire" || newTnt.frequence === "mensuelle" ? "" : newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value === "" ? "" : e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
                 </div>
                 <div>
                   <label className="field-label">Date de début</label>

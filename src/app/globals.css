@@ -142,6 +142,34 @@ body {
 }
 .btn-danger:hover { opacity: 0.88; }
 
+.btn-primary-sm {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: var(--color-brand); color: white;
+  font-weight: 600; font-size: 12px; font-family: var(--font-body);
+  padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer;
+  transition: background 0.13s, transform 0.1s;
+}
+.btn-primary-sm:hover { background: var(--color-brand-hover); }
+.btn-primary-sm:active { transform: scale(0.97); }
+
+.btn-danger-sm {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: transparent; color: var(--color-neg);
+  font-weight: 600; font-size: 12px; font-family: var(--font-body);
+  padding: 5px 10px; border-radius: 8px; border: 1.5px solid var(--color-neg); cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+.btn-danger-sm:hover { background: var(--color-neg); color: white; }
+
+.btn-mono {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: var(--color-surface-raised); color: var(--color-ink);
+  font-weight: 600; font-size: 12px; font-family: var(--font-body);
+  padding: 5px 12px; border-radius: 8px; border: 1.5px solid var(--color-border); cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+.btn-mono:hover { background: var(--color-brand-subtle); border-color: var(--color-brand); }
+
 /* Inputs */
   .input-field {
     width: 100%; padding: 10px 14px;

@@ -88,3 +88,30 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   return ok({ tour });
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const userId = await getAuthUserId();
+  if (!userId) return unauthorized();
+
+  const { id } = await params;
+  const tontineId = parseInt(id);
+  if (!tontineId) return badRequest("ID invalide");
+
+  const tontine = await prisma.tontine.findFirst({
+    where: { id: tontineId, organisateurId: userId },
+  });
+  if (!tontine) return badRequest("Tontine introuvable");
+
+  const { searchParams } = new URL(req.url);
+  const tourId = searchParams.get("tourId");
+  if (!tourId) return badRequest("tourId requis");
+
+  const tour = await prisma.tontineTour.findFirst({
+    where: { id: parseInt(tourId), tontineId },
+  });
+  if (!tour) return badRequest("Tour introuvable");
+  if (tour.statut === "en_cours") return badRequest("Impossible de supprimer un tour en cours");
+
+  await prisma.tontineTour.delete({ where: { id: parseInt(tourId) } });
+  return ok({ success: true });
+}

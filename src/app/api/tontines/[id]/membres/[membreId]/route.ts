@@ -46,9 +46,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const body = await req.json();
   const updateData: Record<string, unknown> = {};
-  if (body.nom !== undefined) updateData.nom = body.nom;
-  if (body.contact !== undefined) updateData.contact = body.contact;
-  if (body.statut !== undefined) updateData.statut = body.statut;
+  if (body.nom !== undefined) {
+    if (typeof body.nom !== "string" || !body.nom.trim()) return badRequest("Nom invalide");
+    updateData.nom = body.nom.trim();
+  }
+  if (body.contact !== undefined) updateData.contact = body.contact || null;
+  if (body.ordrePassage !== undefined) updateData.ordrePassage = parseInt(body.ordrePassage) || null;
+  if (body.statut !== undefined) {
+    if (!["actif", "retire", "exclu"].includes(body.statut)) return badRequest("Statut invalide");
+    updateData.statut = body.statut;
+  }
 
   const membre = await prisma.tontineMembre.update({
     where: { id: membreIntId },
