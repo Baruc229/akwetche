@@ -38,7 +38,7 @@ export default function CustomSelect({
   const [open, setOpen] = useState(false);
   const [searchMode, setSearchMode] = useState(false);
   const [canScroll, setCanScroll] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number; openAbove?: boolean } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -50,12 +50,16 @@ export default function CustomSelect({
   function computePosition() {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const contentHeight = options.length * OPTION_HEIGHT + 16;
-    setCanScroll(contentHeight > DROPDOWN_MAX_HEIGHT);
+    const contentHeight = Math.min(options.length * OPTION_HEIGHT + 16, DROPDOWN_MAX_HEIGHT);
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const openAbove = spaceBelow < contentHeight && spaceAbove > spaceBelow;
+    setCanScroll(options.length * OPTION_HEIGHT + 16 > DROPDOWN_MAX_HEIGHT);
     setDropdownPos({
-      top: rect.bottom + 4,
+      top: openAbove ? rect.top - 4 - contentHeight : rect.bottom + 4,
       left: rect.left,
       width: rect.width,
+      openAbove,
     });
   }
 
