@@ -44,7 +44,7 @@ export default function CustomSelect({
 
   const selected = options.find((o) => o.value === value);
   const selectedIndex = options.findIndex((o) => o.value === value);
-  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 375;
+  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 640;
 
   function computePosition() {
     if (!containerRef.current) return;

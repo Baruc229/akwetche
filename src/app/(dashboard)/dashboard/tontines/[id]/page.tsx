@@ -611,266 +611,549 @@ export default function TontineDetail() {
 
       {/* Détail Membre Modal */}
       {detailMembreData && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 animate-fade-in" onClick={() => setDetailMembre(null)}>
-          <div className="bg-[var(--color-surface)] rounded-t-2xl sm:rounded-2xl p-6 w-full max-w-md shadow-xl animate-slide-up sm:animate-scale-in max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ink">{detailMembreData.nom}</h3>
-              <button onClick={() => setDetailMembre(null)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} /></button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <div className="card-inset text-center py-2">
-                <p className="text-label">Payées</p>
-                <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{detailMembreData._count.cotisations}</p>
-              </div>
-              <div className="card-inset text-center py-2">
-                <p className="text-label">Total payé</p>
-                <p className="text-base font-semibold text-ink">{formatCurrency(detailMembreData.montantTotalPaye)}</p>
-              </div>
-              <div className="card-inset text-center py-2">
-                <p className="text-label">Retards</p>
-                <p className={`text-base font-semibold ${detailMembreData.nbRetards > 0 ? "text-red-500" : "text-ink"}`}>{detailMembreData.nbRetards}</p>
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setDetailMembre(null)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">{detailMembreData.nom}</h3>
               </div>
             </div>
-
-            {/* Infos */}
-            {detailMembreData.ordrePassage && (
-              <p className="text-sm text-muted mb-2">Ordre de passage : <strong className="text-ink">#{detailMembreData.ordrePassage}</strong></p>
-            )}
-            {detailMembreData.contact && (
-              <p className="text-sm text-muted mb-2">Contact : <strong className="text-ink">{detailMembreData.contact}</strong></p>
-            )}
-
-            {/* Édition */}
-            {tontine.statut === "active" && (
-              <div className="border-t border-[var(--color-border)] pt-4 mt-4">
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Modifier</p>
-                <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
-                  <div>
-                    <label className="field-label">Nom</label>
-                    <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required />
-                  </div>
-                  <div>
-                    <label className="field-label">Contact</label>
-                    <input type="text" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
-                  </div>
-                  <button type="submit" className="btn-primary w-full">Enregistrer</button>
-                </form>
-              </div>
-            )}
-
-            {/* Cotisations du membre */}
-            {cotisationsDuMembre.length > 0 && (
-              <div className="border-t border-[var(--color-border)] pt-4 mt-4">
-                <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Cotisations ({cotisationsDuMembre.length})</p>
-                <div className="space-y-2">
-                  {cotisationsDuMembre.slice(0, 10).map(c => {
-                    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : c.statut === "en_retard" ? "bg-red-100 text-red-700" : "bg-stone-100 text-stone-600";
-                    const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
-                    return (
-                      <div key={c.id} className="flex items-center justify-between py-1.5">
-                        <div>
-                          <span className="text-sm text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")}</span>
-                          {c.montantPenalite > 0 && <span className="text-xs text-amber-600 ml-1">+{formatCurrency(c.montantPenalite)}</span>}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
-                          <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="card-inset text-center py-2">
+                  <p className="text-label">Payées</p>
+                  <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{detailMembreData._count.cotisations}</p>
+                </div>
+                <div className="card-inset text-center py-2">
+                  <p className="text-label">Total payé</p>
+                  <p className="text-base font-semibold text-ink">{formatCurrency(detailMembreData.montantTotalPaye)}</p>
+                </div>
+                <div className="card-inset text-center py-2">
+                  <p className="text-label">Retards</p>
+                  <p className={`text-base font-semibold ${detailMembreData.nbRetards > 0 ? "text-red-500" : "text-ink"}`}>{detailMembreData.nbRetards}</p>
                 </div>
               </div>
-            )}
-
-            {/* Actions */}
-            {tontine.statut === "active" && (
-              <div className="border-t border-[var(--color-border)] pt-4 mt-4">
-                <button onClick={() => { setDetailMembre(null); setDeleteMembreConfirm(detailMembreData.id); }} className="btn-danger-sm w-full justify-center">
-                  <FontAwesomeIcon icon={faTrash} className="w-3 h-3" /> Retirer ce membre
-                </button>
-              </div>
-            )}
+              {/* Infos */}
+              {detailMembreData.ordrePassage && (
+                <p className="text-sm text-muted">Ordre de passage : <strong className="text-ink">#{detailMembreData.ordrePassage}</strong></p>
+              )}
+              {detailMembreData.contact && (
+                <p className="text-sm text-muted">Contact : <strong className="text-ink">{detailMembreData.contact}</strong></p>
+              )}
+              {/* Édition */}
+              {tontine.statut === "active" && (
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Modifier</p>
+                  <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
+                    <div>
+                      <label className="field-label">Nom</label>
+                      <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required />
+                    </div>
+                    <div>
+                      <label className="field-label">Contact</label>
+                      <input type="text" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                    </div>
+                    <button type="submit" className="btn-primary w-full">Enregistrer</button>
+                  </form>
+                </div>
+              )}
+              {/* Cotisations */}
+              {cotisationsDuMembre.length > 0 && (
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Cotisations ({cotisationsDuMembre.length})</p>
+                  <div className="space-y-2">
+                    {cotisationsDuMembre.slice(0, 10).map(c => {
+                      const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : c.statut === "en_retard" ? "bg-red-100 text-red-700" : "bg-stone-100 text-stone-600";
+                      const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
+                      return (
+                        <div key={c.id} className="flex items-center justify-between py-1.5">
+                          <div>
+                            <span className="text-sm text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")}</span>
+                            {c.montantPenalite > 0 && <span className="text-xs text-amber-600 ml-1">+{formatCurrency(c.montantPenalite)}</span>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
+                            <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* Actions */}
+              {tontine.statut === "active" && (
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <button onClick={() => { setDetailMembre(null); setDeleteMembreConfirm(detailMembreData.id); }} className="btn-danger-sm w-full justify-center">
+                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3" /> Retirer ce membre
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setDetailMembre(null)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 pt-6 pb-0 shrink-0">
+                <h3 className="text-lg font-semibold text-ink">{detailMembreData.nom}</h3>
+                <button onClick={() => setDetailMembre(null)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="card-inset text-center py-2">
+                    <p className="text-label">Payées</p>
+                    <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{detailMembreData._count.cotisations}</p>
+                  </div>
+                  <div className="card-inset text-center py-2">
+                    <p className="text-label">Total payé</p>
+                    <p className="text-base font-semibold text-ink">{formatCurrency(detailMembreData.montantTotalPaye)}</p>
+                  </div>
+                  <div className="card-inset text-center py-2">
+                    <p className="text-label">Retards</p>
+                    <p className={`text-base font-semibold ${detailMembreData.nbRetards > 0 ? "text-red-500" : "text-ink"}`}>{detailMembreData.nbRetards}</p>
+                  </div>
+                </div>
+                {detailMembreData.ordrePassage && (
+                  <p className="text-sm text-muted">Ordre de passage : <strong className="text-ink">#{detailMembreData.ordrePassage}</strong></p>
+                )}
+                {detailMembreData.contact && (
+                  <p className="text-sm text-muted">Contact : <strong className="text-ink">{detailMembreData.contact}</strong></p>
+                )}
+                {tontine.statut === "active" && (
+                  <div className="border-t border-[var(--color-border)] pt-4">
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Modifier</p>
+                    <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
+                      <div>
+                        <label className="field-label">Nom</label>
+                        <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required />
+                      </div>
+                      <div>
+                        <label className="field-label">Contact</label>
+                        <input type="text" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                      </div>
+                      <button type="submit" className="btn-primary w-full">Enregistrer</button>
+                    </form>
+                  </div>
+                )}
+                {cotisationsDuMembre.length > 0 && (
+                  <div className="border-t border-[var(--color-border)] pt-4">
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Cotisations ({cotisationsDuMembre.length})</p>
+                    <div className="space-y-2">
+                      {cotisationsDuMembre.slice(0, 10).map(c => {
+                        const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : c.statut === "en_retard" ? "bg-red-100 text-red-700" : "bg-stone-100 text-stone-600";
+                        const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
+                        return (
+                          <div key={c.id} className="flex items-center justify-between py-1.5">
+                            <div>
+                              <span className="text-sm text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")}</span>
+                              {c.montantPenalite > 0 && <span className="text-xs text-amber-600 ml-1">+{formatCurrency(c.montantPenalite)}</span>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
+                              <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {tontine.statut === "active" && (
+                  <div className="border-t border-[var(--color-border)] pt-4">
+                    <button onClick={() => { setDetailMembre(null); setDeleteMembreConfirm(detailMembreData.id); }} className="btn-danger-sm w-full justify-center">
+                      <FontAwesomeIcon icon={faTrash} className="w-3 h-3" /> Retirer ce membre
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* New Membre Modal */}
       {showNewMembre && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewMembre(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ink">Nouveau membre</h3>
-              <button onClick={() => setShowNewMembre(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} /></button>
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowNewMembre(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">Nouveau membre</h3>
+              </div>
             </div>
-            <form onSubmit={handleAddMembre} className="space-y-4">
-              <div>
-                <label className="field-label">Nom</label>
-                <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
+            <form onSubmit={handleAddMembre} className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div>
+                  <label className="field-label">Nom</label>
+                  <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
+                </div>
+                <div>
+                  <label className="field-label">Contact</label>
+                  <input type="text" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                </div>
               </div>
-              <div>
-                <label className="field-label">Contact</label>
-                <input type="text" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+                <button type="submit" className="btn-primary w-full py-3">Ajouter</button>
               </div>
-              <button type="submit" className="btn-primary w-full">Ajouter</button>
             </form>
           </div>
-        </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewMembre(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 pt-6 pb-0">
+                <h3 className="text-lg font-semibold text-ink">Nouveau membre</h3>
+                <button onClick={() => setShowNewMembre(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              </div>
+              <form onSubmit={handleAddMembre} className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div>
+                    <label className="field-label">Nom</label>
+                    <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
+                  </div>
+                  <div>
+                    <label className="field-label">Contact</label>
+                    <input type="text" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                  </div>
+                </div>
+                <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
+                  <button type="submit" className="btn-primary w-full">Ajouter</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
       )}
 
       {/* New Cotisation Modal */}
       {showNewCotisation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewCotisation(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ink">Enregistrer un paiement</h3>
-              <button onClick={() => setShowNewCotisation(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} /></button>
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowNewCotisation(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">Enregistrer un paiement</h3>
+              </div>
             </div>
-            <form onSubmit={handleAddCotisation} className="space-y-4">
-              <div>
-                <label className="field-label">Membre</label>
-                <CustomSelect
-                  options={actifs.map(m => {
-                    const nbCotisations = m.nbPayees || 0;
-                    const montantPaye = m.montantTotalPaye || 0;
-                    const statutBadge = m.nbRetards > 0 ? `${m.nbRetards} retard(s)` : nbCotisations > 0 ? `${nbCotisations} cotisation(s)` : "Aucune cotisation";
-                    return {
-                      value: String(m.id),
-                      label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom,
-                      description: `${formatCurrency(montantPaye)} · ${statutBadge}`,
-                    };
-                  })}
-                  value={membreIdForCotisation}
-                  onChange={v => setMembreIdForCotisation(v)}
-                  placeholder="Sélectionner un membre"
-                />
-              </div>
-              <div>
-                <label className="field-label">Période</label>
-                <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
-              </div>
-              {cotisationPeriode && (() => {
-                const periodeDate = new Date(cotisationPeriode);
-                const now = new Date();
-                const frequenceJ = parseInt(tontine.frequence) || 1;
-                const dateLimite = new Date(periodeDate.getTime() + frequenceJ * 24 * 60 * 60 * 1000);
-                const estEnRetard = now > dateLimite;
-                const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
-                const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
-                const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
-                const montantDus = tontine.montantCotisation + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
-                const montantPaye = parseFloat(cotisationMontant) || 0;
-                const surplus = Math.max(0, montantPaye - montantDus);
-                const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
-                  : montantPaye >= montantDus ? "Payé" : "Partiel";
-
-                return (
-                  <div className="card-inset space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted">Montant dû</span>
-                      <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
-                    </div>
-                    {penaliteAppliquee && (
+            <form onSubmit={handleAddCotisation} className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div>
+                  <label className="field-label">Membre</label>
+                  <CustomSelect
+                    options={actifs.map(m => {
+                      const nbCotisations = m.nbPayees || 0;
+                      const montantPaye = m.montantTotalPaye || 0;
+                      const statutBadge = m.nbRetards > 0 ? `${m.nbRetards} retard(s)` : nbCotisations > 0 ? `${nbCotisations} cotisation(s)` : "Aucune cotisation";
+                      return {
+                        value: String(m.id),
+                        label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom,
+                        description: `${formatCurrency(montantPaye)} · ${statutBadge}`,
+                      };
+                    })}
+                    value={membreIdForCotisation}
+                    onChange={v => setMembreIdForCotisation(v)}
+                    placeholder="Sélectionner un membre"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Période</label>
+                  <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
+                </div>
+                {cotisationPeriode && (() => {
+                  const periodeDate = new Date(cotisationPeriode);
+                  const now = new Date();
+                  const frequenceJ = parseInt(tontine.frequence) || 1;
+                  const dateLimite = new Date(periodeDate.getTime() + frequenceJ * 24 * 60 * 60 * 1000);
+                  const estEnRetard = now > dateLimite;
+                  const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
+                  const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
+                  const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
+                  const montantDus = tontine.montantCotisation + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                  const montantPaye = parseFloat(cotisationMontant) || 0;
+                  const surplus = Math.max(0, montantPaye - montantDus);
+                  const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
+                    : montantPaye >= montantDus ? "Payé" : "Partiel";
+                  return (
+                    <div className="card-inset space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-amber-600">Pénalité retard</span>
-                        <span className="text-sm font-semibold text-amber-600">+ {formatCurrency(tontine.penaliteRetardMontant)}</span>
+                        <span className="text-xs text-muted">Montant dû</span>
+                        <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
                       </div>
-                    )}
-                    {estEnRetard && !penaliteAppliquee && penaliteActive && (
-                      <p className="text-xs text-amber-500">Retard — pénalité dans {Math.max(0, Math.ceil((dateLimitePenalite.getTime() - now.getTime()) / (1000 * 3600 * 24)))} jour(s)</p>
-                    )}
-                    {montantPaye > 0 && (
-                      <>
-                        <div className="border-t border-[var(--color-border)] pt-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted">Statut résultant</span>
-                            <span className={`text-sm font-semibold ${statutResultant === "Payé" ? "text-emerald-600" : statutResultant === "Partiel" ? "text-amber-600" : statutResultant === "En retard" ? "text-red-500" : "text-muted"}`}>{statutResultant}</span>
-                          </div>
+                      {penaliteAppliquee && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-amber-600">Pénalité retard</span>
+                          <span className="text-sm font-semibold text-amber-600">+ {formatCurrency(tontine.penaliteRetardMontant)}</span>
                         </div>
-                        {surplus > 0 && (
-                          <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les périodes suivantes</p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })()}
-              <div>
-                <label className="field-label">Montant payé</label>
-                <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
-                <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) que le membre a versé</p>
+                      )}
+                      {estEnRetard && !penaliteAppliquee && penaliteActive && (
+                        <p className="text-xs text-amber-500">Retard — pénalité dans {Math.max(0, Math.ceil((dateLimitePenalite.getTime() - now.getTime()) / (1000 * 3600 * 24)))} jour(s)</p>
+                      )}
+                      {montantPaye > 0 && (
+                        <>
+                          <div className="border-t border-[var(--color-border)] pt-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted">Statut résultant</span>
+                              <span className={`text-sm font-semibold ${statutResultant === "Payé" ? "text-emerald-600" : statutResultant === "Partiel" ? "text-amber-600" : statutResultant === "En retard" ? "text-red-500" : "text-muted"}`}>{statutResultant}</span>
+                            </div>
+                          </div>
+                          {surplus > 0 && (
+                            <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les périodes suivantes</p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+                <div>
+                  <label className="field-label">Montant payé</label>
+                  <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
+                  <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) que le membre a versé</p>
+                </div>
               </div>
-              <button type="submit" className="btn-primary w-full">Enregistrer</button>
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+                <button type="submit" className="btn-primary w-full py-3">Enregistrer</button>
+              </div>
             </form>
           </div>
-        </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewCotisation(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 pt-6 pb-0">
+                <h3 className="text-lg font-semibold text-ink">Enregistrer un paiement</h3>
+                <button onClick={() => setShowNewCotisation(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              </div>
+              <form onSubmit={handleAddCotisation} className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div>
+                    <label className="field-label">Membre</label>
+                    <CustomSelect
+                      options={actifs.map(m => {
+                        const nbCotisations = m.nbPayees || 0;
+                        const montantPaye = m.montantTotalPaye || 0;
+                        const statutBadge = m.nbRetards > 0 ? `${m.nbRetards} retard(s)` : nbCotisations > 0 ? `${nbCotisations} cotisation(s)` : "Aucune cotisation";
+                        return {
+                          value: String(m.id),
+                          label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom,
+                          description: `${formatCurrency(montantPaye)} · ${statutBadge}`,
+                        };
+                      })}
+                      value={membreIdForCotisation}
+                      onChange={v => setMembreIdForCotisation(v)}
+                      placeholder="Sélectionner un membre"
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">Période</label>
+                    <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
+                  </div>
+                  {cotisationPeriode && (() => {
+                    const periodeDate = new Date(cotisationPeriode);
+                    const now = new Date();
+                    const frequenceJ = parseInt(tontine.frequence) || 1;
+                    const dateLimite = new Date(periodeDate.getTime() + frequenceJ * 24 * 60 * 60 * 1000);
+                    const estEnRetard = now > dateLimite;
+                    const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
+                    const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
+                    const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
+                    const montantDus = tontine.montantCotisation + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                    const montantPaye = parseFloat(cotisationMontant) || 0;
+                    const surplus = Math.max(0, montantPaye - montantDus);
+                    const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
+                      : montantPaye >= montantDus ? "Payé" : "Partiel";
+                    return (
+                      <div className="card-inset space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted">Montant dû</span>
+                          <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
+                        </div>
+                        {penaliteAppliquee && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-amber-600">Pénalité retard</span>
+                            <span className="text-sm font-semibold text-amber-600">+ {formatCurrency(tontine.penaliteRetardMontant)}</span>
+                          </div>
+                        )}
+                        {estEnRetard && !penaliteAppliquee && penaliteActive && (
+                          <p className="text-xs text-amber-500">Retard — pénalité dans {Math.max(0, Math.ceil((dateLimitePenalite.getTime() - now.getTime()) / (1000 * 3600 * 24)))} jour(s)</p>
+                        )}
+                        {montantPaye > 0 && (
+                          <>
+                            <div className="border-t border-[var(--color-border)] pt-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted">Statut résultant</span>
+                                <span className={`text-sm font-semibold ${statutResultant === "Payé" ? "text-emerald-600" : statutResultant === "Partiel" ? "text-amber-600" : statutResultant === "En retard" ? "text-red-500" : "text-muted"}`}>{statutResultant}</span>
+                              </div>
+                            </div>
+                            {surplus > 0 && (
+                              <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les périodes suivantes</p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  <div>
+                    <label className="field-label">Montant payé</label>
+                    <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
+                    <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) que le membre a versé</p>
+                  </div>
+                </div>
+                <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
+                  <button type="submit" className="btn-primary w-full">Enregistrer</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
       )}
 
       {/* New Tour Modal */}
       {showNewTour && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewTour(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ink">Nouveau tour</h3>
-              <button onClick={() => setShowNewTour(false)}><FontAwesomeIcon icon={faXmark} /></button>
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowNewTour(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">Nouveau tour</h3>
+              </div>
             </div>
-            <form onSubmit={handleAddTour} className="space-y-4">
-              <div>
-                <label className="field-label">Numéro de tour</label>
-                <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" />
+            <form onSubmit={handleAddTour} className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div>
+                  <label className="field-label">Numéro de tour</label>
+                  <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" />
+                </div>
+                <div>
+                  <label className="field-label">Date prévue</label>
+                  <DatePicker value={newTourData.datePrevue} onChange={v => setNewTourData({...newTourData, datePrevue: v})} />
+                </div>
+                <div>
+                  <label className="field-label">Bénéficiaire</label>
+                  <CustomSelect
+                    options={actifs.map(m => ({ value: String(m.id), label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom }))}
+                    value={newTourData.beneficiaireId}
+                    onChange={v => setNewTourData({...newTourData, beneficiaireId: v})}
+                    placeholder="Sélectionner un membre"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Montant attendu</label>
+                  <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" />
+                  <p className="text-xs text-muted mt-1">montantCotisation × membres = {formatCurrency(tontine.montantCotisation * actifs.length)}</p>
+                </div>
               </div>
-              <div>
-                <label className="field-label">Date prévue</label>
-                <DatePicker value={newTourData.datePrevue} onChange={v => setNewTourData({...newTourData, datePrevue: v})} />
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+                <button type="submit" className="btn-primary w-full py-3">Créer</button>
               </div>
-              <div>
-                <label className="field-label">Bénéficiaire</label>
-                <CustomSelect
-                  options={actifs.map(m => ({ value: String(m.id), label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom }))}
-                  value={newTourData.beneficiaireId}
-                  onChange={v => setNewTourData({...newTourData, beneficiaireId: v})}
-                  placeholder="Sélectionner"
-                />
-              </div>
-              <div>
-                <label className="field-label">Montant attendu</label>
-                <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" />
-                <p className="text-xs text-muted mt-1">montantCotisation × membres = {formatCurrency(tontine.montantCotisation * actifs.length)}</p>
-              </div>
-              <button type="submit" className="btn-primary w-full">Créer</button>
             </form>
           </div>
-        </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewTour(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 pt-6 pb-0">
+                <h3 className="text-lg font-semibold text-ink">Nouveau tour</h3>
+                <button onClick={() => setShowNewTour(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              </div>
+              <form onSubmit={handleAddTour} className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div>
+                    <label className="field-label">Numéro de tour</label>
+                    <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" />
+                  </div>
+                  <div>
+                    <label className="field-label">Date prévue</label>
+                    <DatePicker value={newTourData.datePrevue} onChange={v => setNewTourData({...newTourData, datePrevue: v})} />
+                  </div>
+                  <div>
+                    <label className="field-label">Bénéficiaire</label>
+                    <CustomSelect
+                      options={actifs.map(m => ({ value: String(m.id), label: m.ordrePassage ? `#${m.ordrePassage} ${m.nom}` : m.nom }))}
+                      value={newTourData.beneficiaireId}
+                      onChange={v => setNewTourData({...newTourData, beneficiaireId: v})}
+                      placeholder="Sélectionner un membre"
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">Montant attendu</label>
+                    <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" />
+                    <p className="text-xs text-muted mt-1">montantCotisation × membres = {formatCurrency(tontine.montantCotisation * actifs.length)}</p>
+                  </div>
+                </div>
+                <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
+                  <button type="submit" className="btn-primary w-full">Créer</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Dist Modal */}
       {showDistribution && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowDistribution(false)}>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ink">Planifier distribution</h3>
-              <button onClick={() => setShowDistribution(false)}><FontAwesomeIcon icon={faXmark} /></button>
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowDistribution(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">Planifier distribution</h3>
+              </div>
             </div>
-            <form onSubmit={handleSaveDistribution} className="space-y-4">
-              <div>
-                <label className="field-label">Date</label>
-                <DatePicker value={distData.dateDistribution} onChange={v => setDistData({...distData, dateDistribution: v})} />
+            <form onSubmit={handleSaveDistribution} className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div>
+                  <label className="field-label">Date</label>
+                  <DatePicker value={distData.dateDistribution} onChange={v => setDistData({...distData, dateDistribution: v})} />
+                </div>
+                <div>
+                  <label className="field-label">Montant alloué aux vivres</label>
+                  <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" />
+                </div>
+                <div>
+                  <label className="field-label">Montant distribué en argent</label>
+                  <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" />
+                </div>
+                <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
               </div>
-              <div>
-                <label className="field-label">Montant alloué aux vivres</label>
-                <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" />
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+                <button type="submit" className="btn-primary w-full py-3">Planifier</button>
               </div>
-              <div>
-                <label className="field-label">Montant distribué en argent</label>
-                <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" />
-              </div>
-              <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
-              <button type="submit" className="btn-primary w-full">Planifier</button>
             </form>
           </div>
-        </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowDistribution(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 pt-6 pb-0">
+                <h3 className="text-lg font-semibold text-ink">Planifier distribution</h3>
+                <button onClick={() => setShowDistribution(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              </div>
+              <form onSubmit={handleSaveDistribution} className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  <div>
+                    <label className="field-label">Date</label>
+                    <DatePicker value={distData.dateDistribution} onChange={v => setDistData({...distData, dateDistribution: v})} />
+                  </div>
+                  <div>
+                    <label className="field-label">Montant alloué aux vivres</label>
+                    <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" />
+                  </div>
+                  <div>
+                    <label className="field-label">Montant distribué en argent</label>
+                    <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" />
+                  </div>
+                  <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
+                </div>
+                <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
+                  <button type="submit" className="btn-primary w-full">Planifier</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Delete Confirm Modal */}
