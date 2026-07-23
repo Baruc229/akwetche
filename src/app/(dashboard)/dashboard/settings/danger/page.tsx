@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faRotateLeft, faLock, faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faRotateLeft, faLock, faCheck, faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import ConfirmModal from "@/components/ConfirmModal";
 import SettingsHeader from "@/components/settings/SettingsHeader";
 
@@ -65,34 +65,34 @@ export default function DangerPage() {
         <div className="alert-inline neg mb-4">
           <FontAwesomeIcon icon={faXmark} className="w-5 h-5 shrink-0 mt-0.5" />
           <p className="text-sm flex-1">{loadError}</p>
-          <button onClick={() => setLoadError(null)} className="shrink-0 hover:opacity-70"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+          <button onClick={() => setLoadError(null)} className="shrink-0 hover:opacity-70" aria-label="Fermer"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
         </div>
       )}
 
       {/* Désactivation — réversible */}
-      <div className="card mb-4" style={{ borderColor: "var(--color-warn-border, #E5E7EB)", background: "var(--color-warn-bg, #FFFBEB)" }}>
+      <div className="card mb-4" style={{ borderColor: "var(--color-warn-border)", background: "var(--color-warn-bg)" }}>
         <div className="flex items-center gap-3 mb-3">
-          <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-warn, #D97706)" }} />
-          <h2 className="text-base font-semibold" style={{ color: "var(--color-warn, #D97706)" }}>Désactiver mon compte</h2>
+          <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-warn)" }} />
+          <h2 className="text-base font-semibold" style={{ color: "var(--color-warn)" }}>Désactiver mon compte</h2>
         </div>
         <p className="text-sm mb-1" style={{ color: "var(--color-body)" }}>Votre compte sera masqué et vous serez déconnecté. Vous pouvez le réactiver à tout moment en vous reconnectant avec votre email et mot de passe.</p>
         <p className="text-xs mb-3" style={{ color: "var(--color-muted)" }}>Aucune donnée ne sera supprimée.</p>
-        <button onClick={() => setShowDeactivateModal(true)} className="flex items-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all hover:bg-amber-50" style={{ borderColor: "var(--color-warn, #D97706)", color: "var(--color-warn, #D97706)" }}>
+        <button onClick={() => setShowDeactivateModal(true)} className="flex items-center gap-2 mt-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all hover:bg-[var(--color-warn-bg)]" style={{ borderColor: "var(--color-warn)", color: "var(--color-warn)" }}>
           <FontAwesomeIcon icon={faLock} className="w-4 h-4" />
           Désactiver mon compte
         </button>
       </div>
 
-      {/* Réinitialisation */}
+      {/* Réinitialisation des données */}
       <div className="card mb-4" style={{ borderColor: "var(--color-neg-border)", background: "var(--color-neg-bg)" }}>
         <div className="flex items-center gap-3 mb-3">
           <FontAwesomeIcon icon={faRotateLeft} className="w-5 h-5" style={{ color: "var(--color-neg)" }} />
-          <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Réinitialisation</h2>
+          <h2 className="text-base font-semibold" style={{ color: "var(--color-neg)" }}>Réinitialisation des données</h2>
         </div>
         <p className="text-sm" style={{ color: "var(--color-body)" }}>Supprime toutes vos données (transactions, ventes, produits, catégories). Votre compte reste actif.</p>
-        <button onClick={() => setShowResetModal(true)} className="btn-danger flex items-center gap-2 mt-4">
-          <FontAwesomeIcon icon={faRotateLeft} className="w-4 h-4" />
-          Réinitialiser toutes les données
+        <button onClick={() => setShowResetModal(true)} disabled={resetLoading} className="btn-danger flex items-center gap-2 mt-4">
+          <FontAwesomeIcon icon={resetLoading ? faSpinner : faRotateLeft} className={`w-4 h-4 ${resetLoading ? "animate-spin" : ""}`} />
+          {resetLoading ? "Réinitialisation..." : "Réinitialiser toutes les données"}
         </button>
         {resetDone && <p className="mt-3 text-sm px-3 py-2 rounded-xl text-pos bg-pos-bg"><FontAwesomeIcon icon={faCheck} className="w-4 h-4 mr-1" /> Données réinitialisées.</p>}
       </div>

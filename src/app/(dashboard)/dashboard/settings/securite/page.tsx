@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFloppyDisk, faEye, faEyeSlash, faDesktop, faLaptop,
   faMobileScreen, faRightFromBracket, faEnvelope,
-  faPaperPlane, faCheck, faXmark, faKey, faLock
+  faPaperPlane, faCheck, faXmark, faKey, faLock, faSpinner
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import SettingsHeader from "@/components/settings/SettingsHeader";
@@ -93,7 +93,7 @@ export default function SecuritePage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setTimeout(() => { setPasswordSaved(false); setEditingPassword(false); }, 2500);
+      setTimeout(() => { setPasswordSaved(false); setEditingPassword(false); }, 3000);
     } catch { setPasswordError("Erreur réseau"); }
     finally { setPasswordLoading(false); }
   }
@@ -117,7 +117,7 @@ export default function SecuritePage() {
     try {
       const res = await fetch(`/api/user/sessions/${id}`, { method: "DELETE" });
       if (res.ok) setSessions(prev => prev.filter(s => s.id !== id));
-    } catch { /* silent - UI stays unchanged */ }
+    } catch { /* silent */ }
   }
 
   async function handleDisconnectAll() {
@@ -136,12 +136,12 @@ export default function SecuritePage() {
       <div className="space-y-8">
         {/* ─── EMAIL ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Email</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <p className="text-label mb-4 px-1">Email</p>
+          <div className="card" style={{ padding: 0 }}>
             {!editingEmail ? (
               <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle, #EBF0F7)" }}>
-                  <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" style={{ color: "var(--color-brand, #1B3A6B)" }} />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
+                  <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted mb-1">Adresse email</p>
@@ -180,7 +180,7 @@ export default function SecuritePage() {
                       placeholder="Votre mot de passe actuel"
                       required
                     />
-                    <button type="button" onClick={() => setShowEmailPassword(!showEmailPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" tabIndex={-1}>
+                    <button type="button" onClick={() => setShowEmailPassword(!showEmailPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" aria-label={showEmailPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
                       <FontAwesomeIcon icon={showEmailPassword ? faEyeSlash : faEye} className="w-4 h-4" />
                     </button>
                   </div>
@@ -189,7 +189,7 @@ export default function SecuritePage() {
                 {emailMessage && <p className="text-sm text-pos flex items-center gap-1.5"><FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />{emailMessage}</p>}
                 <div className="flex items-center gap-2">
                   <button type="submit" disabled={emailLoading} className="btn-primary flex items-center gap-2 text-sm">
-                    <FontAwesomeIcon icon={emailLoading ? faFloppyDisk : faPaperPlane} className="w-4 h-4" />
+                    <FontAwesomeIcon icon={emailLoading ? faSpinner : faPaperPlane} className={`w-4 h-4 ${emailLoading ? "animate-spin" : ""}`} />
                     {emailLoading ? "Envoi..." : "Confirmer"}
                   </button>
                   <button type="button" onClick={() => setEditingEmail(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-ink transition-colors">
@@ -203,12 +203,12 @@ export default function SecuritePage() {
 
         {/* ─── MOT DE PASSE ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Mot de passe</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <p className="text-label mb-4 px-1">Mot de passe</p>
+          <div className="card" style={{ padding: 0 }}>
             {!editingPassword ? (
               <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle, #EBF0F7)" }}>
-                  <FontAwesomeIcon icon={faKey} className="w-5 h-5" style={{ color: "var(--color-brand, #1B3A6B)" }} />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
+                  <FontAwesomeIcon icon={faKey} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted mb-1">Mot de passe</p>
@@ -228,7 +228,7 @@ export default function SecuritePage() {
                   <label className="field-label">Mot de passe actuel</label>
                   <div className="relative">
                     <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="input-field pr-10" placeholder="Mot de passe actuel" required autoFocus />
-                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" tabIndex={-1}>
+                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" aria-label={showCurrent ? "Masquer" : "Afficher"}>
                       <FontAwesomeIcon icon={showCurrent ? faEyeSlash : faEye} className="w-4 h-4" />
                     </button>
                   </div>
@@ -237,7 +237,7 @@ export default function SecuritePage() {
                   <label className="field-label">Nouveau mot de passe</label>
                   <div className="relative">
                     <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input-field pr-10" placeholder="Nouveau mot de passe" minLength={8} required />
-                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" tabIndex={-1}>
+                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" aria-label={showNew ? "Masquer" : "Afficher"}>
                       <FontAwesomeIcon icon={showNew ? faEyeSlash : faEye} className="w-4 h-4" />
                     </button>
                   </div>
@@ -247,7 +247,7 @@ export default function SecuritePage() {
                   <label className="field-label">Confirmer le nouveau mot de passe</label>
                   <div className="relative">
                     <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input-field pr-10" placeholder="Confirmer le mot de passe" minLength={8} required />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" tabIndex={-1}>
+                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" aria-label={showConfirm ? "Masquer" : "Afficher"}>
                       <FontAwesomeIcon icon={showConfirm ? faEyeSlash : faEye} className="w-4 h-4" />
                     </button>
                   </div>
@@ -256,7 +256,7 @@ export default function SecuritePage() {
                 {passwordSaved && <p className="text-sm text-pos flex items-center gap-1.5"><FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />Mot de passe mis à jour !</p>}
                 <div className="flex items-center gap-2">
                   <button type="submit" disabled={passwordLoading} className="btn-primary flex items-center gap-2 text-sm">
-                    <FontAwesomeIcon icon={faFloppyDisk} className="w-4 h-4" />
+                    <FontAwesomeIcon icon={passwordLoading ? faSpinner : faFloppyDisk} className={`w-4 h-4 ${passwordLoading ? "animate-spin" : ""}`} />
                     {passwordLoading ? "Enregistrement..." : "Enregistrer"}
                   </button>
                   <button type="button" onClick={() => setEditingPassword(false)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-ink transition-colors">
@@ -268,17 +268,17 @@ export default function SecuritePage() {
           </div>
         </section>
 
-        {/* ─── RÉINITIALISATION ─── */}
+        {/* ─── RÉCUPÉRATION ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Réinitialisation</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <p className="text-label mb-4 px-1">Récupération</p>
+          <div className="card" style={{ padding: 0 }}>
             <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-gold-light, #FEF3C7)" }}>
-                <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-gold-dark, #B8860B)" }} />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-gold-light)" }}>
+                <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-gold-dark)" }} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-ink">Mot de passe oublié ?</p>
-                <p className="text-xs text-muted mt-0.5">Recevez un lien de réinitialisation par email.</p>
+                <p className="text-xs text-muted mt-0.5">Recevez un lien de récupération par email.</p>
               </div>
               <button
                 onClick={handleResetPassword}
@@ -286,7 +286,7 @@ export default function SecuritePage() {
                 className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={{ background: "var(--color-brand-subtle)", color: "var(--color-brand)" }}
               >
-                {resetLoading ? "..." : "Envoyer"}
+                {resetLoading ? <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin" /> : "Envoyer"}
               </button>
             </div>
             {resetMessage && (
@@ -299,8 +299,8 @@ export default function SecuritePage() {
 
         {/* ─── SESSIONS ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Sessions actives</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
+          <p className="text-label mb-4 px-1">Sessions actives</p>
+          <div className="card" style={{ padding: 0 }}>
             <div className="px-5 sm:px-6 pt-5 pb-2">
               <p className="text-xs text-muted">Appareils connectés à votre compte.</p>
             </div>
@@ -360,7 +360,7 @@ export default function SecuritePage() {
             {sessions.filter(s => !s.isCurrent).length > 0 && (
               <div className="px-5 sm:px-6 pb-5">
                 <button onClick={handleDisconnectAll} disabled={disconnectAllLoading} className="w-full py-2.5 rounded-xl text-sm font-medium border border-[var(--color-neg)] transition-all hover:bg-[var(--color-neg-bg)]" style={{ color: "var(--color-neg)" }}>
-                  {disconnectAllLoading ? "Déconnexion..." : "Déconnecter tous les autres appareils"}
+                  {disconnectAllLoading ? <><FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin mr-2" />Déconnexion...</> : "Déconnecter tous les autres appareils"}
                 </button>
               </div>
             )}

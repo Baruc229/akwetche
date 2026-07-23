@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFloppyDisk, faCamera, faTrash, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faFloppyDisk, faCamera, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import { resolveCurrency, setActiveCurrency, getCountryByCode, getPhonePrefix, COUNTRY_OPTIONS, validatePhoneMessage, validateName, toDisplayCurrency, toStorageCurrency, roundByCurrency, type CurrencyCode } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
 import SettingsHeader from "@/components/settings/SettingsHeader";
+import UserAvatar from "@/components/settings/UserAvatar";
 
 export default function ProfilPage() {
   const { user, setUser, setCurrency: setDashboardCurrency } = useDashboard();
@@ -111,7 +112,6 @@ export default function ProfilPage() {
 
   useEffect(() => { document.title = "Profil — Akwetche"; }, []);
 
-   
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (prev !== currency) {
@@ -176,27 +176,7 @@ export default function ProfilPage() {
       <div className="card">
         {/* Avatar */}
         <div className="flex items-center gap-4 pb-4 mb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
-          <div className="relative">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover" style={{ border: "2px solid var(--color-gold, #C9A84C)" }} />
-            ) : (
-              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: "var(--color-brand, #1B3A6B)", border: "2px solid var(--color-gold, #C9A84C)" }}>
-                <span className="text-2xl font-bold" style={{ color: "var(--color-gold, #F5A623)" }}>
-                  {(() => {
-                    const n = user?.name || "";
-                    const parts = n.trim().split(/\s+/);
-                    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-                    return n.slice(0, 2).toUpperCase();
-                  })()}
-                </span>
-              </div>
-            )}
-            {avatarLoading && (
-              <div className="absolute inset-0 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
-                <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-white animate-spin" />
-              </div>
-            )}
-          </div>
+          <UserAvatar name={user?.name} avatarUrl={user?.avatarUrl} size="lg" loading={avatarLoading} />
           <div className="flex-1">
             <p className="text-sm font-semibold text-ink mb-1">Photo de profil</p>
             <div className="flex items-center gap-2">

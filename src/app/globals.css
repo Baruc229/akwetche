@@ -3,12 +3,14 @@
 @theme inline {
   /* Marque */
   --color-brand: #1B3A6B;
+  --color-brand-dark: #0D1B35;
   --color-brand-hover: #142D54;
   --color-brand-active: #244A82;
   --color-brand-subtle: #E8EDF5;
 
   /* Accent */
   --color-gold: #F5A623;
+  --color-gold-dark: #B8860B;
   --color-gold-light: #FEF3DC;
 
   /* Footer */
