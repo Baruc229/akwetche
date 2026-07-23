@@ -130,18 +130,18 @@ export default function SecuritePage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <SettingsHeader title="Connexion et sécurité" subtitle="Email, mot de passe et sessions" />
 
       <div className="space-y-8">
         {/* ─── EMAIL ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Email</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Email</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             {!editingEmail ? (
               <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-                  <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle, #EBF0F7)" }}>
+                  <FontAwesomeIcon icon={faEnvelope} className="w-5 h-5" style={{ color: "var(--color-brand, #1B3A6B)" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted mb-1">Adresse email</p>
@@ -203,12 +203,12 @@ export default function SecuritePage() {
 
         {/* ─── MOT DE PASSE ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Mot de passe</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Mot de passe</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             {!editingPassword ? (
               <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EBF0F7" }}>
-                  <FontAwesomeIcon icon={faKey} className="w-5 h-5" style={{ color: "#1B3A6B" }} />
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle, #EBF0F7)" }}>
+                  <FontAwesomeIcon icon={faKey} className="w-5 h-5" style={{ color: "var(--color-brand, #1B3A6B)" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted mb-1">Mot de passe</p>
@@ -270,11 +270,11 @@ export default function SecuritePage() {
 
         {/* ─── RÉINITIALISATION ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Réinitialisation</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Réinitialisation</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             <div className="flex items-center gap-5 px-5 sm:px-6 py-5">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-gold-light, #FEF3C7)" }}>
-                <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "#B8860B" }} />
+                <FontAwesomeIcon icon={faLock} className="w-5 h-5" style={{ color: "var(--color-gold-dark, #B8860B)" }} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-ink">Mot de passe oublié ?</p>
@@ -299,7 +299,7 @@ export default function SecuritePage() {
 
         {/* ─── SESSIONS ─── */}
         <section>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#94A3B8" }}>Sessions actives</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-4 px-1 text-muted">Sessions actives</p>
           <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
             <div className="px-5 sm:px-6 pt-5 pb-2">
               <p className="text-xs text-muted">Appareils connectés à votre compte.</p>

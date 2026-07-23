@@ -58,7 +58,7 @@ export default function DangerPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <SettingsHeader title="Danger" subtitle="Actions sensibles sur votre compte" />
 
       {loadError && (

@@ -9,7 +9,7 @@ export default function AboutPage() {
   useEffect(() => { document.title = "À propos — Akwetche"; }, []);
 
   return (
-    <div className="max-w-lg mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <SettingsHeader title="À propos" subtitle="Informations sur l'application" />
 
       <div className="card space-y-4">

@@ -170,7 +170,7 @@ export default function ProfilPage() {
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
 
   return (
-    <div className="max-w-lg mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <SettingsHeader title="Informations sur le compte" subtitle="Nom, soldes initiaux, pays, devise" />
 
       <div className="card">
@@ -178,10 +178,10 @@ export default function ProfilPage() {
         <div className="flex items-center gap-4 pb-4 mb-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
           <div className="relative">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover" style={{ border: "2px solid #C9A84C" }} />
+              <img src={user.avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full object-cover" style={{ border: "2px solid var(--color-gold, #C9A84C)" }} />
             ) : (
-              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: "#1B3A6B", border: "2px solid #C9A84C" }}>
-                <span className="text-2xl font-bold" style={{ color: "#F5A623" }}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: "var(--color-brand, #1B3A6B)", border: "2px solid var(--color-gold, #C9A84C)" }}>
+                <span className="text-2xl font-bold" style={{ color: "var(--color-gold, #F5A623)" }}>
                   {(() => {
                     const n = user?.name || "";
                     const parts = n.trim().split(/\s+/);

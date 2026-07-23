@@ -80,7 +80,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <SettingsHeader title="Notifications" subtitle="Choisissez comment être informé" />
 
       <div className="space-y-3">

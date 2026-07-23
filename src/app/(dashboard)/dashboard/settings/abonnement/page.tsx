@@ -77,7 +77,7 @@ export default function AbonnementPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <SettingsHeader title="Abonnement" subtitle="Gérez votre plan et vos fonctionnalités" />
 
       {isAdmin ? (
@@ -119,7 +119,7 @@ export default function AbonnementPage() {
           return (
             <div className="space-y-4">
               {/* Current plan card */}
-              <div className="card" style={{ border: isExpiringSoon ? "2px solid var(--color-warn, #F59E0B)" : "2px solid var(--color-gold, #C9A84C)", background: isExpiringSoon ? "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)" : "linear-gradient(135deg, #FFFBEB 0%, #FEF9C3 100%)" }}>
+              <div className="card" style={{ border: isExpiringSoon ? "2px solid var(--color-warn, #F59E0B)" : "2px solid var(--color-gold, #C9A84C)", background: isExpiringSoon ? "linear-gradient(135deg, var(--color-warn-bg) 0%, var(--color-gold-light) 100%)" : "linear-gradient(135deg, var(--color-warn-bg) 0%, var(--color-gold-light) 100%)" }}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: isExpiringSoon ? "rgba(245,158,11,0.15)" : "rgba(201,168,76,0.2)" }}>
@@ -130,7 +130,7 @@ export default function AbonnementPage() {
                       <p className="text-sm text-muted">Toutes les fonctionnalités débloquées</p>
                     </div>
                   </div>
-                  <span className="badge" style={isExpiringSoon ? { background: "rgba(245,158,11,0.15)", color: "#92400E" } : isCancelled ? { background: "rgba(107,114,128,0.12)", color: "#374151" } : { background: "rgba(34,197,94,0.12)", color: "#166534" }}>
+                  <span className="badge" style={isExpiringSoon ? { background: "rgba(245,158,11,0.15)", color: "var(--color-warn)" } : isCancelled ? { background: "rgba(107,114,128,0.12)", color: "var(--color-muted)" } : { background: "rgba(34,197,94,0.12)", color: "var(--color-pos)" }}>
                     {isCancelled ? "Annulé" : isExpiringSoon ? "Expire bientôt" : "Actif"}
                   </span>
                 </div>
@@ -139,8 +139,8 @@ export default function AbonnementPage() {
                   <div className="flex items-center gap-3 p-3 rounded-xl mb-4" style={{ background: "rgba(245,158,11,0.12)" }}>
                     <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0" style={{ color: "var(--color-warn, #D97706)" }} />
                     <div>
-                      <p className="text-sm font-semibold" style={{ color: "#92400E" }}>Votre abonnement expire dans {daysRemaining} jour{daysRemaining! > 1 ? "s" : ""}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "#A16207" }}>Renouvelez pour continuer à profiter de toutes les fonctionnalités.</p>
+                      <p className="text-sm font-semibold" style={{ color: "var(--color-warn)" }}>Votre abonnement expire dans {daysRemaining} jour{daysRemaining! > 1 ? "s" : ""}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-warn)" }}>Renouvelez pour continuer à profiter de toutes les fonctionnalités.</p>
                     </div>
                   </div>
                 )}
@@ -154,7 +154,7 @@ export default function AbonnementPage() {
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {ALL_FEATURES.map((f) => (
                     <div key={f.key} className="flex items-center gap-2 text-sm text-ink">
-                      <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "#16A34A" }} />
+                      <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "var(--color-pos)" }} />
                       {f.label}
                     </div>
                   ))}
@@ -186,7 +186,7 @@ export default function AbonnementPage() {
                 style={{ background: billingPeriod === "yearly" ? "white" : "transparent", color: billingPeriod === "yearly" ? "var(--color-ink)" : "var(--color-muted)", boxShadow: billingPeriod === "yearly" ? "0 1px 3px rgba(0,0,0,0.1)" : "none" }}
               >
                 Annuel
-                <span className="ml-1 text-xs font-semibold" style={{ color: "#16A34A" }}>-17%</span>
+                <span className="ml-1 text-xs font-semibold" style={{ color: "var(--color-pos)" }}>-17%</span>
               </button>
             </div>
 
@@ -210,14 +210,14 @@ export default function AbonnementPage() {
                   <div key={f.key} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2.5">
                       {f.free ? (
-                        <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "#16A34A" }} />
+                        <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "var(--color-pos)" }} />
                       ) : (
                         <FontAwesomeIcon icon={faLock} className="w-4 h-4 shrink-0" style={{ color: "var(--color-muted)" }} />
                       )}
                       <span style={{ color: f.free ? "var(--color-ink)" : "var(--color-muted)" }}>{f.label}</span>
                     </div>
                     {!f.free && (
-                      <span className="badge" style={{ background: "rgba(201,168,76,0.12)", color: "#92400E", fontSize: "11px" }}>Premium</span>
+                      <span className="badge" style={{ background: "rgba(201,168,76,0.12)", color: "var(--color-warn)", fontSize: "11px" }}>Premium</span>
                     )}
                   </div>
                 ))}
@@ -245,7 +245,7 @@ export default function AbonnementPage() {
                 </span>
               </div>
               {billingPeriod === "yearly" && (
-                <p className="text-xs font-medium mb-4" style={{ color: "#16A34A" }}>
+                <p className="text-xs font-medium mb-4" style={{ color: "var(--color-pos)" }}>
                   {yearlySavings}
                 </p>
               )}
@@ -254,7 +254,7 @@ export default function AbonnementPage() {
               <div className="space-y-2.5 mb-5">
                 {ALL_FEATURES.filter(f => !f.free).map((f) => (
                   <div key={f.key} className="flex items-center gap-2.5 text-sm">
-                    <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "#16A34A" }} />
+                    <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "var(--color-pos)" }} />
                     <span className="text-ink">{f.label}</span>
                   </div>
                 ))}
@@ -264,7 +264,7 @@ export default function AbonnementPage() {
                 onClick={() => handleSubscribe(billingPeriod)}
                 disabled={subLoading}
                 className="w-full py-3 rounded-xl text-sm font-semibold transition-all text-white"
-                style={{ background: "linear-gradient(135deg, var(--color-gold, #C9A84C), #D4A843)" }}
+                style={{ background: "linear-gradient(135deg, var(--color-gold), var(--color-gold))" }}
               >
                 {subLoading ? "Chargement..." : `Passer au Premium ${billingPeriod === "monthly" ? "mensuel" : "annuel"}`}
               </button>
