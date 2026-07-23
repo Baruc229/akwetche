@@ -159,7 +159,6 @@ export default function TontineDetail() {
         body: JSON.stringify({ nom: editMembreNom.trim(), contact: editMembreContact || null }),
       });
       if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
-      setEditingMembre(null);
       setDetailMembre(null);
       loadData();
     } catch { setError("Erreur"); }
