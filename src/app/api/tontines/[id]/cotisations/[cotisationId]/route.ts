@@ -4,20 +4,7 @@ import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-
-function calculerProrata(
-  montantPaye: number,
-  montantTotal: number,
-  montantBase: number,
-  fraisOrganisateur: number
-): { montantBaseEffectif: number; fraisOrganisateurEffectif: number } {
-  if (montantTotal <= 0) return { montantBaseEffectif: 0, fraisOrganisateurEffectif: 0 };
-  const ratio = montantPaye / montantTotal;
-  return {
-    montantBaseEffectif: Math.round(montantBase * ratio * 100) / 100,
-    fraisOrganisateurEffectif: Math.round(fraisOrganisateur * ratio * 100) / 100,
-  };
-}
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours } from "@/lib/tontine";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; cotisationId: string }> }) {
   try {
@@ -45,16 +32,25 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const parsedMontantPaye = parseFloat(montantPaye);
 
-    const statut =
-      parsedMontantPaye <= 0
-        ? "en_attente"
-        : parsedMontantPaye >= existing.montantTotal
-          ? "paye"
-          : "partiel";
+    const frequenceJours = getFrequenceJours(tontine.frequence);
+    const dateLimite = new Date(existing.periode.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const estEnRetard = now > dateLimite && parsedMontantPaye < existing.montantTotal;
+
+    const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
+      tontine.montantCotisation,
+      tontine.penaliteRetardActive,
+      tontine.penaliteRetardMontant,
+      tontine.penaliteRetardDelaiJours,
+      existing.periode,
+      now
+    );
+
+    const statut = calculerStatutCotisation(parsedMontantPaye, montantTotal, estEnRetard);
 
     const { fraisOrganisateurEffectif } = calculerProrata(
       parsedMontantPaye,
-      existing.montantTotal,
+      montantTotal,
       existing.montantBase,
       existing.fraisOrganisateur
     );
@@ -63,17 +59,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     let notificationSent = false;
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Mettre à jour la cotisation
       const cotisation = await tx.tontineCotisation.update({
         where: { id: cotisationIntId },
         data: {
           montantPaye: parsedMontantPaye,
+          montantTotal,
+          montantPenalite,
           datePaiement: datePaiement ? new Date(datePaiement) : parsedMontantPaye > 0 ? new Date() : null,
           statut,
         },
       });
 
-      // 2. Gérer la transaction liée (réversibilité)
       if (existing.commissionTransaction) {
         if (fraisOrganisateurEffectif <= 0) {
           await tx.transaction.delete({

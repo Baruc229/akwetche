@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok } from "@/lib/api";
+import { detecterRetards } from "@/lib/tontine";
 
 async function getTontine(id: number, userId: number, include?: Record<string, unknown>) {
   return prisma.tontine.findFirst({
@@ -32,7 +33,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const tontine = await getTontine(tontineId, userId);
   if (!tontine) return badRequest("Tontine introuvable");
 
-  return ok({ tontine });
+  await detecterRetards(tontineId);
+
+  const tontineUpdated = await getTontine(tontineId, userId);
+  return ok({ tontine: tontineUpdated });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -58,6 +62,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.scopeCommission !== undefined) updateData.scopeCommission = body.scopeCommission;
   if (body.dateDistribution !== undefined) updateData.dateDistribution = body.dateDistribution ? new Date(body.dateDistribution) : null;
   if (body.statut !== undefined) updateData.statut = body.statut;
+  if (body.penaliteRetardActive !== undefined) updateData.penaliteRetardActive = Boolean(body.penaliteRetardActive);
+  if (body.penaliteRetardMontant !== undefined) updateData.penaliteRetardMontant = parseFloat(body.penaliteRetardMontant);
+  if (body.penaliteRetardDelaiJours !== undefined) updateData.penaliteRetardDelaiJours = parseInt(body.penaliteRetardDelaiJours);
 
   const tontine = await prisma.tontine.update({
     where: { id: tontineId },

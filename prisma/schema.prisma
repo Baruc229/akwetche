@@ -284,13 +284,16 @@ model Tontine {
   organisateurId            Int
   type                      String    // "rotative_simple" ou "vivres_fin_annee"
   montantCotisation         Float
-  frequence                 String    // "hebdomadaire", "mensuelle", "journaliere"
+  frequence                 String    // nombre de jours entre chaque cotisation (ex: "1", "5", "7", "30")
   dateDebut                 DateTime
   fraisOrganisateurParDefaut Float    @default(0)
   scopeCommission           String    @default("activite") // "activite" ou "personnel"
   nombreTours               Int?
   dateDistribution          DateTime?
   statut                    String    @default("active") // "active", "terminee", "suspendue"
+  penaliteRetardActive      Boolean   @default(false)
+  penaliteRetardMontant     Float     @default(0)    // montant fixe de pénalité par retard
+  penaliteRetardDelaiJours  Int       @default(3)    // jours de grâce après la date prévue
 
   organisateur User                    @relation(fields: [organisateurId], references: [id], onDelete: Cascade)
   membres      TontineMembre[]
@@ -306,6 +309,7 @@ model TontineMembre {
   contact      String?
   ordrePassage Int?
   statut       String   @default("actif") // "actif", "retire", "exclu"
+  soldeAvance  Float    @default(0) // solde d'avance pour paiements anticipés
 
   tontine     Tontine              @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   cotisations TontineCotisation[]
@@ -320,6 +324,7 @@ model TontineCotisation {
   fraisOrganisateur Float     @default(0) // commission organisateur
   montantTotal      Float     // montantBase + fraisOrganisateur
   montantPaye       Float     @default(0)
+  montantPenalite   Float     @default(0) // pénalité de retard appliquée
   datePaiement      DateTime?
   statut            String    @default("en_attente") // "paye", "en_retard", "partiel", "en_attente"
 
@@ -336,7 +341,7 @@ model TontineTour {
   beneficiaireId  Int
   montantAttendu  Float
   montantCollecte Float    @default(0)
-  statut          String   @default("en_cours") // "en_cours", "cloture"
+  statut          String   @default("en_cours") // "planifie", "en_cours", "collecte_terminee", "cloture"
 
   tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
 }
@@ -345,10 +350,11 @@ model TontineDistribution {
   id                   Int      @id @default(autoincrement())
   tontineId            Int      @unique
   dateDistribution     DateTime
+  dateLimiteCotisation DateTime? // dernière date pour cotiser
   montantTotalCollecte Float    @default(0)
   montantAlloueVivres  Float    @default(0)
   montantAlloueArgent  Float    @default(0)
-  statut               String   @default("planifiee") // "planifiee", "effectuee"
+  statut               String   @default("planifiee") // "planifiee", "collecte_terminee", "effectuee"
 
   tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
 }

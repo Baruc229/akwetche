@@ -16,22 +16,25 @@ type Membre = {
   id: number; nom: string; contact: string | null; ordrePassage: number | null;
   statut: string; _count: { cotisations: number };
   nbPayees: number; montantTotalPaye: number; nbRetards: number;
+  soldeAvance: number;
 };
 
 type Cotisation = {
   id: number; periode: string; montantBase: number; fraisOrganisateur: number;
-  montantTotal: number; montantPaye: number; datePaiement: string | null; statut: string;
+  montantTotal: number; montantPaye: number; montantPenalite: number;
+  datePaiement: string | null; statut: string;
   membre: { id: number; nom: string };
 };
 
 type Tour = { id: number; numeroTour: number; datePrevue: string; beneficiaireId: number; montantAttendu: number; montantCollecte: number; statut: string };
 
-type Distribution = { id: number; dateDistribution: string; montantTotalCollecte: number; montantAlloueVivres: number; montantAlloueArgent: number; statut: string };
+type Distribution = { id: number; dateDistribution: string; dateLimiteCotisation: string | null; montantTotalCollecte: number; montantAlloueVivres: number; montantAlloueArgent: number; statut: string };
 
 type Tontine = {
   id: number; nom: string; type: string; montantCotisation: number; frequence: string;
   dateDebut: string; fraisOrganisateurParDefaut: number; scopeCommission: string;
   nombreTours: number | null; dateDistribution: string | null; statut: string;
+  penaliteRetardActive: boolean; penaliteRetardMontant: number; penaliteRetardDelaiJours: number;
   organisateurId: number; createdAt: string;
   membres: Membre[];
   cotisations: Cotisation[];
@@ -269,7 +272,8 @@ export default function TontineDetail() {
   const cotisationsDuMembre = detailMembre ? tontine?.cotisations?.filter(c => c.membre.id === detailMembre) || [] : [];
 
   function renderCotisation(c: Cotisation) {
-    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : c.statut === "en_retard" ? "bg-red-100 text-red-700" : "bg-stone-100 text-stone-600";
+    const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
     const isEditing = editingCotisation === c.id;
     return (
       <div key={c.id} className={`flex items-center justify-between py-2 px-1 ${isEditing ? "bg-[var(--color-surface-raised)] rounded-lg" : ""}`}>
@@ -280,6 +284,9 @@ export default function TontineDetail() {
             {" · "}{formatCurrency(c.montantPaye)}
             {c.montantTotal > c.montantPaye && <span className="text-red-400"> / {formatCurrency(c.montantTotal)}</span>}
           </p>
+          {c.montantPenalite > 0 && (
+            <p className="text-xs text-amber-600">dont pénalité: {formatCurrency(c.montantPenalite)}</p>
+          )}
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
           {c.fraisOrganisateur > 0 && c.statut !== "en_attente" && (
@@ -293,7 +300,7 @@ export default function TontineDetail() {
             </div>
           ) : (
             <>
-              <span className={`badge text-xs ${bandiere}`}>{c.statut}</span>
+              <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
               <button onClick={() => { setEditingCotisation(c.id); setEditCotisationMontant(c.montantPaye.toString()); }} className="btn-ghost p-1.5" title="Modifier">
                 <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
               </button>
@@ -326,7 +333,7 @@ export default function TontineDetail() {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{tontine.nom}</h1>
-            <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · tts. {tontine.frequence} jours · {formatCurrency(tontine.montantCotisation)}</span>
+            <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · Écart {tontine.frequence}j · {formatCurrency(tontine.montantCotisation)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -351,9 +358,22 @@ export default function TontineDetail() {
       <div className="card">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
           <div className="card-inset text-center">
-            <p className="text-label">Total collecté</p>
-            <p className="text-amount text-base mt-1">{formatCurrency(totalCollecte)}</p>
+            <p className="text-label">Collecté brut</p>
+            <p className="text-amount text-base mt-1">{formatCurrency(totalCollecte + revenuCommission)}</p>
+            <p className="text-xs text-muted mt-0.5">ce que les membres ont versé</p>
           </div>
+          <div className="card-inset text-center">
+            <p className="text-label">Collecté net</p>
+            <p className="text-amount text-base mt-1">{formatCurrency(totalCollecte)}</p>
+            <p className="text-xs text-muted mt-0.5">cagnotte commune</p>
+          </div>
+          {tontine.fraisOrganisateurParDefaut > 0 && (
+            <div className="card-inset text-center">
+              <p className="text-label">Commission</p>
+              <p className="text-amount text-base mt-1">{formatCurrency(revenuCommission)}</p>
+              <p className="text-xs text-muted mt-0.5">revenu organisateur</p>
+            </div>
+          )}
           <div className="card-inset text-center">
             <p className="text-label">{tontine.type === "rotative_simple" ? "Tours" : "Membres"}</p>
             <p className="text-amount text-base mt-1">{tontine.type === "rotative_simple" ? tontine.tours?.length || 0 : actifs.length}</p>
@@ -376,12 +396,6 @@ export default function TontineDetail() {
             <div className="card-inset text-center">
               <p className="text-label">Taux collecte</p>
               <p className={`text-base font-semibold mt-1 ${tauxCollecte < 80 ? "text-red-500" : "text-green-500"}`}>{tauxCollecte}%</p>
-            </div>
-          )}
-          {tontine.fraisOrganisateurParDefaut > 0 && (
-            <div className="card-inset text-center">
-              <p className="text-label">Revenu commission</p>
-              <p className="text-amount text-base mt-1">{formatCurrency(revenuCommission)}</p>
             </div>
           )}
         </div>
@@ -430,7 +444,22 @@ export default function TontineDetail() {
         <div className="card">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-ink">Tours</h3>
-            {tontine.statut === "active" && <button onClick={() => setShowNewTour(true)} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Ajouter</button>}
+            {tontine.statut === "active" && (
+              <div className="flex items-center gap-2">
+                {(tontine.tours || []).length === 0 && tontine.nombreTours && actifs.length > 0 && (
+                  <button onClick={async () => {
+                    const res = await fetch(`/api/tontines/${id}/tours`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ generer: true }),
+                    });
+                    if (res.ok) loadData();
+                    else { const d = await res.json(); setError(d.error || "Erreur"); }
+                  }} className="btn-mono text-xs">Générer</button>
+                )}
+                <button onClick={() => setShowNewTour(true)} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Ajouter</button>
+              </div>
+            )}
           </div>
           {(tontine.tours || []).length === 0 ? (
             <p className="text-sm text-muted">Aucun tour planifié</p>
@@ -439,7 +468,10 @@ export default function TontineDetail() {
               {(tontine.tours || []).map(tour => {
                 const beneficiaire = actifs.find(m => m.id === tour.beneficiaireId);
                 const estEnCours = tour.statut === "en_cours";
+                const estPlanifie = tour.statut === "planifie";
                 const bgTouch = estEnCours ? "bg-emerald-50 dark:bg-emerald-900/20" : "";
+                const statutLabel = tour.statut === "en_cours" ? "En cours" : tour.statut === "planifie" ? "Planifié" : tour.statut === "collecte_terminee" ? "Collecte terminée" : "Clôturé";
+                const statutColor = tour.statut === "en_cours" ? "bg-amber-100 text-amber-700" : tour.statut === "planifie" ? "bg-stone-100 text-stone-600" : "bg-green-100 text-green-700";
                 return (
                   <div key={tour.id} className={`flex items-center justify-between py-2.5 px-1 rounded-lg ${bgTouch}`}>
                     <div>
@@ -455,8 +487,8 @@ export default function TontineDetail() {
                           <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
                         </button>
                       )}
-                      <span className={`badge text-xs ${tour.statut === "en_cours" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>
-                        {tour.statut === "en_cours" ? "En cours" : "Clôturé"}
+                      <span className={`badge text-xs ${statutColor}`}>
+                        {statutLabel}
                       </span>
                     </div>
                   </div>
@@ -628,13 +660,17 @@ export default function TontineDetail() {
                 <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Cotisations ({cotisationsDuMembre.length})</p>
                 <div className="space-y-2">
                   {cotisationsDuMembre.slice(0, 10).map(c => {
-                    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+                    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : c.statut === "en_retard" ? "bg-red-100 text-red-700" : "bg-stone-100 text-stone-600";
+                    const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
                     return (
                       <div key={c.id} className="flex items-center justify-between py-1.5">
-                        <span className="text-sm text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")}</span>
+                        <div>
+                          <span className="text-sm text-muted">{new Date(c.periode).toLocaleDateString("fr-FR")}</span>
+                          {c.montantPenalite > 0 && <span className="text-xs text-amber-600 ml-1">+{formatCurrency(c.montantPenalite)}</span>}
+                        </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
-                          <span className={`badge text-xs ${bandiere}`}>{c.statut}</span>
+                          <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
                         </div>
                       </div>
                     );
@@ -696,10 +732,56 @@ export default function TontineDetail() {
                 <label className="field-label">Période</label>
                 <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
               </div>
+              {cotisationPeriode && (() => {
+                const periodeDate = new Date(cotisationPeriode);
+                const now = new Date();
+                const frequenceJ = parseInt(tontine.frequence) || 1;
+                const dateLimite = new Date(periodeDate.getTime() + frequenceJ * 24 * 60 * 60 * 1000);
+                const estEnRetard = now > dateLimite;
+                const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
+                const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
+                const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
+                const montantDus = tontine.montantCotisation + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                const montantPaye = parseFloat(cotisationMontant) || 0;
+                const surplus = Math.max(0, montantPaye - montantDus);
+                const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
+                  : montantPaye >= montantDus ? "Payé" : "Partiel";
+
+                return (
+                  <div className="card-inset space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Montant dû</span>
+                      <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
+                    </div>
+                    {penaliteAppliquee && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-amber-600">Pénalité retard</span>
+                        <span className="text-sm font-semibold text-amber-600">+ {formatCurrency(tontine.penaliteRetardMontant)}</span>
+                      </div>
+                    )}
+                    {estEnRetard && !penaliteAppliquee && penaliteActive && (
+                      <p className="text-xs text-amber-500">Retard — pénalité dans {Math.max(0, Math.ceil((dateLimitePenalite.getTime() - now.getTime()) / (1000 * 3600 * 24)))} jour(s)</p>
+                    )}
+                    {montantPaye > 0 && (
+                      <>
+                        <div className="border-t border-[var(--color-border)] pt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted">Statut résultant</span>
+                            <span className={`text-sm font-semibold ${statutResultant === "Payé" ? "text-emerald-600" : statutResultant === "Partiel" ? "text-amber-600" : statutResultant === "En retard" ? "text-red-500" : "text-muted"}`}>{statutResultant}</span>
+                          </div>
+                        </div>
+                        {surplus > 0 && (
+                          <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les périodes suivantes</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
               <div>
                 <label className="field-label">Montant payé</label>
                 <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
-                <p className="text-xs text-muted mt-1">Total (base + commission) que le membre a versé</p>
+                <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) que le membre a versé</p>
               </div>
               <button type="submit" className="btn-primary w-full">Enregistrer</button>
             </form>

@@ -4,20 +4,7 @@ import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok, created } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-
-function calculerProrata(
-  montantPaye: number,
-  montantTotal: number,
-  montantBase: number,
-  fraisOrganisateur: number
-): { montantBaseEffectif: number; fraisOrganisateurEffectif: number } {
-  if (montantTotal <= 0) return { montantBaseEffectif: 0, fraisOrganisateurEffectif: 0 };
-  const ratio = montantPaye / montantTotal;
-  return {
-    montantBaseEffectif: Math.round(montantBase * ratio * 100) / 100,
-    fraisOrganisateurEffectif: Math.round(fraisOrganisateur * ratio * 100) / 100,
-  };
-}
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, detecterRetards, imputerAvance } from "@/lib/tontine";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,24 +24,36 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!membreId || !periode) return badRequest("membreId et periode requis");
 
     const parsedMontantPaye = parseFloat(montantPaye || "0");
+    const periodeDate = new Date(periode);
+    const frequenceJours = getFrequenceJours(tontine.frequence);
+
+    const dateLimite = new Date(periodeDate.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const estEnRetard = now > dateLimite && parsedMontantPaye < tontine.montantCotisation;
+
+    const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
+      tontine.montantCotisation,
+      tontine.penaliteRetardActive,
+      tontine.penaliteRetardMontant,
+      tontine.penaliteRetardDelaiJours,
+      periodeDate,
+      now
+    );
 
     const montantBase = tontine.montantCotisation - tontine.fraisOrganisateurParDefaut;
     const fraisOrg = tontine.fraisOrganisateurParDefaut;
-    const montantTotal = tontine.montantCotisation;
 
-    const { montantBaseEffectif, fraisOrganisateurEffectif } = calculerProrata(
-      parsedMontantPaye,
+    const estAvance = parsedMontantPaye > montantTotal;
+    const montantCotisationCours = estAvance ? montantTotal : parsedMontantPaye;
+
+    const { fraisOrganisateurEffectif } = calculerProrata(
+      montantCotisationCours,
       montantTotal,
       montantBase,
       fraisOrg
     );
 
-    const statut =
-      parsedMontantPaye <= 0
-        ? "en_attente"
-        : parsedMontantPaye >= montantTotal
-          ? "paye"
-          : "partiel";
+    const statut = estAvance ? "paye" : calculerStatutCotisation(parsedMontantPaye, montantTotal, estEnRetard);
 
     let commissionTx: Record<string, number> | null = null;
     const description = tontine.type === "rotative_simple"
@@ -66,11 +65,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         data: {
           tontineId,
           membreId: parseInt(membreId),
-          periode: new Date(periode),
+          periode: periodeDate,
           montantBase,
           fraisOrganisateur: fraisOrg,
           montantTotal,
-          montantPaye: parsedMontantPaye,
+          montantPaye: montantCotisationCours,
+          montantPenalite,
           datePaiement: datePaiement ? new Date(datePaiement) : parsedMontantPaye > 0 ? new Date() : null,
           statut,
         },
@@ -105,6 +105,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return { ...cotisation, commissionTransaction: null };
     });
 
+    if (estAvance) {
+      await imputerAvance(
+        tontineId,
+        parseInt(membreId),
+        periodeDate,
+        parsedMontantPaye,
+        montantTotal,
+        montantBase,
+        fraisOrg
+      );
+    }
+
     if (commissionTx) {
       const amount = (commissionTx as { amount: number }).amount;
       const userCurrency = await prisma.user.findUnique({
@@ -121,7 +133,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
     }
 
-    return created({ cotisation });
+    return created({ cotisation, avance: estAvance ? { surplus: parsedMontantPaye - montantTotal } : null });
   } catch {
     return badRequest("Erreur lors de l'enregistrement de la cotisation");
   }
@@ -150,6 +162,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (periodeStart && periodeEnd) {
     where.periode = { gte: new Date(periodeStart), lte: new Date(periodeEnd) };
   }
+
+  await detecterRetards(tontineId);
 
   const cotisations = await prisma.tontineCotisation.findMany({
     where,

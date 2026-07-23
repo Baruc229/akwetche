@@ -40,6 +40,9 @@ export default function TontinesPage() {
     scopeCommission: "activite",
     nombreTours: "",
     dateDistribution: "",
+    penaliteRetardActive: false,
+    penaliteRetardMontant: "0",
+    penaliteRetardDelaiJours: "3",
   });
 
   async function loadData() {
@@ -85,7 +88,7 @@ export default function TontinesPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
       setShowCreate(false);
-      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequence: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", dateDistribution: "" });
+      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequence: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", dateDistribution: "", penaliteRetardActive: false, penaliteRetardMontant: "0", penaliteRetardDelaiJours: "3" });
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -129,7 +132,7 @@ export default function TontinesPage() {
                 <div className="min-w-0 flex-1 group/name">
                   <p className="text-sm font-semibold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{t.nom}</p>
                   <p className="text-xs text-muted mt-0.5">
-                    {t.type === "rotative_simple" ? "Rotative" : "Vivres/fin d'année"} · {t.membreCount} membre{t.membreCount > 1 ? "s" : ""} · {t.frequence} · {formatCurrency(t.montantCotisation)}
+                    {t.type === "rotative_simple" ? "Rotative" : "Vivres/fin d'année"} · {t.membreCount} membre{t.membreCount > 1 ? "s" : ""} · Écart {t.frequence}j · {formatCurrency(t.montantCotisation)}
                   </p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
@@ -177,8 +180,9 @@ export default function TontinesPage() {
                   <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
                 </div>
                 <div>
-                  <label className="field-label">Fréquence (tous les X jours)</label>
-                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                  <label className="field-label">Écart en jours entre cotisations</label>
+                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 5, 7, 10, 30" required min="1" />
+                  <p className="text-xs text-muted mt-1">La 2e cotisation sera X jours après la 1re. Ex: 5 → 1 août, 6 août, 11 août...</p>
                 </div>
                 <div>
                   <label className="field-label">Date de début</label>
@@ -196,6 +200,26 @@ export default function TontinesPage() {
                     value={newTnt.scopeCommission}
                     onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
                   />
+                </div>
+                <div className="card-inset">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="field-label mb-0">Pénalité de retard</label>
+                    <button type="button" onClick={() => setNewTnt({...newTnt, penaliteRetardActive: !newTnt.penaliteRetardActive})} className={`relative w-10 h-5 rounded-full transition-colors ${newTnt.penaliteRetardActive ? "bg-emerald-500" : "bg-stone-300"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${newTnt.penaliteRetardActive ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  {newTnt.penaliteRetardActive && (
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div>
+                        <label className="field-label text-xs">Montant pénalité</label>
+                        <input type="number" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="0" min="0" />
+                      </div>
+                      <div>
+                        <label className="field-label text-xs">Jours de grâce</label>
+                        <input type="number" value={newTnt.penaliteRetardDelaiJours} onChange={e => setNewTnt({...newTnt, penaliteRetardDelaiJours: e.target.value})} className="input-field" placeholder="3" min="0" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {newTnt.type === "rotative_simple" && (
                   <div>
@@ -239,8 +263,9 @@ export default function TontinesPage() {
                   <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
                 </div>
                 <div>
-                  <label className="field-label">Fréquence (tous les X jours)</label>
-                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7, 10, 15, 30" required min="1" />
+                  <label className="field-label">Écart en jours entre cotisations</label>
+                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 5, 7, 10, 30" required min="1" />
+                  <p className="text-xs text-muted mt-1">La 2e cotisation sera X jours après la 1re. Ex: 5 → 1 août, 6 août, 11 août...</p>
                 </div>
                 <div>
                   <label className="field-label">Date de début</label>
@@ -258,6 +283,26 @@ export default function TontinesPage() {
                     value={newTnt.scopeCommission}
                     onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
                   />
+                </div>
+                <div className="card-inset">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="field-label mb-0">Pénalité de retard</label>
+                    <button type="button" onClick={() => setNewTnt({...newTnt, penaliteRetardActive: !newTnt.penaliteRetardActive})} className={`relative w-10 h-5 rounded-full transition-colors ${newTnt.penaliteRetardActive ? "bg-emerald-500" : "bg-stone-300"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${newTnt.penaliteRetardActive ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  {newTnt.penaliteRetardActive && (
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div>
+                        <label className="field-label text-xs">Montant pénalité</label>
+                        <input type="number" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="0" min="0" />
+                      </div>
+                      <div>
+                        <label className="field-label text-xs">Jours de grâce</label>
+                        <input type="number" value={newTnt.penaliteRetardDelaiJours} onChange={e => setNewTnt({...newTnt, penaliteRetardDelaiJours: e.target.value})} className="input-field" placeholder="3" min="0" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {newTnt.type === "rotative_simple" && (
                   <div>

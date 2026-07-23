@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUserId } from "@/lib/auth";
 import { unauthorized, badRequest, ok, created } from "@/lib/api";
+import { genererTours } from "@/lib/tontine";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const userId = await getAuthUserId();
@@ -38,7 +39,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!tontine) return badRequest("Tontine introuvable");
   if (tontine.type !== "rotative_simple") return badRequest("Seulement pour les tontines rotatives");
 
-  const { numeroTour, datePrevue, beneficiaireId, montantAttendu } = await req.json();
+  const body = await req.json().catch(() => ({}));
+
+  if (body.generer === true) {
+    try {
+      const result = await genererTours(tontineId);
+      return created({ message: `${result.tours} tours générés`, dateFin: result.dateFin });
+    } catch (e) {
+      return badRequest(e instanceof Error ? e.message : "Erreur lors de la génération");
+    }
+  }
+
+  const { numeroTour, datePrevue, beneficiaireId, montantAttendu } = body;
   if (!numeroTour || !datePrevue || !beneficiaireId || !montantAttendu) {
     return badRequest("Champs obligatoires manquants");
   }
