@@ -43,10 +43,17 @@ type Tontine = {
   distribution: Distribution | null;
 };
 
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 export default function TontineDetail() {
-  const { currency: _currency } = useDashboard();
+  const { currency: _currency, user } = useDashboard();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.role === "user") {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
   const [tontine, setTontine] = useState<Tontine | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

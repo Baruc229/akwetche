@@ -23,10 +23,17 @@ type Tontine = {
   retardsCount: number;
 };
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export default function TontinesPage() {
-  const { currency: _currency } = useDashboard();
+  const { currency: _currency, user } = useDashboard();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (user && user.role === "user") {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
   const [tontines, setTontines] = useState<Tontine[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);

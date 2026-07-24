@@ -1,12 +1,14 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthUserId } from "@/lib/auth";
-import { unauthorized, badRequest, ok, created } from "@/lib/api";
+import { requireAdminAuth, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
 import { genererTours } from "@/lib/tontine";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const userId = await getAuthUserId();
-  if (!userId) return unauthorized();
+  let userId: number;
+  try { userId = await requireAdminAuth(); } catch (e) {
+    if (e instanceof Error && e.message === "Forbidden") return forbidden();
+    return unauthorized();
+  }
 
   const { id } = await params;
   const tontineId = parseInt(id);
@@ -26,8 +28,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const userId = await getAuthUserId();
-  if (!userId) return unauthorized();
+  let userId: number;
+  try { userId = await requireAdminAuth(); } catch (e) {
+    if (e instanceof Error && e.message === "Forbidden") return forbidden();
+    return unauthorized();
+  }
 
   const { id } = await params;
   const tontineId = parseInt(id);
@@ -74,8 +79,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const userId = await getAuthUserId();
-  if (!userId) return unauthorized();
+  let userId: number;
+  try { userId = await requireAdminAuth(); } catch (e) {
+    if (e instanceof Error && e.message === "Forbidden") return forbidden();
+    return unauthorized();
+  }
 
   const { id } = await params;
   const tontineId = parseInt(id);
@@ -102,8 +110,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const userId = await getAuthUserId();
-  if (!userId) return unauthorized();
+  let userId: number;
+  try { userId = await requireAdminAuth(); } catch (e) {
+    if (e instanceof Error && e.message === "Forbidden") return forbidden();
+    return unauthorized();
+  }
 
   const { id } = await params;
   const tontineId = parseInt(id);

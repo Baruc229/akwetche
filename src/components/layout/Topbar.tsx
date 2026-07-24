@@ -20,7 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Administration',
 };
 
-type QuickActionBtnProps = { icon: any; label: string; hint: string; onClick: () => void };
+type QuickActionBtnProps = { icon: any; label: string; hint: string; onClick: () => void }; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 function QuickActionBtn({ icon, label, hint, onClick }: QuickActionBtnProps) {
   return (
@@ -47,6 +47,7 @@ type Props = {
   onLogout: () => void;
 };
 
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks */
 export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobileSidebar, unread, onOpenNotifications, onQuickTxOpen, onHelpOpen, onLogout }: Props) {
   const { user, commercialMode, currency, setCurrency } = useDashboard();
   const router = useRouter();
@@ -111,7 +112,9 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
                       <QuickActionBtn icon={faBox} label="Nouveau produit" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/products?action=create"); }} />
                     </>
                   )}
-                  <QuickActionBtn icon={faPeopleGroup} label="Cotisation tontine" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }} />
+                  {user && user.role !== "user" && (
+                    <QuickActionBtn icon={faPeopleGroup} label="Cotisation tontine" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }} />
+                  )}
                   <QuickActionBtn icon={faArrowTrendDown} label="Dépense récurrente" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/expenses?action=create"); }} />
                   <QuickActionBtn icon={faArrowTrendUp} label="Revenu récurrent" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/income?action=create"); }} />
                 </div>

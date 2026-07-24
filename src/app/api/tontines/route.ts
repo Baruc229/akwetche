@@ -1,10 +1,14 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, badRequest, ok, created } from "@/lib/api";
+import { requireAdminAuth, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
 
 export async function GET() {
   try {
-    const userId = await requireAuth();
+    let userId: number;
+    try { userId = await requireAdminAuth(); } catch (e) {
+      if (e instanceof Error && e.message === "Forbidden") return forbidden();
+      return unauthorized();
+    }
 
     const tontines = await prisma.tontine.findMany({
       where: { organisateurId: userId },
@@ -35,7 +39,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await requireAuth();
+    let userId: number;
+    try { userId = await requireAdminAuth(); } catch (e) {
+      if (e instanceof Error && e.message === "Forbidden") return forbidden();
+      return unauthorized();
+    }
     const body = await req.json();
 
     const {

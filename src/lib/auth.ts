@@ -40,6 +40,15 @@ export async function getAuthUserId(): Promise<number | null> {
   return payload?.userId ?? null;
 }
 
+export async function requireAdmin(): Promise<number | null> {
+  const userId = await getAuthUserId();
+  if (!userId) return null;
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+  if (!user || user.role === "user") return null;
+  return userId;
+}
+
 export function generateEmailToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }

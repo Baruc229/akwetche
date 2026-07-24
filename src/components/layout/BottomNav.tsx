@@ -10,7 +10,6 @@ const CREATE_ROUTES = [
   "/dashboard/transactions",
   "/dashboard/products",
   "/dashboard/sales",
-  "/dashboard/tontines",
   "/dashboard/recurring/expenses",
   "/dashboard/recurring/income",
 ];

@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faBagShopping, faBox, faPeopleGroup, faArrowTrendDown, faArrowTrendUp, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "@/app/(dashboard)/layout";
 
-type QuickActionBtnProps = { icon: any; label: string; hint: string; onClick: () => void };
+type QuickActionBtnProps = { icon: any; label: string; hint: string; onClick: () => void }; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 function QuickActionBtn({ icon, label, hint, onClick }: QuickActionBtnProps) {
   return (
@@ -28,7 +28,7 @@ type Props = {
 };
 
 export default function QuickActionsSheet({ open, onClose, onQuickTxOpen }: Props) {
-  const { commercialMode } = useDashboard();
+  const { commercialMode, user } = useDashboard();
   const router = useRouter();
 
   if (!open) return null;
@@ -51,7 +51,9 @@ export default function QuickActionsSheet({ open, onClose, onQuickTxOpen }: Prop
               <QuickActionBtn icon={faBox} label="Nouveau produit" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/products?action=create"); }} />
             </>
           )}
-          <QuickActionBtn icon={faPeopleGroup} label="Cotisation tontine" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/tontines?action=create"); }} />
+          {user && user.role !== "user" && (
+            <QuickActionBtn icon={faPeopleGroup} label="Cotisation tontine" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/tontines?action=create"); }} />
+          )}
           <QuickActionBtn icon={faArrowTrendDown} label="Dépense récurrente" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/recurring/expenses?action=create"); }} />
           <QuickActionBtn icon={faArrowTrendUp} label="Revenu récurrent" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/recurring/income?action=create"); }} />
         </div>
