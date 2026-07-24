@@ -180,11 +180,11 @@ export default function TontinesPage() {
                 </div>
                 <div>
                   <label className="field-label">Montant cotisation</label>
-                  <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
+                  <input type="number" inputMode="decimal" step="0.01" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10 000" required min="1" />
                 </div>
                 <div>
                   <label className="field-label">Écart en jours entre cotisations</label>
-                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 5, 7, 10, 30" required min="1" />
+                  <input type="number" inputMode="numeric" step="1" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7" required min="1" />
                   <p className="text-xs text-muted mt-1">La 2e cotisation sera X jours après la 1re. Ex: 5 → 1 août, 6 août, 11 août...</p>
                 </div>
                 <div>
@@ -193,7 +193,7 @@ export default function TontinesPage() {
                 </div>
                 <div>
                   <label className="field-label">Commission organisateur</label>
-                  <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="0" min="0" />
+                  <input type="number" inputMode="decimal" step="0.01" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
                   <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
                 </div>
                 <div>
@@ -207,7 +207,7 @@ export default function TontinesPage() {
                 <div className="card-inset">
                   <div className="flex items-center justify-between mb-2">
                     <label className="field-label mb-0">Pénalité de retard</label>
-                    <button type="button" onClick={() => setNewTnt({...newTnt, penaliteRetardActive: !newTnt.penaliteRetardActive})} className={`relative w-10 h-5 rounded-full transition-colors ${newTnt.penaliteRetardActive ? "bg-emerald-500" : "bg-stone-300"}`}>
+                    <button type="button" onClick={() => setNewTnt({...newTnt, penaliteRetardActive: !newTnt.penaliteRetardActive})} role="switch" aria-checked={newTnt.penaliteRetardActive} aria-label="Pénalité de retard" className={`relative w-10 h-5 rounded-full transition-colors ${newTnt.penaliteRetardActive ? "bg-emerald-500" : "bg-stone-300"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${newTnt.penaliteRetardActive ? "translate-x-5" : ""}`} />
                     </button>
                   </div>
@@ -215,11 +215,11 @@ export default function TontinesPage() {
                     <div className="grid grid-cols-2 gap-3 mt-2">
                       <div>
                         <label className="field-label text-xs">Montant pénalité</label>
-                        <input type="number" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="0" min="0" />
+                        <input type="number" inputMode="decimal" step="0.01" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
                       </div>
                       <div>
                         <label className="field-label text-xs">Jours de grâce</label>
-                        <input type="number" value={newTnt.penaliteRetardDelaiJours} onChange={e => setNewTnt({...newTnt, penaliteRetardDelaiJours: e.target.value})} className="input-field" placeholder="3" min="0" />
+                        <input type="number" inputMode="numeric" step="1" value={newTnt.penaliteRetardDelaiJours} onChange={e => setNewTnt({...newTnt, penaliteRetardDelaiJours: e.target.value})} className="input-field" placeholder="ex: 3" min="0" />
                       </div>
                     </div>
                   )}
@@ -227,7 +227,7 @@ export default function TontinesPage() {
                 {newTnt.type === "rotative_simple" && (
                   <div>
                     <label className="field-label">Nombre de tours</label>
-                    <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" />
+                    <input type="number" inputMode="numeric" step="1" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" required />
                   </div>
                 )}
                 {newTnt.type === "vivres_fin_annee" && (
@@ -263,11 +263,11 @@ export default function TontinesPage() {
                 </div>
                 <div>
                   <label className="field-label">Montant cotisation</label>
-                  <input type="number" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10000" required min="1" />
+                  <input type="number" inputMode="decimal" step="0.01" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10 000" required min="1" />
                 </div>
                 <div>
                   <label className="field-label">Écart en jours entre cotisations</label>
-                  <input type="number" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 5, 7, 10, 30" required min="1" />
+                  <input type="number" inputMode="numeric" step="1" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7" required min="1" />
                   <p className="text-xs text-muted mt-1">La 2e cotisation sera X jours après la 1re. Ex: 5 → 1 août, 6 août, 11 août...</p>
                 </div>
                 <div>
@@ -276,7 +276,7 @@ export default function TontinesPage() {
                 </div>
                 <div>
                   <label className="field-label">Commission organisateur</label>
-                  <input type="number" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="0" min="0" />
+                  <input type="number" inputMode="decimal" step="0.01" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
                   <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
                 </div>
                 <div>
@@ -290,7 +290,7 @@ export default function TontinesPage() {
                 <div className="card-inset">
                   <div className="flex items-center justify-between mb-2">
                     <label className="field-label mb-0">Pénalité de retard</label>
-                    <button type="button" onClick={() => setNewTnt({...newTnt, penaliteRetardActive: !newTnt.penaliteRetardActive})} className={`relative w-10 h-5 rounded-full transition-colors ${newTnt.penaliteRetardActive ? "bg-emerald-500" : "bg-stone-300"}`}>
+                    <button type="button" onClick={() => setNewTnt({...newTnt, penaliteRetardActive: !newTnt.penaliteRetardActive})} role="switch" aria-checked={newTnt.penaliteRetardActive} aria-label="Pénalité de retard" className={`relative w-10 h-5 rounded-full transition-colors ${newTnt.penaliteRetardActive ? "bg-emerald-500" : "bg-stone-300"}`}>
                       <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${newTnt.penaliteRetardActive ? "translate-x-5" : ""}`} />
                     </button>
                   </div>
@@ -298,11 +298,11 @@ export default function TontinesPage() {
                     <div className="grid grid-cols-2 gap-3 mt-2">
                       <div>
                         <label className="field-label text-xs">Montant pénalité</label>
-                        <input type="number" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="0" min="0" />
+                        <input type="number" inputMode="decimal" step="0.01" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
                       </div>
                       <div>
                         <label className="field-label text-xs">Jours de grâce</label>
-                        <input type="number" value={newTnt.penaliteRetardDelaiJours} onChange={e => setNewTnt({...newTnt, penaliteRetardDelaiJours: e.target.value})} className="input-field" placeholder="3" min="0" />
+                        <input type="number" inputMode="numeric" step="1" value={newTnt.penaliteRetardDelaiJours} onChange={e => setNewTnt({...newTnt, penaliteRetardDelaiJours: e.target.value})} className="input-field" placeholder="ex: 3" min="0" />
                       </div>
                     </div>
                   )}
@@ -310,7 +310,7 @@ export default function TontinesPage() {
                 {newTnt.type === "rotative_simple" && (
                   <div>
                     <label className="field-label">Nombre de tours</label>
-                    <input type="number" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" />
+                    <input type="number" inputMode="numeric" step="1" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" required />
                   </div>
                 )}
                 {newTnt.type === "vivres_fin_annee" && (

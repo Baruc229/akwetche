@@ -154,13 +154,13 @@ export default function DatePicker({ value, onChange, className = '', min, place
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', width: '280px', padding: '14px', top: pos.top, left: pos.left }}
         >
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
+            <button type="button" onClick={prevMonth} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
               <FontAwesomeIcon icon={faChevronLeft} className="w-3 h-3" />
             </button>
             <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-ink)' }}>
               {MONTHS[viewMonth]} {viewYear}
             </span>
-            <button type="button" onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
+            <button type="button" onClick={nextMonth} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
               <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
             </button>
           </div>
@@ -184,7 +184,8 @@ export default function DatePicker({ value, onChange, className = '', min, place
                   onClick={() => handleSelect(day)}
                   className="text-center text-sm rounded-lg transition-colors"
                   style={{
-                    padding: '5px 0',
+                    padding: '8px 0',
+                    minHeight: '36px',
                     fontWeight: selected ? 700 : isToday ? 600 : 400,
                     background: selected ? 'var(--color-gold)' : isToday ? 'rgba(201,168,76,0.12)' : 'transparent',
                     color: selected ? '#fff' : disabled ? 'var(--color-muted)' : 'var(--color-ink)',
@@ -212,7 +213,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
                 onChange(val);
                 setOpen(false);
               }}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[36px]"
               style={{ color: 'var(--color-brand)', background: 'rgba(27,58,107,0.07)' }}
             >
               Aujourd&apos;hui
@@ -220,7 +221,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[36px]"
               style={{ color: 'var(--color-muted)' }}
             >
               Fermer

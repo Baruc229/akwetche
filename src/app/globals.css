@@ -172,7 +172,7 @@ body {
 
 /* Inputs */
   .input-field {
-    width: 100%; padding: 10px 14px;
+    width: 100%; padding: 10px 14px; min-height: 44px;
     background: var(--color-surface);
     border: 1.5px solid var(--color-border);
     border-radius: 10px; font-size: 16px;

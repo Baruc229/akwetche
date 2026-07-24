@@ -300,7 +300,7 @@ export default function TontineDetail() {
           )}
           {isEditing ? (
             <div className="flex items-center gap-1">
-              <input type="number" value={editCotisationMontant} onChange={e => setEditCotisationMontant(e.target.value)} className="input-field text-xs py-1 px-2 w-24" min="0" step="0.01" autoFocus />
+              <input type="number" value={editCotisationMontant} onChange={e => setEditCotisationMontant(e.target.value)} className="input-field text-xs py-1 px-2 w-24" min="0" step="0.01" inputMode="decimal" autoFocus />
               <button onClick={() => handleEditCotisation(c.id)} className="btn-primary-sm text-xs">OK</button>
               <button onClick={() => setEditingCotisation(null)} className="btn-mono text-xs">X</button>
             </div>
@@ -615,7 +615,7 @@ export default function TontineDetail() {
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <button onClick={() => setDetailMembre(null)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <button onClick={() => setDetailMembre(null)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
                 <h3 className="text-base font-semibold text-ink">{detailMembreData.nom}</h3>
@@ -651,11 +651,11 @@ export default function TontineDetail() {
                   <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
                     <div>
                       <label className="field-label">Nom</label>
-                      <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required />
+                      <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required autoComplete="name" placeholder="Nom du membre" />
                     </div>
                     <div>
                       <label className="field-label">Contact</label>
-                      <input type="text" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                      <input type="tel" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
                     </div>
                     <button type="submit" className="btn-primary w-full">Enregistrer</button>
                   </form>
@@ -728,11 +728,11 @@ export default function TontineDetail() {
                     <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
                       <div>
                         <label className="field-label">Nom</label>
-                        <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required />
+                        <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required autoComplete="name" placeholder="Nom du membre" />
                       </div>
                       <div>
                         <label className="field-label">Contact</label>
-                        <input type="text" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                        <input type="tel" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
                       </div>
                       <button type="submit" className="btn-primary w-full">Enregistrer</button>
                     </form>
@@ -780,7 +780,7 @@ export default function TontineDetail() {
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowNewMembre(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <button onClick={() => setShowNewMembre(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
                 <h3 className="text-base font-semibold text-ink">Nouveau membre</h3>
@@ -790,11 +790,11 @@ export default function TontineDetail() {
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div>
                   <label className="field-label">Nom</label>
-                  <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
+                  <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required autoComplete="name" />
                 </div>
                 <div>
                   <label className="field-label">Contact</label>
-                  <input type="text" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                  <input type="tel" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
@@ -812,11 +812,11 @@ export default function TontineDetail() {
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   <div>
                     <label className="field-label">Nom</label>
-                    <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required />
+                    <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required autoComplete="name" />
                   </div>
                   <div>
                     <label className="field-label">Contact</label>
-                    <input type="text" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." />
+                    <input type="tel" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
                   </div>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
@@ -834,7 +834,7 @@ export default function TontineDetail() {
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowNewCotisation(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <button onClick={() => setShowNewCotisation(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
                 <h3 className="text-base font-semibold text-ink">Enregistrer un paiement</h3>
@@ -911,7 +911,7 @@ export default function TontineDetail() {
                 })()}
                 <div>
                   <label className="field-label">Montant payé</label>
-                  <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
+                  <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
                   <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) que le membre a versé</p>
                 </div>
               </div>
@@ -997,7 +997,7 @@ export default function TontineDetail() {
                   })()}
                   <div>
                     <label className="field-label">Montant payé</label>
-                    <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" />
+                    <input type="number" value={cotisationMontant} onChange={e => setCotisationMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
                     <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) que le membre a versé</p>
                   </div>
                 </div>
@@ -1016,7 +1016,7 @@ export default function TontineDetail() {
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowNewTour(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <button onClick={() => setShowNewTour(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
                 <h3 className="text-base font-semibold text-ink">Nouveau tour</h3>
@@ -1026,7 +1026,7 @@ export default function TontineDetail() {
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div>
                   <label className="field-label">Numéro de tour</label>
-                  <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" />
+                  <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" inputMode="numeric" step="1" placeholder="ex: 1" />
                 </div>
                 <div>
                   <label className="field-label">Date prévue</label>
@@ -1043,7 +1043,7 @@ export default function TontineDetail() {
                 </div>
                 <div>
                   <label className="field-label">Montant attendu</label>
-                  <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" />
+                  <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" inputMode="decimal" step="0.01" placeholder="ex: 350 000" />
                   <p className="text-xs text-muted mt-1">montantCotisation × membres = {formatCurrency(tontine.montantCotisation * actifs.length)}</p>
                 </div>
               </div>
@@ -1062,7 +1062,7 @@ export default function TontineDetail() {
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   <div>
                     <label className="field-label">Numéro de tour</label>
-                    <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" />
+                    <input type="number" value={newTourData.numeroTour} onChange={e => setNewTourData({...newTourData, numeroTour: e.target.value})} className="input-field" required min="1" inputMode="numeric" step="1" placeholder="ex: 1" />
                   </div>
                   <div>
                     <label className="field-label">Date prévue</label>
@@ -1079,7 +1079,7 @@ export default function TontineDetail() {
                   </div>
                   <div>
                     <label className="field-label">Montant attendu</label>
-                    <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" />
+                    <input type="number" value={newTourData.montantAttendu} onChange={e => setNewTourData({...newTourData, montantAttendu: e.target.value})} className="input-field" required min="1" inputMode="decimal" step="0.01" placeholder="ex: 350 000" />
                     <p className="text-xs text-muted mt-1">montantCotisation × membres = {formatCurrency(tontine.montantCotisation * actifs.length)}</p>
                   </div>
                 </div>
@@ -1098,7 +1098,7 @@ export default function TontineDetail() {
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowDistribution(false)} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <button onClick={() => setShowDistribution(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
                 <h3 className="text-base font-semibold text-ink">Planifier distribution</h3>
@@ -1112,11 +1112,11 @@ export default function TontineDetail() {
                 </div>
                 <div>
                   <label className="field-label">Montant alloué aux vivres</label>
-                  <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" />
+                  <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" inputMode="decimal" step="0.01" placeholder="ex: 50 000" />
                 </div>
                 <div>
                   <label className="field-label">Montant distribué en argent</label>
-                  <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" />
+                  <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" inputMode="decimal" step="0.01" placeholder="ex: 300 000" />
                 </div>
                 <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
               </div>
@@ -1139,11 +1139,11 @@ export default function TontineDetail() {
                   </div>
                   <div>
                     <label className="field-label">Montant alloué aux vivres</label>
-                    <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" />
+                    <input type="number" value={distData.montantAlloueVivres} onChange={e => setDistData({...distData, montantAlloueVivres: e.target.value})} className="input-field" min="0" inputMode="decimal" step="0.01" placeholder="ex: 50 000" />
                   </div>
                   <div>
                     <label className="field-label">Montant distribué en argent</label>
-                    <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" />
+                    <input type="number" value={distData.montantAlloueArgent} onChange={e => setDistData({...distData, montantAlloueArgent: e.target.value})} className="input-field" min="0" inputMode="decimal" step="0.01" placeholder="ex: 300 000" />
                   </div>
                   <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
                 </div>
