@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse, faArrowsUpDown, faChartBar, faPlus, faBars, faCashRegister } from '@fortawesome/free-solid-svg-icons';
+import { faHouse, faArrowRightArrowLeft, faChartBar, faPlus, faBars, faCashRegister } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useDashboard } from "@/app/(dashboard)/layout";
 
@@ -34,7 +34,7 @@ export default function BottomNav({ onQuickMenuOpen, onOpenSidebar }: Props) {
       <div className="flex items-center">
         {([
           { href: "/dashboard", label: "Accueil", icon: faHouse },
-          { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+          { href: "/dashboard/transactions", label: "Transactions", icon: faArrowRightArrowLeft },
         ] as const).map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href);
           return (

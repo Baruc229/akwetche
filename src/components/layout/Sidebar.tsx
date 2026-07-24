@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGauge, faArrowsUpDown, faChartBar, faBox, faArrowTrendUp, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faShield, faXmark, faBagShopping, faCircleQuestion, faTag, faSackDollar } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faArrowRightArrowLeft, faChartBar, faBox, faArrowTrendUp, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faShield, faXmark, faBagShopping, faCircleQuestion, faTag, faSackDollar } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useDashboard } from "@/app/(dashboard)/layout";
 
@@ -16,7 +16,7 @@ type Props = {
 
 const navItems = [
   { href: "/dashboard", label: "Accueil", icon: faGauge },
-  { href: "/dashboard/transactions", label: "Transactions", icon: faArrowsUpDown },
+  { href: "/dashboard/transactions", label: "Transactions", icon: faArrowRightArrowLeft },
   { href: "/dashboard/categories", label: "Catégories", icon: faTag },
   { href: "/dashboard/recurring/expenses", label: "Dép. récurrentes", icon: faArrowTrendDown },
   { href: "/dashboard/recurring/income", label: "Rev. récurrents", icon: faArrowTrendUp },
@@ -34,12 +34,13 @@ const commercialNavItems = [
   { href: "/dashboard/stock", label: "Stock", icon: faWarehouse },
 ];
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen }: Props) {
   const { user, commercialMode, setCommercialMode } = useDashboard();
   const pathname = usePathname();
   const isPremium = user?.plan === "premium" || user?.role !== "user";
 
-  function NavItem({ item }: { item: { href: string; label: string; icon: any } }) {
+  function NavItem({ item }: { item: { href: string; label: string; icon: any } }) { // eslint-disable-line @typescript-eslint/no-explicit-any
     const isActive = pathname === item.href;
     return (
       <div className="relative group">
