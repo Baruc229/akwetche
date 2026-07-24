@@ -304,29 +304,68 @@ export default function AbonnementPage() {
       <SettingsHeader title="Abonnement" subtitle="Gérez votre plan et vos fonctionnalités" />
 
       {isAdmin ? (
-        <div className="card-hero">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center">
-                <FontAwesomeIcon icon={faShield} className="w-6 h-6 text-white" />
+        <div className="space-y-5">
+          {/* ─── HERO ADMIN ─── */}
+          <div className="rounded-2xl p-6 sm:p-7" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 50%, #3b82f6 100%)", boxShadow: "0 8px 32px rgba(59,130,246,0.25)" }}>
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
+                  <FontAwesomeIcon icon={faShield} className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-dm-sans)" }}>Administrateur</p>
+                  <p className="text-sm text-white/70 mt-0.5">Accès total — toutes les fonctionnalités débloquées</p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-bold text-white">Administrateur</p>
-                <p className="text-sm text-white/70">Accès total — toutes les fonctionnalités débloquées</p>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>
+                <FontAwesomeIcon icon={faShield} className="w-3 h-3" />
+                Admin
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(4px)" }}>
+                <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/60 mb-1.5" />
+                <p className="text-xs text-white/60">Fonctionnalités</p>
+                <p className="text-sm font-semibold text-white mt-0.5">{PREMIUM_FEATURES.length + 1}/{PREMIUM_FEATURES.length + 1}</p>
+              </div>
+              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(4px)" }}>
+                <FontAwesomeIcon icon={faStar} className="w-4 h-4 text-white/60 mb-1.5" />
+                <p className="text-xs text-white/60">Plan</p>
+                <p className="text-sm font-semibold text-white mt-0.5">Illimité</p>
+              </div>
+              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(4px)" }}>
+                <FontAwesomeIcon icon={faCrown} className="w-4 h-4 text-white/60 mb-1.5" />
+                <p className="text-xs text-white/60">Accès</p>
+                <p className="text-sm font-semibold text-white mt-0.5">Total</p>
               </div>
             </div>
-            <span className="badge" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>Admin</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {PREMIUM_FEATURES.map((f) => (
-              <div key={f.key} className="flex items-center gap-2 text-sm text-white">
-                <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/70 shrink-0" />
-                {f.label}
+
+          {/* ─── FONCTIONNALITÉS ─── */}
+          <div>
+            <p className="text-label mb-3 px-1">Tout est inclus</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PREMIUM_FEATURES.map((f) => (
+                <div key={f.key} className="card flex items-start gap-3.5 p-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
+                    <FontAwesomeIcon icon={f.icon} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink">{f.label}</p>
+                    <p className="text-xs text-muted mt-0.5 leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+              <div className="card flex items-start gap-3.5 p-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
+                  <FontAwesomeIcon icon={faShield} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-ink">Panneau d&apos;administration</p>
+                  <p className="text-xs text-muted mt-0.5 leading-relaxed">Gestion des utilisateurs, sécurité et analytics</p>
+                </div>
               </div>
-            ))}
-            <div className="flex items-center gap-2 text-sm text-white">
-              <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/70 shrink-0" />
-              Accès panneau d&apos;administration
             </div>
           </div>
         </div>
