@@ -467,7 +467,7 @@ export default function TontineDetail() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0 ml-2 text-right">
                     <div className="text-xs text-muted">
-                      <span className="font-semibold text-ink">{m.nbPayees}</span>/{m._count.cotisations}
+                      <span className="font-semibold text-ink">{m.nbPayees}</span>/{nbPeriodesTotal || m._count.cotisations}
                       <span className="block">{formatCurrency(m.montantTotalPaye)}</span>
                     </div>
                     <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 text-muted/30" />
@@ -663,7 +663,7 @@ export default function TontineDetail() {
               <div className="grid grid-cols-3 gap-2">
                 <div className="card-inset text-center py-2">
                   <p className="text-label">Payées</p>
-                  <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{detailMembreData._count.cotisations}</p>
+                  <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{nbPeriodesTotal || detailMembreData._count.cotisations}</p>
                 </div>
                 <div className="card-inset text-center py-2">
                   <p className="text-label">Total payé</p>
@@ -747,7 +747,7 @@ export default function TontineDetail() {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="card-inset text-center py-2">
                     <p className="text-label">Payées</p>
-                    <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{detailMembreData._count.cotisations}</p>
+                    <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{nbPeriodesTotal || detailMembreData._count.cotisations}</p>
                   </div>
                   <div className="card-inset text-center py-2">
                     <p className="text-label">Total payé</p>
