@@ -1,21 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser, faShield, faBell, faCrown, faCircleInfo,
   faLock, faRightFromBracket, faChevronRight,
-  faPhone, faMoneyBill, faIdCard, faSpinner, faStar
+  faPhone, faMoneyBill, faIdCard, faSpinner, faStar, faCamera
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../layout";
 import UserAvatar from "@/components/settings/UserAvatar";
 
 export default function ComptePage() {
-  const { user } = useDashboard();
+  const { user, setUser } = useDashboard();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const processAvatar = useCallback(async (file: File) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) return;
+    if (file.size > 2 * 1024 * 1024) return;
+    setAvatarLoading(true);
+    try {
+      const bmp = await createImageBitmap(file);
+      if (bmp.width < 200 || bmp.height < 200) { setAvatarLoading(false); return; }
+      const size = Math.min(bmp.width, bmp.height);
+      const sx = (bmp.width - size) / 2;
+      const sy = (bmp.height - size) / 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(bmp, sx, sy, size, size, 0, 0, 256, 256);
+      bmp.close();
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error("Erreur canvas")), "image/webp", 0.85);
+      });
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const res = await fetch("/api/user/avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: base64 }),
+      });
+      const data = await res.json();
+      if (res.ok && user) {
+        setUser({ ...user, avatarUrl: data.avatarUrl });
+      }
+    } catch {}
+    setAvatarLoading(false);
+  }, [user, setUser]);
 
   useEffect(() => { document.title = "Compte — Akwetche"; }, []);
 
@@ -40,7 +81,13 @@ export default function ComptePage() {
       {/* ─── BANDEAU PROFIL ─── */}
       <div className="rounded-2xl p-5 sm:p-6 mb-8" style={{ background: "linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand) 100%)" }}>
         <div className="flex items-center gap-4">
-          <UserAvatar name={user?.name} avatarUrl={user?.avatarUrl} size="lg" />
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="relative group shrink-0 rounded-full" disabled={avatarLoading}>
+            <UserAvatar name={user?.name} avatarUrl={user?.avatarUrl} size="lg" loading={avatarLoading} />
+            <div className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.45)" }}>
+              <FontAwesomeIcon icon={faCamera} className="w-5 h-5 text-white" />
+            </div>
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) processAvatar(f); e.target.value = ""; }} />
           <div className="flex-1 min-w-0">
             <p className="text-lg sm:text-xl font-bold text-white truncate">{user?.name}</p>
             <p className="text-xs sm:text-sm truncate mt-1" style={{ color: "var(--color-placeholder)" }}>{user?.email}</p>
