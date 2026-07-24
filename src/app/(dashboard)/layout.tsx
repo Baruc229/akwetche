@@ -199,7 +199,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {showExpiredModal && <ExpiredModal />}
 
-          <BottomNav onQuickMenuOpen={() => setQuickMenuOpen(true)} onOpenSidebar={() => setSidebarOpen(true)} />
+          {!sidebarOpen && <BottomNav onQuickMenuOpen={() => setQuickMenuOpen(true)} onOpenSidebar={() => setSidebarOpen(true)} />}
 
           <footer className="no-print border-t px-4 md:px-6 lg:px-8 py-3 pb-16 lg:pb-3" style={{borderColor:'var(--color-border)', background:'var(--color-surface)'}}>
             <p className="text-xs text-center" style={{color:'var(--color-muted)', fontFamily:'var(--font-body)'}}>
