@@ -10,7 +10,12 @@ function createPrismaClient(): PrismaClient {
     throw new Error(`DATABASE_URL must be a PostgreSQL connection string. Got: ${typeof url} "${url}"`);
   }
 
-  const pool = new Pool({ connectionString: url });
+  const pool = new Pool({
+    connectionString: url,
+    max: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }

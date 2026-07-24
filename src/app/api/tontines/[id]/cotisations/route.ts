@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, detecterRetards, imputerAvance } from "@/lib/tontine";
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, imputerAvance } from "@/lib/tontine";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -167,8 +167,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (periodeStart && periodeEnd) {
     where.periode = { gte: new Date(periodeStart), lte: new Date(periodeEnd) };
   }
-
-  await detecterRetards(tontineId);
 
   const cotisations = await prisma.tontineCotisation.findMany({
     where,

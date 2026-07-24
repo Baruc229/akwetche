@@ -85,25 +85,38 @@ export default function TontineDetail() {
     showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null
   );
 
-  async function loadData() {
+  async function loadData(signal?: AbortSignal) {
     try {
       const [res, membresRes] = await Promise.all([
-        fetch(`/api/tontines/${id}`),
-        fetch(`/api/tontines/${id}/membres`),
+        fetch(`/api/tontines/${id}`, { signal }),
+        fetch(`/api/tontines/${id}/membres`, { signal }),
       ]);
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) setError("Session expirée. Rafraîchissez la page.");
+        else if (res.status === 404) setError("Tontine introuvable");
+        else setError("Erreur de chargement");
+        return;
+      }
       const data = await res.json();
-      const membresData = await membresRes.json();
+      const membresData = membresRes.ok ? await membresRes.json() : { membres: [] };
       if (!data.tontine) { setError("Tontine introuvable"); return; }
       const membresMap = new Map<number, Membre>();
       (membresData.membres || []).forEach((m: Membre) => membresMap.set(m.id, m));
       data.tontine.membres = Array.from(membresMap.values());
       setTontine(data.tontine);
-    } catch { setError("Erreur de chargement"); }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      setError("Erreur de connexion");
+    }
     finally { setLoading(false); }
   }
 
   /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => { loadData(); }, [id]);
+  useEffect(() => {
+    const ac = new AbortController();
+    loadData(ac.signal);
+    return () => ac.abort();
+  }, [id]);
   /* eslint-enable react-hooks/set-state-in-effect */
   useEffect(() => {
     document.title = tontine ? `${tontine.nom} — Tontine — Akwetche` : "Tontine — Akwetche";

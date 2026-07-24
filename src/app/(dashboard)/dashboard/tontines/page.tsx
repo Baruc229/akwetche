@@ -55,13 +55,22 @@ export default function TontinesPage() {
 
   useScrollLock(showCreate);
 
-  async function loadData() {
+  async function loadData(signal?: AbortSignal) {
     try {
-      const res = await fetch("/api/tontines");
+      const res = await fetch("/api/tontines", { signal });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setError("Session expirée. Rafraîchissez la page.");
+        } else {
+          setError("Erreur de chargement");
+        }
+        return;
+      }
       const data = await res.json();
       setTontines(data.tontines || []);
     } catch (e) {
-      console.error(e);
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      setError("Erreur de connexion");
     } finally {
       setLoading(false);
     }
@@ -70,7 +79,9 @@ export default function TontinesPage() {
   /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     document.title = "Mes Tontines — Akwetche";
-    loadData();
+    const ac = new AbortController();
+    loadData(ac.signal);
+    return () => ac.abort();
   }, []);
 
   useEffect(() => {

@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
-import { detecterRetards } from "@/lib/tontine";
 
 async function getTontine(id: number, userId: number, include?: Record<string, unknown>) {
   return prisma.tontine.findFirst({
@@ -35,10 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const tontine = await getTontine(tontineId, userId);
   if (!tontine) return badRequest("Tontine introuvable");
 
-  await detecterRetards(tontineId);
-
-  const tontineUpdated = await getTontine(tontineId, userId);
-  return ok({ tontine: tontineUpdated });
+  return ok({ tontine });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
