@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCrown, faShield, faCheck, faLock, faUpRightFromSquare, faTriangleExclamation, faCircleCheck, faXmark, faStar, faSpinner, faArrowRight, faCalendarDay, faClock, faHeadset, faEnvelope, faChartLine, faLayerGroup, faBuilding, faBoxOpen, faFileChartLine, faChartPie } from "@fortawesome/free-solid-svg-icons";
+import { faCrown, faShield, faCheck, faLock, faUpRightFromSquare, faTriangleExclamation, faCircleCheck, faXmark, faStar, faSpinner, faArrowRight, faCalendarDay, faClock, faHeadset, faEnvelope, faChartLine, faLayerGroup, faBuilding, faBoxOpen, faFileLines, faChartPie } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import SettingsHeader from "@/components/settings/SettingsHeader";
 
@@ -12,7 +12,7 @@ const PREMIUM_FEATURES = [
   { key: "categories", label: "Catégories illimitées", desc: "Créez autant de catégories que nécessaire", icon: faLayerGroup, free: false },
   { key: "activity", label: "Mode activité commerciale", desc: "Gérez vos activités pro et perso séparément", icon: faBuilding, free: false },
   { key: "products", label: "Produits, ventes et stocks", desc: "Gestion complète de votre inventaire", icon: faBoxOpen, free: false },
-  { key: "reports", label: "Bilans avancés", desc: "Rapports hebdo, mensuels et annuels", icon: faFileChartLine, free: true },
+  { key: "reports", label: "Bilans avancés", desc: "Rapports hebdo, mensuels et annuels", icon: faFileLines, free: true },
   { key: "stats", label: "Statistiques avancées", desc: "Graphiques et analyses détaillées", icon: faChartPie, free: false },
 ];
 
