@@ -79,7 +79,7 @@ export default function ComptePage() {
   return (
     <div className="max-w-2xl mx-auto pb-8">
       {/* ─── BANDEAU PROFIL ─── */}
-      <div className="rounded-2xl p-5 sm:p-6 mb-8" style={{ background: "linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand) 100%)" }}>
+      <div className="card mb-8 p-5 sm:p-6">
         <div className="flex items-center gap-4">
           <button type="button" onClick={() => fileInputRef.current?.click()} className="relative group shrink-0 rounded-full" disabled={avatarLoading}>
             <UserAvatar name={user?.name} avatarUrl={user?.avatarUrl} size="lg" loading={avatarLoading} />
@@ -89,35 +89,35 @@ export default function ComptePage() {
           </button>
           <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) processAvatar(f); e.target.value = ""; }} />
           <div className="flex-1 min-w-0">
-            <p className="text-lg sm:text-xl font-bold text-white truncate">{user?.name}</p>
-            <p className="text-xs sm:text-sm truncate mt-1" style={{ color: "var(--color-placeholder)" }}>{user?.email}</p>
+            <p className="text-lg sm:text-xl font-bold text-ink truncate">{user?.name}</p>
+            <p className="text-xs sm:text-sm truncate mt-1 text-muted">{user?.email}</p>
+            {isPremium ? (
+              <span className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(245,166,35,0.1)", color: "var(--color-gold)", border: "1px solid rgba(245,166,35,0.2)" }}>
+                <FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />
+                {planLabel}
+              </span>
+            ) : (
+              <Link href="/dashboard/settings/abonnement" className="group mt-2 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-0.5 rounded-full transition-all" style={{ background: "var(--color-surface-raised)", color: "var(--color-muted)", border: "1px solid var(--color-border)" }}>
+                <FontAwesomeIcon icon={faStar} className="w-2.5 h-2.5" />
+                Gratuit
+                <FontAwesomeIcon icon={faChevronRight} className="w-2 h-2 opacity-50 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            )}
           </div>
         </div>
-        {isPremium ? (
-          <span className="inline-flex items-center gap-1.5 mt-4 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "rgba(245,166,35,0.15)", color: "var(--color-gold)", border: "1px solid rgba(245,166,35,0.3)" }}>
-            <FontAwesomeIcon icon={faCrown} className="w-3 h-3" />
-            {planLabel}
-          </span>
-        ) : (
-          <Link href="/dashboard/settings/abonnement" className="group mt-4 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full transition-all" style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.18)" }}>
-            <FontAwesomeIcon icon={faStar} className="w-3 h-3" />
-            Plan Gratuit · Fonctionnalités de base
-            <FontAwesomeIcon icon={faChevronRight} className="w-2.5 h-2.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        )}
       </div>
 
       {/* ─── RÉSUMÉ RAPIDE ─── */}
       <p className="text-label mb-4 px-1">Résumé</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {[
-          { label: "Nom", value: user?.name || "—", icon: faUser },
-          { label: "Téléphone", value: user?.phone || "—", icon: faPhone },
-          { label: "Devise", value: currencyDisplay, icon: faMoneyBill },
-          { label: "Pays", value: user?.countryCode || "—", icon: faIdCard },
+          { label: "Nom", value: user?.name || "—", icon: faUser, color: "var(--color-brand)" },
+          { label: "Téléphone", value: user?.phone || "—", icon: faPhone, color: "var(--color-forest)" },
+          { label: "Devise", value: currencyDisplay, icon: faMoneyBill, color: "var(--color-gold)" },
+          { label: "Pays", value: user?.countryCode || "—", icon: faIdCard, color: "var(--color-muted)" },
         ].map((item) => (
           <div key={item.label} className="card-compact text-center">
-            <FontAwesomeIcon icon={item.icon} className="w-4 h-4 mb-1.5 text-muted" />
+            <FontAwesomeIcon icon={item.icon} className="w-4 h-4 mb-1.5" style={{ color: item.color }} />
             <p className="text-[10px] text-muted uppercase tracking-wider">{item.label}</p>
             <p className="text-sm font-medium text-ink truncate mt-0.5">{item.value}</p>
           </div>
@@ -128,16 +128,16 @@ export default function ComptePage() {
       <p className="text-label mb-4 px-1">Paramètres</p>
       <div className="space-y-3 mb-8">
         {[
-          { label: "Profil", desc: "Nom, téléphone, pays, devise, soldes initiaux", icon: faUser, href: "/dashboard/settings/profil" },
-          { label: "Connexion et sécurité", desc: "Email, mot de passe, sessions", icon: faShield, href: "/dashboard/settings/securite" },
-          { label: "Notifications", desc: "Préférences par canal", icon: faBell, href: "/dashboard/settings/notifications" },
-          { label: "Abonnement", desc: "Gérer votre plan", icon: faCrown, href: "/dashboard/settings/abonnement" },
-          { label: "À propos", desc: "Version, liens utiles", icon: faCircleInfo, href: "/dashboard/settings/about" },
+          { label: "Profil", desc: "Nom, téléphone, pays, devise, soldes initiaux", icon: faUser, href: "/dashboard/settings/profil", color: "var(--color-brand)" },
+          { label: "Connexion et sécurité", desc: "Email, mot de passe, sessions", icon: faShield, href: "/dashboard/settings/securite", color: "var(--color-forest)" },
+          { label: "Notifications", desc: "Préférences par canal", icon: faBell, href: "/dashboard/settings/notifications", color: "var(--color-gold)" },
+          { label: "Abonnement", desc: "Gérer votre plan", icon: faCrown, href: "/dashboard/settings/abonnement", color: "var(--color-gold-dark)" },
+          { label: "À propos", desc: "Version, liens utiles", icon: faCircleInfo, href: "/dashboard/settings/about", color: "var(--color-muted)" },
         ].map((item) => (
           <div key={item.href} className="card" style={{ padding: 0 }}>
-            <Link href={item.href} className="flex items-center gap-5 px-5 sm:px-6 py-5 transition-colors hover:bg-[var(--color-brand-subtle)]">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
-                <FontAwesomeIcon icon={item.icon} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+            <Link href={item.href} className="flex items-center gap-5 px-5 sm:px-6 py-5 transition-colors hover:bg-[var(--color-surface-raised)]">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${item.color}12` }}>
+                <FontAwesomeIcon icon={item.icon} className="w-5 h-5" style={{ color: item.color }} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-ink">{item.label}</p>

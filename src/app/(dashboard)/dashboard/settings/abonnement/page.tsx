@@ -88,42 +88,42 @@ export default function AbonnementPage() {
       return (
         <div className="space-y-5">
           {/* ─── HERO PREMIUM ─── */}
-          <div className="rounded-2xl p-6 sm:p-7" style={{ background: "linear-gradient(135deg, #b8860b 0%, #daa520 40%, #f0c75e 100%)", boxShadow: "0 8px 32px rgba(218,165,32,0.25)" }}>
+          <div className="card p-6 sm:p-7" style={{ border: "1px solid rgba(245,166,35,0.2)", background: "linear-gradient(135deg, rgba(245,166,35,0.04) 0%, rgba(245,166,35,0.08) 100%)" }}>
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}>
-                  <FontAwesomeIcon icon={faCrown} className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(245,166,35,0.1)" }}>
+                  <FontAwesomeIcon icon={faCrown} className="w-6 h-6" style={{ color: "var(--color-gold)" }} />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-dm-sans)" }}>Premium Actif</p>
-                  <p className="text-sm text-white/70 mt-0.5">Toutes les fonctionnalités débloquées</p>
+                  <p className="text-lg font-bold text-ink">Premium Actif</p>
+                  <p className="text-sm text-muted mt-0.5">Toutes les fonctionnalités débloquées</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "rgba(34,197,94,0.25)", color: "#dcfce7" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(34,197,94,0.1)", color: "var(--color-pos)" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 {isCancelled ? "Annulé" : "Actif"}
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(4px)" }}>
-                <FontAwesomeIcon icon={faCalendarDay} className="w-4 h-4 text-white/60 mb-1.5" />
-                <p className="text-xs text-white/60">Renouvellement</p>
-                <p className="text-sm font-semibold text-white mt-0.5">
+              <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
+                <FontAwesomeIcon icon={faCalendarDay} className="w-4 h-4 mb-1.5" style={{ color: "var(--color-gold)" }} />
+                <p className="text-xs text-muted">Renouvellement</p>
+                <p className="text-sm font-semibold text-ink mt-0.5">
                   {endDate ? endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "—"}
                 </p>
               </div>
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(4px)" }}>
-                <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-white/60 mb-1.5" />
-                <p className="text-xs text-white/60">Jours restants</p>
-                <p className="text-sm font-semibold text-white mt-0.5">
+              <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
+                <FontAwesomeIcon icon={faClock} className="w-4 h-4 mb-1.5" style={{ color: "var(--color-brand)" }} />
+                <p className="text-xs text-muted">Jours restants</p>
+                <p className="text-sm font-semibold text-ink mt-0.5">
                   {daysRemaining !== null ? `${daysRemaining}j` : "—"}
                 </p>
               </div>
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(4px)" }}>
-                <FontAwesomeIcon icon={faChartLine} className="w-4 h-4 text-white/60 mb-1.5" />
-                <p className="text-xs text-white/60">Fonctionnalités</p>
-                <p className="text-sm font-semibold text-white mt-0.5">{PREMIUM_FEATURES.length}/{PREMIUM_FEATURES.length}</p>
+              <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
+                <FontAwesomeIcon icon={faChartLine} className="w-4 h-4 mb-1.5" style={{ color: "var(--color-forest)" }} />
+                <p className="text-xs text-muted">Fonctionnalités</p>
+                <p className="text-sm font-semibold text-ink mt-0.5">{PREMIUM_FEATURES.length}/{PREMIUM_FEATURES.length}</p>
               </div>
             </div>
           </div>
@@ -142,17 +142,21 @@ export default function AbonnementPage() {
           <div>
             <p className="text-label mb-3 px-1">Ce qui est inclus</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PREMIUM_FEATURES.map((f) => (
-                <div key={f.key} className="card flex items-start gap-3.5 p-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
-                    <FontAwesomeIcon icon={f.icon} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+              {PREMIUM_FEATURES.map((f, i) => {
+                const colors = ["var(--color-brand)", "var(--color-forest)", "var(--color-gold)", "var(--color-brand)", "var(--color-forest)", "var(--color-gold)"];
+                const bgs = ["var(--color-brand-subtle)", "rgba(34,120,80,0.08)", "rgba(245,166,35,0.08)", "var(--color-brand-subtle)", "rgba(34,120,80,0.08)", "rgba(245,166,35,0.08)"];
+                return (
+                  <div key={f.key} className="card flex items-start gap-3.5 p-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bgs[i % bgs.length] }}>
+                      <FontAwesomeIcon icon={f.icon} className="w-5 h-5" style={{ color: colors[i % colors.length] }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink">{f.label}</p>
+                      <p className="text-xs text-muted mt-0.5 leading-relaxed">{f.desc}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-ink">{f.label}</p>
-                    <p className="text-xs text-muted mt-0.5 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -172,7 +176,7 @@ export default function AbonnementPage() {
                   <p className="text-sm font-medium text-ink">Support prioritaire</p>
                   <p className="text-xs text-muted mt-0.5">Contactez-nous pour toute question</p>
                 </div>
-                <a href="mailto:support@akwetche.com" className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ background: "var(--color-brand-subtle)" }}>
+                <a href="mailto:support@akwetche.com" className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-[var(--color-surface-raised)]" style={{ background: "var(--color-brand-subtle)" }}>
                   <FontAwesomeIcon icon={faEnvelope} className="w-4 h-4" style={{ color: "var(--color-brand)" }} />
                 </a>
               </div>
@@ -306,38 +310,38 @@ export default function AbonnementPage() {
       {isAdmin ? (
         <div className="space-y-5">
           {/* ─── HERO ADMIN ─── */}
-          <div className="rounded-2xl p-6 sm:p-7" style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 50%, #3b82f6 100%)", boxShadow: "0 8px 32px rgba(59,130,246,0.25)" }}>
+          <div className="card p-6 sm:p-7" style={{ border: "1px solid rgba(59,130,246,0.15)", background: "linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(59,130,246,0.08) 100%)" }}>
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
-                  <FontAwesomeIcon icon={faShield} className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.1)" }}>
+                  <FontAwesomeIcon icon={faShield} className="w-6 h-6" style={{ color: "#3b82f6" }} />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-dm-sans)" }}>Administrateur</p>
-                  <p className="text-sm text-white/70 mt-0.5">Accès total — toutes les fonctionnalités débloquées</p>
+                  <p className="text-lg font-bold text-ink">Administrateur</p>
+                  <p className="text-sm text-muted mt-0.5">Accès total — toutes les fonctionnalités débloquées</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>
-                <FontAwesomeIcon icon={faShield} className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>
+                <FontAwesomeIcon icon={faShield} className="w-2.5 h-2.5" />
                 Admin
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(4px)" }}>
-                <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/60 mb-1.5" />
-                <p className="text-xs text-white/60">Fonctionnalités</p>
-                <p className="text-sm font-semibold text-white mt-0.5">{PREMIUM_FEATURES.length + 1}/{PREMIUM_FEATURES.length + 1}</p>
+              <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
+                <FontAwesomeIcon icon={faCheck} className="w-4 h-4 mb-1.5" style={{ color: "#3b82f6" }} />
+                <p className="text-xs text-muted">Fonctionnalités</p>
+                <p className="text-sm font-semibold text-ink mt-0.5">{PREMIUM_FEATURES.length + 1}/{PREMIUM_FEATURES.length + 1}</p>
               </div>
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(4px)" }}>
-                <FontAwesomeIcon icon={faStar} className="w-4 h-4 text-white/60 mb-1.5" />
-                <p className="text-xs text-white/60">Plan</p>
-                <p className="text-sm font-semibold text-white mt-0.5">Illimité</p>
+              <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
+                <FontAwesomeIcon icon={faStar} className="w-4 h-4 mb-1.5" style={{ color: "var(--color-gold)" }} />
+                <p className="text-xs text-muted">Plan</p>
+                <p className="text-sm font-semibold text-ink mt-0.5">Illimité</p>
               </div>
-              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(4px)" }}>
-                <FontAwesomeIcon icon={faCrown} className="w-4 h-4 text-white/60 mb-1.5" />
-                <p className="text-xs text-white/60">Accès</p>
-                <p className="text-sm font-semibold text-white mt-0.5">Total</p>
+              <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
+                <FontAwesomeIcon icon={faCrown} className="w-4 h-4 mb-1.5" style={{ color: "var(--color-gold-dark)" }} />
+                <p className="text-xs text-muted">Accès</p>
+                <p className="text-sm font-semibold text-ink mt-0.5">Total</p>
               </div>
             </div>
           </div>
@@ -346,20 +350,24 @@ export default function AbonnementPage() {
           <div>
             <p className="text-label mb-3 px-1">Tout est inclus</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PREMIUM_FEATURES.map((f) => (
-                <div key={f.key} className="card flex items-start gap-3.5 p-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
-                    <FontAwesomeIcon icon={f.icon} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+              {PREMIUM_FEATURES.map((f, i) => {
+                const colors = ["var(--color-brand)", "var(--color-forest)", "var(--color-gold)", "var(--color-brand)", "var(--color-forest)", "var(--color-gold)"];
+                const bgs = ["var(--color-brand-subtle)", "rgba(34,120,80,0.08)", "rgba(245,166,35,0.08)", "var(--color-brand-subtle)", "rgba(34,120,80,0.08)", "rgba(245,166,35,0.08)"];
+                return (
+                  <div key={f.key} className="card flex items-start gap-3.5 p-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bgs[i % bgs.length] }}>
+                      <FontAwesomeIcon icon={f.icon} className="w-5 h-5" style={{ color: colors[i % colors.length] }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink">{f.label}</p>
+                      <p className="text-xs text-muted mt-0.5 leading-relaxed">{f.desc}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-ink">{f.label}</p>
-                    <p className="text-xs text-muted mt-0.5 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               <div className="card flex items-start gap-3.5 p-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
-                  <FontAwesomeIcon icon={faShield} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(59,130,246,0.08)" }}>
+                  <FontAwesomeIcon icon={faShield} className="w-5 h-5" style={{ color: "#3b82f6" }} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink">Panneau d&apos;administration</p>
