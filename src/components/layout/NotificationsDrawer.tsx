@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark, faBell, faSpinner, faCrown, faBox, faCartShopping, faArrowTrendUp, faArrowsUpDown, faShield, faUserGear } from '@fortawesome/free-solid-svg-icons';
@@ -37,6 +38,7 @@ type Props = {
 };
 
 export default function NotificationsDrawer({ open, onClose, onUnreadChange }: Props) {
+  useScrollLock(open);
   const router = useRouter();
   const [notifTab, setNotifTab] = useState<"new" | "unread" | "read">("unread");
   const [notifications, setNotifications] = useState<Notification[]>([]);

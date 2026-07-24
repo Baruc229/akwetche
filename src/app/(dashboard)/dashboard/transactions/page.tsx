@@ -13,6 +13,7 @@ import { CATEGORY_COLORS } from "@/lib/colors";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type Transaction = {
   id: number;
@@ -73,6 +74,7 @@ export default function TransactionsPage() {
 
   // Reconvertir le montant affiché dans le formulaire quand la devise change
   const prevCurrencyRef = useRef(currency);
+  useScrollLock(showModal || showMobileFilters);
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {

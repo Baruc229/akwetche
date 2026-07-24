@@ -11,6 +11,7 @@ import FlagImg from "@/components/ui/FlagImg";
 import CustomSelect from "@/components/ui/CustomSelect";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Stats } from "@/types/admin";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const MONTH_LABELS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
 function fmtMonth(m: string) {
@@ -27,6 +28,7 @@ export default function AdminOverview() {
   const [newAdmin, setNewAdmin] = useState({ name: "", email: "", password: "", plan: "free", role: "admin" });
   const [addAdminError, setAddAdminError] = useState("");
   const [addingAdmin, setAddingAdmin] = useState(false);
+  useScrollLock(showAddAdmin);
 
   useEffect(() => {
     document.title = "Administration — Akwetche";

@@ -14,6 +14,7 @@ import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type ScopeSummary = {
   income: number;
@@ -64,6 +65,7 @@ export default function DashboardPage() {
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
+  useScrollLock(showModal || showOnboarding);
 
   async function loadData() {
     try {

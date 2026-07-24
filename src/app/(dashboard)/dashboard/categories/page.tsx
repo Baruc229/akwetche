@@ -6,6 +6,7 @@ import { faPlus, faTrash, faLock } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "../../layout";
 import { EXPENSE_ICONS, INCOME_ICONS, getDefaultIconForName } from "@/lib/categoryIcons";
 import { FREE_CATEGORY_LIMIT_PER_TYPE } from "@/lib/limits";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type Category = { id: number; name: string; icon: string; type: string; archived: boolean };
 
@@ -24,6 +25,7 @@ export default function CategoriesPage() {
   const [confirmDeleteCat, setConfirmDeleteCat] = useState<number | null>(null);
   const [presetLoading, setPresetLoading] = useState(false);
   const [archivedOpen, setArchivedOpen] = useState<"income" | "expense" | null>(null);
+  useScrollLock(confirmDeleteCat !== null);
 
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
   const isFree = !isPremium && !isAdmin;

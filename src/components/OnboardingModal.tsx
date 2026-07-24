@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSun, faArrowTrendUp, faArrowTrendDown, faWallet } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from "next/navigation";
@@ -9,6 +10,7 @@ import { toStorageCurrency } from "@/lib/utils";
 
 export default function OnboardingModal({ onClose, currency, countryCode }: { onClose: () => void; currency?: string; countryCode?: string | null }) {
   const router = useRouter();
+  useScrollLock(true);
   const [step, setStep] = useState<"balance" | "welcome">("balance");
   const [balanceInput, setBalanceInput] = useState("");
   const [saving, setSaving] = useState(false);

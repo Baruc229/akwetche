@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { useRouter } from "next/navigation";
 import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
@@ -80,6 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [helpOpen, setHelpOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  useScrollLock(sidebarOpen);
   const triggerRefresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
   const handleSetCurrency = useCallback((c: CurrencyCode) => {

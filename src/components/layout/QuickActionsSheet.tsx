@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faBagShopping, faBox, faPeopleGroup, faArrowTrendDown, faArrowTrendUp, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { useDashboard } from "@/app/(dashboard)/layout";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type QuickActionBtnProps = { icon: any; label: string; hint: string; onClick: () => void }; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -30,6 +31,7 @@ type Props = {
 export default function QuickActionsSheet({ open, onClose, onQuickTxOpen }: Props) {
   const { commercialMode, user } = useDashboard();
   const router = useRouter();
+  useScrollLock(open);
 
   if (!open) return null;
 

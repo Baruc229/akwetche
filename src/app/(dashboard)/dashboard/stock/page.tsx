@@ -7,6 +7,7 @@ import { faBox, faPlus, faTriangleExclamation, faBoxArchive, faArrowDown, faArro
 import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type Product = {
   id: number;
@@ -48,6 +49,7 @@ export default function StockPage() {
   const [replenishError, setReplenishError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  useScrollLock(replenishProduct !== null);
 
   function computeProductStats(products: Product[], movements: Movement[]): ProductStats[] {
     const soldMap: Record<number, number> = {};

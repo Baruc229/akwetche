@@ -7,6 +7,7 @@ import { faPlus, faTrash, faCircleCheck, faCircle, faPen, faBolt, faSpinner, faA
 import { useDashboard } from "../../../layout";
 import { formatCurrency, toStorageCurrency, toDisplayCurrency, roundByCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type Template = {
   id: number;
@@ -41,6 +42,7 @@ export default function RevenusRecurrentsPage() {
   const [formDayOfMonth, setFormDayOfMonth] = useState("1");
   const [formCategoryId, setFormCategoryId] = useState("");
   const [error, setError] = useState("");
+  useScrollLock(showForm);
 
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const today = new Date().getDate();

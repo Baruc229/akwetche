@@ -10,6 +10,7 @@ import FlagImg from "@/components/ui/FlagImg";
 import CustomSelect from "@/components/ui/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
 import type { UserData } from "@/types/admin";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const AVATAR_COLORS: Record<string, { bg: string; text: string }> = {
   super_admin: { bg: "bg-brand", text: "text-gold" },
@@ -68,6 +69,7 @@ export default function AdminUsers() {
   const [sortKey, setSortKey] = useState<string>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
+  useScrollLock(selectedUser !== null || confirmDeleteUser !== null);
 
   useEffect(() => {
     document.title = "Utilisateurs — Administration — Akwetche";

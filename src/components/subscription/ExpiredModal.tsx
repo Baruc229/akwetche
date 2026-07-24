@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCrown, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icons';
@@ -8,6 +9,7 @@ import { faCrown, faXmark, faArrowRight } from '@fortawesome/free-solid-svg-icon
 export default function ExpiredModal() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  useScrollLock(open);
 
   useEffect(() => {
     const shown = sessionStorage.getItem("akwetche_expired_modal_shown");

@@ -9,6 +9,7 @@ import { formatCurrency, formatDate, toDisplayCurrency, toStorageCurrency } from
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import PremiumLock from "@/components/subscription/PremiumLock";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type Sale = {
   id: number;
@@ -78,6 +79,7 @@ export default function SalesPage() {
 
   // Reconvertir le prix unitaire affiché quand la devise change
   const prevCurrencyRef = useRef(currency);
+  useScrollLock(showModal || deleteTarget !== null);
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {

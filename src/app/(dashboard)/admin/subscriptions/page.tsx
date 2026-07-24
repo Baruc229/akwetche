@@ -9,6 +9,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
 import type { UserData } from "@/types/admin";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 function getStatusBadge(status: string) {
   if (status === "active") return <span className="badge badge-pos"><FontAwesomeIcon icon={faCircleCheck} className="w-2.5 h-2.5" />Actif</span>;
@@ -25,6 +26,7 @@ export default function AdminSubscriptions() {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  useScrollLock(selectedUser !== null);
 
   useEffect(() => {
     document.title = "Abonnements — Administration — Akwetche";

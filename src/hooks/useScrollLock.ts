@@ -2,29 +2,31 @@
 
 import { useEffect } from "react";
 
+let lockCount = 0;
+let savedScrollY = 0;
+
 export function useScrollLock(locked: boolean) {
   useEffect(() => {
-    const body = document.body;
-
     if (locked) {
-      const scrollY = window.scrollY;
-      body.style.overflow = "hidden";
-      body.style.position = "fixed";
-      body.style.top = `-${scrollY}px`;
-      body.style.width = "100%";
+      if (lockCount === 0) {
+        savedScrollY = window.scrollY;
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${savedScrollY}px`;
+        document.body.style.width = "100%";
+      }
+      lockCount++;
 
       return () => {
-        body.style.removeProperty("overflow");
-        body.style.removeProperty("position");
-        body.style.removeProperty("top");
-        body.style.removeProperty("width");
-        window.scrollTo(0, scrollY);
+        lockCount--;
+        if (lockCount === 0) {
+          document.body.style.removeProperty("overflow");
+          document.body.style.removeProperty("position");
+          document.body.style.removeProperty("top");
+          document.body.style.removeProperty("width");
+          window.scrollTo(0, savedScrollY);
+        }
       };
-    } else {
-      body.style.removeProperty("overflow");
-      body.style.removeProperty("position");
-      body.style.removeProperty("top");
-      body.style.removeProperty("width");
     }
   }, [locked]);
 }

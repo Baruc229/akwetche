@@ -8,6 +8,7 @@ import { faPen, faTrash, faXmark, faTriangleExclamation, faArrowRight } from '@f
 import { formatCurrency, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type Product = {
   id: number;
@@ -97,6 +98,7 @@ export default function ProductsPage() {
 
   // Reconvertir les prix affichés dans le formulaire quand la devise change
   const prevCurrencyRef = useRef(currency);
+  useScrollLock(showModal || confirmDeleteProduct !== null);
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {

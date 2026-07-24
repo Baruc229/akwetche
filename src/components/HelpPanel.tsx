@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -335,6 +336,7 @@ const HELP_SECTIONS: { category: string; items: HelpItem[] }[] = [
 ];
 
 export default function HelpPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useScrollLock(open);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);

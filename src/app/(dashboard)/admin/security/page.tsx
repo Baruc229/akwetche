@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
 import type { LoginLog } from "@/types/admin";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const PAGE_SIZE = 30;
 
@@ -23,6 +24,7 @@ export default function AdminSecurity() {
   const [filterSuccess, setFilterSuccess] = useState("all");
   const [page, setPage] = useState(0);
   const [selectedLog, setSelectedLog] = useState<LoginLog | null>(null);
+  useScrollLock(selectedLog !== null || clearConfirm);
 
   useEffect(() => {
     document.title = "Sécurité — Administration — Akwetche";

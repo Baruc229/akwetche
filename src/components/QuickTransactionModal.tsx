@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faTriangleExclamation, faArrowRight } from '@fortawesome/free-solid-svg-icons';
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function QuickTransactionModal({ open, onClose, onSuccess }: Props) {
+  useScrollLock(open);
   const { user, commercialMode, currency } = useDashboard();
 
   const [formData, setFormData] = useState({
