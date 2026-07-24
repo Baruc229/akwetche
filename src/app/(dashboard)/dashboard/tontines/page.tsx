@@ -30,7 +30,7 @@ export default function TontinesPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (user && user.role === "user") {
+    if (user && user.role === "user" && !user.tontineAccess) {
       router.replace("/dashboard");
     }
   }, [user, router]);

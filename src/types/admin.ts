@@ -26,6 +26,7 @@ export type UserData = {
   emailVerified: string | null;
   loginAttempts: number;
   lockedUntil: string | null;
+  tontineAccess?: boolean;
   _count: { transactions: number; products: number; sales: number; loginLogs: number };
   subscription: { status: string; amount: number; currency: string; endDate: string } | null;
   subscriptionHistory?: AdminSubHistory[];

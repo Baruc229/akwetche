@@ -103,12 +103,12 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
           {commercialNavItems.map((item) => <NavItem key={item.href} item={item} />)}
         </div>
 
-        {user && user.role !== "user" && (
+        {user && (user.role !== "user" || user.tontineAccess) && (
           <div className={`pt-3 mt-3 ${!collapsed ? 'px-3' : ''}`} style={{borderTop:'1px solid rgba(255,255,255,0.10)'}}>
             {!collapsed && <p className="text-xs font-semibold uppercase tracking-wider text-white/40">Tontines</p>}
           </div>
         )}
-        {user && user.role !== "user" && tontineNavItems.map((item) => <NavItem key={item.href} item={item} />)}
+        {user && (user.role !== "user" || user.tontineAccess) && tontineNavItems.map((item) => <NavItem key={item.href} item={item} />)}
 
         {user && user.role !== "user" && (
           <div className={`${user.role !== "user" ? '' : 'hidden'}`} style={{ minHeight: 0 }}>

@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuth, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
+import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
 import { genererTours } from "@/lib/tontine";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }
@@ -111,7 +111,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }

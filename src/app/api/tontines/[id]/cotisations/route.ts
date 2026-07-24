@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuth, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
+import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
 import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, detecterRetards, imputerAvance } from "@/lib/tontine";
@@ -8,7 +8,7 @@ import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisa
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     let userId: number;
-    try { userId = await requireAdminAuth(); } catch (e) {
+    try { userId = await requireTontineAccess(); } catch (e) {
       if (e instanceof Error && e.message === "Forbidden") return forbidden();
       return unauthorized();
     }
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }

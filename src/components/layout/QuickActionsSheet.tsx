@@ -51,7 +51,7 @@ export default function QuickActionsSheet({ open, onClose, onQuickTxOpen }: Prop
               <QuickActionBtn icon={faBox} label="Nouveau produit" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/products?action=create"); }} />
             </>
           )}
-          {user && user.role !== "user" && (
+          {user && (user.role !== "user" || user.tontineAccess) && (
             <QuickActionBtn icon={faPeopleGroup} label="Cotisation tontine" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/tontines?action=create"); }} />
           )}
           <QuickActionBtn icon={faArrowTrendDown} label="Dépense récurrente" hint="Naviguer →" onClick={() => { onClose(); router.push("/dashboard/recurring/expenses?action=create"); }} />

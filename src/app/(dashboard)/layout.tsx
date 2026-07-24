@@ -28,6 +28,7 @@ type UserData = {
   plan?: string;
   status?: string;
   activityActivated?: boolean;
+  tontineAccess?: boolean;
   emailVerified?: string | null;
   adminNotificationPref?: string;
   notificationPrefs?: Record<string, { email?: boolean; inApp?: boolean }>;
@@ -140,6 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } catch {}
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
   const ctxValue = useMemo(() => ({ user, setUser, commercialMode, setCommercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency, refreshKey, triggerRefresh }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency, refreshKey, triggerRefresh]);

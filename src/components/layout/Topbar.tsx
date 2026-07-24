@@ -112,7 +112,7 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
                       <QuickActionBtn icon={faBox} label="Nouveau produit" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/products?action=create"); }} />
                     </>
                   )}
-                  {user && user.role !== "user" && (
+                  {user && (user.role !== "user" || user.tontineAccess) && (
                     <QuickActionBtn icon={faPeopleGroup} label="Cotisation tontine" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/tontines?action=create"); }} />
                   )}
                   <QuickActionBtn icon={faArrowTrendDown} label="Dépense récurrente" hint="Naviguer →" onClick={() => { setQuickMenuOpen(false); router.push("/dashboard/recurring/expenses?action=create"); }} />

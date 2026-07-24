@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminAuth, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
+import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; membreId: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }
@@ -34,7 +34,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; membreId: string }> }) {
   let userId: number;
-  try { userId = await requireAdminAuth(); } catch (e) {
+  try { userId = await requireTontineAccess(); } catch (e) {
     if (e instanceof Error && e.message === "Forbidden") return forbidden();
     return unauthorized();
   }

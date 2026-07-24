@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
         id: true, name: true, email: true, role: true, plan: true, status: true,
         initialBalance: true, currency: true, baseCurrency: true,
         countryCode: true, phone: true, createdAt: true,
-        emailVerified: true, loginAttempts: true, lockedUntil: true,
+        emailVerified: true, loginAttempts: true, lockedUntil: true, tontineAccess: true,
         _count: { select: { transactions: true, products: true, sales: true, loginLogs: true } },
         subscription: { select: { status: true, amount: true, currency: true, endDate: true } },
         subscriptionHistory: { orderBy: { createdAt: "desc" } },
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       id: true, name: true, email: true, role: true, plan: true, status: true,
       initialBalance: true, currency: true, baseCurrency: true,
       countryCode: true, phone: true, createdAt: true,
-      emailVerified: true, loginAttempts: true, lockedUntil: true,
+      emailVerified: true, loginAttempts: true, lockedUntil: true, tontineAccess: true,
       _count: { select: { transactions: true, products: true, sales: true, loginLogs: true } },
       subscription: { select: { status: true, amount: true, currency: true, endDate: true } },
     },
@@ -113,6 +113,13 @@ export async function PATCH(req: NextRequest) {
     });
     await createNotification(target.id, "system", `Votre compte a été déverrouillé par un administrateur.`, "/dashboard");
     await createNotification(userId, "system", `Compte de ${target.name} déverrouillé.`, "/admin");
+  } else if (body.tontineAccess !== undefined) {
+    const enabled = Boolean(body.tontineAccess);
+    await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { tontineAccess: enabled },
+    });
+    await createNotification(target.id, "system", enabled ? `L'accès aux tontines a été activé sur votre compte.` : `L'accès aux tontines a été désactivé sur votre compte.`, "/dashboard");
   } else {
     const role = body.role;
     if (!role) return badRequest("Rôle requis");

@@ -15,7 +15,7 @@ export async function GET() {
       role: true, currency: true, baseCurrency: true,
       countryCode: true, phone: true, avatarUrl: true,
       emailVerified: true, plan: true, status: true,
-      activityActivated: true,
+      activityActivated: true, tontineAccess: true,
       adminNotificationPref: true, onboardingCompleted: true, notificationPrefs: true,
       subscription: { select: { status: true, amount: true, currency: true, endDate: true } },
     },

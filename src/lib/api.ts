@@ -37,3 +37,13 @@ export async function requireAdminAuth() {
   if (!user || user.role === "user") throw new Error("Forbidden");
   return userId;
 }
+
+export async function requireTontineAccess() {
+  const userId = await getAuthUserId();
+  if (!userId) throw new Error("Unauthorized");
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, tontineAccess: true } });
+  if (!user) throw new Error("Forbidden");
+  if (user.role === "user" && !user.tontineAccess) throw new Error("Forbidden");
+  return userId;
+}

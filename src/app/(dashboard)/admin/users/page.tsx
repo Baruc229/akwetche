@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useDashboard } from "../../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faShield, faCrown, faCircleCheck, faLock, faEye, faDownload, faXmark, faSearch, faArrowUp, faArrowDown, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faShield, faCrown, faCircleCheck, faLock, faEye, faDownload, faXmark, faSearch, faArrowUp, faArrowDown, faChevronLeft, faChevronRight, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, getCountryByCode, getCountryName } from "@/lib/utils";
 import FlagImg from "@/components/ui/FlagImg";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -105,6 +105,16 @@ export default function AdminUsers() {
     if (selectedUser?.id === id) setSelectedUser(null);
   }
 
+  async function toggleTontineAccess(id: number, current: boolean) {
+    await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, tontineAccess: !current }),
+    });
+    setUsers(users.map(u => u.id === id ? { ...u, tontineAccess: !current } : u));
+    if (selectedUser?.id === id) setSelectedUser({ ...selectedUser, tontineAccess: !current } as typeof selectedUser);
+  }
+
   async function loadUserHistory(u: UserData) {
     try {
       const res = await fetch(`/api/admin/users?id=${u.id}`);
@@ -137,6 +147,7 @@ export default function AdminUsers() {
     URL.revokeObjectURL(link.href);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function toggleSort(key: string) {
     if (sortKey === key) {
       setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -146,6 +157,7 @@ export default function AdminUsers() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function SortIcon({ k }: { k: string }) {
     if (sortKey !== k) return null;
     return <FontAwesomeIcon icon={sortDir === "asc" ? faArrowUp : faArrowDown} className="w-2.5 h-2.5 ml-1" />;
@@ -189,6 +201,7 @@ export default function AdminUsers() {
     }
 
     result.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let va: any, vb: any;
       switch (sortKey) {
         case "createdAt": va = a.createdAt; vb = b.createdAt; break;
@@ -479,6 +492,27 @@ export default function AdminUsers() {
                 </div>
               </div>
 
+              {selectedUser.role === "user" && (
+                <div className="flex items-center justify-between p-3 bg-bg rounded-xl">
+                  <div className="flex items-center gap-2.5">
+                    <FontAwesomeIcon icon={faPeopleGroup} className="w-4 h-4 text-brand" />
+                    <div>
+                      <p className="text-sm font-medium text-text-1">Accès Tontines</p>
+                      <p className="text-[11px] text-text-3">Autoriser cet utilisateur à gérer des tontines</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => toggleTontineAccess(selectedUser.id, selectedUser.tontineAccess || false)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${selectedUser.tontineAccess ? "bg-brand" : "bg-border"}`}
+                    role="switch"
+                    aria-checked={selectedUser.tontineAccess || false}
+                    aria-label="Accès tontines"
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${selectedUser.tontineAccess ? "translate-x-5" : ""}`} />
+                  </button>
+                </div>
+              )}
+
               {selectedUser.subscription && (
                 <>
                   <div className={`rounded-xl p-3 ${selectedUser.subscription.status === "active" ? "bg-pos-bg" : "bg-neg-bg"}`}>
@@ -532,7 +566,7 @@ export default function AdminUsers() {
                 {selectedUser.phone && <p>Téléphone : {selectedUser.phone}</p>}
                 {selectedUser.loginAttempts > 0 && <p>Tentatives échouées : {selectedUser.loginAttempts}</p>}
                 {selectedUser.lockedUntil && new Date(selectedUser.lockedUntil) > new Date() && (
-                  <p className="text-neg">Compte verrouillé jusqu'au {new Date(selectedUser.lockedUntil).toLocaleString("fr-FR")}</p>
+                  <p className="text-neg">{"Compte verrouillé jusqu'au "}{new Date(selectedUser.lockedUntil).toLocaleString("fr-FR")}</p>
                 )}
               </div>
             </div>
