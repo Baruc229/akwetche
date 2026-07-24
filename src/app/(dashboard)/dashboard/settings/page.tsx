@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser, faShield, faBell, faCrown, faCircleInfo,
   faLock, faRightFromBracket, faChevronRight,
-  faPhone, faMoneyBill, faIdCard, faSpinner
+  faPhone, faMoneyBill, faIdCard, faSpinner, faStar
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../layout";
 import UserAvatar from "@/components/settings/UserAvatar";
@@ -46,11 +46,17 @@ export default function ComptePage() {
             <p className="text-xs sm:text-sm truncate mt-1" style={{ color: "var(--color-placeholder)" }}>{user?.email}</p>
           </div>
         </div>
-        {isPremium && (
+        {isPremium ? (
           <span className="inline-flex items-center gap-1.5 mt-4 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "rgba(245,166,35,0.15)", color: "var(--color-gold)", border: "1px solid rgba(245,166,35,0.3)" }}>
             <FontAwesomeIcon icon={faCrown} className="w-3 h-3" />
             {planLabel}
           </span>
+        ) : (
+          <Link href="/dashboard/settings/abonnement" className="group mt-4 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full transition-all" style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.18)" }}>
+            <FontAwesomeIcon icon={faStar} className="w-3 h-3" />
+            Plan Gratuit · Fonctionnalités de base
+            <FontAwesomeIcon icon={faChevronRight} className="w-2.5 h-2.5 opacity-60 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         )}
       </div>
 
