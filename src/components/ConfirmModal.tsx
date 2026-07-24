@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { useScrollLock } from "@/hooks/useScrollLock";
 
 type ConfirmModalProps = {
   open: boolean;
@@ -31,7 +30,6 @@ export default function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
  const [password, setPassword] = useState("");
- useScrollLock(open);
  if (!open) return null;
 
  const variantStyles = {
