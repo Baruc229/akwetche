@@ -6,12 +6,13 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faCalendarDays, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
-import { getIconByKey } from "@/lib/categoryIcons";
+import type { Transaction as TransactionType } from "@/types";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
 
 type Transaction = {
   id: number;
@@ -362,27 +363,24 @@ export default function TransactionsPage() {
         {period === "custom" && (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto ml-2">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 w-full sm:w-auto">
-              <div className="relative w-full sm:w-auto">
+              <div className="w-full sm:w-auto">
                 <label className="text-label mb-0.5 sm:hidden">Date de début</label>
-                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
-                <input
-                  type="date"
+                <DatePicker
                   value={customStart}
-                  onChange={(e) => { setCustomStart(e.target.value); setPage(0); }}
-                  className="input-field pl-9 pr-3 w-full sm:w-40"
-                  aria-label="Date de début"
+                  onChange={(val) => { setCustomStart(val); setPage(0); }}
+                  placeholder="Date de début"
+                  className="text-xs"
                 />
               </div>
               <span className="hidden sm:inline text-xs text-muted text-center">au</span>
-              <div className="relative w-full sm:w-auto">
+              <div className="w-full sm:w-auto">
                 <label className="text-label mb-0.5 sm:hidden">Date de fin</label>
-                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
-                <input
-                  type="date"
+                <DatePicker
                   value={customEnd}
-                  onChange={(e) => { setCustomEnd(e.target.value); setPage(0); }}
-                  className="input-field pl-9 pr-3 w-full sm:w-40"
-                  aria-label="Date de fin"
+                  onChange={(val) => { setCustomEnd(val); setPage(0); }}
+                  placeholder="Date de fin"
+                  min={customStart || undefined}
+                  className="text-xs"
                 />
               </div>
             </div>
@@ -587,7 +585,7 @@ export default function TransactionsPage() {
               </div>
               <div>
                 <label className="field-label">Date</label>
-                <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
+                <DatePicker value={formData.date} onChange={(val) => setFormData({ ...formData, date: val })} className="input-field" />
               </div>
               {!editTx && limits && !limits.isPremium && user?.role === "user" && (
                 <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
@@ -652,7 +650,7 @@ export default function TransactionsPage() {
                 </div>
                 <div>
                   <label className="field-label">Date</label>
-                  <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
+                  <DatePicker value={formData.date} onChange={(val) => setFormData({ ...formData, date: val })} className="input-field" />
                 </div>
                 {!editTx && limits && !limits.isPremium && user?.role === "user" && (
                   <div className="card-inset" style={{ background: 'var(--color-warn-bg)' }}>
