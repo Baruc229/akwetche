@@ -364,23 +364,25 @@ export default function TransactionsPage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 w-full sm:w-auto">
               <div className="relative w-full sm:w-auto">
                 <label className="text-label mb-0.5 sm:hidden">Date de début</label>
-                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none sm:top-1/2" />
+                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
                 <input
                   type="date"
                   value={customStart}
                   onChange={(e) => { setCustomStart(e.target.value); setPage(0); }}
-                  className="input-field py-1.5 pl-8 pr-2 w-full sm:w-32"
+                  className="input-field pl-9 pr-3 w-full sm:w-40"
+                  aria-label="Date de début"
                 />
               </div>
               <span className="hidden sm:inline text-xs text-muted text-center">au</span>
               <div className="relative w-full sm:w-auto">
                 <label className="text-label mb-0.5 sm:hidden">Date de fin</label>
-                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none sm:top-1/2" />
+                <FontAwesomeIcon icon={faCalendarDays} className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
                 <input
                   type="date"
                   value={customEnd}
                   onChange={(e) => { setCustomEnd(e.target.value); setPage(0); }}
-                  className="input-field py-1.5 pl-8 pr-2 w-full sm:w-32"
+                  className="input-field pl-9 pr-3 w-full sm:w-40"
+                  aria-label="Date de fin"
                 />
               </div>
             </div>
