@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const DAYS = ['Lu','Ma','Me','Je','Ve','Sa','Di'];
@@ -31,15 +32,17 @@ export default function DatePicker({ value, onChange, className = '', min, place
   const [viewYear, setViewYear] = useState(0);
   const [viewMonth, setViewMonth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number; width: number; openUp: boolean } | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; openUp: boolean } | null>(null);
+  const portalId = useId();
+  const CALENDAR_HEIGHT = 380;
+
+  useScrollLock(open);
 
   const parsed = value ? new Date(value + 'T00:00:00Z') : null;
   const isValid = parsed && !isNaN(parsed.getTime());
   const selectedYear = isValid ? parsed.getUTCFullYear() : undefined;
   const selectedMonth = isValid ? parsed.getUTCMonth() : undefined;
   const selectedDay = isValid ? parsed.getUTCDate() : undefined;
-
-  const CALENDAR_HEIGHT = 310;
 
   function initView() {
     if (isValid) {
@@ -63,7 +66,6 @@ export default function DatePicker({ value, onChange, className = '', min, place
         ? rect.top - CALENDAR_HEIGHT - 4
         : rect.bottom + 4,
       left: rect.left,
-      width: rect.width,
       openUp,
     });
   }
@@ -75,17 +77,27 @@ export default function DatePicker({ value, onChange, className = '', min, place
   }
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    if (!open) return;
+
+    function handleInteraction(e: Event) {
       const target = e.target as Node;
       if (containerRef.current?.contains(target)) return;
-      if (document.getElementById('date-picker-portal')?.contains(target)) return;
+      if (document.getElementById(portalId)?.contains(target)) return;
       setOpen(false);
     }
-    if (open) {
-      document.addEventListener('mousedown', handleClick);
-      return () => document.removeEventListener('mousedown', handleClick);
-    }
-  }, [open]);
+
+    function onScroll() { computePosition(); }
+    function onResize() { computePosition(); }
+
+    document.addEventListener('pointerdown', handleInteraction);
+    document.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      document.removeEventListener('pointerdown', handleInteraction);
+      document.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open, portalId]);
 
   function daysInMonth(y: number, m: number) {
     return new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
@@ -149,18 +161,18 @@ export default function DatePicker({ value, onChange, className = '', min, place
       </button>
       {open && pos && createPortal(
         <div
-          id="date-picker-portal"
+          id={portalId}
           className="fixed z-[100] rounded-xl shadow-lg animate-fade-in"
-          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', width: '280px', padding: '14px', top: pos.top, left: pos.left }}
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', width: '300px', padding: '14px', top: pos.top, left: pos.left }}
         >
           <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={prevMonth} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
+            <button type="button" onClick={prevMonth} className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
               <FontAwesomeIcon icon={faChevronLeft} className="w-3 h-3" />
             </button>
             <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-ink)' }}>
               {MONTHS[viewMonth]} {viewYear}
             </span>
-            <button type="button" onClick={nextMonth} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
+            <button type="button" onClick={nextMonth} className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors" style={{ color: 'var(--color-muted)' }}>
               <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
             </button>
           </div>
@@ -184,19 +196,13 @@ export default function DatePicker({ value, onChange, className = '', min, place
                   onClick={() => handleSelect(day)}
                   className="text-center text-sm rounded-lg transition-colors"
                   style={{
-                    padding: '8px 0',
-                    minHeight: '36px',
+                    padding: '10px 0',
+                    minHeight: '44px',
                     fontWeight: selected ? 700 : isToday ? 600 : 400,
                     background: selected ? 'var(--color-gold)' : isToday ? 'rgba(201,168,76,0.12)' : 'transparent',
                     color: selected ? '#fff' : disabled ? 'var(--color-muted)' : 'var(--color-ink)',
                     opacity: disabled ? 0.35 : 1,
                     cursor: disabled ? 'not-allowed' : 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!disabled && !selected) (e.target as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!selected) (e.target as HTMLElement).style.background = 'transparent';
                   }}
                 >
                   {day}
@@ -213,7 +219,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
                 onChange(val);
                 setOpen(false);
               }}
-              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[36px]"
+              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[44px]"
               style={{ color: 'var(--color-brand)', background: 'rgba(27,58,107,0.07)' }}
             >
               Aujourd&apos;hui
@@ -221,7 +227,7 @@ export default function DatePicker({ value, onChange, className = '', min, place
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[36px]"
+              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[44px]"
               style={{ color: 'var(--color-muted)' }}
             >
               Fermer

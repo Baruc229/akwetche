@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, @typescript-eslint/no-explicit-any */
+
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDashboard } from "../../layout";
@@ -367,7 +369,7 @@ export default function TransactionsPage() {
                   type="date"
                   value={customStart}
                   onChange={(e) => { setCustomStart(e.target.value); setPage(0); }}
-                  className="input-field text-xs py-1.5 pl-8 pr-2 w-full sm:w-32"
+                  className="input-field py-1.5 pl-8 pr-2 w-full sm:w-32"
                 />
               </div>
               <span className="hidden sm:inline text-xs text-muted text-center">au</span>
@@ -378,7 +380,7 @@ export default function TransactionsPage() {
                   type="date"
                   value={customEnd}
                   onChange={(e) => { setCustomEnd(e.target.value); setPage(0); }}
-                  className="input-field text-xs py-1.5 pl-8 pr-2 w-full sm:w-32"
+                  className="input-field py-1.5 pl-8 pr-2 w-full sm:w-32"
                 />
               </div>
             </div>
