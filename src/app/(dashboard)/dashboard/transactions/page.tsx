@@ -8,7 +8,7 @@ import { useDashboard } from "../../layout";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowsUpDown, faArrowTrendUp, faArrowTrendDown, faPlus, faTrash, faFilter, faArrowLeft, faArrowRight, faBriefcase, faUser, faXmark, faPen, faSearch, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
-import type { Transaction as TransactionType } from "@/types";
+import { getIconByKey } from "@/lib/categoryIcons";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
