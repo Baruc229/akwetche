@@ -3,17 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCrown, faShield, faCheck, faLock, faUpRightFromSquare, faTriangleExclamation, faCircleCheck, faXmark, faStar, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faCrown, faShield, faCheck, faLock, faUpRightFromSquare, faTriangleExclamation, faCircleCheck, faXmark, faStar, faSpinner, faArrowRight, faCalendarDay, faClock, faHeadset, faEnvelope, faChartLine, faLayerGroup, faBuilding, faBoxOpen, faFileChartLine, faChartPie } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import SettingsHeader from "@/components/settings/SettingsHeader";
 
-const ALL_FEATURES = [
-  { key: "transactions", label: "Transactions illimitées", free: false },
-  { key: "categories", label: "Catégories illimitées", free: false },
-  { key: "activity", label: "Mode activité commerciale", free: false },
-  { key: "products", label: "Gestion des produits, ventes et stocks", free: false },
-  { key: "reports", label: "Bilans hebdo / mensuel / annuel", free: true },
-  { key: "stats", label: "Statistiques avancées", free: false },
+const PREMIUM_FEATURES = [
+  { key: "transactions", label: "Transactions illimitées", desc: "Aucune limite sur le nombre de transactions", icon: faArrowRight, free: false },
+  { key: "categories", label: "Catégories illimitées", desc: "Créez autant de catégories que nécessaire", icon: faLayerGroup, free: false },
+  { key: "activity", label: "Mode activité commerciale", desc: "Gérez vos activités pro et perso séparément", icon: faBuilding, free: false },
+  { key: "products", label: "Produits, ventes et stocks", desc: "Gestion complète de votre inventaire", icon: faBoxOpen, free: false },
+  { key: "reports", label: "Bilans avancés", desc: "Rapports hebdo, mensuels et annuels", icon: faFileChartLine, free: true },
+  { key: "stats", label: "Statistiques avancées", desc: "Graphiques et analyses détaillées", icon: faChartPie, free: false },
 ];
 
 /* eslint-disable react-hooks/purity, react-hooks/set-state-in-effect, react-hooks/refs */
@@ -86,53 +86,97 @@ export default function AbonnementPage() {
   function renderPlan() {
     if (isActive && !isExpired) {
       return (
-        <div className="space-y-4">
-          {/* Current plan card */}
-          <div className="card" style={{ border: isExpiringSoon ? "2px solid var(--color-warn)" : "2px solid var(--color-gold)", background: "linear-gradient(135deg, var(--color-warn-bg) 0%, var(--color-gold-light) 100%)" }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: isExpiringSoon ? "rgba(245,158,11,0.15)" : "rgba(201,168,76,0.2)" }}>
-                  <FontAwesomeIcon icon={faCrown} className="w-6 h-6" style={{ color: isExpiringSoon ? "var(--color-warn)" : "var(--color-gold-dark)" }} />
+        <div className="space-y-5">
+          {/* ─── HERO PREMIUM ─── */}
+          <div className="rounded-2xl p-6 sm:p-7" style={{ background: "linear-gradient(135deg, #b8860b 0%, #daa520 40%, #f0c75e 100%)", boxShadow: "0 8px 32px rgba(218,165,32,0.25)" }}>
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}>
+                  <FontAwesomeIcon icon={faCrown} className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-ink">Premium</p>
-                  <p className="text-sm text-muted">Toutes les fonctionnalités débloquées</p>
+                  <p className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-dm-sans)" }}>Premium Actif</p>
+                  <p className="text-sm text-white/70 mt-0.5">Toutes les fonctionnalités débloquées</p>
                 </div>
               </div>
-              <span className="badge" style={isExpiringSoon ? { background: "rgba(245,158,11,0.15)", color: "var(--color-warn)" } : isCancelled ? { background: "rgba(107,114,128,0.12)", color: "var(--color-muted)" } : { background: "rgba(34,197,94,0.12)", color: "var(--color-pos)" }}>
-                {isCancelled ? "Annulé" : isExpiringSoon ? "Expire bientôt" : "Actif"}
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "rgba(34,197,94,0.25)", color: "#dcfce7" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
+                {isCancelled ? "Annulé" : "Actif"}
               </span>
             </div>
 
-            {isExpiringSoon && (
-              <div className="flex items-center gap-3 p-3 rounded-xl mb-4" style={{ background: "rgba(245,158,11,0.12)" }}>
-                <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0" style={{ color: "var(--color-warn)" }} />
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: "var(--color-warn)" }}>Votre abonnement expire dans {daysRemaining} jour{daysRemaining! > 1 ? "s" : ""}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--color-warn)" }}>Renouvelez pour continuer à profiter de toutes les fonctionnalités.</p>
-                </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(4px)" }}>
+                <FontAwesomeIcon icon={faCalendarDay} className="w-4 h-4 text-white/60 mb-1.5" />
+                <p className="text-xs text-white/60">Renouvellement</p>
+                <p className="text-sm font-semibold text-white mt-0.5">
+                  {endDate ? endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "—"}
+                </p>
               </div>
-            )}
+              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(4px)" }}>
+                <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-white/60 mb-1.5" />
+                <p className="text-xs text-white/60">Jours restants</p>
+                <p className="text-sm font-semibold text-white mt-0.5">
+                  {daysRemaining !== null ? `${daysRemaining}j` : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(4px)" }}>
+                <FontAwesomeIcon icon={faChartLine} className="w-4 h-4 text-white/60 mb-1.5" />
+                <p className="text-xs text-white/60">Fonctionnalités</p>
+                <p className="text-sm font-semibold text-white mt-0.5">{PREMIUM_FEATURES.length}/{PREMIUM_FEATURES.length}</p>
+              </div>
+            </div>
+          </div>
 
-            <p className="text-sm text-muted mb-4">
-              {subscription && `${activeCurrency === "XOF" ? "5 000 FCFA" : "7,99 €"} / mois`}
-              {endDate && ` · Renouvellement le ${endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
-              {isCancelled && ` · Accès maintenu jusqu'au ${endDate?.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
-            </p>
+          {isExpiringSoon && (
+            <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "var(--color-warn-bg)", border: "1px solid rgba(245,158,11,0.2)" }}>
+              <FontAwesomeIcon icon={faTriangleExclamation} className="w-5 h-5 shrink-0" style={{ color: "var(--color-warn)" }} />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "var(--color-warn)" }}>Expire dans {daysRemaining} jour{daysRemaining! > 1 ? "s" : ""}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--color-warn)" }}>Renouvelez pour ne pas perdre l&apos;accès.</p>
+              </div>
+            </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {ALL_FEATURES.map((f) => (
-                <div key={f.key} className="flex items-center gap-2 text-sm text-ink">
-                  <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "var(--color-pos)" }} />
-                  {f.label}
+          {/* ─── FONCTIONNALITÉS ─── */}
+          <div>
+            <p className="text-label mb-3 px-1">Ce qui est inclus</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PREMIUM_FEATURES.map((f) => (
+                <div key={f.key} className="card flex items-start gap-3.5 p-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
+                    <FontAwesomeIcon icon={f.icon} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink">{f.label}</p>
+                    <p className="text-xs text-muted mt-0.5 leading-relaxed">{f.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
 
-            <button onClick={() => handleSubscribe("monthly")} disabled={subLoading} className="btn-primary" style={isExpiringSoon ? { background: "var(--color-warn)" } : {}}>
-              <FontAwesomeIcon icon={subLoading ? faSpinner : faUpRightFromSquare} className={`w-4 h-4 ${subLoading ? "animate-spin" : ""}`} />
-              {subLoading ? "Chargement..." : isExpiringSoon ? "Renouveler maintenant" : "Gérer mon abonnement"}
-            </button>
+          {/* ─── GESTION ─── */}
+          <div>
+            <p className="text-label mb-3 px-1">Gestion</p>
+            <div className="space-y-3">
+              <button onClick={() => handleSubscribe("monthly")} disabled={subLoading} className="btn-primary w-full" style={isExpiringSoon ? { background: "var(--color-warn)" } : {}}>
+                <FontAwesomeIcon icon={subLoading ? faSpinner : faUpRightFromSquare} className={`w-4 h-4 ${subLoading ? "animate-spin" : ""}`} />
+                {subLoading ? "Chargement..." : isExpiringSoon ? "Renouveler maintenant" : "Gérer mon abonnement"}
+              </button>
+              <div className="card flex items-center gap-4 p-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--color-brand-subtle)" }}>
+                  <FontAwesomeIcon icon={faHeadset} className="w-5 h-5" style={{ color: "var(--color-brand)" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-ink">Support prioritaire</p>
+                  <p className="text-xs text-muted mt-0.5">Contactez-nous pour toute question</p>
+                </div>
+                <a href="mailto:support@akwetche.com" className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ background: "var(--color-brand-subtle)" }}>
+                  <FontAwesomeIcon icon={faEnvelope} className="w-4 h-4" style={{ color: "var(--color-brand)" }} />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -175,7 +219,7 @@ export default function AbonnementPage() {
           </div>
 
           <div className="space-y-2.5 mb-5">
-            {ALL_FEATURES.map((f) => (
+            {PREMIUM_FEATURES.map((f) => (
               <div key={f.key} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2.5">
                   {f.free ? (
@@ -221,7 +265,7 @@ export default function AbonnementPage() {
           {billingPeriod === "monthly" && <div className="mb-4" />}
 
           <div className="space-y-2.5 mb-5">
-            {ALL_FEATURES.filter(f => !f.free).map((f) => (
+            {PREMIUM_FEATURES.filter(f => !f.free).map((f) => (
               <div key={f.key} className="flex items-center gap-2.5 text-sm">
                 <FontAwesomeIcon icon={faCheck} className="w-4 h-4 shrink-0" style={{ color: "var(--color-pos)" }} />
                 <span className="text-ink">{f.label}</span>
@@ -274,7 +318,7 @@ export default function AbonnementPage() {
             <span className="badge" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>Admin</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {ALL_FEATURES.map((f) => (
+            {PREMIUM_FEATURES.map((f) => (
               <div key={f.key} className="flex items-center gap-2 text-sm text-white">
                 <FontAwesomeIcon icon={faCheck} className="w-4 h-4 text-white/70 shrink-0" />
                 {f.label}
