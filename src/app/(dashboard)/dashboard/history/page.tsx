@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { CATEGORY_COLORS } from "@/lib/colors";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
 
 type Transaction = {
   id: number;
@@ -26,6 +27,7 @@ type Category = {
 };
 
 export default function HistoryPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { currency: _currency } = useDashboard();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,10 +103,12 @@ export default function HistoryPage() {
     document.title = "Historique — Akwetche";
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (period !== "custom" || (customStart && customEnd)) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period, customStart, customEnd]);
 
   useEffect(() => {
@@ -215,6 +219,7 @@ export default function HistoryPage() {
     ...categories.map(c => ({ value: String(c.id), label: c.name })),
   ];
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function getCategoryColor(categoryId: number): string {
     return CATEGORY_COLORS[(categoryId - 1) % CATEGORY_COLORS.length];
   }
@@ -318,11 +323,11 @@ export default function HistoryPage() {
                     <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3 mr-1" />
                     Du
                   </label>
-                  <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
+                  <DatePicker value={customStart} onChange={setCustomStart} className="input-field w-full" placeholder="Date de début" />
                 </div>
                 <div className="flex-1">
                   <label className="text-label mb-1.5 block">Au</label>
-                  <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="input-field text-xs py-2 px-2 w-full" />
+                  <DatePicker value={customEnd} onChange={setCustomEnd} className="input-field w-full" placeholder="Date de fin" />
                 </div>
               </div>
             </div>

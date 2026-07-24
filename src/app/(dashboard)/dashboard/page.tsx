@@ -8,6 +8,7 @@ import { faPlus, faCircleExclamation, faCrown, faArrowRight, faXmark, faUser, fa
 import { formatCurrency, toStorageCurrency } from "@/lib/utils";
 import { detectCurrency } from "@/lib/currency";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
 import OnboardingModal from "@/components/OnboardingModal";
 import ExpenseBreakdown from "@/components/dashboard/ExpenseBreakdown";
 import ProjectionCard from "@/components/dashboard/ProjectionCard";
@@ -707,7 +708,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <label className="field-label">Date</label>
-              <input type="date" value={newTx.date} onChange={(e) => setNewTx({ ...newTx, date: e.target.value })} className="input-field" required />
+              <DatePicker value={newTx.date} onChange={(v) => setNewTx({ ...newTx, date: v })} className="input-field" />
             </div>
             {newTx.type === "expense" && (
               <div className="flex items-center gap-2">

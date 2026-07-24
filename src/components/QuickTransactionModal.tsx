@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faTriangleExclamation, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
 
 type Props = {
   open: boolean;
@@ -131,7 +132,7 @@ export default function QuickTransactionModal({ open, onClose, onSuccess }: Prop
         </div>
         <div>
           <label className="field-label">Date</label>
-          <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="input-field" required />
+          <DatePicker value={formData.date} onChange={(v) => setFormData({ ...formData, date: v })} className="input-field" />
         </div>
         <div>
           <label className="field-label">Note (optionnelle)</label>

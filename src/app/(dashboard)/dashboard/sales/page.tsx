@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark, faTrash, faPen, faStar, faBagShopping, faTriangleExclamation, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate, toDisplayCurrency, toStorageCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
+import DatePicker from "@/components/ui/DatePicker";
 import PremiumLock from "@/components/subscription/PremiumLock";
 
 type Sale = {
@@ -467,18 +468,18 @@ export default function SalesPage() {
       {period === "custom" && (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <div className="flex items-center gap-2 flex-1">
-            <input
-              type="date"
+            <DatePicker
               value={pendingCustomStart}
-              onChange={(e) => { setPendingCustomStart(e.target.value); setCustomDateError(""); }}
-              className="flex-1 min-w-0 input-field text-xs py-[7px]"
+              onChange={(v) => { setPendingCustomStart(v); setCustomDateError(""); }}
+              className="flex-1 min-w-0 input-field"
+              placeholder="Date de début"
             />
             <span className="text-muted text-xs shrink-0">→</span>
-            <input
-              type="date"
+            <DatePicker
               value={pendingCustomEnd}
-              onChange={(e) => { setPendingCustomEnd(e.target.value); setCustomDateError(""); }}
-              className="flex-1 min-w-0 input-field text-xs py-[7px]"
+              onChange={(v) => { setPendingCustomEnd(v); setCustomDateError(""); }}
+              className="flex-1 min-w-0 input-field"
+              placeholder="Date de fin"
             />
           </div>
           <button
