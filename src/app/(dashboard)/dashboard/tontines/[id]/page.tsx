@@ -111,8 +111,19 @@ export default function TontineDetail() {
 
   const [now] = useState(() => Date.now());
 
+  const MEMBER_COLORS = [
+    { bg: "bg-emerald-100", text: "text-emerald-600", badge: "bg-emerald-500" },
+    { bg: "bg-amber-100", text: "text-amber-600", badge: "bg-amber-500" },
+    { bg: "bg-violet-100", text: "text-violet-600", badge: "bg-violet-500" },
+    { bg: "bg-rose-100", text: "text-rose-600", badge: "bg-rose-500" },
+    { bg: "bg-teal-100", text: "text-teal-600", badge: "bg-teal-500" },
+    { bg: "bg-orange-100", text: "text-orange-600", badge: "bg-orange-500" },
+    { bg: "bg-cyan-100", text: "text-cyan-600", badge: "bg-cyan-500" },
+    { bg: "bg-fuchsia-100", text: "text-fuchsia-600", badge: "bg-fuchsia-500" },
+  ];
+
   // Calculs
-  const actifs = tontine?.membres?.filter(m => m.statut === "actif") || [];
+  const actifs = (tontine?.membres?.filter(m => m.statut === "actif") || []).sort((a, b) => b.montantTotalPaye - a.montantTotalPaye);
   const cotisationsPayees = tontine?.cotisations?.filter(c => c.statut === "paye" || c.statut === "partiel") || [];
 
   const totalCollecte = cotisationsPayees.reduce((sum, c) => {
@@ -282,6 +293,8 @@ export default function TontineDetail() {
   );
 
   const detailMembreData = detailMembre ? actifs.find(m => m.id === detailMembre) : null;
+  const detailMembreIdx = detailMembre ? actifs.findIndex(m => m.id === detailMembre) : -1;
+  const detailMembreColor = detailMembreIdx >= 0 ? MEMBER_COLORS[detailMembreIdx % MEMBER_COLORS.length] : MEMBER_COLORS[0];
   const cotisationsDuMembre = detailMembre ? tontine?.cotisations?.filter(c => c.membre.id === detailMembre) || [] : [];
 
   function renderCotisation(c: Cotisation) {
@@ -424,13 +437,14 @@ export default function TontineDetail() {
           <p className="text-sm text-muted py-2">Aucun membre</p>
         ) : (
           <div className="divide-y divide-[var(--color-border)]">
-            {actifs.map(m => {
+            {actifs.map((m, idx) => {
               const enRetard = m.nbRetards > 0;
+              const colors = MEMBER_COLORS[idx % MEMBER_COLORS.length];
               return (
                 <button key={m.id} onClick={() => { setDetailMembre(m.id); setEditMembreNom(m.nom); setEditMembreContact(m.contact || ""); }} className="w-full flex items-center justify-between py-2.5 text-left hover:bg-[var(--color-surface-raised)] rounded-lg px-1 transition-colors">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${enRetard ? "bg-red-100 dark:bg-red-900/30" : "bg-emerald-100 dark:bg-emerald-900/30"}`}>
-                      <FontAwesomeIcon icon={enRetard ? faCircleExclamation : faCheckCircle} className={`w-3.5 h-3.5 ${enRetard ? "text-red-500" : "text-emerald-500"}`} />
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${enRetard ? "bg-red-100" : colors.bg}`}>
+                      <FontAwesomeIcon icon={enRetard ? faCircleExclamation : faCheckCircle} className={`w-3.5 h-3.5 ${enRetard ? "text-red-500" : colors.text}`} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <span className="text-sm text-ink font-medium block truncate">{m.ordrePassage ? `#${m.ordrePassage} ` : ""}{m.nom}</span>
@@ -625,6 +639,9 @@ export default function TontineDetail() {
                 <button onClick={() => setDetailMembre(null)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${detailMembreColor.bg}`}>
+                  <span className={`font-display font-bold text-sm ${detailMembreColor.text}`}>{detailMembreData.nom.charAt(0).toUpperCase()}</span>
+                </div>
                 <h3 className="text-base font-semibold text-ink">{detailMembreData.nom}</h3>
               </div>
             </div>
@@ -705,7 +722,12 @@ export default function TontineDetail() {
           <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setDetailMembre(null)}>
             <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-6 pb-0 shrink-0">
-                <h3 className="text-lg font-semibold text-ink">{detailMembreData.nom}</h3>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${detailMembreColor.bg}`}>
+                    <span className={`font-display font-bold text-base ${detailMembreColor.text}`}>{detailMembreData.nom.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-ink">{detailMembreData.nom}</h3>
+                </div>
                 <button onClick={() => setDetailMembre(null)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
