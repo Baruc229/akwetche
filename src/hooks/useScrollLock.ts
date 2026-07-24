@@ -5,19 +5,16 @@ import { useEffect } from "react";
 export function useScrollLock(locked: boolean) {
   useEffect(() => {
     const body = document.body;
-    const html = document.documentElement;
 
     if (locked) {
       const scrollY = window.scrollY;
       body.style.overflow = "hidden";
-      html.style.overflow = "hidden";
       body.style.position = "fixed";
       body.style.top = `-${scrollY}px`;
       body.style.width = "100%";
 
       return () => {
         body.style.removeProperty("overflow");
-        html.style.removeProperty("overflow");
         body.style.removeProperty("position");
         body.style.removeProperty("top");
         body.style.removeProperty("width");
@@ -25,7 +22,6 @@ export function useScrollLock(locked: boolean) {
       };
     } else {
       body.style.removeProperty("overflow");
-      html.style.removeProperty("overflow");
       body.style.removeProperty("position");
       body.style.removeProperty("top");
       body.style.removeProperty("width");

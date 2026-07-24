@@ -86,6 +86,7 @@ body {
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.55;
+  overscroll-behavior: contain;
 }
 
 /* Typography */

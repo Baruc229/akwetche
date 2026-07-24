@@ -144,6 +144,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
+  useEffect(() => {
+    if (sidebarOpen && window.innerWidth < 1024) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.removeProperty("position");
+        document.body.style.removeProperty("top");
+        document.body.style.removeProperty("width");
+        document.body.style.removeProperty("overflow");
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [sidebarOpen]);
+
   const ctxValue = useMemo(() => ({ user, setUser, commercialMode, setCommercialMode, currency: displayCurrency, baseCurrency, setCurrency: handleSetCurrency, refreshKey, triggerRefresh }), [user, commercialMode, displayCurrency, baseCurrency, handleSetCurrency, refreshKey, triggerRefresh]);
 
   if (loading) {
@@ -172,7 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {sidebarOpen && <div className="fixed inset-0 bg-black/20 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-        <div className={`flex-1 min-w-0 flex flex-col transition-all duration-200 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
+        <div className={`flex-1 min-w-0 flex flex-col transition-[margin-left] duration-200 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
           <Topbar
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={toggleSidebar}

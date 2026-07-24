@@ -93,7 +93,7 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
         </div>
       </div>
 
-      <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll min-h-0 overflow-hidden overscroll-contain scroll-smooth pb-6 ${collapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`} style={{ WebkitOverflowScrolling: 'touch' as unknown as undefined, touchAction: 'pan-y' }}>
+      <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll min-h-0 overscroll-contain ${collapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`} style={{ WebkitOverflowScrolling: 'touch' as unknown as undefined, touchAction: 'pan-y' }}>
         {navItems.map((item) => <NavItem key={item.href} item={item} />)}
 
         <div className={`${commercialMode ? '' : 'hidden'}`}>
