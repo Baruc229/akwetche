@@ -331,8 +331,10 @@ model TontineCotisation {
   datePaiement      DateTime?
   statut            String    @default("en_attente") // "paye", "en_retard", "partiel", "en_attente"
 
+  tourId            Int?
   tontine   Tontine       @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   membre    TontineMembre @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  tour      TontineTour?  @relation(fields: [tourId], references: [id], onDelete: SetNull)
   commissionTransaction Transaction? @relation("TontineCommission")
 }
 
@@ -347,6 +349,7 @@ model TontineTour {
   statut          String   @default("en_cours") // "planifie", "en_cours", "collecte_terminee", "cloture"
 
   tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+  cotisations TontineCotisation[]
 }
 
 model TontineDistribution {

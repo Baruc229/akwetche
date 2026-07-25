@@ -208,3 +208,34 @@ export async function genererTours(tontineId: number): Promise<{ tours: number; 
 
   return { tours: tours.length, dateFin: dateFin.toISOString() };
 }
+
+export async function trouverTourPourPeriode(tontineId: number, periode: Date): Promise<number | null> {
+  const tours = await prisma.tontineTour.findMany({
+    where: { tontineId },
+    orderBy: { datePrevue: "asc" },
+  });
+  if (tours.length === 0) return null;
+
+  let bestTourId: number | null = null;
+  let bestDiff = Infinity;
+  for (const tour of tours) {
+    if (tour.statut === "cloture") continue;
+    const diff = Math.abs(periode.getTime() - tour.datePrevue.getTime());
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestTourId = tour.id;
+    }
+  }
+  return bestTourId;
+}
+
+export async function recalculerMontantCollecteTour(tourId: number): Promise<void> {
+  const result = await prisma.tontineCotisation.aggregate({
+    where: { tourId },
+    _sum: { montantPaye: true },
+  });
+  await prisma.tontineTour.update({
+    where: { id: tourId },
+    data: { montantCollecte: result._sum.montantPaye || 0 },
+  });
+}

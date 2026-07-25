@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, imputerAvance } from "@/lib/tontine";
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, imputerAvance, trouverTourPourPeriode, recalculerMontantCollecteTour } from "@/lib/tontine";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -63,6 +63,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const statut = estAvance ? "paye" : calculerStatutCotisation(parsedMontantPaye, montantTotal, estEnRetard);
 
+    const tourId = tontine.type === "rotative_simple" ? await trouverTourPourPeriode(tontineId, periodeDate) : null;
+
     let commissionTx: Record<string, number> | null = null;
     const description = tontine.type === "rotative_simple"
       ? `Commission tontine : ${tontine.nom} (tour)`
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         data: {
           tontineId,
           membreId: parseInt(membreId),
+          tourId,
           periode: periodeDate,
           montantBase,
           fraisOrganisateur: fraisOrg,
@@ -123,6 +126,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         montantBase,
         fraisOrg
       );
+    }
+
+    if (tourId) {
+      await recalculerMontantCollecteTour(tourId);
     }
 
     if (commissionTx) {

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours } from "@/lib/tontine";
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, recalculerMontantCollecteTour } from "@/lib/tontine";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; cotisationId: string }> }) {
   try {
@@ -119,6 +119,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       await createNotification(userId, "transaction", `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} — Commission tontine : ${tontine.nom}`, "/dashboard/transactions");
     }
 
+    if (existing.tourId) {
+      await recalculerMontantCollecteTour(existing.tourId);
+    }
+
     return ok({ cotisation: result });
   } catch {
     return badRequest("Erreur lors de la mise à jour");
@@ -149,8 +153,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     });
     if (!existing) return badRequest("Cotisation introuvable");
 
+    const tourIdToDelete = existing.tourId;
+
     await prisma.$transaction(async (tx) => {
-      // Supprimer la transaction liée d'abord
       if (existing.commissionTransaction) {
         await tx.transaction.delete({
           where: { id: existing.commissionTransaction.id },
@@ -158,6 +163,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       }
       await tx.tontineCotisation.delete({ where: { id: cotisationIntId } });
     });
+
+    if (tourIdToDelete) {
+      await recalculerMontantCollecteTour(tourIdToDelete);
+    }
 
     return ok({ success: true });
   } catch {
