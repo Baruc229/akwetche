@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -80,9 +80,11 @@ export default function TontineDetail() {
   const [editMembreContact, setEditMembreContact] = useState("");
   const [cotisationFilter, setCotisationFilter] = useState<string>("tous");
   const [cotisationGroupBy, setCotisationGroupBy] = useState<"none" | "membre">("none");
+  const [completingCotisation, setCompletingCotisation] = useState<{ id: number; montantPaye: number; montantTotal: number; membreNom: string } | null>(null);
+  const [completionAmount, setCompletionAmount] = useState("");
 
   useScrollLock(
-    showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null
+    showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null
   );
 
   async function loadData(signal?: AbortSignal) {
@@ -226,6 +228,23 @@ export default function TontineDetail() {
     } catch { setError("Erreur"); }
   }
 
+  async function handleCompleteCotisation() {
+    if (!completingCotisation) return;
+    const reste = completingCotisation.montantTotal - completingCotisation.montantPaye;
+    const montantFinal = completingCotisation.montantPaye + (parseFloat(completionAmount) || reste);
+    try {
+      const res = await fetch(`/api/tontines/${id}/cotisations/${completingCotisation.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ montantPaye: montantFinal }),
+      });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setCompletingCotisation(null);
+      setCompletionAmount("");
+      loadData();
+    } catch { setError("Erreur"); }
+  }
+
   async function handleDeleteTour(tourId: number) {
     try {
       const res = await fetch(`/api/tontines/${id}/tours?tourId=${tourId}`, { method: "DELETE" });
@@ -340,6 +359,12 @@ export default function TontineDetail() {
           ) : (
             <>
               <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
+              {c.statut === "partiel" && !isEditing && (
+                <button onClick={() => { setCompletingCotisation({ id: c.id, montantPaye: c.montantPaye, montantTotal: c.montantTotal, membreNom: c.membre.nom }); setCompletionAmount((c.montantTotal - c.montantPaye).toString()); }} className="btn-primary-sm text-xs gap-1" title="Compléter le paiement">
+                  <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3" />
+                  <span className="hidden sm:inline">Compléter</span>
+                </button>
+              )}
               <button onClick={() => { setEditingCotisation(c.id); setEditCotisationMontant(c.montantPaye.toString()); }} className="btn-ghost p-1.5" title="Modifier">
                 <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
               </button>
@@ -1193,6 +1218,102 @@ export default function TontineDetail() {
                   <button type="submit" className="btn-primary w-full">Planifier</button>
                 </div>
               </form>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Compléter paiement modal */}
+      {completingCotisation && (
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+              </button>
+              <h3 className="text-base font-semibold text-ink">Compléter le paiement</h3>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="card-inset">
+                <p className="text-sm text-muted">Membre</p>
+                <p className="font-semibold text-ink">{completingCotisation.membreNom}</p>
+              </div>
+              <div className="card-inset space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Déjà payé</span>
+                  <span className="font-medium text-ink">{formatCurrency(completingCotisation.montantPaye)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Total dû</span>
+                  <span className="font-medium text-ink">{formatCurrency(completingCotisation.montantTotal)}</span>
+                </div>
+                <div className="border-t border-[var(--color-border)] pt-2 flex justify-between text-sm">
+                  <span className="text-muted font-medium">Reste à payer</span>
+                  <span className="font-bold text-amber-600">{formatCurrency(completingCotisation.montantTotal - completingCotisation.montantPaye)}</span>
+                </div>
+              </div>
+              <div>
+                <label className="field-label">Montant du complément</label>
+                <input type="number" inputMode="decimal" step="0.01" min="0" max={completingCotisation.montantTotal - completingCotisation.montantPaye} value={completionAmount} onChange={e => setCompletionAmount(e.target.value)} className="input-field" placeholder={formatCurrency(completingCotisation.montantTotal - completingCotisation.montantPaye)} />
+                <p className="text-xs text-muted mt-1">Laissez vide ou complet pour payer le reste intégralement</p>
+              </div>
+              {completionAmount && parseFloat(completionAmount) > 0 && (
+                <div className="card-inset bg-[var(--color-brand-subtle)]">
+                  <p className="text-xs text-muted">Nouveau statut</p>
+                  <p className="font-semibold text-ink">
+                    {completingCotisation.montantPaye + parseFloat(completionAmount) >= completingCotisation.montantTotal ? "Payé" : "Partiel"}
+                  </p>
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="btn-mono flex-1 py-3">Annuler</button>
+                <button onClick={handleCompleteCotisation} className="btn-primary flex-1 py-3">Confirmer</button>
+              </div>
+            </div>
+          </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }}>
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-ink">Compléter le paiement</h3>
+                <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-4">
+                <div className="card-inset">
+                  <p className="text-sm text-muted">Membre</p>
+                  <p className="font-semibold text-ink">{completingCotisation.membreNom}</p>
+                </div>
+                <div className="card-inset space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Déjà payé</span>
+                    <span className="font-medium text-ink">{formatCurrency(completingCotisation.montantPaye)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Total dû</span>
+                    <span className="font-medium text-ink">{formatCurrency(completingCotisation.montantTotal)}</span>
+                  </div>
+                  <div className="border-t border-[var(--color-border)] pt-2 flex justify-between text-sm">
+                    <span className="text-muted font-medium">Reste à payer</span>
+                    <span className="font-bold text-amber-600">{formatCurrency(completingCotisation.montantTotal - completingCotisation.montantPaye)}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="field-label">Montant du complément</label>
+                  <input type="number" inputMode="decimal" step="0.01" min="0" max={completingCotisation.montantTotal - completingCotisation.montantPaye} value={completionAmount} onChange={e => setCompletionAmount(e.target.value)} className="input-field" placeholder={formatCurrency(completingCotisation.montantTotal - completingCotisation.montantPaye)} />
+                  <p className="text-xs text-muted mt-1">Laissez vide ou complet pour payer le reste intégralement</p>
+                </div>
+                {completionAmount && parseFloat(completionAmount) > 0 && (
+                  <div className="card-inset bg-[var(--color-brand-subtle)]">
+                    <p className="text-xs text-muted">Nouveau statut</p>
+                    <p className="font-semibold text-ink">
+                      {completingCotisation.montantPaye + parseFloat(completionAmount) >= completingCotisation.montantTotal ? "Payé" : "Partiel"}
+                    </p>
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="btn-mono flex-1">Annuler</button>
+                  <button onClick={handleCompleteCotisation} className="btn-primary flex-1">Confirmer</button>
+                </div>
+              </div>
             </div>
           </div>
         </>
