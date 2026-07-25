@@ -19,6 +19,7 @@ type Tontine = {
   frequence: string;
   fraisOrganisateurParDefaut: number;
   scopeCommission: string;
+  nbPersonnesPrevue: number | null;
   membreCount: number;
   retardsCount: number;
 };
@@ -42,11 +43,13 @@ export default function TontinesPage() {
     nom: "",
     type: "vivres_fin_annee",
     montantCotisation: "",
-    frequence: "",
+    frequencePreset: "30",
+    frequenceCustom: "",
     dateDebut: "",
     fraisOrganisateurParDefaut: "0",
     scopeCommission: "activite",
     nombreTours: "",
+    nbPersonnesPrevue: "",
     dateDistribution: "",
     penaliteRetardActive: false,
     penaliteRetardMontant: "0",
@@ -96,7 +99,25 @@ export default function TontinesPage() {
     e.preventDefault();
     setError("");
     try {
-      const body: Record<string, unknown> = { ...newTnt };
+      const frequenceJours = newTnt.frequencePreset === "custom"
+        ? newTnt.frequenceCustom
+        : newTnt.frequencePreset;
+      const nbPersonnes = newTnt.nbPersonnesPrevue ? parseInt(newTnt.nbPersonnesPrevue) : null;
+      const body: Record<string, unknown> = {
+        nom: newTnt.nom,
+        type: newTnt.type,
+        montantCotisation: newTnt.montantCotisation,
+        frequence: frequenceJours,
+        dateDebut: newTnt.dateDebut,
+        fraisOrganisateurParDefaut: newTnt.fraisOrganisateurParDefaut,
+        scopeCommission: newTnt.scopeCommission,
+        nombreTours: newTnt.type === "rotative_simple" ? (nbPersonnes || parseInt(newTnt.nombreTours) || null) : null,
+        nbPersonnesPrevue: nbPersonnes,
+        dateDistribution: newTnt.dateDistribution || null,
+        penaliteRetardActive: newTnt.penaliteRetardActive,
+        penaliteRetardMontant: newTnt.penaliteRetardMontant,
+        penaliteRetardDelaiJours: newTnt.penaliteRetardDelaiJours,
+      };
       if (body.type === "vivres_fin_annee" && !body.dateDistribution) {
         setError("Date de distribution requise pour les tontines vivres/fin d'année");
         return;
@@ -109,7 +130,7 @@ export default function TontinesPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
       setShowCreate(false);
-      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequence: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", dateDistribution: "", penaliteRetardActive: false, penaliteRetardMontant: "0", penaliteRetardDelaiJours: "3" });
+      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequencePreset: "30", frequenceCustom: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", nbPersonnesPrevue: "", dateDistribution: "", penaliteRetardActive: false, penaliteRetardMontant: "0", penaliteRetardDelaiJours: "3" });
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -201,9 +222,30 @@ export default function TontinesPage() {
                   <input type="number" inputMode="decimal" step="0.01" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10 000" required min="1" />
                 </div>
                 <div>
-                  <label className="field-label">Écart en jours entre cotisations</label>
-                  <input type="number" inputMode="numeric" step="1" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7" required min="1" />
-                  <p className="text-xs text-muted mt-1">La 2e cotisation sera X jours après la 1re. Ex: 5 → 1 août, 6 août, 11 août...</p>
+                  <label className="field-label">Fréquence des cotisations</label>
+                  <CustomSelect
+                    options={[
+                      { value: "7", label: "Chaque semaine" },
+                      { value: "14", label: "Toutes les 2 semaines" },
+                      { value: "30", label: "Chaque mois" },
+                      { value: "60", label: "Chaque 2 mois" },
+                      { value: "custom", label: "Personnalisé" },
+                    ]}
+                    value={newTnt.frequencePreset}
+                    onChange={v => setNewTnt({...newTnt, frequencePreset: v})}
+                  />
+                  {newTnt.frequencePreset === "custom" && (
+                    <div className="mt-2">
+                      <input type="number" inputMode="numeric" step="1" value={newTnt.frequenceCustom} onChange={e => setNewTnt({...newTnt, frequenceCustom: e.target.value})} className="input-field" placeholder="Nombre de jours" required min="1" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="field-label">Nombre de personnes prévu</label>
+                  <input type="number" inputMode="numeric" step="1" value={newTnt.nbPersonnesPrevue} onChange={e => setNewTnt({...newTnt, nbPersonnesPrevue: e.target.value, nombreTours: newTnt.type === "rotative_simple" ? e.target.value : newTnt.nombreTours})} className="input-field" placeholder="ex: 10" min="2" />
+                  {newTnt.type === "rotative_simple" && newTnt.nbPersonnesPrevue && (
+                    <p className="text-xs text-muted mt-1">= {newTnt.nbPersonnesPrevue} tours (1 tour par personne)</p>
+                  )}
                 </div>
                 <div>
                   <label className="field-label">Date de début</label>
@@ -242,16 +284,16 @@ export default function TontinesPage() {
                     </div>
                   )}
                 </div>
-                {newTnt.type === "rotative_simple" && (
-                  <div>
-                    <label className="field-label">Nombre de tours</label>
-                    <input type="number" inputMode="numeric" step="1" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" required />
-                  </div>
-                )}
                 {newTnt.type === "vivres_fin_annee" && (
                   <div>
                     <label className="field-label">Date de distribution</label>
                     <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                  </div>
+                )}
+                {newTnt.type === "rotative_simple" && newTnt.montantCotisation && newTnt.nbPersonnesPrevue && (
+                  <div className="card-inset bg-[var(--color-brand-subtle)]">
+                    <p className="text-xs text-muted">Part projetée par personne</p>
+                    <p className="text-lg font-bold text-ink">{formatCurrency(parseFloat(newTnt.montantCotisation) * parseInt(newTnt.nbPersonnesPrevue))}</p>
                   </div>
                 )}
                 {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
@@ -284,9 +326,30 @@ export default function TontinesPage() {
                   <input type="number" inputMode="decimal" step="0.01" value={newTnt.montantCotisation} onChange={e => setNewTnt({...newTnt, montantCotisation: e.target.value})} className="input-field" placeholder="ex: 10 000" required min="1" />
                 </div>
                 <div>
-                  <label className="field-label">Écart en jours entre cotisations</label>
-                  <input type="number" inputMode="numeric" step="1" value={newTnt.frequence} onChange={e => setNewTnt({...newTnt, frequence: e.target.value})} className="input-field" placeholder="ex: 7" required min="1" />
-                  <p className="text-xs text-muted mt-1">La 2e cotisation sera X jours après la 1re. Ex: 5 → 1 août, 6 août, 11 août...</p>
+                  <label className="field-label">Fréquence des cotisations</label>
+                  <CustomSelect
+                    options={[
+                      { value: "7", label: "Chaque semaine" },
+                      { value: "14", label: "Toutes les 2 semaines" },
+                      { value: "30", label: "Chaque mois" },
+                      { value: "60", label: "Chaque 2 mois" },
+                      { value: "custom", label: "Personnalisé" },
+                    ]}
+                    value={newTnt.frequencePreset}
+                    onChange={v => setNewTnt({...newTnt, frequencePreset: v})}
+                  />
+                  {newTnt.frequencePreset === "custom" && (
+                    <div className="mt-2">
+                      <input type="number" inputMode="numeric" step="1" value={newTnt.frequenceCustom} onChange={e => setNewTnt({...newTnt, frequenceCustom: e.target.value})} className="input-field" placeholder="Nombre de jours" required min="1" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="field-label">Nombre de personnes prévu</label>
+                  <input type="number" inputMode="numeric" step="1" value={newTnt.nbPersonnesPrevue} onChange={e => setNewTnt({...newTnt, nbPersonnesPrevue: e.target.value, nombreTours: newTnt.type === "rotative_simple" ? e.target.value : newTnt.nombreTours})} className="input-field" placeholder="ex: 10" min="2" />
+                  {newTnt.type === "rotative_simple" && newTnt.nbPersonnesPrevue && (
+                    <p className="text-xs text-muted mt-1">= {newTnt.nbPersonnesPrevue} tours (1 tour par personne)</p>
+                  )}
                 </div>
                 <div>
                   <label className="field-label">Date de début</label>
@@ -325,16 +388,16 @@ export default function TontinesPage() {
                     </div>
                   )}
                 </div>
-                {newTnt.type === "rotative_simple" && (
-                  <div>
-                    <label className="field-label">Nombre de tours</label>
-                    <input type="number" inputMode="numeric" step="1" value={newTnt.nombreTours} onChange={e => setNewTnt({...newTnt, nombreTours: e.target.value})} className="input-field" placeholder="ex: 12" required />
-                  </div>
-                )}
                 {newTnt.type === "vivres_fin_annee" && (
                   <div>
                     <label className="field-label">Date de distribution</label>
                     <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                  </div>
+                )}
+                {newTnt.type === "rotative_simple" && newTnt.montantCotisation && newTnt.nbPersonnesPrevue && (
+                  <div className="card-inset bg-[var(--color-brand-subtle)]">
+                    <p className="text-xs text-muted">Part projetée par personne</p>
+                    <p className="text-lg font-bold text-ink">{formatCurrency(parseFloat(newTnt.montantCotisation) * parseInt(newTnt.nbPersonnesPrevue))}</p>
                   </div>
                 )}
                 {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}

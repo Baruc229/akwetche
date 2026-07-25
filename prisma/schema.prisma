@@ -293,8 +293,9 @@ model Tontine {
   dateDistribution          DateTime?
   statut                    String    @default("active") // "active", "terminee", "suspendue"
   penaliteRetardActive      Boolean   @default(false)
-  penaliteRetardMontant     Float     @default(0)    // montant fixe de pénalité par retard
-  penaliteRetardDelaiJours  Int       @default(3)    // jours de grâce après la date prévue
+  penaliteRetardMontant     Float     @default(0)
+  penaliteRetardDelaiJours  Int       @default(3)
+  nbPersonnesPrevue         Int?
 
   organisateur User                    @relation(fields: [organisateurId], references: [id], onDelete: Cascade)
   membres      TontineMembre[]

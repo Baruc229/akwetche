@@ -55,7 +55,11 @@ export async function POST(req: NextRequest) {
       fraisOrganisateurParDefaut,
       scopeCommission,
       nombreTours,
+      nbPersonnesPrevue,
       dateDistribution,
+      penaliteRetardActive,
+      penaliteRetardMontant,
+      penaliteRetardDelaiJours,
     } = body;
 
     if (!nom || !type || !montantCotisation || !frequence || !dateDebut) {
@@ -75,7 +79,11 @@ export async function POST(req: NextRequest) {
         fraisOrganisateurParDefaut: parseFloat(fraisOrganisateurParDefaut || "0"),
         scopeCommission: scopeCommission || "activite",
         nombreTours: nombreTours ? parseInt(nombreTours) : null,
+        nbPersonnesPrevue: nbPersonnesPrevue ? parseInt(nbPersonnesPrevue) : null,
         dateDistribution: dateDistribution ? new Date(dateDistribution) : null,
+        penaliteRetardActive: penaliteRetardActive || false,
+        penaliteRetardMontant: penaliteRetardMontant ? parseFloat(penaliteRetardMontant) : 0,
+        penaliteRetardDelaiJours: penaliteRetardDelaiJours ? parseInt(penaliteRetardDelaiJours) : 3,
         organisateurId: userId,
       },
     });
