@@ -37,7 +37,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const dateLimite = new Date(periodeDate.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
     const now = new Date();
-    const estEnRetard = now > dateLimite && parsedMontantPaye < montantCotisationEffectif;
 
     const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
       montantCotisationEffectif,
@@ -48,11 +47,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       now
     );
 
+    const soldeDisponible = membre.soldeAvance || 0;
+    const soldeApplique = Math.min(soldeDisponible, montantTotal);
+    const montantEffectifDus = montantTotal - soldeApplique;
+
     const montantBase = montantCotisationEffectif - tontine.fraisOrganisateurParDefaut;
     const fraisOrg = tontine.fraisOrganisateurParDefaut;
 
-    const estAvance = parsedMontantPaye > montantTotal;
-    const montantCotisationCours = estAvance ? montantTotal : parsedMontantPaye;
+    const estEnRetard = now > dateLimite && parsedMontantPaye < montantEffectifDus;
+    const totalCouvert = parsedMontantPaye + soldeApplique;
+    const estAvance = totalCouvert > montantTotal;
+    const montantCotisationCours = estAvance ? montantTotal : totalCouvert;
 
     const { fraisOrganisateurEffectif } = calculerProrata(
       montantCotisationCours,
@@ -61,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       fraisOrg
     );
 
-    const statut = estAvance ? "paye" : calculerStatutCotisation(parsedMontantPaye, montantTotal, estEnRetard);
+    const statut = estAvance ? "paye" : calculerStatutCotisation(totalCouvert, montantTotal, estEnRetard);
 
     const tourId = tontine.type === "rotative_simple" ? await trouverTourPourPeriode(tontineId, periodeDate) : null;
 
@@ -86,6 +91,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           statut,
         },
       });
+
+      if (soldeApplique > 0) {
+        await tx.tontineMembre.update({
+          where: { id: parseInt(membreId) },
+          data: { soldeAvance: { decrement: soldeApplique } },
+        });
+      }
 
       if (fraisOrganisateurEffectif > 0 && (statut === "paye" || statut === "partiel")) {
         const txDescription = `Tontine \u2014 commission : ${tontine.nom} (${tontine.type === "rotative_simple" ? "tour" : "cotisation"})`;
@@ -148,7 +160,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
     }
 
-    return created({ cotisation, avance: estAvance ? { surplus: parsedMontantPaye - montantTotal } : null });
+    return created({ cotisation, soldeApplique, avance: estAvance ? { surplus: totalCouvert - montantTotal } : null });
   } catch {
     return badRequest("Erreur lors de l'enregistrement de la cotisation");
   }

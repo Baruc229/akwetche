@@ -107,17 +107,12 @@ export async function imputerAvance(
   montantTotalPeriode: number,
   montantBase: number,
   fraisOrganisateur: number
-): Promise<{ cotisationCourante: { montantPaye: number; statut: string }; futuresImbriquees: number }> {
+): Promise<{ cotisationCourante: { montantPaye: number; statut: string }; futuresImbriquees: number; soldeRestant: number }> {
   if (montantPaye <= montantTotalPeriode) {
-    return { cotisationCourante: { montantPaye, statut: "" }, futuresImbriquees: 0 };
+    return { cotisationCourante: { montantPaye, statut: "" }, futuresImbriquees: 0, soldeRestant: 0 };
   }
 
   const surplus = montantPaye - montantTotalPeriode;
-
-  const frequence = await prisma.tontine.findUnique({ where: { id: tontineId }, select: { frequence: true } });
-  if (!frequence) return { cotisationCourante: { montantPaye: montantTotalPeriode, statut: "paye" }, futuresImbriquees: 0 };
-
-  const frequenceJours = getFrequenceJours(frequence.frequence);
 
   const periodesFutures = await prisma.tontineCotisation.findMany({
     where: {
@@ -152,9 +147,17 @@ export async function imputerAvance(
     count++;
   }
 
+  if (reste > 0) {
+    await prisma.tontineMembre.update({
+      where: { id: membreId },
+      data: { soldeAvance: { increment: reste } },
+    });
+  }
+
   return {
     cotisationCourante: { montantPaye: montantTotalPeriode, statut: "paye" },
     futuresImbriquees: count,
+    soldeRestant: reste,
   };
 }
 

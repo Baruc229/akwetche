@@ -499,6 +499,7 @@ export default function TontineDetail() {
                     <div className="text-xs text-muted">
                       <span className="font-semibold text-ink">{m.nbPayees}</span>/{denominateurCotisations || m._count.cotisations}
                       <span className="block">{formatCurrency(m.montantTotalPaye)}</span>
+                      {m.soldeAvance > 0 && <span className="block text-emerald-600">+{formatCurrency(m.soldeAvance)} avance</span>}
                     </div>
                     <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 text-muted/30" />
                   </div>
@@ -711,6 +712,12 @@ export default function TontineDetail() {
               {detailMembreData.contact && (
                 <p className="text-sm text-muted">Contact : <strong className="text-ink">{detailMembreData.contact}</strong></p>
               )}
+              {detailMembreData.soldeAvance > 0 && (
+                <div className="card-inset bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-between">
+                  <span className="text-sm text-emerald-700">Solde avance</span>
+                  <span className="text-sm font-bold text-emerald-700">{formatCurrency(detailMembreData.soldeAvance)}</span>
+                </div>
+              )}
               {/* Édition */}
               {tontine.statut === "active" && (
                 <div className="border-t border-[var(--color-border)] pt-4">
@@ -798,6 +805,12 @@ export default function TontineDetail() {
                 )}
                 {detailMembreData.contact && (
                   <p className="text-sm text-muted">Contact : <strong className="text-ink">{detailMembreData.contact}</strong></p>
+                )}
+                {detailMembreData.soldeAvance > 0 && (
+                  <div className="card-inset bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-between">
+                    <span className="text-sm text-emerald-700">Solde avance</span>
+                    <span className="text-sm font-bold text-emerald-700">{formatCurrency(detailMembreData.soldeAvance)}</span>
+                  </div>
                 )}
                 {tontine.statut === "active" && (
                   <div className="border-t border-[var(--color-border)] pt-4">
@@ -957,7 +970,10 @@ export default function TontineDetail() {
                   const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
                   const selectedMember = actifs.find(m => String(m.id) === membreIdForCotisation);
                   const montantCotisationEffectif = selectedMember?.montantCotisationPersonnel ?? tontine.montantCotisation;
-                  const montantDus = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                  const montantTotalBrut = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                  const soldeDisponible = selectedMember?.soldeAvance || 0;
+                  const soldeApplique = Math.min(soldeDisponible, montantTotalBrut);
+                  const montantDus = montantTotalBrut - soldeApplique;
                   const montantPaye = parseFloat(cotisationMontant) || 0;
                   const surplus = Math.max(0, montantPaye - montantDus);
                   const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
@@ -968,6 +984,12 @@ export default function TontineDetail() {
                         <span className="text-xs text-muted">Montant dû</span>
                         <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
                       </div>
+                      {soldeApplique > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-emerald-600">Solde avance appliqué</span>
+                          <span className="text-sm font-medium text-emerald-600">− {formatCurrency(soldeApplique)}</span>
+                        </div>
+                      )}
                       {penaliteAppliquee && (
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-amber-600">Pénalité retard</span>
