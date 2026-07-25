@@ -311,7 +311,8 @@ model TontineMembre {
   contact      String?
   ordrePassage Int?
   statut       String   @default("actif") // "actif", "retire", "exclu"
-  soldeAvance  Float    @default(0) // solde d'avance pour paiements anticipés
+  soldeAvance  Float    @default(0)
+  montantCotisationPersonnel Float?
 
   tontine     Tontine              @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   cotisations TontineCotisation[]

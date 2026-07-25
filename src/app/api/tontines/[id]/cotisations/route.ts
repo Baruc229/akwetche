@@ -25,16 +25,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { membreId, periode, montantPaye, datePaiement } = await req.json();
     if (!membreId || !periode) return badRequest("membreId et periode requis");
 
+    const membre = await prisma.tontineMembre.findFirst({
+      where: { id: parseInt(membreId), tontineId },
+    });
+    if (!membre) return badRequest("Membre introuvable");
+
+    const montantCotisationEffectif = membre.montantCotisationPersonnel ?? tontine.montantCotisation;
     const parsedMontantPaye = parseFloat(montantPaye || "0");
     const periodeDate = new Date(periode);
     const frequenceJours = getFrequenceJours(tontine.frequence);
 
     const dateLimite = new Date(periodeDate.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
     const now = new Date();
-    const estEnRetard = now > dateLimite && parsedMontantPaye < tontine.montantCotisation;
+    const estEnRetard = now > dateLimite && parsedMontantPaye < montantCotisationEffectif;
 
     const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
-      tontine.montantCotisation,
+      montantCotisationEffectif,
       tontine.penaliteRetardActive,
       tontine.penaliteRetardMontant,
       tontine.penaliteRetardDelaiJours,
@@ -42,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       now
     );
 
-    const montantBase = tontine.montantCotisation - tontine.fraisOrganisateurParDefaut;
+    const montantBase = montantCotisationEffectif - tontine.fraisOrganisateurParDefaut;
     const fraisOrg = tontine.fraisOrganisateurParDefaut;
 
     const estAvance = parsedMontantPaye > montantTotal;

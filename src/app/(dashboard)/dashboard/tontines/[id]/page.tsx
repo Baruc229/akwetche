@@ -17,7 +17,7 @@ type Membre = {
   id: number; nom: string; contact: string | null; ordrePassage: number | null;
   statut: string; _count: { cotisations: number };
   nbPayees: number; montantTotalPaye: number; nbRetards: number;
-  soldeAvance: number;
+  soldeAvance: number; montantCotisationPersonnel: number | null;
 };
 
 type Cotisation = {
@@ -78,6 +78,7 @@ export default function TontineDetail() {
   const [editCotisationMontant, setEditCotisationMontant] = useState("");
   const [detailMembre, setDetailMembre] = useState<number | null>(null);
   const [editMembreContact, setEditMembreContact] = useState("");
+  const [editMembreMontant, setEditMembreMontant] = useState("");
   const [cotisationFilter, setCotisationFilter] = useState<string>("tous");
   const [cotisationGroupBy, setCotisationGroupBy] = useState<"none" | "membre">("none");
   const [completingCotisation, setCompletingCotisation] = useState<{ id: number; montantPaye: number; montantTotal: number; membreNom: string } | null>(null);
@@ -168,6 +169,10 @@ export default function TontineDetail() {
   const tauxCollecte = tourEnCours && tourEnCours.montantAttendu > 0
     ? Math.round((tourEnCours.montantCollecte / tourEnCours.montantAttendu) * 100) : 0;
 
+  const denominateurCotisations = tontine?.type === "rotative_simple"
+    ? (tontine?.nombreTours || 0)
+    : nbPeriodesTotal;
+
   async function handleAddMembre(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -198,7 +203,7 @@ export default function TontineDetail() {
       const res = await fetch(`/api/tontines/${id}/membres/${membreId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom: editMembreNom.trim(), contact: editMembreContact || null }),
+        body: JSON.stringify({ nom: editMembreNom.trim(), contact: editMembreContact || null, montantCotisationPersonnel: editMembreMontant !== "" ? editMembreMontant : null }),
       });
       if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
       setDetailMembre(null);
@@ -479,7 +484,7 @@ export default function TontineDetail() {
               const enRetard = m.nbRetards > 0;
               const colors = MEMBER_COLORS[idx % MEMBER_COLORS.length];
               return (
-                <button key={m.id} onClick={() => { setDetailMembre(m.id); setEditMembreNom(m.nom); setEditMembreContact(m.contact || ""); }} className="w-full flex items-center justify-between py-2.5 text-left hover:bg-[var(--color-surface-raised)] rounded-lg px-1 transition-colors">
+                <button key={m.id} onClick={() => { setDetailMembre(m.id); setEditMembreNom(m.nom); setEditMembreContact(m.contact || ""); setEditMembreMontant(m.montantCotisationPersonnel != null ? String(m.montantCotisationPersonnel) : ""); }} className="w-full flex items-center justify-between py-2.5 text-left hover:bg-[var(--color-surface-raised)] rounded-lg px-1 transition-colors">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${enRetard ? "bg-red-100" : colors.bg}`}>
                       <FontAwesomeIcon icon={enRetard ? faCircleExclamation : faCheckCircle} className={`w-3.5 h-3.5 ${enRetard ? "text-red-500" : colors.text}`} />
@@ -492,7 +497,7 @@ export default function TontineDetail() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0 ml-2 text-right">
                     <div className="text-xs text-muted">
-                      <span className="font-semibold text-ink">{m.nbPayees}</span>/{nbPeriodesTotal || m._count.cotisations}
+                      <span className="font-semibold text-ink">{m.nbPayees}</span>/{denominateurCotisations || m._count.cotisations}
                       <span className="block">{formatCurrency(m.montantTotalPaye)}</span>
                     </div>
                     <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 text-muted/30" />
@@ -688,7 +693,7 @@ export default function TontineDetail() {
               <div className="grid grid-cols-3 gap-2">
                 <div className="card-inset text-center py-2">
                   <p className="text-label">Payées</p>
-                  <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{nbPeriodesTotal || detailMembreData._count.cotisations}</p>
+                  <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{denominateurCotisations || detailMembreData._count.cotisations}</p>
                 </div>
                 <div className="card-inset text-center py-2">
                   <p className="text-label">Total payé</p>
@@ -718,6 +723,11 @@ export default function TontineDetail() {
                     <div>
                       <label className="field-label">Contact</label>
                       <input type="tel" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
+                    </div>
+                    <div>
+                      <label className="field-label">Montant cotisation</label>
+                      <input type="number" value={editMembreMontant} onChange={e => setEditMembreMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
+                      <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
                     </div>
                     <button type="submit" className="btn-primary w-full">Enregistrer</button>
                   </form>
@@ -772,7 +782,7 @@ export default function TontineDetail() {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="card-inset text-center py-2">
                     <p className="text-label">Payées</p>
-                    <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{nbPeriodesTotal || detailMembreData._count.cotisations}</p>
+                    <p className="text-base font-semibold text-ink">{detailMembreData.nbPayees}/{denominateurCotisations || detailMembreData._count.cotisations}</p>
                   </div>
                   <div className="card-inset text-center py-2">
                     <p className="text-label">Total payé</p>
@@ -800,6 +810,11 @@ export default function TontineDetail() {
                       <div>
                         <label className="field-label">Contact</label>
                         <input type="tel" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
+                      </div>
+                      <div>
+                        <label className="field-label">Montant cotisation</label>
+                        <input type="number" value={editMembreMontant} onChange={e => setEditMembreMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
+                        <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
                       </div>
                       <button type="submit" className="btn-primary w-full">Enregistrer</button>
                     </form>
@@ -940,7 +955,9 @@ export default function TontineDetail() {
                   const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
                   const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
                   const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
-                  const montantDus = tontine.montantCotisation + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                  const selectedMember = actifs.find(m => String(m.id) === membreIdForCotisation);
+                  const montantCotisationEffectif = selectedMember?.montantCotisationPersonnel ?? tontine.montantCotisation;
+                  const montantDus = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
                   const montantPaye = parseFloat(cotisationMontant) || 0;
                   const surplus = Math.max(0, montantPaye - montantDus);
                   const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
@@ -1026,7 +1043,9 @@ export default function TontineDetail() {
                     const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
                     const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
                     const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
-                    const montantDus = tontine.montantCotisation + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                    const selectedMember = actifs.find(m => String(m.id) === membreIdForCotisation);
+                    const montantCotisationEffectif = selectedMember?.montantCotisationPersonnel ?? tontine.montantCotisation;
+                    const montantDus = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
                     const montantPaye = parseFloat(cotisationMontant) || 0;
                     const surplus = Math.max(0, montantPaye - montantDus);
                     const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")

@@ -61,6 +61,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!["actif", "retire", "exclu"].includes(body.statut)) return badRequest("Statut invalide");
     updateData.statut = body.statut;
   }
+  if (body.montantCotisationPersonnel !== undefined) {
+    updateData.montantCotisationPersonnel = body.montantCotisationPersonnel === null || body.montantCotisationPersonnel === "" ? null : parseFloat(body.montantCotisationPersonnel) || null;
+  }
 
   const membre = await prisma.tontineMembre.update({
     where: { id: membreIntId },
