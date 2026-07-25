@@ -133,7 +133,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         tontineId,
         parseInt(membreId),
         periodeDate,
-        parsedMontantPaye,
+        totalCouvert,
         montantTotal,
         montantBase,
         fraisOrg
