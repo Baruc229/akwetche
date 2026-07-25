@@ -239,6 +239,21 @@ export default function TontinesPage() {
                       <input type="number" inputMode="numeric" step="1" value={newTnt.frequenceCustom} onChange={e => setNewTnt({...newTnt, frequenceCustom: e.target.value})} className="input-field" placeholder="Nombre de jours" required min="1" />
                     </div>
                   )}
+                  {(() => {
+                    const jours = newTnt.frequencePreset === "custom" ? parseInt(newTnt.frequenceCustom) : parseInt(newTnt.frequencePreset);
+                    if (!jours || jours < 1) return null;
+                    const debut = newTnt.dateDebut ? new Date(newTnt.dateDebut + "T00:00:00") : new Date();
+                    const d2 = new Date(debut); d2.setDate(d2.getDate() + jours);
+                    const d3 = new Date(d2); d3.setDate(d3.getDate() + jours);
+                    const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+                    return (
+                      <div className="mt-2 p-3 rounded-lg bg-[var(--color-brand-subtle)] text-xs text-ink leading-relaxed">
+                        <p className="font-medium mb-1">Comment ça marche ?</p>
+                        <p>Chaque membre cotise tous les <span className="font-semibold">{jours} jours</span>.</p>
+                        <p className="mt-1">Ex: 1ère cotisation le <span className="font-semibold">{fmt(debut)}</span> → 2e le <span className="font-semibold">{fmt(d2)}</span> → 3e le <span className="font-semibold">{fmt(d3)}</span>...</p>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div>
                   <label className="field-label">Nombre de personnes prévu</label>
@@ -343,6 +358,21 @@ export default function TontinesPage() {
                       <input type="number" inputMode="numeric" step="1" value={newTnt.frequenceCustom} onChange={e => setNewTnt({...newTnt, frequenceCustom: e.target.value})} className="input-field" placeholder="Nombre de jours" required min="1" />
                     </div>
                   )}
+                  {(() => {
+                    const jours = newTnt.frequencePreset === "custom" ? parseInt(newTnt.frequenceCustom) : parseInt(newTnt.frequencePreset);
+                    if (!jours || jours < 1) return null;
+                    const debut = newTnt.dateDebut ? new Date(newTnt.dateDebut + "T00:00:00") : new Date();
+                    const d2 = new Date(debut); d2.setDate(d2.getDate() + jours);
+                    const d3 = new Date(d2); d3.setDate(d3.getDate() + jours);
+                    const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+                    return (
+                      <div className="mt-2 p-3 rounded-lg bg-[var(--color-brand-subtle)] text-xs text-ink leading-relaxed">
+                        <p className="font-medium mb-1">Comment ça marche ?</p>
+                        <p>Chaque membre cotise tous les <span className="font-semibold">{jours} jours</span>.</p>
+                        <p className="mt-1">Ex: 1ère cotisation le <span className="font-semibold">{fmt(debut)}</span> → 2e le <span className="font-semibold">{fmt(d2)}</span> → 3e le <span className="font-semibold">{fmt(d3)}</span>...</p>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div>
                   <label className="field-label">Nombre de personnes prévu</label>
