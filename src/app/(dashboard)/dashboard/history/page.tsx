@@ -103,13 +103,13 @@ export default function HistoryPage() {
     document.title = "Historique — Akwetche";
   }, []);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     if (period !== "custom" || (customStart && customEnd)) {
       loadData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period, customStart, customEnd]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput), 300);
@@ -408,23 +408,34 @@ export default function HistoryPage() {
           <h2 className="text-sm font-semibold text-ink mb-1">Dépenses par catégorie</h2>
           <p className="text-xs text-muted mb-4">Répartition des dépenses sur la période</p>
           <div className="space-y-3">
-            {categoryBreakdown.map((cat) => {
-              const pct = totalExpenseCat > 0 ? (cat.amount / totalExpenseCat) * 100 : 0;
-              return (
-                <div key={cat.name}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-ink flex items-center gap-1.5">
-                      <span className="bar-dot" style={{ backgroundColor: cat.color }} />
-                      {cat.name}
-                    </span>
-                    <span className="text-muted">{formatCurrency(cat.amount)} ({pct.toFixed(0)}%)</span>
+            {(() => {
+              const roundedPcts = (() => {
+                if (totalExpenseCat <= 0 || categoryBreakdown.length === 0) return categoryBreakdown.map(() => 0);
+                const raw = categoryBreakdown.map(c => (c.amount / totalExpenseCat) * 100);
+                const floored = raw.map(r => Math.floor(r));
+                const remaining = 100 - floored.reduce((a, b) => a + b, 0);
+                const fracs = raw.map((r, i) => ({ i, frac: r - Math.floor(r) })).sort((a, b) => b.frac - a.frac);
+                for (let k = 0; k < remaining && k < fracs.length; k++) floored[fracs[k].i]++;
+                return floored;
+              })();
+              return categoryBreakdown.map((cat, i) => {
+                const pct = roundedPcts[i];
+                return (
+                  <div key={cat.name}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-ink flex items-center gap-1.5">
+                        <span className="bar-dot" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </span>
+                      <span className="text-muted">{formatCurrency(cat.amount)} ({pct}%)</span>
+                    </div>
+                    <div className="bar-track">
+                      <div className="bar-fill" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
+                    </div>
                   </div>
-                  <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
         </div>
       )}

@@ -67,7 +67,7 @@ function EvolutionBadge({ value, invert }: { value: string | null; invert?: bool
 }
 
 export default function ReportsPage() {
-  const { currency: _currency } = useDashboard();
+  useDashboard();
   const [period, setPeriod] = useState("monthly");
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -488,11 +488,16 @@ export default function ReportsPage() {
               </div>
               <p className="text-xs text-text-3 mb-4">Répartition par catégorie</p>
               <div>
-                {Object.entries(data.current.topCategories)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([cat, amount], i) => {
-                    const total = data.current.expense || 1;
-                    const pct = (amount / total) * 100;
+                {(() => {
+                  const entries = Object.entries(data.current.topCategories).sort(([, a], [, b]) => b - a);
+                  const total = data.current.expense || 1;
+                  const rawPcts = entries.map(([, amount]) => (amount / total) * 100);
+                  const floored = rawPcts.map(r => Math.floor(r));
+                  const remaining = 100 - floored.reduce((a, b) => a + b, 0);
+                  const fracs = rawPcts.map((r, i) => ({ i, frac: r - Math.floor(r) })).sort((a, b) => b.frac - a.frac);
+                  for (let k = 0; k < remaining && k < fracs.length; k++) floored[fracs[k].i]++;
+                  return entries.map(([cat, amount], i) => {
+                    const pct = floored[i];
                     const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
                     return (
                       <div className="bar-row" key={cat}>
@@ -503,7 +508,7 @@ export default function ReportsPage() {
                           </span>
                           <span className="bar-value">
                             {formatCurrency(amount)}
-                            <span className="pct">({pct.toFixed(0)}%)</span>
+                            <span className="pct">({pct}%)</span>
                           </span>
                         </div>
                         <div className="bar-track">
@@ -511,7 +516,8 @@ export default function ReportsPage() {
                         </div>
                       </div>
                     );
-                  })}
+                  });
+                })()}
               </div>
             </div>
           )}

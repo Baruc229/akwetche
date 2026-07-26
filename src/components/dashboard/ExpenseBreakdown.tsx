@@ -14,9 +14,18 @@ type Props = {
   commercialMode: boolean;
 };
 
+function computeRoundedPcts(cats: CatItem[], total: number): number[] {
+  if (total <= 0 || cats.length === 0) return cats.map(() => 0);
+  const raw = cats.map(c => (Math.abs(c.amount) / total) * 100);
+  const floored = raw.map(r => Math.floor(r));
+  const remaining = 100 - floored.reduce((a, b) => a + b, 0);
+  const fracs = raw.map((r, i) => ({ i, frac: r - Math.floor(r) })).sort((a, b) => b.frac - a.frac);
+  for (let k = 0; k < remaining && k < fracs.length; k++) floored[fracs[k].i]++;
+  return floored;
+}
+
 function renderBar(cat: CatItem, pct: number, color: string) {
   const absAmount = Math.abs(cat.amount);
-  const pctDisplay = pct > 0 && pct < 1 ? pct.toFixed(1) : pct.toFixed(0);
   const icon = getIconByKey(cat.icon);
   return (
     <div key={cat.name}>
@@ -26,7 +35,7 @@ function renderBar(cat: CatItem, pct: number, color: string) {
           {cat.name}
         </span>
         <span className="text-[#94A3B8] font-medium tabular-nums">
-          {pctDisplay}% <span className="text-[#94A3B8]/60">{formatCurrency(absAmount)}</span>
+          {pct}% <span className="text-[#94A3B8]/60">{formatCurrency(absAmount)}</span>
         </span>
       </div>
       <div className="h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
@@ -83,10 +92,13 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
               </div>
             )}
             <div className="space-y-3">
-              {personal.slice(0, 5).map((cat, i) => {
-                const pct = totalPersonal > 0 ? (Math.abs(cat.amount) / totalPersonal) * 100 : 0;
-                return renderBar(cat, pct, CATEGORY_COLORS[i % CATEGORY_COLORS.length]);
-              })}
+              {(() => {
+                const sliced = personal.slice(0, 5);
+                const roundedPcts = computeRoundedPcts(sliced, totalPersonal);
+                return sliced.map((cat, i) => {
+                  return renderBar(cat, roundedPcts[i], CATEGORY_COLORS[i % CATEGORY_COLORS.length]);
+                });
+              })()}
             </div>
           </div>
         )}
@@ -97,10 +109,13 @@ export default function ExpenseBreakdown({ personal, activity, commercialMode }:
               Activité
             </div>
             <div className="space-y-3">
-              {activity.slice(0, 5).map((cat, i) => {
-                const pct = totalActivity > 0 ? (Math.abs(cat.amount) / totalActivity) * 100 : 0;
-                return renderBar(cat, pct, CATEGORY_COLORS[(i + 3) % CATEGORY_COLORS.length]);
-              })}
+              {(() => {
+                const sliced = activity.slice(0, 5);
+                const roundedPcts = computeRoundedPcts(sliced, totalActivity);
+                return sliced.map((cat, i) => {
+                  return renderBar(cat, roundedPcts[i], CATEGORY_COLORS[(i + 3) % CATEGORY_COLORS.length]);
+                });
+              })()}
             </div>
           </div>
         )}
