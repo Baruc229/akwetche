@@ -273,6 +273,20 @@ export async function resetMembreData(membreId: number): Promise<void> {
   });
 }
 
+export async function recalculerSoldeAvanceMembre(membreId: number): Promise<void> {
+  const result = await prisma.tontineCotisation.aggregate({
+    where: { membreId },
+    _sum: { montantPaye: true, montantTotal: true },
+  });
+  const totalPaye = result._sum.montantPaye || 0;
+  const totalDu = result._sum.montantTotal || 0;
+  const solde = Math.max(0, totalPaye - totalDu);
+  await prisma.tontineMembre.update({
+    where: { id: membreId },
+    data: { soldeAvance: solde },
+  });
+}
+
 export async function recalculerMontantCollecteTour(tourId: number): Promise<void> {
   const result = await prisma.tontineCotisation.aggregate({
     where: { tourId },

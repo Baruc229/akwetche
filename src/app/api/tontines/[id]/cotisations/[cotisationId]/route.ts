@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, recalculerMontantCollecteTour } from "@/lib/tontine";
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, recalculerMontantCollecteTour, recalculerSoldeAvanceMembre } from "@/lib/tontine";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; cotisationId: string }> }) {
   try {
@@ -123,6 +123,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       await recalculerMontantCollecteTour(existing.tourId);
     }
 
+    await recalculerSoldeAvanceMembre(existing.membreId);
+
     return ok({ cotisation: result });
   } catch {
     return badRequest("Erreur lors de la mise à jour");
@@ -167,6 +169,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (tourIdToDelete) {
       await recalculerMontantCollecteTour(tourIdToDelete);
     }
+
+    await recalculerSoldeAvanceMembre(existing.membreId);
 
     return ok({ success: true });
   } catch {
