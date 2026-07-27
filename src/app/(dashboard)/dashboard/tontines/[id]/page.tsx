@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -83,9 +83,15 @@ export default function TontineDetail() {
   const [cotisationGroupBy, setCotisationGroupBy] = useState<"none" | "membre">("none");
   const [completingCotisation, setCompletingCotisation] = useState<{ id: number; montantPaye: number; montantTotal: number; membreNom: string } | null>(null);
   const [completionAmount, setCompletionAmount] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsNom, setSettingsNom] = useState("");
+  const [settingsPenaliteActive, setSettingsPenaliteActive] = useState(false);
+  const [settingsPenaliteMontant, setSettingsPenaliteMontant] = useState("");
+  const [settingsPenaliteDelai, setSettingsPenaliteDelai] = useState("");
+  const [settingsSaving, setSettingsSaving] = useState(false);
 
   useScrollLock(
-    showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null
+    showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null || showSettings
   );
 
   async function loadData(signal?: AbortSignal) {
@@ -321,6 +327,35 @@ export default function TontineDetail() {
     } catch { setError("Erreur"); }
   }
 
+  async function handleSaveSettings(e: React.FormEvent) {
+    e.preventDefault();
+    setSettingsSaving(true);
+    try {
+      const body: Record<string, unknown> = {};
+      if (settingsNom.trim()) body.nom = settingsNom.trim();
+      body.penaliteRetardActive = settingsPenaliteActive;
+      body.penaliteRetardMontant = parseFloat(settingsPenaliteMontant) || 0;
+      body.penaliteRetardDelaiJours = parseInt(settingsPenaliteDelai) || 0;
+      const res = await fetch(`/api/tontines/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
+      setShowSettings(false);
+      loadData();
+    } catch { setError("Erreur"); }
+    setSettingsSaving(false);
+  }
+
+  function openSettings() {
+    setSettingsNom(tontine.nom);
+    setSettingsPenaliteActive(tontine.penaliteRetardActive);
+    setSettingsPenaliteMontant(tontine.penaliteRetardMontant.toString());
+    setSettingsPenaliteDelai(tontine.penaliteRetardDelaiJours.toString());
+    setShowSettings(true);
+  }
+
   if (loading) return (
     <div className="space-y-3 animate-pulse">
       <div className="skeleton h-6 w-48" />
@@ -408,9 +443,14 @@ export default function TontineDetail() {
         <div className="flex items-center gap-2 shrink-0">
           <span className={`badge shrink-0 ${tontine.statut === "active" ? "bg-emerald-500 text-white" : "bg-stone-400 text-white"}`}>{tontine.statut === "active" ? "Active" : tontine.statut}</span>
           {tontine.statut === "active" && (
-            <button onClick={() => setShowDeleteConfirm(true)} className="btn-danger-sm shrink-0">
-              <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
-            </button>
+            <>
+              <button onClick={openSettings} className="btn-ghost p-2 hover:text-[var(--color-brand)]" title="Paramètres">
+                <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
+              </button>
+              <button onClick={() => setShowDeleteConfirm(true)} className="btn-danger-sm shrink-0">
+                <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1413,6 +1453,97 @@ export default function TontineDetail() {
         onConfirm={() => { if (deleteTourConfirm !== null) handleDeleteTour(deleteTourConfirm); }}
         onCancel={() => setDeleteTourConfirm(null)}
       />
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowSettings(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">Paramètres de la tontine</h3>
+              </div>
+            </div>
+            <form onSubmit={handleSaveSettings} className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div>
+                  <label className="field-label">Nom</label>
+                  <input type="text" value={settingsNom} onChange={e => setSettingsNom(e.target.value)} className="input-field" required placeholder="Nom de la tontine" autoComplete="off" />
+                </div>
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-medium text-ink">Pénalité de retard</p>
+                      <p className="text-xs text-muted mt-0.5">Appliquer une pénalité aux cotisations en retard</p>
+                    </div>
+                    <button type="button" onClick={() => setSettingsPenaliteActive(!settingsPenaliteActive)} className={`relative w-11 h-6 rounded-full transition-colors ${settingsPenaliteActive ? "bg-[var(--color-brand)]" : "bg-[var(--color-border)]"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settingsPenaliteActive ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  {settingsPenaliteActive && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="field-label">Montant de la pénalité</label>
+                        <input type="number" value={settingsPenaliteMontant} onChange={e => setSettingsPenaliteMontant(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" placeholder="Ex: 500" />
+                      </div>
+                      <div>
+                        <label className="field-label">Délai (jours après la date prévue)</label>
+                        <input type="number" value={settingsPenaliteDelai} onChange={e => setSettingsPenaliteDelai(e.target.value)} className="input-field" min="0" step="1" inputMode="numeric" placeholder="Ex: 3" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+                <button type="submit" disabled={settingsSaving} className="btn-primary w-full py-3">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
+              </div>
+            </form>
+          </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowSettings(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-ink">Paramètres de la tontine</h3>
+                <button onClick={() => setShowSettings(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleSaveSettings} className="space-y-4">
+                <div>
+                  <label className="field-label">Nom</label>
+                  <input type="text" value={settingsNom} onChange={e => setSettingsNom(e.target.value)} className="input-field" required placeholder="Nom de la tontine" autoComplete="off" />
+                </div>
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-medium text-ink">Pénalité de retard</p>
+                      <p className="text-xs text-muted mt-0.5">Appliquer une pénalité aux cotisations en retard</p>
+                    </div>
+                    <button type="button" onClick={() => setSettingsPenaliteActive(!settingsPenaliteActive)} className={`relative w-11 h-6 rounded-full transition-colors ${settingsPenaliteActive ? "bg-[var(--color-brand)]" : "bg-[var(--color-border)]"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settingsPenaliteActive ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  {settingsPenaliteActive && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="field-label">Montant de la pénalité</label>
+                        <input type="number" value={settingsPenaliteMontant} onChange={e => setSettingsPenaliteMontant(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" placeholder="Ex: 500" />
+                      </div>
+                      <div>
+                        <label className="field-label">Délai (jours après la date prévue)</label>
+                        <input type="number" value={settingsPenaliteDelai} onChange={e => setSettingsPenaliteDelai(e.target.value)} className="input-field" min="0" step="1" inputMode="numeric" placeholder="Ex: 3" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowSettings(false)} className="btn-mono flex-1 py-3">Annuler</button>
+                  <button type="submit" disabled={settingsSaving} className="btn-primary flex-1 py-3">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

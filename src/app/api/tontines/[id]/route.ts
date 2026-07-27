@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
+import { recalculerPenalitesTontine } from "@/lib/tontine";
 
 async function getTontine(id: number, userId: number, include?: Record<string, unknown>) {
   return prisma.tontine.findFirst({
@@ -55,6 +56,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const body = await req.json();
   const updateData: Record<string, unknown> = {};
+  let penaltyChanged = false;
 
   if (body.nom !== undefined) updateData.nom = body.nom;
   if (body.montantCotisation !== undefined) updateData.montantCotisation = parseFloat(body.montantCotisation);
@@ -63,16 +65,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.scopeCommission !== undefined) updateData.scopeCommission = body.scopeCommission;
   if (body.dateDistribution !== undefined) updateData.dateDistribution = body.dateDistribution ? new Date(body.dateDistribution) : null;
   if (body.statut !== undefined) updateData.statut = body.statut;
-  if (body.penaliteRetardActive !== undefined) updateData.penaliteRetardActive = Boolean(body.penaliteRetardActive);
-  if (body.penaliteRetardMontant !== undefined) updateData.penaliteRetardMontant = parseFloat(body.penaliteRetardMontant);
-  if (body.penaliteRetardDelaiJours !== undefined) updateData.penaliteRetardDelaiJours = parseInt(body.penaliteRetardDelaiJours);
+  if (body.penaliteRetardActive !== undefined) { updateData.penaliteRetardActive = Boolean(body.penaliteRetardActive); penaltyChanged = true; }
+  if (body.penaliteRetardMontant !== undefined) { updateData.penaliteRetardMontant = parseFloat(body.penaliteRetardMontant); penaltyChanged = true; }
+  if (body.penaliteRetardDelaiJours !== undefined) { updateData.penaliteRetardDelaiJours = parseInt(body.penaliteRetardDelaiJours); penaltyChanged = true; }
 
   const tontine = await prisma.tontine.update({
     where: { id: tontineId },
     data: updateData,
   });
 
-  return ok({ tontine });
+  let recalculated = 0;
+  if (penaltyChanged) {
+    recalculated = await recalculerPenalitesTontine(tontineId);
+  }
+
+  return ok({ tontine, recalculated });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

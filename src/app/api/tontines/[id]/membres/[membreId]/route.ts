@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
+import { resetMembreData } from "@/lib/tontine";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; membreId: string }> }) {
   let userId: number;
@@ -28,6 +29,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     where: { id: membreIntId },
     data: { statut: "retire" },
   });
+
+  await resetMembreData(membreIntId);
 
   return ok({ success: true });
 }
@@ -69,6 +72,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id: membreIntId },
     data: updateData,
   });
+
+  if (body.statut === "retire" || body.statut === "exclu") {
+    await resetMembreData(membreIntId);
+  }
 
   return ok({ membre });
 }

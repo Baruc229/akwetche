@@ -232,6 +232,47 @@ export async function trouverTourPourPeriode(tontineId: number, periode: Date): 
   return bestTourId;
 }
 
+export async function recalculerPenalitesTontine(tontineId: number): Promise<number> {
+  const tontine = await prisma.tontine.findUnique({ where: { id: tontineId } });
+  if (!tontine) return 0;
+
+  const cotisations = await prisma.tontineCotisation.findMany({
+    where: { tontineId },
+  });
+
+  let count = 0;
+  for (const c of cotisations) {
+    const membre = await prisma.tontineMembre.findUnique({ where: { id: c.membreId } });
+    const montantCotisationEffectif = membre?.montantCotisationPersonnel ?? tontine.montantCotisation;
+
+    const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
+      montantCotisationEffectif,
+      tontine.penaliteRetardActive,
+      tontine.penaliteRetardMontant,
+      tontine.penaliteRetardDelaiJours,
+      c.periode,
+      new Date()
+    );
+
+    if (montantTotal !== c.montantTotal || montantPenalite !== c.montantPenalite) {
+      await prisma.tontineCotisation.update({
+        where: { id: c.id },
+        data: { montantTotal, montantPenalite },
+      });
+      if (c.tourId) await recalculerMontantCollecteTour(c.tourId);
+      count++;
+    }
+  }
+  return count;
+}
+
+export async function resetMembreData(membreId: number): Promise<void> {
+  await prisma.tontineMembre.update({
+    where: { id: membreId },
+    data: { soldeAvance: 0, montantCotisationPersonnel: null },
+  });
+}
+
 export async function recalculerMontantCollecteTour(tourId: number): Promise<void> {
   const result = await prisma.tontineCotisation.aggregate({
     where: { tourId },
