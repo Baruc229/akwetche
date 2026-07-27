@@ -349,6 +349,7 @@ export default function TontineDetail() {
   }
 
   function openSettings() {
+    if (!tontine) return;
     setSettingsNom(tontine.nom);
     setSettingsPenaliteActive(tontine.penaliteRetardActive);
     setSettingsPenaliteMontant(tontine.penaliteRetardMontant.toString());
