@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
-import { genererTours } from "@/lib/tontine";
+import { genererTours, validerTransitionTour, avancerTourSuivant } from "@/lib/tontine";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let userId: number;
@@ -97,16 +97,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { tourId, montantCollecte, statut } = await req.json();
   if (!tourId) return badRequest("tourId requis");
 
+  const tour = await prisma.tontineTour.findFirst({
+    where: { id: parseInt(tourId), tontineId },
+  });
+  if (!tour) return badRequest("Tour introuvable");
+
   const updateData: Record<string, unknown> = {};
   if (montantCollecte !== undefined) updateData.montantCollecte = parseFloat(montantCollecte);
-  if (statut !== undefined) updateData.statut = statut;
 
-  const tour = await prisma.tontineTour.update({
+  if (statut !== undefined) {
+    if (!validerTransitionTour(tour.statut, statut)) {
+      return badRequest(`Transition invalide: ${tour.statut} → ${statut}`);
+    }
+    updateData.statut = statut;
+  }
+
+  const updatedTour = await prisma.tontineTour.update({
     where: { id: parseInt(tourId) },
     data: updateData,
   });
 
-  return ok({ tour });
+  if (updateData.statut === "collecte_terminee") {
+    await avancerTourSuivant(tontineId, parseInt(tourId));
+  }
+
+  return ok({ tour: updatedTour });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

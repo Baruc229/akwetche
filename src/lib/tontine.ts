@@ -222,7 +222,7 @@ export async function trouverTourPourPeriode(tontineId: number, periode: Date): 
   let bestTourId: number | null = null;
   let bestDiff = Infinity;
   for (const tour of tours) {
-    if (tour.statut === "cloture") continue;
+    if (tour.statut === "cloture" || tour.statut === "collecte_terminee") continue;
     const diff = Math.abs(periode.getTime() - tour.datePrevue.getTime());
     if (diff < bestDiff) {
       bestDiff = diff;
@@ -296,4 +296,38 @@ export async function recalculerMontantCollecteTour(tourId: number): Promise<voi
     where: { id: tourId },
     data: { montantCollecte: result._sum.montantPaye || 0 },
   });
+}
+
+// ─── Tour state machine ──────────────────────────────────────────
+
+type TourStatut = "planifie" | "en_cours" | "collecte_terminee" | "cloture";
+
+const TRANSITIONS_VALIDES: Record<TourStatut, TourStatut[]> = {
+  planifie: ["en_cours"],
+  en_cours: ["collecte_terminee"],
+  collecte_terminee: ["cloture"],
+  cloture: [],
+};
+
+export function validerTransitionTour(statutActuel: string, nouveauStatut: string): boolean {
+  const valides = TRANSITIONS_VALIDES[statutActuel as TourStatut];
+  if (!valides) return false;
+  return valides.includes(nouveauStatut as TourStatut);
+}
+
+export async function avancerTourSuivant(tontineId: number, tourTermineId: number): Promise<void> {
+  const tourTermine = await prisma.tontineTour.findUnique({ where: { id: tourTermineId } });
+  if (!tourTermine || tourTermine.statut !== "collecte_terminee") return;
+
+  const prochainTour = await prisma.tontineTour.findFirst({
+    where: { tontineId, statut: "planifie" },
+    orderBy: { numeroTour: "asc" },
+  });
+
+  if (prochainTour) {
+    await prisma.tontineTour.update({
+      where: { id: prochainTour.id },
+      data: { statut: "en_cours" },
+    });
+  }
 }

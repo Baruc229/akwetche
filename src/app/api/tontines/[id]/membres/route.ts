@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!tontine) return badRequest("Tontine introuvable");
 
-  const { nom, contact } = await req.json();
+  const { nom, contact, montantCotisationPersonnel } = await req.json();
   if (!nom) return badRequest("Le nom est obligatoire");
 
   let ordrePassage: number | null = null;
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       nom,
       contact: contact || null,
       ordrePassage,
+      montantCotisationPersonnel: montantCotisationPersonnel != null && montantCotisationPersonnel !== "" ? parseFloat(montantCotisationPersonnel) : null,
     },
   });
 

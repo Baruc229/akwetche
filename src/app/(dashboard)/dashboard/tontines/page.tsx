@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -147,29 +147,47 @@ export default function TontinesPage() {
   const ordered = [...tontines.filter(t => t.statut === "active"), ...tontines.filter(t => t.statut !== "active")];
 
   return (
-    <div className="space-y-3 pb-24 sm:pb-0">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-ink">Tontines</h1>
-        <button onClick={() => setShowCreate(true)} className="btn-primary">
-          <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
-          <span className="hidden sm:inline">Créer une tontine</span>
-          <span className="sm:hidden">Créer</span>
-        </button>
+    <div className="space-y-4 pb-24 sm:pb-0">
+      <div className="relative overflow-hidden rounded-2xl bg-[var(--color-brand)] p-5 sm:p-6 text-white shadow-sm shadow-[var(--color-brand)]/20">
+        <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/[0.07]" />
+        <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/[0.05]" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
+                <FontAwesomeIcon icon={faLayerGroup} className="w-4 h-4 text-white/90" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Tontines</h1>
+            </div>
+            <p className="text-sm text-white/60 mt-1">{"Gérez vos groupes d'épargne collective"}</p>
+          </div>
+          <button onClick={() => setShowCreate(true)} className="btn-primary bg-white/15 hover:bg-white/25 text-white border border-white/10 backdrop-blur-sm shrink-0">
+            <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+            <span className="hidden sm:inline">Créer une tontine</span>
+            <span className="sm:hidden">Créer</span>
+          </button>
+        </div>
       </div>
 
       {ordered.length === 0 ? (
-        <div className="card text-center py-8">
-          <FontAwesomeIcon icon={faPeopleGroup} className="w-12 h-12 text-muted/30 mb-3" />
-          <p className="text-muted mb-3">Aucune tontine pour le moment</p>
-          <button onClick={() => setShowCreate(true)} className="btn-primary"><FontAwesomeIcon icon={faPlus} className="w-4 h-4" /> Créer la première</button>
+        <div className="card text-center py-12 px-6">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--color-brand-subtle)] flex items-center justify-center mx-auto mb-4">
+            <FontAwesomeIcon icon={faPeopleGroup} className="w-7 h-7 text-[var(--color-brand)]/40" />
+          </div>
+          <h3 className="text-base font-semibold text-ink mb-1.5">Aucune tontine</h3>
+          <p className="text-sm text-muted max-w-xs mx-auto mb-5">Créez votre première tontine pour commencer à gérer vos cotisations et épargnes collectives.</p>
+          <button onClick={() => setShowCreate(true)} className="btn-primary">
+            <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+            Créer la première tontine
+          </button>
         </div>
       ) : (
-        <div className="card divide-y divide-[var(--color-border)]">
-          {ordered.map(t => (
-            <a key={t.id} href={`/dashboard/tontines/${t.id}`} className="flex items-center justify-between py-3 px-1 hover:bg-[var(--color-surface-raised)] transition-colors rounded-lg gap-3">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${t.type === "rotative_simple" ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
-                  <FontAwesomeIcon icon={t.type === "rotative_simple" ? faHandHoldingDollar : faSackDollar} className={`w-4 h-4 ${t.type === "rotative_simple" ? "text-emerald-600" : "text-amber-600"}`} />
+        <div className="card shadow-sm shadow-black/5 divide-y divide-[var(--color-border)] overflow-hidden">
+          {ordered.map((t, idx) => (
+            <a key={t.id} href={`/dashboard/tontines/${t.id}`} className="group flex items-center justify-between py-4 px-1 -mx-1 hover:bg-[var(--color-surface-raised)] hover:shadow-sm hover:shadow-black/[0.03] hover:border-[var(--color-brand)]/10 transition-all duration-200 gap-3" style={{ animationDelay: `${idx * 40}ms` }}>
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${t.type === "rotative_simple" ? "bg-gradient-to-br from-emerald-50 to-emerald-100" : "bg-gradient-to-br from-amber-50 to-amber-100"}`}>
+                  <FontAwesomeIcon icon={t.type === "rotative_simple" ? faHandHoldingDollar : faSackDollar} className={`w-[18px] h-[18px] ${t.type === "rotative_simple" ? "text-emerald-600" : "text-amber-600"}`} />
                 </div>
                 <div className="min-w-0 flex-1 group/name">
                   <p className="text-sm font-semibold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{t.nom}</p>
@@ -179,13 +197,13 @@ export default function TontinesPage() {
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
                   {t.retardsCount > 0 && (
-                    <span className="badge bg-red-500 text-white text-xs"><FontAwesomeIcon icon={faCircleExclamation} className="w-3 h-3 mr-1" />{t.retardsCount} retard{t.retardsCount > 1 ? "s" : ""}</span>
+                    <span className="badge bg-red-500/10 text-red-600 border border-red-200 text-xs gap-1.5 py-1 px-2.5"><FontAwesomeIcon icon={faCircleExclamation} className="w-3 h-3" />{t.retardsCount} retard{t.retardsCount > 1 ? "s" : ""}</span>
                   )}
                   {t.statut === "active" && t.retardsCount === 0 && (
-                    <span className="badge bg-emerald-500 text-white text-xs"><FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 mr-1" />À jour</span>
+                    <span className="badge bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs gap-1.5 py-1 px-2.5"><FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3" />À jour</span>
                   )}
-                  {t.statut !== "active" && <span className="badge bg-stone-400 text-white text-xs capitalize">{t.statut}</span>}
-                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 text-muted/30" />
+                  {t.statut !== "active" && <span className="badge bg-stone-100 text-stone-500 border border-stone-200 text-xs capitalize py-1 px-2.5">{t.statut}</span>}
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 text-muted/25 group-hover:text-[var(--color-brand)] transition-colors" />
                 </div>
               </div>
             </a>
@@ -201,7 +219,12 @@ export default function TontinesPage() {
               <button onClick={() => { setShowCreate(false); setError(""); }} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                 <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
               </button>
-              <h3 className="text-base font-semibold text-ink">Nouvelle tontine</h3>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-brand-subtle)] flex items-center justify-center">
+                  <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                </div>
+                <h3 className="text-base font-semibold text-ink">Nouvelle tontine</h3>
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <form onSubmit={handleCreate} className="space-y-4">
@@ -312,16 +335,24 @@ export default function TontinesPage() {
                   </div>
                 )}
                 {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
-                <button type="submit" className="btn-primary w-full py-3">Créer</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
               </form>
             </div>
           </div>
           {/* Desktop — centered popup */}
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { setShowCreate(false); setError(""); }}>
-            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-lg shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => { setShowCreate(false); setError(""); }}>
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-lg shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] overflow-y-auto border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-lg font-bold text-ink">Nouvelle tontine</h3>
-                <button onClick={() => { setShowCreate(false); setError(""); }} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--color-brand-subtle)] flex items-center justify-center">
+                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-[var(--color-brand)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-ink">Nouvelle tontine</h3>
+                    <p className="text-xs text-muted">{"Configurez votre groupe d'épargne"}</p>
+                  </div>
+                </div>
+                <button onClick={() => { setShowCreate(false); setError(""); }} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
               </div>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
@@ -431,7 +462,7 @@ export default function TontinesPage() {
                   </div>
                 )}
                 {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
-                <button type="submit" className="btn-primary w-full">Créer</button>
+                <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
               </form>
             </div>
           </div>

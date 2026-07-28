@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear, faCoins, faHandHoldingDollar, faPercentage, faUsers, faCalendarDays, faSackDollar } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -57,9 +57,12 @@ export default function TontineDetail() {
   const [tontine, setTontine] = useState<Tontine | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showNewMembre, setShowNewMembre] = useState(false);
-  const [newMembreNom, setNewMembreNom] = useState("");
-  const [newMembreContact, setNewMembreContact] = useState("");
+  const [showMembreForm, setShowMembreForm] = useState(false);
+  const [membreFormMode, setMembreFormMode] = useState<"add" | "edit">("add");
+  const [editingMembreId, setEditingMembreId] = useState<number | null>(null);
+  const [membreFormNom, setMembreFormNom] = useState("");
+  const [membreFormContact, setMembreFormContact] = useState("");
+  const [membreFormMontant, setMembreFormMontant] = useState("");
   const [membreIdForCotisation, setMembreIdForCotisation] = useState("");
   const [cotisationPeriode, setCotisationPeriode] = useState("");
   const [cotisationMontant, setCotisationMontant] = useState("");
@@ -70,15 +73,13 @@ export default function TontineDetail() {
   const [distData, setDistData] = useState({ dateDistribution: "", montantAlloueVivres: "", montantAlloueArgent: "" });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [editMembreNom, setEditMembreNom] = useState("");
   const [deleteMembreConfirm, setDeleteMembreConfirm] = useState<number | null>(null);
   const [deleteCotisationConfirm, setDeleteCotisationConfirm] = useState<number | null>(null);
   const [deleteTourConfirm, setDeleteTourConfirm] = useState<number | null>(null);
   const [editingCotisation, setEditingCotisation] = useState<number | null>(null);
   const [editCotisationMontant, setEditCotisationMontant] = useState("");
   const [detailMembre, setDetailMembre] = useState<number | null>(null);
-  const [editMembreContact, setEditMembreContact] = useState("");
-  const [editMembreMontant, setEditMembreMontant] = useState("");
+
   const [cotisationFilter, setCotisationFilter] = useState<string>("tous");
   const [cotisationGroupBy, setCotisationGroupBy] = useState<"none" | "membre">("none");
   const [completingCotisation, setCompletingCotisation] = useState<{ id: number; montantPaye: number; montantTotal: number; membreNom: string } | null>(null);
@@ -91,7 +92,7 @@ export default function TontineDetail() {
   const [settingsSaving, setSettingsSaving] = useState(false);
 
   useScrollLock(
-    showNewMembre || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null || showSettings
+    showMembreForm || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null || showSettings
   );
 
   async function loadData(signal?: AbortSignal) {
@@ -179,17 +180,16 @@ export default function TontineDetail() {
     ? (tontine?.nombreTours || 0)
     : nbPeriodesTotal;
 
-  async function handleAddMembre(e: React.FormEvent) {
+  async function handleSubmitMembre(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/tontines/${id}/membres`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom: newMembreNom, contact: newMembreContact || null }),
-      });
+      const body = { nom: membreFormNom, contact: membreFormContact || null, montantCotisationPersonnel: membreFormMontant !== "" ? membreFormMontant : null };
+      const res = membreFormMode === "edit" && editingMembreId
+        ? await fetch(`/api/tontines/${id}/membres/${editingMembreId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+        : await fetch(`/api/tontines/${id}/membres`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
-      setShowNewMembre(false); setNewMembreNom(""); setNewMembreContact("");
+      setShowMembreForm(false); setMembreFormNom(""); setMembreFormContact(""); setMembreFormMontant(""); setEditingMembreId(null);
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -199,20 +199,6 @@ export default function TontineDetail() {
       const res = await fetch(`/api/tontines/${id}/membres/${membreId}`, { method: "DELETE" });
       if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
       setDeleteMembreConfirm(null);
-      loadData();
-    } catch { setError("Erreur"); }
-  }
-
-  async function handleEditMembre(membreId: number) {
-    if (!editMembreNom.trim()) return;
-    try {
-      const res = await fetch(`/api/tontines/${id}/membres/${membreId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nom: editMembreNom.trim(), contact: editMembreContact || null, montantCotisationPersonnel: editMembreMontant !== "" ? editMembreMontant : null }),
-      });
-      if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
-      setDetailMembre(null);
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -301,13 +287,27 @@ export default function TontineDetail() {
     } catch { setError("Erreur"); }
   }
 
-  async function handleCloturerTour(tourId: number, montantCollecte: number) {
+  async function handleCloturerCollecte(tourId: number) {
     try {
-      await fetch(`/api/tontines/${id}/tours`, {
+      const res = await fetch(`/api/tontines/${id}/tours`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tourId, statut: "cloture", montantCollecte }),
+        body: JSON.stringify({ tourId, statut: "collecte_terminee" }),
       });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Erreur"); return; }
+      loadData();
+    } catch { setError("Erreur"); }
+  }
+
+  async function handleDistribuerTour(tourId: number) {
+    try {
+      const res = await fetch(`/api/tontines/${id}/tours/${tourId}/distribuer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Erreur"); return; }
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -371,20 +371,20 @@ export default function TontineDetail() {
   const cotisationsDuMembre = detailMembre ? tontine?.cotisations?.filter(c => c.membre.id === detailMembre) || [] : [];
 
   function renderCotisation(c: Cotisation) {
-    const bandiere = c.statut === "paye" ? "bg-emerald-100 text-emerald-700" : c.statut === "partiel" ? "bg-amber-100 text-amber-700" : c.statut === "en_retard" ? "bg-red-100 text-red-700" : "bg-stone-100 text-stone-600";
+    const bandiere = c.statut === "paye" ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : c.statut === "partiel" ? "bg-amber-50 text-amber-600 border border-amber-200" : c.statut === "en_retard" ? "bg-red-50 text-red-600 border border-red-200" : "bg-stone-100 text-stone-500 border border-stone-200";
     const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
     const isEditing = editingCotisation === c.id;
     return (
-      <div key={c.id} className={`flex items-center justify-between py-2 px-1 ${isEditing ? "bg-[var(--color-surface-raised)] rounded-lg" : ""}`}>
+      <div key={c.id} className={`flex items-center justify-between py-3 px-3 ${isEditing ? "bg-[var(--color-surface-raised)]" : "hover:bg-[var(--color-surface-raised)]"} transition-colors`}>
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-ink truncate">{c.membre.nom}</p>
-          <p className="text-xs text-muted">
+          <p className="text-sm text-ink font-medium truncate">{c.membre.nom}</p>
+          <p className="text-xs text-muted mt-0.5">
             {new Date(c.periode).toLocaleDateString("fr-FR")}
             {" · "}{formatCurrency(c.montantPaye)}
             {c.montantTotal > c.montantPaye && <span className="text-red-400"> / {formatCurrency(c.montantTotal)}</span>}
           </p>
           {c.montantPenalite > 0 && (
-            <p className="text-xs text-amber-600">dont pénalité: {formatCurrency(c.montantPenalite)}</p>
+            <p className="text-xs text-amber-600 mt-0.5">dont pénalité: {formatCurrency(c.montantPenalite)}</p>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -429,20 +429,30 @@ export default function TontineDetail() {
   );
 
   return (
-    <div className="space-y-3 pb-24 sm:pb-0">
+    <div className="space-y-4 pb-24 sm:pb-0">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0 group/name">
-          <Link href="/dashboard/tontines" className="text-muted hover:text-ink transition-colors shrink-0">
+      <div className="card p-4 sm:p-5 shadow-sm shadow-black/5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0 group/name">
+          <Link href="/dashboard/tontines" className="text-muted hover:text-ink transition-colors shrink-0 mt-0.5 w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]">
             <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
           </Link>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{tontine.nom}</h1>
-            <span className="text-xs text-muted truncate block">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"} · Écart {tontine.frequence}j · {formatCurrency(tontine.montantCotisation)}</span>
+            <h1 className="text-lg sm:text-xl font-bold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words leading-tight">{tontine.nom}</h1>
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <span className="text-xs text-muted">{tontine.type === "rotative_simple" ? "Rotative simple" : "Vivres / fin d'année"}</span>
+              <span className="text-muted/30">·</span>
+              <span className="text-xs text-muted">Écart {tontine.frequence}j</span>
+              <span className="text-muted/30">·</span>
+              <span className="text-xs font-medium text-ink">{formatCurrency(tontine.montantCotisation)}</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={`badge shrink-0 ${tontine.statut === "active" ? "bg-emerald-500 text-white" : "bg-stone-400 text-white"}`}>{tontine.statut === "active" ? "Active" : tontine.statut}</span>
+        <div className="flex items-center gap-2 shrink-0 mt-1 sm:mt-0">
+          <span className={`badge shrink-0 py-1 px-3 ${tontine.statut === "active" ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-stone-100 text-stone-500 border border-stone-200"}`}>
+            {tontine.statut === "active" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse" />}
+            {tontine.statut === "active" ? "Active" : tontine.statut}
+          </span>
           {tontine.statut === "active" && (
             <>
               <button onClick={openSettings} className="btn-ghost p-2 hover:text-[var(--color-brand)]" title="Paramètres">
@@ -453,6 +463,7 @@ export default function TontineDetail() {
               </button>
             </>
           )}
+        </div>
         </div>
       </div>
 
@@ -465,76 +476,107 @@ export default function TontineDetail() {
       )}
 
       {/* KPIs */}
-      <div className="card">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-          <div className="card-inset text-center">
+      <div className="card shadow-sm shadow-black/5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="card-inset text-center p-4 relative overflow-hidden">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={faCoins} className="w-4 h-4 text-blue-600" />
+            </div>
             <p className="text-label">Collecté brut</p>
             <p className="text-amount text-base mt-1">{formatCurrency(totalCollecte + revenuCommission)}</p>
-            <p className="text-xs text-muted mt-0.5">ce que les membres ont versé</p>
+            <p className="text-[11px] text-muted mt-0.5">ce que les membres ont versé</p>
           </div>
-          <div className="card-inset text-center">
+          <div className="card-inset text-center p-4 relative overflow-hidden">
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={faHandHoldingDollar} className="w-4 h-4 text-emerald-600" />
+            </div>
             <p className="text-label">Collecté net</p>
             <p className="text-amount text-base mt-1">{formatCurrency(totalCollecte)}</p>
-            <p className="text-xs text-muted mt-0.5">cagnotte commune</p>
+            <p className="text-[11px] text-muted mt-0.5">cagnotte commune</p>
           </div>
           {tontine.fraisOrganisateurParDefaut > 0 && (
-            <div className="card-inset text-center">
+            <div className="card-inset text-center p-4 relative overflow-hidden">
+              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center mx-auto mb-2.5">
+                <FontAwesomeIcon icon={faPercentage} className="w-4 h-4 text-amber-600" />
+              </div>
               <p className="text-label">Commission</p>
               <p className="text-amount text-base mt-1">{formatCurrency(revenuCommission)}</p>
-              <p className="text-xs text-muted mt-0.5">revenu organisateur</p>
+              <p className="text-[11px] text-muted mt-0.5">revenu organisateur</p>
             </div>
           )}
-          <div className="card-inset text-center">
+          <div className="card-inset text-center p-4 relative overflow-hidden">
+            <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={tontine.type === "rotative_simple" ? faArrowRight : faUsers} className="w-4 h-4 text-violet-600" />
+            </div>
             <p className="text-label">{tontine.type === "rotative_simple" ? "Tours" : "Membres"}</p>
             <p className="text-amount text-base mt-1">{tontine.type === "rotative_simple" ? tontine.tours?.length || 0 : actifs.length}</p>
           </div>
           {tontine.type === "vivres_fin_annee" && tontine.dateDistribution && (
             partProjetee > 0 && (
-              <div className="card-inset text-center">
+              <div className="card-inset text-center p-4 relative overflow-hidden">
+                <div className="w-9 h-9 rounded-lg bg-[var(--color-brand-subtle)] flex items-center justify-center mx-auto mb-2.5">
+                  <FontAwesomeIcon icon={faSackDollar} className="w-4 h-4 text-[var(--color-brand)]" />
+                </div>
                 <p className="text-label">Part projetée</p>
-                <p className="text-base font-semibold mt-1">{formatCurrency(partProjetee)}</p>
+                <p className="text-amount text-base mt-1">{formatCurrency(partProjetee)}</p>
               </div>
             )
           )}
           {tontine.type === "vivres_fin_annee" && tontine.dateDistribution && (
-            <div className="card-inset text-center">
+            <div className="card-inset text-center p-4 relative overflow-hidden">
+              <div className="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center mx-auto mb-2.5">
+                <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-rose-600" />
+              </div>
               <p className="text-label">Jours restants</p>
-              <p className="text-base font-semibold mt-1">{joursRestants}</p>
+              <p className="text-amount text-base mt-1">{joursRestants}</p>
             </div>
           )}
           {tontine.type === "rotative_simple" && (
-            <div className="card-inset text-center">
+            <div className="card-inset text-center p-4 relative overflow-hidden">
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2.5 ${tauxCollecte < 80 ? "bg-red-50" : "bg-emerald-50"}`}>
+                <FontAwesomeIcon icon={faPercentage} className={`w-4 h-4 ${tauxCollecte < 80 ? "text-red-500" : "text-emerald-600"}`} />
+              </div>
               <p className="text-label">Taux collecte</p>
-              <p className={`text-base font-semibold mt-1 ${tauxCollecte < 80 ? "text-red-500" : "text-green-500"}`}>{tauxCollecte}%</p>
+              <p className={`text-amount text-base mt-1 ${tauxCollecte < 80 ? "text-red-500" : "text-emerald-600"}`}>{tauxCollecte}%</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Membres */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-ink">Membres ({actifs.length})</h3>
-          {tontine.statut === "active" && <button onClick={() => setShowNewMembre(true)} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Ajouter</button>}
+      <div className="card shadow-sm shadow-black/5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+              <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-violet-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-ink">Membres ({actifs.length})</h3>
+          </div>
+          {tontine.statut === "active" && <button onClick={() => { setMembreFormMode("add"); setEditingMembreId(null); setMembreFormNom(""); setMembreFormContact(""); setMembreFormMontant(""); setShowMembreForm(true); }} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Ajouter</button>}
         </div>
         {actifs.length === 0 ? (
-          <p className="text-sm text-muted py-2">Aucun membre</p>
+          <div className="text-center py-6">
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-raised)] flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-muted/30" />
+            </div>
+            <p className="text-sm text-muted">Aucun membre ajouté</p>
+          </div>
         ) : (
-          <div className="divide-y divide-[var(--color-border)]">
+          <div className="space-y-1">
             {actifs.map((m, idx) => {
               const enRetard = m.nbRetards > 0;
               const colors = MEMBER_COLORS[idx % MEMBER_COLORS.length];
               return (
-                <button key={m.id} onClick={() => { setDetailMembre(m.id); setEditMembreNom(m.nom); setEditMembreContact(m.contact || ""); setEditMembreMontant(m.montantCotisationPersonnel != null ? String(m.montantCotisationPersonnel) : ""); }} className="w-full flex items-center justify-between py-2.5 text-left hover:bg-[var(--color-surface-raised)] rounded-lg px-1 transition-colors">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${enRetard ? "bg-red-100" : colors.bg}`}>
-                      <FontAwesomeIcon icon={enRetard ? faCircleExclamation : faCheckCircle} className={`w-3.5 h-3.5 ${enRetard ? "text-red-500" : colors.text}`} />
+                <button key={m.id} onClick={() => setDetailMembre(m.id)} className="w-full flex items-center justify-between py-3 text-left hover:bg-[var(--color-surface-raised)] hover:shadow-sm hover:shadow-black/[0.02] rounded-xl px-3 transition-all duration-200 group">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${enRetard ? "bg-red-100" : colors.bg}`}>
+                      <FontAwesomeIcon icon={enRetard ? faCircleExclamation : faCheckCircle} className={`w-4 h-4 ${enRetard ? "text-red-500" : colors.text}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="text-sm text-ink font-medium block truncate">{m.ordrePassage ? `#${m.ordrePassage} ` : ""}{m.nom}</span>
+                      <span className="text-sm text-ink font-medium block truncate group-hover:text-[var(--color-brand)] transition-colors">{m.ordrePassage ? `#${m.ordrePassage} ` : ""}{m.nom}</span>
                       {m.contact && <span className="text-xs text-muted block truncate">{m.contact}</span>}
                     </div>
-                    {enRetard && <span className="badge bg-red-500 text-white text-xs shrink-0">Retard</span>}
+                    {enRetard && <span className="badge bg-red-50 text-red-600 border border-red-200 text-xs shrink-0 py-1 px-2.5">Retard</span>}
                   </div>
                   <div className="flex items-center gap-3 shrink-0 ml-2 text-right">
                     <div className="text-xs text-muted">
@@ -542,7 +584,7 @@ export default function TontineDetail() {
                       <span className="block">{formatCurrency(m.montantTotalPaye)}</span>
                       {m.soldeAvance > 0 && <span className="block text-emerald-600">+{formatCurrency(m.soldeAvance)} avance</span>}
                     </div>
-                    <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 text-muted/30" />
+                    <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3 text-muted/20 group-hover:text-[var(--color-brand)] transition-colors" />
                   </div>
                 </button>
               );
@@ -553,9 +595,14 @@ export default function TontineDetail() {
 
       {/* Rotative: Tours */}
       {tontine.type === "rotative_simple" && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-ink">Tours</h3>
+        <div className="card shadow-sm shadow-black/5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 text-amber-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-ink">Tours</h3>
+            </div>
             {tontine.statut === "active" && (
               <div className="flex items-center gap-2">
                 {(tontine.tours || []).length === 0 && tontine.nombreTours && actifs.length > 0 && (
@@ -574,38 +621,58 @@ export default function TontineDetail() {
             )}
           </div>
           {(tontine.tours || []).length === 0 ? (
-            <p className="text-sm text-muted">Aucun tour planifié</p>
+            <div className="text-center py-6">
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-raised)] flex items-center justify-center mx-auto mb-2.5">
+                <FontAwesomeIcon icon={faArrowRight} className="w-5 h-5 text-muted/30" />
+              </div>
+              <p className="text-sm text-muted">Aucun tour planifié</p>
+            </div>
           ) : (
-            <div className="divide-y divide-[var(--color-border)]">
-              {(tontine.tours || []).map(tour => {
-                const beneficiaire = actifs.find(m => m.id === tour.beneficiaireId);
-                const estEnCours = tour.statut === "en_cours";
-                const estPlanifie = tour.statut === "planifie";
-                const bgTouch = estEnCours ? "bg-emerald-50 dark:bg-emerald-900/20" : "";
-                const statutLabel = tour.statut === "en_cours" ? "En cours" : tour.statut === "planifie" ? "Planifié" : tour.statut === "collecte_terminee" ? "Collecte terminée" : "Clôturé";
-                const statutColor = tour.statut === "en_cours" ? "bg-amber-100 text-amber-700" : tour.statut === "planifie" ? "bg-stone-100 text-stone-600" : "bg-green-100 text-green-700";
-                return (
-                  <div key={tour.id} className={`flex items-center justify-between py-2.5 px-1 rounded-lg ${bgTouch}`}>
-                    <div>
-                      <p className="text-sm text-ink font-medium">{tour.numeroTour}. Bénéficiaire: <strong>{beneficiaire?.nom || "—"}</strong></p>
-                      <p className="text-xs text-muted mt-0.5">{formatCurrency(tour.montantAttendu)} attendu · {formatCurrency(tour.montantCollecte)} collecté</p>
+            <div className="relative">
+              <div className="absolute left-[19px] top-3 bottom-3 w-px bg-[var(--color-border)]" />
+              <div className="space-y-1">
+                {(tontine.tours || []).map(tour => {
+                  const beneficiaire = actifs.find(m => m.id === tour.beneficiaireId);
+                  const estEnCours = tour.statut === "en_cours";
+                  const estCollecteTerminee = tour.statut === "collecte_terminee";
+                  const statutLabel = tour.statut === "en_cours" ? "En cours" : tour.statut === "planifie" ? "Planifié" : estCollecteTerminee ? "Collecte terminée" : "Clôturé";
+                  const statutColor = tour.statut === "en_cours" ? "bg-amber-100 text-amber-700 border border-amber-200" : tour.statut === "planifie" ? "bg-stone-100 text-stone-600 border border-stone-200" : estCollecteTerminee ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-emerald-50 text-emerald-600 border border-emerald-200";
+                  const dotColor = estEnCours ? "bg-amber-500" : estCollecteTerminee ? "bg-blue-500" : tour.statut === "planifie" ? "bg-stone-400" : "bg-emerald-500";
+                  return (
+                    <div key={tour.id} className={`relative flex items-center justify-between py-3 pl-12 pr-1 rounded-xl hover:bg-[var(--color-surface-raised)] transition-colors ${estEnCours ? "bg-emerald-50/50" : ""}`}>
+                      <div className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full border-2 border-[var(--color-surface)] ${dotColor} shadow-sm z-10`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-ink font-medium">{tour.numeroTour}. <span className="text-muted font-normal">Bénéficiaire:</span> <strong>{beneficiaire?.nom || "—"}</strong></p>
+                        <p className="text-xs text-muted mt-1">{formatCurrency(tour.montantAttendu)} attendu · {formatCurrency(tour.montantCollecte)} collecté</p>
+                        {estEnCours && tour.montantAttendu > 0 && (
+                          <div className="mt-2">
+                            <div className="bar-track sm">
+                              <div className="bar-fill bg-[var(--color-bar-brand)]" style={{ width: `${Math.min(100, tauxCollecte)}%` }} />
+                            </div>
+                            <p className="text-[11px] text-muted mt-1">{tauxCollecte}% collecté</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {estEnCours && (
+                          <button onClick={() => handleCloturerCollecte(tour.id)} className="btn-mono text-xs">Clôturer la collecte</button>
+                        )}
+                        {estCollecteTerminee && (
+                          <button onClick={() => handleDistribuerTour(tour.id)} className="btn-primary-sm text-xs">Distribuer le pot</button>
+                        )}
+                        {!estEnCours && !estCollecteTerminee && tontine.statut === "active" && (
+                          <button onClick={() => setDeleteTourConfirm(tour.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
+                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                          </button>
+                        )}
+                        <span className={`badge text-xs ${statutColor}`}>
+                          {statutLabel}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {estEnCours && (
-                        <button onClick={() => handleCloturerTour(tour.id, 0)} className="btn-mono text-xs">Clôturer</button>
-                      )}
-                      {!estEnCours && tontine.statut === "active" && (
-                        <button onClick={() => setDeleteTourConfirm(tour.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
-                          <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-                        </button>
-                      )}
-                      <span className={`badge text-xs ${statutColor}`}>
-                        {statutLabel}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -613,9 +680,14 @@ export default function TontineDetail() {
 
       {/* Vivres: Distribution */}
       {tontine.type === "vivres_fin_annee" && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-ink">Distribution</h3>
+        <div className="card shadow-sm shadow-black/5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <FontAwesomeIcon icon={faSackDollar} className="w-4 h-4 text-emerald-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-ink">Distribution</h3>
+            </div>
             {tontine.statut === "active" && !tontine.distribution && (
               <button onClick={() => { setDistData({ dateDistribution: tontine.dateDistribution || "", montantAlloueVivres: "", montantAlloueArgent: (actifs.length > 0 ? totalCollecte / actifs.length : 0).toString() }); setShowDistribution(true); }} className="btn-primary-sm">
                 <FontAwesomeIcon icon={faPlus} /> Planifier
@@ -662,28 +734,38 @@ export default function TontineDetail() {
       )}
 
       {/* Cotisations */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-ink">Cotisations</h3>
+      <div className="card shadow-sm shadow-black/5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <FontAwesomeIcon icon={faCoins} className="w-4 h-4 text-blue-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-ink">Cotisations</h3>
+          </div>
           {tontine.statut === "active" && <button onClick={() => setShowNewCotisation(true)} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Enregistrer</button>}
         </div>
         {(tontine.cotisations || []).length === 0 ? (
-          <p className="text-sm text-muted">Aucune cotisation</p>
+          <div className="text-center py-6">
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-raised)] flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={faCoins} className="w-5 h-5 text-muted/30" />
+            </div>
+            <p className="text-sm text-muted">Aucune cotisation enregistrée</p>
+          </div>
         ) : (
           <>
             {/* Filtres */}
-            <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
               {["tous", "paye", "partiel", "en_retard", "en_attente"].map(f => (
-                <button key={f} onClick={() => setCotisationFilter(f)} className={`btn-mono text-xs whitespace-nowrap ${cotisationFilter === f ? "!bg-[var(--color-brand-subtle)] !border-[var(--color-brand)] !text-[var(--color-brand)]" : ""}`}>
+                <button key={f} onClick={() => setCotisationFilter(f)} className={`btn-mono text-xs whitespace-nowrap transition-all duration-200 ${cotisationFilter === f ? "!bg-[var(--color-brand-subtle)] !border-[var(--color-brand)] !text-[var(--color-brand)] shadow-sm" : ""}`}>
                   {f === "tous" ? "Tous" : f === "paye" ? "Payé" : f === "partiel" ? "Partiel" : f === "en_retard" ? "En retard" : "En attente"}
                 </button>
               ))}
-              <span className="text-xs text-muted/30">|</span>
-              <button onClick={() => setCotisationGroupBy(cotisationGroupBy === "none" ? "membre" : "none")} className={`btn-mono text-xs whitespace-nowrap ${cotisationGroupBy === "membre" ? "!bg-[var(--color-brand-subtle)] !border-[var(--color-brand)] !text-[var(--color-brand)]" : ""}`}>
+              <span className="text-xs text-muted/20 mx-0.5">|</span>
+              <button onClick={() => setCotisationGroupBy(cotisationGroupBy === "none" ? "membre" : "none")} className={`btn-mono text-xs whitespace-nowrap transition-all duration-200 ${cotisationGroupBy === "membre" ? "!bg-[var(--color-brand-subtle)] !border-[var(--color-brand)] !text-[var(--color-brand)] shadow-sm" : ""}`}>
                 {cotisationGroupBy === "membre" ? "Par membre" : "Par date"}
               </button>
             </div>
-            <div className="divide-y divide-[var(--color-border)] max-h-96 overflow-y-auto custom-select-scrollbar">
+            <div className="max-h-96 overflow-y-auto custom-select-scrollbar rounded-xl border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
               {(() => {
                 const allCotisations = (tontine.cotisations || []).slice().reverse();
                 const filtered = cotisationFilter === "tous" ? allCotisations : allCotisations.filter(c => c.statut === cotisationFilter);
@@ -724,10 +806,13 @@ export default function TontineDetail() {
                 <button onClick={() => setDetailMembre(null)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${detailMembreColor.bg}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${detailMembreColor.bg}`}>
                   <span className={`font-display font-bold text-sm ${detailMembreColor.text}`}>{detailMembreData.nom.charAt(0).toUpperCase()}</span>
                 </div>
-                <h3 className="text-base font-semibold text-ink">{detailMembreData.nom}</h3>
+                <div>
+                  <h3 className="text-base font-semibold text-ink">{detailMembreData.nom}</h3>
+                  <p className="text-[11px] text-muted">Détails du membre</p>
+                </div>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -762,23 +847,9 @@ export default function TontineDetail() {
               {/* Édition */}
               {tontine.statut === "active" && (
                 <div className="border-t border-[var(--color-border)] pt-4">
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Modifier</p>
-                  <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
-                    <div>
-                      <label className="field-label">Nom</label>
-                      <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required autoComplete="name" placeholder="Nom du membre" />
-                    </div>
-                    <div>
-                      <label className="field-label">Contact</label>
-                      <input type="tel" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
-                    </div>
-                    <div>
-                      <label className="field-label">Montant cotisation</label>
-                      <input type="number" value={editMembreMontant} onChange={e => setEditMembreMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
-                      <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
-                    </div>
-                    <button type="submit" className="btn-primary w-full">Enregistrer</button>
-                  </form>
+                  <button onClick={() => { setMembreFormMode("edit"); setEditingMembreId(detailMembreData.id); setMembreFormNom(detailMembreData.nom); setMembreFormContact(detailMembreData.contact || ""); setMembreFormMontant(detailMembreData.montantCotisationPersonnel != null ? String(detailMembreData.montantCotisationPersonnel) : ""); setShowMembreForm(true); setDetailMembre(null); }} className="btn-primary-sm w-full justify-center gap-2">
+                    <FontAwesomeIcon icon={faPencil} className="w-3 h-3" /> Modifier
+                  </button>
                 </div>
               )}
               {/* Cotisations */}
@@ -815,16 +886,19 @@ export default function TontineDetail() {
               )}
             </div>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setDetailMembre(null)}>
-            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setDetailMembre(null)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-6 pb-0 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${detailMembreColor.bg}`}>
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${detailMembreColor.bg}`}>
                     <span className={`font-display font-bold text-base ${detailMembreColor.text}`}>{detailMembreData.nom.charAt(0).toUpperCase()}</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-ink">{detailMembreData.nom}</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold text-ink">{detailMembreData.nom}</h3>
+                    <p className="text-xs text-muted">Détails du membre</p>
+                  </div>
                 </div>
-                <button onClick={() => setDetailMembre(null)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+                <button onClick={() => setDetailMembre(null)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div className="grid grid-cols-3 gap-2">
@@ -855,23 +929,9 @@ export default function TontineDetail() {
                 )}
                 {tontine.statut === "active" && (
                   <div className="border-t border-[var(--color-border)] pt-4">
-                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Modifier</p>
-                    <form onSubmit={e => { e.preventDefault(); handleEditMembre(detailMembreData.id); }} className="space-y-3">
-                      <div>
-                        <label className="field-label">Nom</label>
-                        <input type="text" value={editMembreNom} onChange={e => setEditMembreNom(e.target.value)} className="input-field" required autoComplete="name" placeholder="Nom du membre" />
-                      </div>
-                      <div>
-                        <label className="field-label">Contact</label>
-                        <input type="tel" value={editMembreContact} onChange={e => setEditMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
-                      </div>
-                      <div>
-                        <label className="field-label">Montant cotisation</label>
-                        <input type="number" value={editMembreMontant} onChange={e => setEditMembreMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
-                        <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
-                      </div>
-                      <button type="submit" className="btn-primary w-full">Enregistrer</button>
-                    </form>
+                    <button onClick={() => { setMembreFormMode("edit"); setEditingMembreId(detailMembreData.id); setMembreFormNom(detailMembreData.nom); setMembreFormContact(detailMembreData.contact || ""); setMembreFormMontant(detailMembreData.montantCotisationPersonnel != null ? String(detailMembreData.montantCotisationPersonnel) : ""); setShowMembreForm(true); setDetailMembre(null); }} className="btn-primary-sm w-full justify-center gap-2">
+                      <FontAwesomeIcon icon={faPencil} className="w-3 h-3" /> Modifier
+                    </button>
                   </div>
                 )}
                 {cotisationsDuMembre.length > 0 && (
@@ -910,53 +970,63 @@ export default function TontineDetail() {
         </>
       )}
 
-      {/* New Membre Modal */}
-      {showNewMembre && (
+      {/* Membre Form Modal */}
+      {showMembreForm && (
         <>
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowNewMembre(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                <button onClick={() => setShowMembreForm(false)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                   <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
                 </button>
-                <h3 className="text-base font-semibold text-ink">Nouveau membre</h3>
+                <h3 className="text-base font-semibold text-ink">{membreFormMode === "edit" ? "Modifier le membre" : "Nouveau membre"}</h3>
               </div>
             </div>
-            <form onSubmit={handleAddMembre} className="flex-1 flex flex-col min-h-0">
+            <form onSubmit={handleSubmitMembre} className="flex-1 flex flex-col min-h-0">
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div>
                   <label className="field-label">Nom</label>
-                  <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required autoComplete="name" />
+                  <input type="text" value={membreFormNom} onChange={e => setMembreFormNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required autoComplete="name" />
                 </div>
                 <div>
                   <label className="field-label">Contact</label>
-                  <input type="tel" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
+                  <input type="tel" value={membreFormContact} onChange={e => setMembreFormContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
+                </div>
+                <div>
+                  <label className="field-label">Montant cotisation</label>
+                  <input type="number" value={membreFormMontant} onChange={e => setMembreFormMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
+                  <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3">Ajouter</button>
+                <button type="submit" className="btn-primary w-full py-3">{membreFormMode === "edit" ? "Enregistrer" : "Ajouter"}</button>
               </div>
             </form>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewMembre(false)}>
-            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowMembreForm(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-6 pb-0">
-                <h3 className="text-lg font-semibold text-ink">Nouveau membre</h3>
-                <button onClick={() => setShowNewMembre(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+                <h3 className="text-lg font-semibold text-ink">{membreFormMode === "edit" ? "Modifier le membre" : "Nouveau membre"}</h3>
+                <button onClick={() => setShowMembreForm(false)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
               </div>
-              <form onSubmit={handleAddMembre} className="flex-1 flex flex-col overflow-hidden">
+              <form onSubmit={handleSubmitMembre} className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   <div>
                     <label className="field-label">Nom</label>
-                    <input type="text" value={newMembreNom} onChange={e => setNewMembreNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required autoComplete="name" />
+                    <input type="text" value={membreFormNom} onChange={e => setMembreFormNom(e.target.value)} className="input-field" placeholder="Nom complet du membre" required autoComplete="name" />
                   </div>
                   <div>
                     <label className="field-label">Contact</label>
-                    <input type="tel" value={newMembreContact} onChange={e => setNewMembreContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
+                    <input type="tel" value={membreFormContact} onChange={e => setMembreFormContact(e.target.value)} className="input-field" placeholder="Téléphone, email..." inputMode="tel" autoComplete="tel" />
+                  </div>
+                  <div>
+                    <label className="field-label">Montant cotisation</label>
+                    <input type="number" value={membreFormMontant} onChange={e => setMembreFormMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
+                    <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
                   </div>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full">Ajouter</button>
+                  <button type="submit" className="btn-primary w-full">{membreFormMode === "edit" ? "Enregistrer" : "Ajouter"}</button>
                 </div>
               </form>
             </div>
@@ -1063,15 +1133,15 @@ export default function TontineDetail() {
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3">Enregistrer</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Enregistrer</button>
               </div>
             </form>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewCotisation(false)}>
-            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowNewCotisation(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-6 pb-0">
                 <h3 className="text-lg font-semibold text-ink">Enregistrer un paiement</h3>
-                <button onClick={() => setShowNewCotisation(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+                <button onClick={() => setShowNewCotisation(false)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
               </div>
               <form onSubmit={handleAddCotisation} className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -1151,7 +1221,7 @@ export default function TontineDetail() {
                   </div>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full">Enregistrer</button>
+                  <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Enregistrer</button>
                 </div>
               </form>
             </div>
@@ -1197,15 +1267,15 @@ export default function TontineDetail() {
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3">Créer</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
               </div>
             </form>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowNewTour(false)}>
-            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowNewTour(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-6 pb-0">
                 <h3 className="text-lg font-semibold text-ink">Nouveau tour</h3>
-                <button onClick={() => setShowNewTour(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+                <button onClick={() => setShowNewTour(false)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
               </div>
               <form onSubmit={handleAddTour} className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -1233,7 +1303,7 @@ export default function TontineDetail() {
                   </div>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full">Créer</button>
+                  <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
                 </div>
               </form>
             </div>
@@ -1270,15 +1340,15 @@ export default function TontineDetail() {
                 <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3">Planifier</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Planifier</button>
               </div>
             </form>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowDistribution(false)}>
-            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowDistribution(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-6 pb-0">
                 <h3 className="text-lg font-semibold text-ink">Planifier distribution</h3>
-                <button onClick={() => setShowDistribution(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+                <button onClick={() => setShowDistribution(false)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
               </div>
               <form onSubmit={handleSaveDistribution} className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -1297,7 +1367,7 @@ export default function TontineDetail() {
                   <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full">Planifier</button>
+                  <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Planifier</button>
                 </div>
               </form>
             </div>
@@ -1353,11 +1423,11 @@ export default function TontineDetail() {
               </div>
             </div>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }}>
-            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }}>
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-bold text-ink">Compléter le paiement</h3>
-                <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+                <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
               </div>
               <div className="space-y-4">
                 <div className="card-inset">
@@ -1498,15 +1568,15 @@ export default function TontineDetail() {
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" disabled={settingsSaving} className="btn-primary w-full py-3">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
+                <button type="submit" disabled={settingsSaving} className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
               </div>
             </form>
           </div>
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 animate-fade-in" onClick={() => setShowSettings(false)}>
-            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowSettings(false)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-bold text-ink">Paramètres de la tontine</h3>
-                <button onClick={() => setShowSettings(false)} className="text-muted hover:text-ink"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
+                <button onClick={() => setShowSettings(false)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-5 h-5" /></button>
               </div>
               <form onSubmit={handleSaveSettings} className="space-y-4">
                 <div>
@@ -1538,7 +1608,7 @@ export default function TontineDetail() {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={() => setShowSettings(false)} className="btn-mono flex-1 py-3">Annuler</button>
-                  <button type="submit" disabled={settingsSaving} className="btn-primary flex-1 py-3">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
+                  <button type="submit" disabled={settingsSaving} className="btn-primary flex-1 py-3 shadow-sm shadow-[var(--color-brand)]/20">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
                 </div>
               </form>
             </div>
