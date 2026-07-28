@@ -137,7 +137,7 @@ export default function TontinesPage() {
 
   if (loading) return (
     <div className="space-y-3 animate-pulse">
-      <div className="skeleton h-6 w-48" />
+      <div className="skeleton h-6 max-w-48 w-full sm:w-48" />
       <div className="card space-y-3">
         <div className="skeleton h-12 w-full" /><div className="skeleton h-12 w-full" /><div className="skeleton h-12 w-full" />
       </div>
@@ -191,9 +191,9 @@ export default function TontinesPage() {
                 </div>
                 <div className="min-w-0 flex-1 group/name">
                   <p className="text-sm font-semibold text-ink truncate group-hover/name:whitespace-normal group-hover/name:break-words">{t.nom}</p>
-                  <p className="text-xs text-muted mt-0.5 truncate">
-                    {t.type === "rotative_simple" ? "Rotative" : "Vivres/fin d'année"} · {t.membreCount} membre{t.membreCount > 1 ? "s" : ""} · Écart {t.frequence}j · {formatCurrency(t.montantCotisation)}
-                  </p>
+                    <p className="text-xs text-muted mt-0.5 truncate">
+                      {t.type === "rotative_simple" ? "Rotative" : "Vivres/fin d'année"} · {t.membreCount} membre{t.membreCount > 1 ? "s" : ""}<span className="hidden sm:inline"> · Écart {t.frequence}j</span> · {formatCurrency(t.montantCotisation)}
+                    </p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
                   {t.retardsCount > 0 && (
@@ -216,7 +216,7 @@ export default function TontinesPage() {
           {/* Mobile — full page */}
           <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
             <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
-              <button onClick={() => { setShowCreate(false); setError(""); }} className="w-9 h-9 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+              <button onClick={() => { setShowCreate(false); setError(""); }} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
                 <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
               </button>
               <div className="flex items-center gap-2.5">
@@ -310,7 +310,7 @@ export default function TontinesPage() {
                     </button>
                   </div>
                   {newTnt.penaliteRetardActive && (
-                    <div className="grid grid-cols-2 gap-3 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                       <div>
                         <label className="field-label text-xs">Montant pénalité</label>
                         <input type="number" inputMode="decimal" step="0.01" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
@@ -437,7 +437,7 @@ export default function TontinesPage() {
                     </button>
                   </div>
                   {newTnt.penaliteRetardActive && (
-                    <div className="grid grid-cols-2 gap-3 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                       <div>
                         <label className="field-label text-xs">Montant pénalité</label>
                         <input type="number" inputMode="decimal" step="0.01" value={newTnt.penaliteRetardMontant} onChange={e => setNewTnt({...newTnt, penaliteRetardMontant: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />

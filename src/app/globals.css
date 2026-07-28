@@ -91,7 +91,7 @@ body {
 
 /* Typography */
 .text-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -1px; }
-.text-amount  { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.8px; line-height: 1; }
+.text-amount  { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.8px; line-height: 1; overflow-wrap: break-word; word-break: break-word; white-space: normal; }
 .text-label   { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-muted); }
 
 /* Cards */
@@ -101,6 +101,7 @@ body {
   border-radius: 16px;
   padding: 22px 24px;
 }
+@media (max-width: 480px) { .card { padding: 16px 18px; } }
 .card-compact { padding: 14px 16px; border-radius: 12px; background: var(--color-surface); border: 1px solid var(--color-border); }
 .card-hero    { background: var(--color-brand); border-radius: 18px; padding: 28px 30px; color: white; overflow: hidden; }
 @layer base {
@@ -212,7 +213,7 @@ body {
 }
 
 /* Badges */
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .badge-brand { background: var(--color-brand-subtle); color: var(--color-brand); }
 .badge-pos   { background: var(--color-pos-bg); color: var(--color-pos); }
 .badge-neg   { background: var(--color-neg-bg); color: var(--color-neg); }
@@ -225,7 +226,8 @@ body {
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.45;} }
 
 /* Alertes inline */
-.alert-inline { display:flex; align-items:flex-start; gap:10px; padding:11px 14px; border-radius:10px; font-size:12.5px; line-height:1.4; }
+.alert-inline { display:flex; align-items:flex-start; gap:10px; padding:11px 14px; border-radius:10px; font-size:12.5px; line-height:1.4; overflow: hidden; }
+.alert-inline > p { min-width: 0; }
 .alert-inline.pos  { background:var(--color-pos-bg);  color:var(--color-pos);  border:1px solid var(--color-pos-border);  }
 .alert-inline.neg  { background:var(--color-neg-bg);  color:var(--color-neg);  border:1px solid var(--color-neg-border);  }
 .alert-inline.warn { background:var(--color-warn-bg); color:var(--color-warn); border:1px solid var(--color-warn-border); }
