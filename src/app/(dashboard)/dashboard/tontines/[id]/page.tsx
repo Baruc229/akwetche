@@ -655,7 +655,7 @@ export default function TontineDetail() {
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-wrap ml-1 sm:ml-3">
                         {estEnCours && (
-                          <button onClick={() => handleCloturerCollecte(tour.id)} className="btn-mono text-xs"><span className="hidden sm:inline">Clôturer la </span>Collecte</button>
+                          <button onClick={() => handleCloturerCollecte(tour.id)} className="btn-mono text-xs"><span className="hidden sm:inline">Clôturer la </span>Clôturer</button>
                         )}
                         {estCollecteTerminee && (
                           <button onClick={() => handleDistribuerTour(tour.id)} className="btn-primary-sm text-xs"><span className="hidden sm:inline">Distribuer le </span>Pot</button>
