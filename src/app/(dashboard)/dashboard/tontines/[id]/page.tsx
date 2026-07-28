@@ -653,12 +653,12 @@ export default function TontineDetail() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap shrink-0 ml-3">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap ml-1 sm:ml-3">
                         {estEnCours && (
-                          <button onClick={() => handleCloturerCollecte(tour.id)} className="btn-mono text-xs">Clôturer la collecte</button>
+                          <button onClick={() => handleCloturerCollecte(tour.id)} className="btn-mono text-xs"><span className="hidden sm:inline">Clôturer la </span>Collecte</button>
                         )}
                         {estCollecteTerminee && (
-                          <button onClick={() => handleDistribuerTour(tour.id)} className="btn-primary-sm text-xs">Distribuer le pot</button>
+                          <button onClick={() => handleDistribuerTour(tour.id)} className="btn-primary-sm text-xs"><span className="hidden sm:inline">Distribuer le </span>Pot</button>
                         )}
                         {!estEnCours && !estCollecteTerminee && tontine.statut === "active" && (
                           <button onClick={() => setDeleteTourConfirm(tour.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
