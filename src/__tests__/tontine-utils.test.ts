@@ -6,6 +6,7 @@ import {
   genererGrilleMises,
   calculerMisesMembre,
   planifierImputation,
+  planifierDesimputation,
 } from "@/lib/tontine-utils";
 
 describe("tontine-utils — getFrequenceJours", () => {
@@ -198,5 +199,85 @@ describe("tontine-utils — planifierImputation", () => {
     expect(plan2.creates.length).toBe(1);
     expect(plan2.creates[0].aImputer).toBe(1200);
     expect(plan2.soldeRestant).toBe(0);
+  });
+});
+
+describe("tontine-utils — planifierDesimputation", () => {
+  const fraisOrganisateur = 200;
+
+  it("réduit partiellement la période imputée avec une commission au prorata", () => {
+    const plan = planifierDesimputation({
+      reduction: 400,
+      periodesImputees: [
+        { id: 1, periode: new Date("2026-01-09"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+      ],
+      fraisOrganisateur,
+    });
+    expect(plan.updates.length).toBe(1);
+    expect(plan.updates[0].id).toBe(1);
+    expect(plan.updates[0].nouveauPaye).toBe(800);
+    expect(plan.updates[0].nouveauStatut).toBe("partiel");
+    expect(plan.updates[0].nouvelleCommission).toBe(133.33);
+    expect(plan.deletes.length).toBe(0);
+    expect(plan.reste).toBe(0);
+  });
+
+  it("dés-impute d'abord la période la plus lointaine, puis la plus proche", () => {
+    const plan = planifierDesimputation({
+      reduction: 1500,
+      periodesImputees: [
+        { id: 3, periode: new Date("2026-01-13"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+        { id: 2, periode: new Date("2026-01-09"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+        { id: 1, periode: new Date("2026-01-05"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+      ],
+      fraisOrganisateur,
+    });
+    expect(plan.deletes.map((d) => d.id)).toEqual([3]);
+    expect(plan.updates.length).toBe(1);
+    expect(plan.updates[0].id).toBe(2);
+    expect(plan.updates[0].nouveauPaye).toBe(900);
+    expect(plan.updates[0].nouveauStatut).toBe("partiel");
+    expect(plan.reste).toBe(0);
+  });
+
+  it("redevient une avance quand la réduction dépasse la chaîne imputée", () => {
+    const plan = planifierDesimputation({
+      reduction: 1500,
+      periodesImputees: [
+        { id: 1, periode: new Date("2026-01-05"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+      ],
+      fraisOrganisateur,
+    });
+    expect(plan.deletes.map((d) => d.id)).toEqual([1]);
+    expect(plan.updates.length).toBe(0);
+    expect(plan.reste).toBe(300);
+  });
+
+  it("ne touche à rien pour une réduction nulle", () => {
+    const plan = planifierDesimputation({
+      reduction: 0,
+      periodesImputees: [
+        { id: 1, periode: new Date("2026-01-05"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+      ],
+      fraisOrganisateur,
+    });
+    expect(plan.updates.length).toBe(0);
+    expect(plan.deletes.length).toBe(0);
+    expect(plan.reste).toBe(0);
+  });
+
+  it("ignore les périodes au-delà de la réduction (les plus proches restent intactes)", () => {
+    const plan = planifierDesimputation({
+      reduction: 1200,
+      periodesImputees: [
+        { id: 2, periode: new Date("2026-01-09"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+        { id: 1, periode: new Date("2026-01-05"), montantTotal: 1200, montantPaye: 1200, commissionAmount: 200 },
+      ],
+      fraisOrganisateur,
+    });
+    // La plus lointaine (id 2) est entièrement reprise, la plus proche (id 1) reste payée.
+    expect(plan.deletes.map((d) => d.id)).toEqual([2]);
+    expect(plan.updates.length).toBe(0);
+    expect(plan.reste).toBe(0);
   });
 });

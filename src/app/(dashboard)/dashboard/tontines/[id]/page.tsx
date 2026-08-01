@@ -30,7 +30,7 @@ type Membre = {
 type Cotisation = {
   id: number; periode: string; montantBase: number; fraisOrganisateur: number;
   montantTotal: number; montantPaye: number; montantPenalite: number;
-  datePaiement: string | null; statut: string;
+  datePaiement: string | null; statut: string; imputee?: boolean;
   membre: { id: number; nom: string };
 };
 
@@ -83,8 +83,10 @@ export default function TontineDetail() {
   const [deleteMembreConfirm, setDeleteMembreConfirm] = useState<number | null>(null);
   const [deleteCotisationConfirm, setDeleteCotisationConfirm] = useState<number | null>(null);
   const [deleteTourConfirm, setDeleteTourConfirm] = useState<number | null>(null);
-  const [editingCotisation, setEditingCotisation] = useState<number | null>(null);
+  const [editingCotisation, setEditingCotisation] = useState<Cotisation | null>(null);
   const [editCotisationMontant, setEditCotisationMontant] = useState("");
+  const [editCotisationPeriode, setEditCotisationPeriode] = useState("");
+  const [editCotisationSaving, setEditCotisationSaving] = useState(false);
   const [detailMembre, setDetailMembre] = useState<number | null>(null);
 
   const [cotisationFilter, setCotisationFilter] = useState<string>("tous");
@@ -99,7 +101,7 @@ export default function TontineDetail() {
   const [settingsSaving, setSettingsSaving] = useState(false);
 
   useScrollLock(
-    showMembreForm || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null || showSettings
+    showMembreForm || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null || editingCotisation !== null || showSettings
   );
 
   async function loadData(signal?: AbortSignal) {
@@ -241,15 +243,22 @@ export default function TontineDetail() {
 
   async function handleEditCotisation(cotisationId: number) {
     try {
+      setEditCotisationSaving(true);
       const res = await fetch(`/api/tontines/${id}/cotisations/${cotisationId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ montantPaye: parseFloat(editCotisationMontant) || 0 }),
+        body: JSON.stringify({
+          montantPaye: parseFloat(editCotisationMontant) || 0,
+          periode: editCotisationPeriode,
+        }),
       });
       if (!res.ok) { const data = await res.json(); setError(data.error || "Erreur"); return; }
       setEditingCotisation(null);
+      setEditCotisationMontant("");
+      setEditCotisationPeriode("");
       loadData();
     } catch { setError("Erreur"); }
+    finally { setEditCotisationSaving(false); }
   }
 
   async function handleDeleteCotisation(cotisationId: number) {
@@ -409,9 +418,8 @@ export default function TontineDetail() {
   function renderCotisation(c: Cotisation) {
     const bandiere = c.statut === "paye" ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : c.statut === "partiel" ? "bg-amber-50 text-amber-600 border border-amber-200" : c.statut === "en_retard" ? "bg-red-50 text-red-600 border border-red-200" : "bg-stone-100 text-stone-500 border border-stone-200";
     const statutLabel = c.statut === "paye" ? "Payé" : c.statut === "partiel" ? "Partiel" : c.statut === "en_retard" ? "En retard" : "En attente";
-    const isEditing = editingCotisation === c.id;
     return (
-      <div key={c.id} className={`flex items-center justify-between py-3 px-3 ${isEditing ? "bg-[var(--color-surface-raised)]" : "hover:bg-[var(--color-surface-raised)]"} transition-colors`}>
+      <div key={c.id} className="flex items-center justify-between py-3 px-3 hover:bg-[var(--color-surface-raised)] transition-colors">
         <div className="min-w-0 flex-1">
           <p className="text-sm text-ink font-medium truncate">{c.membre.nom}</p>
           <p className="text-xs text-muted mt-0.5">
@@ -427,29 +435,19 @@ export default function TontineDetail() {
           {c.fraisOrganisateur > 0 && c.statut !== "en_attente" && (
             <span className="text-xs text-muted hidden sm:inline">comm. {formatCurrency(c.fraisOrganisateur)}</span>
           )}
-          {isEditing ? (
-            <div className="flex items-center gap-1">
-              <input type="number" value={editCotisationMontant} onChange={e => setEditCotisationMontant(e.target.value)} className="input-field text-xs py-1 px-2 w-24" min="0" step="0.01" inputMode="decimal" autoFocus />
-              <button onClick={() => handleEditCotisation(c.id)} className="btn-primary-sm text-xs">OK</button>
-              <button onClick={() => setEditingCotisation(null)} className="btn-mono text-xs">X</button>
-            </div>
-          ) : (
-            <>
-              <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
-              {c.statut === "partiel" && !isEditing && (
-                <button onClick={() => { setCompletingCotisation({ id: c.id, montantPaye: c.montantPaye, montantTotal: c.montantTotal, membreNom: c.membre.nom }); setCompletionAmount((c.montantTotal - c.montantPaye).toString()); }} className="btn-primary-sm text-xs gap-1" title="Compléter le paiement">
-                  <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3" />
-                  <span className="hidden sm:inline">Compléter</span>
-                </button>
-              )}
-              <button onClick={() => { setEditingCotisation(c.id); setEditCotisationMontant(c.montantPaye.toString()); }} className="btn-ghost p-1.5" title="Modifier">
-                <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
-              </button>
-              <button onClick={() => setDeleteCotisationConfirm(c.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
+          <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
+          {c.statut === "partiel" && (
+            <button onClick={() => { setCompletingCotisation({ id: c.id, montantPaye: c.montantPaye, montantTotal: c.montantTotal, membreNom: c.membre.nom }); setCompletionAmount((c.montantTotal - c.montantPaye).toString()); }} className="btn-primary-sm text-xs gap-1" title="Compléter le paiement">
+              <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3" />
+              <span className="hidden sm:inline">Compléter</span>
+            </button>
+          )}
+          <button onClick={() => { setEditingCotisation(c); setEditCotisationMontant(c.montantPaye.toString()); setEditCotisationPeriode(c.periode.split("T")[0]); }} className="btn-ghost p-1.5" title="Modifier">
+            <FontAwesomeIcon icon={faPencil} className="w-3 h-3" />
+          </button>
+          <button onClick={() => setDeleteCotisationConfirm(c.id)} className="btn-ghost p-1.5 hover:text-[var(--color-neg)]" title="Supprimer">
                 <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
               </button>
-            </>
-          )}
         </div>
       </div>
     );
@@ -1660,6 +1658,187 @@ export default function TontineDetail() {
                 <div className="flex gap-3">
                   <button onClick={() => { setCompletingCotisation(null); setCompletionAmount(""); }} className="btn-mono flex-1">Annuler</button>
                   <button onClick={handleCompleteCotisation} className="btn-primary flex-1">Confirmer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {editingCotisation && (
+        <>
+          <div className="fixed inset-0 z-50 md:hidden bg-[var(--color-bg)] animate-slide-up flex flex-col">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3.5 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setEditingCotisation(null)} className="w-11 h-11 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">
+                  <FontAwesomeIcon icon={faArrowRight} className="w-4 h-4 rotate-180" />
+                </button>
+                <h3 className="text-base font-semibold text-ink">Modifier la mise</h3>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="card-inset">
+                  <p className="text-sm text-muted">Membre</p>
+                  <p className="font-semibold text-ink">{editingCotisation.membre.nom}</p>
+                </div>
+                {editingCotisation.imputee && (
+                  <p className="text-xs text-emerald-600 font-medium">Période payée par avance (imputée sur un surplus)</p>
+                )}
+                <div>
+                  <label className="field-label">Période</label>
+                  <DatePicker value={editCotisationPeriode} onChange={v => setEditCotisationPeriode(v)} />
+                </div>
+                <div>
+                  <label className="field-label">Montant payé</label>
+                  <input type="number" value={editCotisationMontant} onChange={e => setEditCotisationMontant(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" autoFocus />
+                  <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) versé par le membre</p>
+                </div>
+                {(() => {
+                  const now = new Date();
+                  const freqJ = parseInt(tontine.frequence) || 1;
+                  const periodeDate = new Date(editCotisationPeriode);
+                  const dateValide = !isNaN(periodeDate.getTime());
+                  const dateLimite = dateValide ? new Date(periodeDate.getTime() + freqJ * 24 * 60 * 60 * 1000) : null;
+                  const estEnRetard = dateValide && dateLimite && now > dateLimite;
+                  const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
+                  const dateLimitePenalite = dateValide ? new Date(periodeDate.getTime() + tontine.penaliteRetardDelaiJours * 24 * 60 * 60 * 1000) : null;
+                  const penaliteAppliquee = penaliteActive && dateValide && dateLimitePenalite && now > dateLimitePenalite;
+                  const montantMise = editingCotisation.montantBase + editingCotisation.fraisOrganisateur;
+                  const montantTotalNouveau = montantMise + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                  const montantPaye = parseFloat(editCotisationMontant) || 0;
+                  const surplus = Math.max(0, montantPaye - montantTotalNouveau);
+                  const reduction = editingCotisation.montantPaye - montantPaye;
+                  const chaineImputee = (tontine.cotisations || [])
+                    .filter(c => c.membre.id === editingCotisation.membre.id && c.imputee && new Date(c.periode).getTime() > new Date(editingCotisation.periode).getTime())
+                    .reduce((s, c) => s + c.montantPaye, 0);
+                  const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
+                    : montantPaye >= montantTotalNouveau ? "Payé" : (estEnRetard ? "En retard" : "Partiel");
+                  return (
+                    <div className="card-inset space-y-2">
+                      {dateValide && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted">Montant dû (avec pénalité éventuelle)</span>
+                          <span className="text-sm font-semibold text-ink">{formatCurrency(montantTotalNouveau)}</span>
+                        </div>
+                      )}
+                      {penaliteAppliquee && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-amber-600">Pénalité retard</span>
+                          <span className="text-sm font-semibold text-amber-600">+ {formatCurrency(tontine.penaliteRetardMontant)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted">Statut résultant</span>
+                        <span className={`text-sm font-semibold ${statutResultant === "Payé" ? "text-emerald-600" : statutResultant === "Partiel" ? "text-amber-600" : statutResultant === "En retard" ? "text-red-500" : "text-muted"}`}>{statutResultant}</span>
+                      </div>
+                      {reduction > 0 && (
+                        <p className="text-xs text-amber-600 font-medium">
+                          {chaineImputee > 0
+                            ? "Réduction : les jours de mise suivants payés par avance seront dés-imputés (du plus lointain au plus proche), commissions retirées."
+                            : "Réduction : le montant payé est abaissé."}
+                        </p>
+                      )}
+                      {surplus > 0 && (
+                        <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les jours de mise suivants</p>
+                      )}
+                      {reduction > 0 && montantPaye < 0.01 && chaineImputee === 0 && (
+                        <p className="text-xs text-muted">Cet argent ainsi libéré redevient une avance du membre.</p>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
+                <div className="flex gap-3">
+                  <button onClick={() => setEditingCotisation(null)} className="btn-mono flex-1 py-3">Annuler</button>
+                  <button onClick={() => handleEditCotisation(editingCotisation.id)} disabled={editCotisationSaving} className="btn-primary flex-1 py-3">{editCotisationSaving ? "Enregistrement..." : "Enregistrer"}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setEditingCotisation(null)}>
+            <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-2xl shadow-black/10 animate-scale-in max-h-[90vh] flex flex-col overflow-hidden border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 pt-6 pb-0">
+                <h3 className="text-lg font-semibold text-ink">Modifier la mise</h3>
+                <button onClick={() => setEditingCotisation(null)} className="text-muted hover:text-ink transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-raised)]"><FontAwesomeIcon icon={faXmark} className="w-4 h-4" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="card-inset">
+                  <p className="text-sm text-muted">Membre</p>
+                  <p className="font-semibold text-ink">{editingCotisation.membre.nom}</p>
+                </div>
+                {editingCotisation.imputee && (
+                  <p className="text-xs text-emerald-600 font-medium">Période payée par avance (imputée sur un surplus)</p>
+                )}
+                <div>
+                  <label className="field-label">Période</label>
+                  <DatePicker value={editCotisationPeriode} onChange={v => setEditCotisationPeriode(v)} />
+                </div>
+                <div>
+                  <label className="field-label">Montant payé</label>
+                  <input type="number" value={editCotisationMontant} onChange={e => setEditCotisationMontant(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" autoFocus />
+                  <p className="text-xs text-muted mt-1">Total (base + commission + pénalité éventuelle) versé par le membre</p>
+                </div>
+                {(() => {
+                  const now = new Date();
+                  const freqJ = parseInt(tontine.frequence) || 1;
+                  const periodeDate = new Date(editCotisationPeriode);
+                  const dateValide = !isNaN(periodeDate.getTime());
+                  const dateLimite = dateValide ? new Date(periodeDate.getTime() + freqJ * 24 * 60 * 60 * 1000) : null;
+                  const estEnRetard = dateValide && dateLimite && now > dateLimite;
+                  const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
+                  const dateLimitePenalite = dateValide ? new Date(periodeDate.getTime() + tontine.penaliteRetardDelaiJours * 24 * 60 * 60 * 1000) : null;
+                  const penaliteAppliquee = penaliteActive && dateValide && dateLimitePenalite && now > dateLimitePenalite;
+                  const montantMise = editingCotisation.montantBase + editingCotisation.fraisOrganisateur;
+                  const montantTotalNouveau = montantMise + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                  const montantPaye = parseFloat(editCotisationMontant) || 0;
+                  const surplus = Math.max(0, montantPaye - montantTotalNouveau);
+                  const reduction = editingCotisation.montantPaye - montantPaye;
+                  const chaineImputee = (tontine.cotisations || [])
+                    .filter(c => c.membre.id === editingCotisation.membre.id && c.imputee && new Date(c.periode).getTime() > new Date(editingCotisation.periode).getTime())
+                    .reduce((s, c) => s + c.montantPaye, 0);
+                  const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
+                    : montantPaye >= montantTotalNouveau ? "Payé" : (estEnRetard ? "En retard" : "Partiel");
+                  return (
+                    <div className="card-inset space-y-2">
+                      {dateValide && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted">Montant dû (avec pénalité éventuelle)</span>
+                          <span className="text-sm font-semibold text-ink">{formatCurrency(montantTotalNouveau)}</span>
+                        </div>
+                      )}
+                      {penaliteAppliquee && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-amber-600">Pénalité retard</span>
+                          <span className="text-sm font-semibold text-amber-600">+ {formatCurrency(tontine.penaliteRetardMontant)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted">Statut résultant</span>
+                        <span className={`text-sm font-semibold ${statutResultant === "Payé" ? "text-emerald-600" : statutResultant === "Partiel" ? "text-amber-600" : statutResultant === "En retard" ? "text-red-500" : "text-muted"}`}>{statutResultant}</span>
+                      </div>
+                      {reduction > 0 && (
+                        <p className="text-xs text-amber-600 font-medium">
+                          {chaineImputee > 0
+                            ? "Réduction : les jours de mise suivants payés par avance seront dés-imputés (du plus lointain au plus proche), commissions retirées."
+                            : "Réduction : le montant payé est abaissé."}
+                        </p>
+                      )}
+                      {surplus > 0 && (
+                        <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les jours de mise suivants</p>
+                      )}
+                      {reduction > 0 && montantPaye < 0.01 && chaineImputee === 0 && (
+                        <p className="text-xs text-muted">Cet argent ainsi libéré redevient une avance du membre.</p>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+              <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-6">
+                <div className="flex gap-3">
+                  <button onClick={() => setEditingCotisation(null)} className="btn-mono flex-1 py-3">Annuler</button>
+                  <button onClick={() => handleEditCotisation(editingCotisation.id)} disabled={editCotisationSaving} className="btn-primary flex-1 py-3">{editCotisationSaving ? "Enregistrement..." : "Enregistrer"}</button>
                 </div>
               </div>
             </div>

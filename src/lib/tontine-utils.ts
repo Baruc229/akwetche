@@ -198,3 +198,52 @@ export function planifierImputation(args: {
 
   return { updates, creates, soldeRestant: reste };
 }
+
+export interface DesimputationUpdate {
+  id: number;
+  nouveauPaye: number;
+  nouveauStatut: "paye" | "partiel";
+  nouvelleCommission: number; // commission à conserver sur la période (au prorata)
+}
+
+export interface DesimputationDelete {
+  id: number;
+}
+
+/**
+ * Planifie la dés-imputation d'un surplus : quand on RÉDUIT une mise déjà
+ * enregistrée, les jours de mise suivants déjà payés d'avance (imputés) rendent
+ * l'argent, des plus lointains vers les plus proches. Les commissions sont
+ * retirées au prorata. Ce qui ne peut pas être repris sur la grille existante
+ * redevient une avance (soldeAvance).
+ * Pure : aucune écriture DB. `periodesImputees` doit être triée du plus lointain
+ * au plus proche (ordre descendant).
+ */
+export function planifierDesimputation(args: {
+  reduction: number; // montant à récupérer (ex: baisse du montantPaye d'une mise)
+  periodesImputees: PeriodeImputable[];
+  fraisOrganisateur: number;
+}): { updates: DesimputationUpdate[]; deletes: DesimputationDelete[]; reste: number } {
+  const updates: DesimputationUpdate[] = [];
+  const deletes: DesimputationDelete[] = [];
+  let reste = Math.max(0, args.reduction);
+
+  for (const p of args.periodesImputees) {
+    if (reste <= 0) break;
+    const aRecuperer = Math.min(p.montantPaye, reste);
+    const nouveauPaye = p.montantPaye - aRecuperer;
+    reste -= aRecuperer;
+    if (nouveauPaye <= 0) {
+      deletes.push({ id: p.id });
+    } else {
+      updates.push({
+        id: p.id,
+        nouveauPaye,
+        nouveauStatut: nouveauPaye >= p.montantTotal ? "paye" : "partiel",
+        nouvelleCommission: prorataCommission(p.montantTotal, args.fraisOrganisateur, nouveauPaye),
+      });
+    }
+  }
+
+  return { updates, deletes, reste };
+}

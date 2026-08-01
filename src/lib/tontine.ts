@@ -4,6 +4,7 @@ import {
   getFrequenceJours,
   genererGrilleMises,
   planifierImputation,
+  planifierDesimputation,
 } from "./tontine-utils";
 
 export { getFrequenceJours };
@@ -304,6 +305,7 @@ export async function imputerSurplus(
         montantPenalite: 0,
         datePaiement: new Date(),
         statut: c.statut,
+        imputee: true,
       },
     });
 
@@ -432,17 +434,124 @@ export async function resetMembreData(membreId: number): Promise<void> {
 }
 
 export async function recalculerSoldeAvanceMembre(membreId: number): Promise<void> {
+  const membre = await prisma.tontineMembre.findUnique({ where: { id: membreId } });
+  if (!membre) return;
+
   const result = await prisma.tontineCotisation.aggregate({
     where: { membreId },
     _sum: { montantPaye: true, montantTotal: true },
   });
   const totalPaye = result._sum.montantPaye || 0;
   const totalDu = result._sum.montantTotal || 0;
-  const solde = Math.max(0, totalPaye - totalDu);
+
+  // L'avance est de l'argent réellement reçu mais non affecté à une période :
+  // on ne l'efface jamais au passage, on la conserve comme argent flottant.
+  const avanceFlottante = Math.max(0, totalPaye + (membre.soldeAvance || 0) - totalDu);
   await prisma.tontineMembre.update({
     where: { id: membreId },
-    data: { soldeAvance: solde },
+    data: { soldeAvance: Math.max(membre.soldeAvance || 0, avanceFlottante) },
   });
+}
+
+/**
+ * Dés-impute un surplus : quand une mise déjà enregistrée est réduite (ou
+ * supprimée), les jours de mise suivants déjà payés d'avance rendent l'argent,
+ * des plus lointains vers les plus proches. Les commissions sont retirées au
+ * prorata. L'excédent qui ne peut pas être repris sur la grille existante
+ * redevient une avance (soldeAvance).
+ */
+export async function desimputerSurplus(
+  tx: ClientLike,
+  args: {
+    tontineId: number;
+    membreId: number;
+    periodeDate: Date; // dés-impute les périodes imputées STRICTEMENT après cette date
+    reduction: number; // montant à récupérer
+    fraisOrganisateur: number;
+  }
+): Promise<{ desimputees: number; versAvance: number }> {
+  if (args.reduction <= 0) return { desimputees: 0, versAvance: 0 };
+
+  const periodes = await tx.tontineCotisation.findMany({
+    where: {
+      tontineId: args.tontineId,
+      membreId: args.membreId,
+      imputee: true,
+      periode: { gt: args.periodeDate },
+    },
+    orderBy: { periode: "desc" },
+    include: { commissionTransaction: true },
+  });
+
+  if (periodes.length === 0) {
+    // Rien à reprendre sur la grille : tout l'excédent redevient une avance.
+    await tx.tontineMembre.update({
+      where: { id: args.membreId },
+      data: { soldeAvance: { increment: args.reduction } },
+    });
+    return { desimputees: 0, versAvance: args.reduction };
+  }
+
+  const plan = planifierDesimputation({
+    reduction: args.reduction,
+    periodesImputees: periodes.map((p) => ({
+      id: p.id,
+      periode: p.periode,
+      montantTotal: p.montantTotal,
+      montantPaye: p.montantPaye,
+      commissionAmount: p.commissionTransaction?.amount ?? 0,
+    })),
+    fraisOrganisateur: args.fraisOrganisateur,
+  });
+
+  const toursAActualiser = new Set<number>();
+
+  for (const u of plan.updates) {
+    const p = periodes.find((x) => x.id === u.id);
+    if (!p) continue;
+    await tx.tontineCotisation.update({
+      where: { id: u.id },
+      data: { montantPaye: u.nouveauPaye, statut: u.nouveauStatut },
+    });
+    if (p.commissionTransaction) {
+      if (u.nouvelleCommission > 0) {
+        await tx.transaction.update({
+          where: { id: p.commissionTransaction.id },
+          data: { amount: u.nouvelleCommission },
+        });
+      } else {
+        await tx.transaction.delete({ where: { id: p.commissionTransaction.id } });
+        await tx.tontineCotisation.update({
+          where: { id: u.id },
+          data: { commissionTransaction: { disconnect: true } },
+        });
+      }
+    }
+    if (p.tourId) toursAActualiser.add(p.tourId);
+  }
+
+  for (const d of plan.deletes) {
+    const p = periodes.find((x) => x.id === d.id);
+    if (!p) continue;
+    if (p.commissionTransaction) {
+      await tx.transaction.delete({ where: { id: p.commissionTransaction.id } });
+    }
+    await tx.tontineCotisation.delete({ where: { id: d.id } });
+    if (p.tourId) toursAActualiser.add(p.tourId);
+  }
+
+  if (plan.reste > 0) {
+    await tx.tontineMembre.update({
+      where: { id: args.membreId },
+      data: { soldeAvance: { increment: plan.reste } },
+    });
+  }
+
+  for (const tourId of toursAActualiser) {
+    await recalculerMontantCollecteTour(tourId, tx);
+  }
+
+  return { desimputees: plan.updates.length + plan.deletes.length, versAvance: plan.reste };
 }
 
 export async function recalculerMontantCollecteTour(tourId: number, client: ClientLike = prisma as unknown as ClientLike): Promise<void> {

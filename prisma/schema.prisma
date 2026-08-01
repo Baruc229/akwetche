@@ -330,6 +330,7 @@ model TontineCotisation {
   montantPenalite   Float     @default(0) // pénalité de retard appliquée
   datePaiement      DateTime?
   statut            String    @default("en_attente") // "paye", "en_retard", "partiel", "en_attente"
+  imputee           Boolean   @default(false) // vraie si la période a été matérialisée/remplie par imputation de surplus
 
   tourId            Int?
   tontine   Tontine       @relation(fields: [tontineId], references: [id], onDelete: Cascade)

@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, imputerSurplus, recalculerMontantCollecteTour, recalculerSoldeAvanceMembre } from "@/lib/tontine";
+import { startOfDay } from "@/lib/tontine-utils";
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, trouverTourPourPeriode, imputerSurplus, desimputerSurplus, recalculerMontantCollecteTour, recalculerSoldeAvanceMembre } from "@/lib/tontine";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; cotisationId: string }> }) {
   try {
@@ -29,13 +30,27 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     });
     if (!existing) return badRequest("Cotisation introuvable");
 
-    const { montantPaye, datePaiement } = await req.json();
+    const { montantPaye, datePaiement, periode } = await req.json();
     if (montantPaye === undefined) return badRequest("montantPaye requis");
 
-    const parsedMontantPaye = parseFloat(montantPaye);
+    const parsedMontantPaye = parseFloat(montantPaye) || 0;
+
+    // Date de la période modifiable (facultative).
+    let nouvellePeriode = existing.periode;
+    if (periode !== undefined && periode !== null && periode !== "") {
+      const parsed = new Date(periode);
+      if (isNaN(parsed.getTime())) return badRequest("Date de période invalide");
+      if (startOfDay(parsed).getTime() !== startOfDay(existing.periode).getTime()) {
+        const conflit = await prisma.tontineCotisation.findFirst({
+          where: { tontineId, membreId: existing.membreId, periode: parsed, id: { not: cotisationIntId } },
+        });
+        if (conflit) return badRequest("Une cotisation existe déjà pour ce membre à cette date");
+        nouvellePeriode = parsed;
+      }
+    }
 
     const frequenceJours = getFrequenceJours(tontine.frequence);
-    const dateLimite = new Date(existing.periode.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
+    const dateLimite = new Date(nouvellePeriode.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
     const now = new Date();
 
     const montantMise = existing.montantBase + existing.fraisOrganisateur;
@@ -44,7 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       tontine.penaliteRetardActive,
       tontine.penaliteRetardMontant,
       tontine.penaliteRetardDelaiJours,
-      existing.periode,
+      nouvellePeriode,
       now
     );
 
@@ -64,17 +79,24 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const membre = await prisma.tontineMembre.findUnique({ where: { id: existing.membreId } });
 
-    let notificationInfo: Record<string, number> | null = null;
+    let notificationInfo: { amount: number } | null = null;
     let notificationSent = false;
 
     const result = await prisma.$transaction(async (tx) => {
+      let tourId = existing.tourId;
+      if (startOfDay(nouvellePeriode).getTime() !== startOfDay(existing.periode).getTime()) {
+        tourId = tontine.type === "rotative_simple" ? await trouverTourPourPeriode(tontineId, nouvellePeriode, tx) : null;
+      }
+
       const cotisation = await tx.tontineCotisation.update({
         where: { id: cotisationIntId },
         data: {
           montantPaye: montantEffective,
           montantTotal,
           montantPenalite,
-          datePaiement: datePaiement ? new Date(datePaiement) : parsedMontantPaye > 0 ? new Date() : null,
+          periode: nouvellePeriode,
+          tourId,
+          datePaiement: datePaiement ? new Date(datePaiement) : parsedMontantPaye > 0 ? (existing.datePaiement ?? new Date()) : null,
           statut,
         },
       });
@@ -112,11 +134,35 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             tontineCotisationId: cotisation.id,
           },
         });
-        notificationInfo = { amount: transaction.amount } as Record<string, number>;
+        notificationInfo = { amount: transaction.amount };
         notificationSent = true;
       }
 
-      if (surplus > 0 && membre) {
+      // Montant déjà imputé sur les jours de mise suivants (payés d'avance).
+      const chaineImputee = await tx.tontineCotisation.aggregate({
+        where: {
+          tontineId,
+          membreId: existing.membreId,
+          imputee: true,
+          periode: { gt: existing.periode },
+        },
+        _sum: { montantPaye: true },
+      });
+      const montantChaineImputee = chaineImputee._sum.montantPaye || 0;
+
+      if (montantChaineImputee > surplus) {
+        // La mise est réduite : les jours suivants rendent l'argent,
+        // des plus lointains vers les plus proches (commissions retirées),
+        // l'excédent restant redevient une avance.
+        await desimputerSurplus(tx, {
+          tontineId,
+          membreId: existing.membreId,
+          periodeDate: existing.periode,
+          reduction: montantChaineImputee - surplus,
+          fraisOrganisateur: tontine.fraisOrganisateurParDefaut,
+        });
+      } else if (surplus > montantChaineImputee && membre) {
+        // La mise est augmentée : le surplus impute les jours de mise suivants.
         await imputerSurplus(tx, {
           userId,
           tontine: {
@@ -133,8 +179,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           },
           membre: { id: membre.id, montantCotisationPersonnel: membre.montantCotisationPersonnel },
           periodeDate: existing.periode,
-          surplus,
+          surplus: surplus - montantChaineImputee,
         });
+      }
+
+      const toursAActualiser = new Set<number>();
+      if (existing.tourId) toursAActualiser.add(existing.tourId);
+      if (cotisation.tourId) toursAActualiser.add(cotisation.tourId);
+      for (const tourIdToUpdate of toursAActualiser) {
+        await recalculerMontantCollecteTour(tourIdToUpdate, tx);
       }
 
       return cotisation;
@@ -145,10 +198,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       const notifCurrency = resolveCurrency((await prisma.user.findUnique({ where: { id: userId }, select: { currency: true } }))?.currency);
       const scopeLabel = tontine.scopeCommission === "personnel" ? "" : " (Activité)";
       await createNotification(userId, "transaction", `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} — Commission tontine : ${tontine.nom}`, "/dashboard/transactions");
-    }
-
-    if (existing.tourId) {
-      await recalculerMontantCollecteTour(existing.tourId);
     }
 
     await recalculerSoldeAvanceMembre(existing.membreId);
@@ -186,6 +235,19 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const tourIdToDelete = existing.tourId;
 
     await prisma.$transaction(async (tx) => {
+      // La mise supprimée était payée : les jours suivants payés d'avance
+      // rendent l'argent (des plus lointains vers les plus proches), l'excédent
+      // restant redevient une avance.
+      if (existing.montantPaye > 0) {
+        await desimputerSurplus(tx, {
+          tontineId,
+          membreId: existing.membreId,
+          periodeDate: existing.periode,
+          reduction: existing.montantPaye,
+          fraisOrganisateur: tontine.fraisOrganisateurParDefaut,
+        });
+      }
+
       if (existing.commissionTransaction) {
         await tx.transaction.delete({
           where: { id: existing.commissionTransaction.id },
