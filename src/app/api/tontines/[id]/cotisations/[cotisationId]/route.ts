@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
-import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, recalculerMontantCollecteTour, recalculerSoldeAvanceMembre } from "@/lib/tontine";
+import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, imputerSurplus, recalculerMontantCollecteTour, recalculerSoldeAvanceMembre } from "@/lib/tontine";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string; cotisationId: string }> }) {
   try {
@@ -37,10 +37,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const frequenceJours = getFrequenceJours(tontine.frequence);
     const dateLimite = new Date(existing.periode.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
     const now = new Date();
-    const estEnRetard = now > dateLimite && parsedMontantPaye < existing.montantTotal;
 
+    const montantMise = existing.montantBase + existing.fraisOrganisateur;
     const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
-      tontine.montantCotisation,
+      montantMise,
       tontine.penaliteRetardActive,
       tontine.penaliteRetardMontant,
       tontine.penaliteRetardDelaiJours,
@@ -48,14 +48,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       now
     );
 
-    const statut = calculerStatutCotisation(parsedMontantPaye, montantTotal, estEnRetard);
+    const surplus = Math.max(0, parsedMontantPaye - montantTotal);
+    const montantEffective = Math.min(parsedMontantPaye, montantTotal);
+    const estEnRetard = now > dateLimite && montantEffective < montantTotal;
+    const statut = montantEffective >= montantTotal
+      ? "paye"
+      : calculerStatutCotisation(montantEffective, montantTotal, estEnRetard);
 
     const { fraisOrganisateurEffectif } = calculerProrata(
-      parsedMontantPaye,
+      montantEffective,
       montantTotal,
       existing.montantBase,
       existing.fraisOrganisateur
     );
+
+    const membre = await prisma.tontineMembre.findUnique({ where: { id: existing.membreId } });
 
     let notificationInfo: Record<string, number> | null = null;
     let notificationSent = false;
@@ -64,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       const cotisation = await tx.tontineCotisation.update({
         where: { id: cotisationIntId },
         data: {
-          montantPaye: parsedMontantPaye,
+          montantPaye: montantEffective,
           montantTotal,
           montantPenalite,
           datePaiement: datePaiement ? new Date(datePaiement) : parsedMontantPaye > 0 ? new Date() : null,
@@ -107,6 +114,27 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         });
         notificationInfo = { amount: transaction.amount } as Record<string, number>;
         notificationSent = true;
+      }
+
+      if (surplus > 0 && membre) {
+        await imputerSurplus(tx, {
+          userId,
+          tontine: {
+            id: tontine.id,
+            nom: tontine.nom,
+            type: tontine.type,
+            frequence: tontine.frequence,
+            dateDebut: tontine.dateDebut,
+            dateDistribution: tontine.dateDistribution,
+            montantCotisation: tontine.montantCotisation,
+            fraisOrganisateurParDefaut: tontine.fraisOrganisateurParDefaut,
+            scopeCommission: tontine.scopeCommission,
+            nombreTours: tontine.nombreTours,
+          },
+          membre: { id: membre.id, montantCotisationPersonnel: membre.montantCotisationPersonnel },
+          periodeDate: existing.periode,
+          surplus,
+        });
       }
 
       return cotisation;

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear, faCoins, faHandHoldingDollar, faPercentage, faUsers, faCalendarDays, faSackDollar } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear, faCoins, faHandHoldingDollar, faPercentage, faUsers, faCalendarDays, faSackDollar, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
+import { genererGrilleMises, startOfDay, calculerMisesMembre } from "@/lib/tontine-utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -13,11 +14,17 @@ import ConfirmModal from "@/components/ConfirmModal";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+type MisesMembre = {
+  montantMise: number; totalPaye: number; totalPenalites: number; soldeAvance: number;
+  totalVerses: number; montantImputable: number; misesCompletes: number; restePartiel: number; estPartiel: boolean;
+};
+
 type Membre = {
   id: number; nom: string; contact: string | null; ordrePassage: number | null;
   statut: string; _count: { cotisations: number };
   nbPayees: number; montantTotalPaye: number; nbRetards: number;
   soldeAvance: number; montantCotisationPersonnel: number | null;
+  mises?: MisesMembre; prochainePeriode?: string | null; prochainePeriodeMontant?: number | null;
 };
 
 type Cotisation = {
@@ -179,6 +186,35 @@ export default function TontineDetail() {
   const denominateurCotisations = tontine?.type === "rotative_simple"
     ? (tontine?.nombreTours || 0)
     : nbPeriodesTotal;
+
+  const misesAgregat = actifs.reduce((acc, m) => {
+    const mm = m.mises;
+    return {
+      totalVerses: acc.totalVerses + (mm?.totalVerses ?? 0),
+      misesCompletes: acc.misesCompletes + (mm?.misesCompletes ?? 0),
+      restePartiel: acc.restePartiel + (mm?.restePartiel ?? 0),
+    };
+  }, { totalVerses: 0, misesCompletes: 0, restePartiel: 0 });
+
+  const grilleMises = useMemo(() => {
+    if (!tontine) return [];
+    const freq = parseInt(tontine.frequence) || 1;
+    if (tontine.type === "rotative_simple" && (tontine.tours || []).length > 0) {
+      return genererGrilleMises({ dateDebut: tontine.dateDebut, frequenceJours: freq, tourDates: tontine.tours.map(t => t.datePrevue) });
+    }
+    return genererGrilleMises({ dateDebut: tontine.dateDebut, frequenceJours: freq, dateFin: tontine.dateDistribution, nombre: tontine.nombreTours });
+  }, [tontine]);
+
+  const cotisationParCle = useMemo(() => {
+    const map = new Map<string, Cotisation>();
+    for (const c of tontine?.cotisations || []) {
+      const key = `${c.membre.id}:${startOfDay(new Date(c.periode)).getTime()}`;
+      if (!map.has(key)) map.set(key, c);
+    }
+    return map;
+  }, [tontine]);
+
+  const aujourdHui = startOfDay(new Date()).getTime();
 
   async function handleSubmitMembre(e: React.FormEvent) {
     e.preventDefault();
@@ -511,6 +547,17 @@ export default function TontineDetail() {
             <p className="text-label">{tontine.type === "rotative_simple" ? "Tours" : "Membres"}</p>
             <p className="text-amount text-base mt-1">{tontine.type === "rotative_simple" ? tontine.tours?.length || 0 : actifs.length}</p>
           </div>
+          <div className="card-inset text-center p-4 relative overflow-hidden">
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={faLayerGroup} className="w-4 h-4 text-emerald-600" />
+            </div>
+            <p className="text-label">Mises payées</p>
+            <p className="text-amount text-base mt-1">{misesAgregat.misesCompletes}</p>
+            <p className="text-[11px] text-muted mt-0.5 hidden sm:block">
+              {formatCurrency(misesAgregat.totalVerses)} versés
+              {misesAgregat.restePartiel > 0 && <> · +{formatCurrency(misesAgregat.restePartiel)} en cours</>}
+            </p>
+          </div>
           {tontine.type === "vivres_fin_annee" && tontine.dateDistribution && (
             partProjetee > 0 && (
               <div className="card-inset text-center p-4 relative overflow-hidden">
@@ -580,7 +627,8 @@ export default function TontineDetail() {
                   </div>
                   <div className="flex items-center gap-3 shrink-0 ml-2 text-right">
                     <div className="text-xs text-muted">
-                      <span className="font-semibold text-ink">{m.nbPayees}</span>/{denominateurCotisations || m._count.cotisations}
+                      <span className="font-semibold text-ink">{m.mises?.misesCompletes ?? m.nbPayees}</span> mise(s)
+                      {m.mises?.estPartiel ? <span className="text-amber-600"> +{formatCurrency(m.mises.restePartiel)}</span> : null}
                       <span className="block">{formatCurrency(m.montantTotalPaye)}</span>
                       {m.soldeAvance > 0 && <span className="hidden sm:block text-emerald-600">+{formatCurrency(m.soldeAvance)} avance</span>}
                     </div>
@@ -795,6 +843,54 @@ export default function TontineDetail() {
         )}
       </div>
 
+      {/* Calendrier des mises */}
+      {grilleMises.length > 0 && actifs.length > 0 && (
+        <div className="card shadow-sm shadow-black/5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-amber-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-ink">Jours de mise</h3>
+            <span className="text-xs text-muted ml-auto">jour barré = payé</span>
+          </div>
+          <div className="overflow-x-auto custom-select-scrollbar">
+            <table className="text-xs min-w-full">
+              <thead>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left py-2 pr-3 font-medium text-muted sticky left-0 bg-[var(--color-surface)] whitespace-nowrap z-10">Membre</th>
+                  {grilleMises.map((d, i) => (
+                    <th key={i} className={`py-2 px-1.5 text-center font-medium text-muted min-w-14 ${startOfDay(d).getTime() === aujourdHui ? "text-[var(--color-brand)]" : ""}`}>
+                      {d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {actifs.map(m => {
+                  const colors = MEMBER_COLORS[actifs.indexOf(m) % MEMBER_COLORS.length];
+                  return (
+                    <tr key={m.id} className="border-b border-[var(--color-border)] last:border-0">
+                      <td className="py-2 pr-3 font-medium text-ink sticky left-0 bg-[var(--color-surface)] whitespace-nowrap z-10">
+                        {m.ordrePassage ? `#${m.ordrePassage} ` : ""}{m.nom}
+                      </td>
+                      {grilleMises.map((d, i) => {
+                        const c = cotisationParCle.get(`${m.id}:${startOfDay(d).getTime()}`);
+                        let cell;
+                        if (c && c.statut === "paye") cell = <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-bold line-through decoration-emerald-500">✓</span>;
+                        else if (c && c.statut === "partiel") cell = <span className={`w-6 h-6 inline-flex items-center justify-center rounded-full ${colors.bg} ${colors.text} font-bold`}>½</span>;
+                        else if (c && c.statut === "en_retard") cell = <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-red-50 text-red-500 font-bold">!</span>;
+                        else cell = <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-[var(--color-surface-raised)] text-muted/30">·</span>;
+                        return <td key={i} className="py-1.5 px-1.5 text-center">{cell}</td>;
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Modals */}
 
       {/* Détail Membre Modal */}
@@ -831,6 +927,32 @@ export default function TontineDetail() {
                     <p className={`text-sm sm:text-base font-semibold ${detailMembreData.nbRetards > 0 ? "text-red-500" : "text-ink"}`}>{detailMembreData.nbRetards}</p>
                   </div>
                 </div>
+                {detailMembreData.mises && (
+                  <div className="card-inset space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Mises complètes</span>
+                      <span className="text-sm font-bold text-ink">{detailMembreData.mises.misesCompletes}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Reste sur la prochaine</span>
+                      <span className="text-sm font-medium text-ink">{formatCurrency(detailMembreData.mises.restePartiel)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Total versé</span>
+                      <span className="text-sm font-medium text-ink">{formatCurrency(detailMembreData.mises.totalVerses)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Mise</span>
+                      <span className="text-sm font-medium text-ink">{formatCurrency(detailMembreData.mises.montantMise)}</span>
+                    </div>
+                    {detailMembreData.prochainePeriode && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted">Prochaine période</span>
+                        <span className="text-sm font-medium text-ink">{new Date(detailMembreData.prochainePeriode).toLocaleDateString("fr-FR")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {/* Infos */}
                 {detailMembreData.ordrePassage && (
                   <p className="text-sm text-muted">Ordre de passage : <strong className="text-ink">#{detailMembreData.ordrePassage}</strong></p>
@@ -915,6 +1037,32 @@ export default function TontineDetail() {
                     <p className={`text-sm sm:text-base font-semibold ${detailMembreData.nbRetards > 0 ? "text-red-500" : "text-ink"}`}>{detailMembreData.nbRetards}</p>
                   </div>
                 </div>
+                {detailMembreData.mises && (
+                  <div className="card-inset space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Mises complètes</span>
+                      <span className="text-sm font-bold text-ink">{detailMembreData.mises.misesCompletes}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Reste sur la prochaine</span>
+                      <span className="text-sm font-medium text-ink">{formatCurrency(detailMembreData.mises.restePartiel)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Total versé</span>
+                      <span className="text-sm font-medium text-ink">{formatCurrency(detailMembreData.mises.totalVerses)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted">Mise</span>
+                      <span className="text-sm font-medium text-ink">{formatCurrency(detailMembreData.mises.montantMise)}</span>
+                    </div>
+                    {detailMembreData.prochainePeriode && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted">Prochaine période</span>
+                        <span className="text-sm font-medium text-ink">{new Date(detailMembreData.prochainePeriode).toLocaleDateString("fr-FR")}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {detailMembreData.ordrePassage && (
                   <p className="text-sm text-muted">Ordre de passage : <strong className="text-ink">#{detailMembreData.ordrePassage}</strong></p>
                 )}
@@ -1087,6 +1235,12 @@ export default function TontineDetail() {
                   const montantDus = montantTotalBrut - soldeApplique;
                   const montantPaye = parseFloat(cotisationMontant) || 0;
                   const surplus = Math.max(0, montantPaye - montantDus);
+                  const apercuMises = selectedMember ? calculerMisesMembre({
+                    montantMise: montantCotisationEffectif,
+                    totalPaye: (selectedMember.mises?.totalPaye ?? selectedMember.montantTotalPaye) + montantPaye,
+                    totalPenalites: selectedMember.mises?.totalPenalites ?? 0,
+                    soldeAvance: selectedMember.mises?.soldeAvance ?? selectedMember.soldeAvance,
+                  }) : null;
                   const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
                     : montantPaye >= montantDus ? "Payé" : "Partiel";
                   return (
@@ -1119,7 +1273,24 @@ export default function TontineDetail() {
                             </div>
                           </div>
                           {surplus > 0 && (
-                            <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les périodes suivantes</p>
+                            <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les jours de mise suivants</p>
+                          )}
+                          {apercuMises && (
+                            <div className="border-t border-[var(--color-border)] pt-2 space-y-1">
+                              <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">Aperçu des mises</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted">Mises complètes</span>
+                                <span className="text-sm font-semibold text-emerald-600">{apercuMises.misesCompletes}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted">Reste sur la suivante</span>
+                                <span className="text-sm font-semibold text-ink">{formatCurrency(apercuMises.restePartiel)}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted">Total versé</span>
+                                <span className="text-sm font-semibold text-ink">{formatCurrency(apercuMises.totalVerses)}</span>
+                              </div>
+                            </div>
                           )}
                         </>
                       )}
@@ -1181,6 +1352,12 @@ export default function TontineDetail() {
                     const montantDus = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
                     const montantPaye = parseFloat(cotisationMontant) || 0;
                     const surplus = Math.max(0, montantPaye - montantDus);
+                    const apercuMises = selectedMember ? calculerMisesMembre({
+                      montantMise: montantCotisationEffectif,
+                      totalPaye: (selectedMember.mises?.totalPaye ?? selectedMember.montantTotalPaye) + montantPaye,
+                      totalPenalites: selectedMember.mises?.totalPenalites ?? 0,
+                      soldeAvance: selectedMember.mises?.soldeAvance ?? selectedMember.soldeAvance,
+                    }) : null;
                     const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
                       : montantPaye >= montantDus ? "Payé" : "Partiel";
                     return (
@@ -1207,7 +1384,24 @@ export default function TontineDetail() {
                               </div>
                             </div>
                             {surplus > 0 && (
-                              <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les périodes suivantes</p>
+                              <p className="text-xs text-emerald-600 font-medium">Surplus de {formatCurrency(surplus)} — imputé sur les jours de mise suivants</p>
+                            )}
+                            {apercuMises && (
+                              <div className="border-t border-[var(--color-border)] pt-2 space-y-1">
+                                <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">Aperçu des mises</p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted">Mises complètes</span>
+                                  <span className="text-sm font-semibold text-emerald-600">{apercuMises.misesCompletes}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted">Reste sur la suivante</span>
+                                  <span className="text-sm font-semibold text-ink">{formatCurrency(apercuMises.restePartiel)}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted">Total versé</span>
+                                  <span className="text-sm font-semibold text-ink">{formatCurrency(apercuMises.totalVerses)}</span>
+                                </div>
+                              </div>
                             )}
                           </>
                         )}

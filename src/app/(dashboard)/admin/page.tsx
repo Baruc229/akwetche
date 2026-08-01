@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useDashboard } from "../layout";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUsers, faFileLines, faBagShopping, faDollarSign, faTriangleExclamation, faPlus, faCrown, faRightToBracket, faArrowRight, faCalendarDays, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faFileLines, faBagShopping, faDollarSign, faTriangleExclamation, faPlus, faCrown, faRightToBracket, faArrowRight, faCalendarDays, faXmark, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { getCountryName } from "@/lib/utils";
 import FlagImg from "@/components/ui/FlagImg";
@@ -28,6 +28,9 @@ export default function AdminOverview() {
   const [newAdmin, setNewAdmin] = useState({ name: "", email: "", password: "", plan: "free", role: "admin" });
   const [addAdminError, setAddAdminError] = useState("");
   const [addingAdmin, setAddingAdmin] = useState(false);
+  const [backfillState, setBackfillState] = useState<"idle" | "running" | "done">("idle");
+  const [backfillResult, setBackfillResult] = useState<{ tontines: number; membresTraites: number; periodesImputees: number; soldeTotal: number } | null>(null);
+  const [backfillError, setBackfillError] = useState("");
   useScrollLock(showAddAdmin);
 
   useEffect(() => {
@@ -61,6 +64,19 @@ export default function AdminOverview() {
       setNewAdmin({ name: "", email: "", password: "", plan: "free", role: "admin" });
     } catch { setAddAdminError("Erreur"); }
     finally { setAddingAdmin(false); }
+  }
+
+  async function handleBackfill() {
+    setBackfillState("running");
+    setBackfillError("");
+    setBackfillResult(null);
+    try {
+      const res = await fetch("/api/tontines/backfill-mises", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) { setBackfillError(data.error || "Erreur"); setBackfillState("idle"); return; }
+      setBackfillResult(data);
+      setBackfillState("done");
+    } catch { setBackfillError("Erreur"); setBackfillState("idle"); }
   }
 
   const usersGrowthData = (stats?.usersMonthly || []).map(d => ({
@@ -268,6 +284,54 @@ export default function AdminOverview() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Maintenance (super_admin) */}
+      {user?.role === "super_admin" && (
+        <div className="bg-bg-card rounded-[18px] border border-border p-5">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-brand-subtle flex items-center justify-center">
+              <FontAwesomeIcon icon={faLayerGroup} className="w-4 h-4 text-brand" />
+            </div>
+            <div>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Maintenance</span>
+              <p className="text-label text-xs text-text-3 mt-0.5">Backfill tontines (mises)</p>
+            </div>
+          </div>
+          <p className="text-sm text-text-3 mb-3">
+            Matérialise les surplus des tontines existantes en jours de mise : les paiements d&apos;avance déjà
+            enregistrés sont répartis sur les périodes futures et les compteurs de mises recalibrés.
+          </p>
+          <button
+            onClick={handleBackfill}
+            disabled={backfillState === "running"}
+            className="inline-flex items-center gap-2 bg-brand text-white font-sans font-bold text-[13px] px-4 py-[10px] rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            <FontAwesomeIcon icon={faLayerGroup} className="w-3.5 h-3.5" />
+            {backfillState === "running" ? "Traitement..." : "Lancer le backfill"}
+          </button>
+          {backfillError && <p className="text-neg text-sm bg-neg-bg p-3 rounded-xl mt-3">{backfillError}</p>}
+          {backfillResult && (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="bg-bg rounded-xl p-3">
+                <p className="text-[11.5px] text-text-3">Tontines</p>
+                <p className="font-display font-bold text-xl text-ink mt-0.5">{backfillResult.tontines}</p>
+              </div>
+              <div className="bg-bg rounded-xl p-3">
+                <p className="text-[11.5px] text-text-3">Membres</p>
+                <p className="font-display font-bold text-xl text-ink mt-0.5">{backfillResult.membresTraites}</p>
+              </div>
+              <div className="bg-bg rounded-xl p-3">
+                <p className="text-[11.5px] text-text-3">Périodes imputées</p>
+                <p className="font-display font-bold text-xl text-pos mt-0.5">{backfillResult.periodesImputees}</p>
+              </div>
+              <div className="bg-bg rounded-xl p-3">
+                <p className="text-[11.5px] text-text-3">Solde restant</p>
+                <p className="font-display font-bold text-xl text-gold mt-0.5">{formatCurrency(backfillResult.soldeTotal)}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

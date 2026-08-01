@@ -1,10 +1,12 @@
 import { prisma } from "./prisma";
+import { Prisma } from "@/generated/prisma/client";
+import {
+  getFrequenceJours,
+  genererGrilleMises,
+  planifierImputation,
+} from "./tontine-utils";
 
-export function getFrequenceJours(frequence: string): number {
-  const parsed = parseInt(frequence);
-  if (!isNaN(parsed) && parsed > 0) return parsed;
-  return 1;
-}
+export { getFrequenceJours };
 
 export function calculerProrata(
   montantPaye: number,
@@ -99,65 +101,238 @@ export async function detecterRetards(tontineId: number): Promise<number> {
   return count;
 }
 
-export async function imputerAvance(
+type ClientLike = Prisma.TransactionClient;
+
+export async function trouverTourPourPeriode(
   tontineId: number,
-  membreId: number,
-  periodeDate: Date,
-  montantPaye: number,
-  montantTotalPeriode: number,
-  montantBase: number,
-  fraisOrganisateur: number
-): Promise<{ cotisationCourante: { montantPaye: number; statut: string }; futuresImbriquees: number; soldeRestant: number }> {
-  if (montantPaye <= montantTotalPeriode) {
-    return { cotisationCourante: { montantPaye, statut: "" }, futuresImbriquees: 0, soldeRestant: 0 };
+  periode: Date,
+  client: ClientLike = prisma as unknown as ClientLike
+): Promise<number | null> {
+  const tours = await client.tontineTour.findMany({
+    where: { tontineId },
+    orderBy: { datePrevue: "asc" },
+  });
+  if (tours.length === 0) return null;
+
+  let bestTourId: number | null = null;
+  let bestDiff = Infinity;
+  for (const tour of tours) {
+    if (tour.statut === "cloture" || tour.statut === "collecte_terminee") continue;
+    const diff = Math.abs(periode.getTime() - tour.datePrevue.getTime());
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestTourId = tour.id;
+    }
+  }
+  return bestTourId;
+}
+
+/**
+ * Comptabilise (ou met à jour) la commission organisateur d'une cotisation.
+ * Une cotisation ne peut porter qu'une seule transaction de commission.
+ */
+async function bookCommissionInTx(
+  tx: ClientLike,
+  args: {
+    userId: number;
+    tontine: { nom: string; scopeCommission: string };
+    cotisationId: number;
+    amount: number;
+    date: Date;
+  }
+): Promise<void> {
+  if (args.amount <= 0) return;
+  const commissionCategorie = await tx.category.upsert({
+    where: { name_userId: { name: "Commission tontine", userId: args.userId } },
+    update: {},
+    create: { name: "Commission tontine", icon: "hand-holding-dollar", type: "income", userId: args.userId },
+  });
+  await tx.transaction.create({
+    data: {
+      type: "income",
+      amount: args.amount,
+      description: `Tontine — commission : ${args.tontine.nom}`,
+      date: args.date,
+      scope: args.tontine.scopeCommission === "personnel" ? "personal" : "activity",
+      categoryId: commissionCategorie.id,
+      userId: args.userId,
+      tontineCotisationId: args.cotisationId,
+    },
+  });
+}
+
+/**
+ * Dates de mise FUTURES (strictement après `after`) pour une tontine.
+ * Rotative → dates des tours ; Vivres → grille régulière jusqu'à dateDistribution.
+ */
+async function genererDatesDeMiseFutures(
+  tx: ClientLike,
+  tontine: { id: number; type: string; dateDebut: Date; dateDistribution: Date | null; frequence: string; nombreTours: number | null },
+  after: Date
+): Promise<Date[]> {
+  const freq = getFrequenceJours(tontine.frequence);
+
+  if (tontine.type === "rotative_simple") {
+    const tours = await tx.tontineTour.findMany({
+      where: { tontineId: tontine.id },
+      orderBy: { datePrevue: "asc" },
+      select: { datePrevue: true },
+    });
+    const grille = genererGrilleMises({
+      dateDebut: tontine.dateDebut,
+      frequenceJours: freq,
+      tourDates: tours.length > 0 ? tours.map((t) => t.datePrevue) : null,
+      nombre: tours.length > 0 ? null : tontine.nombreTours,
+    });
+    return grille.filter((d) => d.getTime() > new Date(after).getTime());
   }
 
-  const surplus = montantPaye - montantTotalPeriode;
+  const grille = genererGrilleMises({
+    dateDebut: tontine.dateDebut,
+    frequenceJours: freq,
+    dateFin: tontine.dateDistribution,
+    nombre: tontine.nombreTours,
+  });
+  return grille.filter((d) => d.getTime() > new Date(after).getTime());
+}
 
-  const periodesFutures = await prisma.tontineCotisation.findMany({
+/**
+ * Impute un surplus (paiement d'avance) sur les jours de mise suivants.
+ * - Remplit d'abord les périodes futures déjà existantes.
+ * - Matérialise ensuite les périodes manquantes (créées automatiquement).
+ * - L'excédent hors grille reste en soldeAvance.
+ * Chaque montant imputé facture sa commission organisateur (au prorata).
+ */
+export async function imputerSurplus(
+  tx: ClientLike,
+  args: {
+    userId: number;
+    tontine: {
+      id: number;
+      nom: string;
+      type: string;
+      frequence: string;
+      dateDebut: Date;
+      dateDistribution: Date | null;
+      montantCotisation: number;
+      fraisOrganisateurParDefaut: number;
+      scopeCommission: string;
+      nombreTours: number | null;
+    };
+    membre: { id: number; montantCotisationPersonnel: number | null };
+    periodeDate: Date;
+    surplus: number;
+  }
+): Promise<{ futuresImbriquees: number; soldeRestant: number }> {
+  if (args.surplus <= 0) return { futuresImbriquees: 0, soldeRestant: 0 };
+
+  const montantMise = args.membre.montantCotisationPersonnel ?? args.tontine.montantCotisation;
+  const montantBase = montantMise - args.tontine.fraisOrganisateurParDefaut;
+  const fraisOrganisateur = args.tontine.fraisOrganisateurParDefaut;
+
+  const periodesExistantes = await tx.tontineCotisation.findMany({
     where: {
-      tontineId,
-      membreId,
-      statut: { in: ["en_attente", "partiel"] },
-      periode: { gt: periodeDate },
+      tontineId: args.tontine.id,
+      membreId: args.membre.id,
+      periode: { gt: args.periodeDate },
     },
     orderBy: { periode: "asc" },
+    include: { commissionTransaction: true },
   });
 
-  let reste = surplus;
-  let count = 0;
+  const dates = await genererDatesDeMiseFutures(tx, args.tontine, args.periodeDate);
 
-  for (const p of periodesFutures) {
-    if (reste <= 0) break;
+  const plan = planifierImputation({
+    surplus: args.surplus,
+    montantMise,
+    montantBase,
+    fraisOrganisateur,
+    periodesExistantes: periodesExistantes.map((p) => ({
+      id: p.id,
+      periode: p.periode,
+      montantTotal: p.montantTotal,
+      montantPaye: p.montantPaye,
+      commissionAmount: p.commissionTransaction?.amount ?? 0,
+    })),
+    dates,
+  });
 
-    const aImputer = Math.min(reste, p.montantTotal);
-    const nouveauMontantPaye = p.montantPaye + aImputer;
-    const nouveauStatut = calculerStatutCotisation(nouveauMontantPaye, p.montantTotal, false);
+  const toursAActualiser = new Set<number>();
 
-    await prisma.tontineCotisation.update({
-      where: { id: p.id },
+  for (const u of plan.updates) {
+    const existante = periodesExistantes.find((p) => p.id === u.id);
+    await tx.tontineCotisation.update({
+      where: { id: u.id },
       data: {
-        montantPaye: nouveauMontantPaye,
-        statut: nouveauStatut,
-        datePaiement: nouveauMontantPaye > 0 ? new Date() : null,
+        montantPaye: u.nouveauPaye,
+        statut: u.nouveauStatut,
+        datePaiement: existante?.datePaiement ?? new Date(),
       },
     });
 
-    reste -= aImputer;
-    count++;
+    if (u.commission > 0) {
+      if (existante?.commissionTransaction) {
+        await tx.transaction.update({
+          where: { id: existante.commissionTransaction.id },
+          data: { amount: existante.commissionTransaction.amount + u.commission },
+        });
+      } else {
+        await bookCommissionInTx(tx, {
+          userId: args.userId,
+          tontine: args.tontine,
+          cotisationId: u.id,
+          amount: u.commission,
+          date: new Date(),
+        });
+      }
+    }
+    if (existante?.tourId) toursAActualiser.add(existante.tourId);
   }
 
-  if (reste > 0) {
-    await prisma.tontineMembre.update({
-      where: { id: membreId },
-      data: { soldeAvance: { increment: reste } },
+  for (const c of plan.creates) {
+    const tourId = args.tontine.type === "rotative_simple" ? await trouverTourPourPeriode(args.tontine.id, c.periode, tx) : null;
+    const row = await tx.tontineCotisation.create({
+      data: {
+        tontineId: args.tontine.id,
+        membreId: args.membre.id,
+        tourId,
+        periode: c.periode,
+        montantBase: c.montantBase,
+        fraisOrganisateur: c.fraisOrganisateur,
+        montantTotal: c.montantTotal,
+        montantPaye: c.aImputer,
+        montantPenalite: 0,
+        datePaiement: new Date(),
+        statut: c.statut,
+      },
+    });
+
+    if (c.commission > 0) {
+      await bookCommissionInTx(tx, {
+        userId: args.userId,
+        tontine: args.tontine,
+        cotisationId: row.id,
+        amount: c.commission,
+        date: new Date(),
+      });
+    }
+    if (tourId) toursAActualiser.add(tourId);
+  }
+
+  if (plan.soldeRestant > 0) {
+    await tx.tontineMembre.update({
+      where: { id: args.membre.id },
+      data: { soldeAvance: { increment: plan.soldeRestant } },
     });
   }
 
+  for (const tourId of toursAActualiser) {
+    await recalculerMontantCollecteTour(tourId, tx);
+  }
+
   return {
-    cotisationCourante: { montantPaye: montantTotalPeriode, statut: "paye" },
-    futuresImbriquees: count,
-    soldeRestant: reste,
+    futuresImbriquees: plan.updates.length + plan.creates.length,
+    soldeRestant: plan.soldeRestant,
   };
 }
 
@@ -212,26 +387,6 @@ export async function genererTours(tontineId: number): Promise<{ tours: number; 
   return { tours: tours.length, dateFin: dateFin.toISOString() };
 }
 
-export async function trouverTourPourPeriode(tontineId: number, periode: Date): Promise<number | null> {
-  const tours = await prisma.tontineTour.findMany({
-    where: { tontineId },
-    orderBy: { datePrevue: "asc" },
-  });
-  if (tours.length === 0) return null;
-
-  let bestTourId: number | null = null;
-  let bestDiff = Infinity;
-  for (const tour of tours) {
-    if (tour.statut === "cloture" || tour.statut === "collecte_terminee") continue;
-    const diff = Math.abs(periode.getTime() - tour.datePrevue.getTime());
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestTourId = tour.id;
-    }
-  }
-  return bestTourId;
-}
-
 export async function recalculerPenalitesTontine(tontineId: number): Promise<number> {
   const tontine = await prisma.tontine.findUnique({ where: { id: tontineId } });
   if (!tontine) return 0;
@@ -242,6 +397,9 @@ export async function recalculerPenalitesTontine(tontineId: number): Promise<num
 
   let count = 0;
   for (const c of cotisations) {
+    // Une période déjà payée (y compris payée d'avance) ne reçoit jamais de pénalité rétroactive.
+    if (c.statut === "paye") continue;
+
     const membre = await prisma.tontineMembre.findUnique({ where: { id: c.membreId } });
     const montantCotisationEffectif = membre?.montantCotisationPersonnel ?? tontine.montantCotisation;
 
@@ -287,15 +445,73 @@ export async function recalculerSoldeAvanceMembre(membreId: number): Promise<voi
   });
 }
 
-export async function recalculerMontantCollecteTour(tourId: number): Promise<void> {
-  const result = await prisma.tontineCotisation.aggregate({
+export async function recalculerMontantCollecteTour(tourId: number, client: ClientLike = prisma as unknown as ClientLike): Promise<void> {
+  const result = await client.tontineCotisation.aggregate({
     where: { tourId },
     _sum: { montantPaye: true },
   });
-  await prisma.tontineTour.update({
+  await client.tontineTour.update({
     where: { id: tourId },
     data: { montantCollecte: result._sum.montantPaye || 0 },
   });
+}
+
+/**
+ * Répare / matérialise le surplus d'un membre existant :
+ * l'argent non affecté à une période (Σ payé + soldeAvance − Σ dû) est imputé
+ * sur les jours de mise futurs, et soldeAvance est recalibré.
+ * Idempotent — utilisé par le backfill des tontines déjà existantes.
+ */
+export async function reconcilierMembre(tontineId: number, membreId: number): Promise<{ imputees: number; solde: number }> {
+  const tontine = await prisma.tontine.findUnique({ where: { id: tontineId } });
+  const membre = await prisma.tontineMembre.findUnique({ where: { id: membreId } });
+  if (!tontine || !membre) return { imputees: 0, solde: 0 };
+
+  const cotisations = await prisma.tontineCotisation.findMany({
+    where: { membreId, tontineId },
+    orderBy: { periode: "asc" },
+  });
+
+  const totalPaye = cotisations.reduce((s, c) => s + c.montantPaye, 0);
+  const totalDus = cotisations.reduce((s, c) => s + c.montantTotal, 0);
+  const unallocated = (totalPaye - totalDus) + (membre.soldeAvance || 0);
+
+  if (unallocated <= 0) {
+    if (membre.soldeAvance !== 0) {
+      await prisma.tontineMembre.update({ where: { id: membreId }, data: { soldeAvance: 0 } });
+    }
+    return { imputees: 0, solde: 0 };
+  }
+
+  const freq = getFrequenceJours(tontine.frequence);
+  const anchor = cotisations.length > 0
+    ? new Date(cotisations[cotisations.length - 1].periode)
+    : new Date(new Date(tontine.dateDebut).getTime() - freq * 24 * 60 * 60 * 1000);
+
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.tontineMembre.update({ where: { id: membreId }, data: { soldeAvance: 0 } });
+    const membreTx = await tx.tontineMembre.findUnique({ where: { id: membreId } });
+    return imputerSurplus(tx, {
+      userId: tontine.organisateurId,
+      tontine: {
+        id: tontine.id,
+        nom: tontine.nom,
+        type: tontine.type,
+        frequence: tontine.frequence,
+        dateDebut: tontine.dateDebut,
+        dateDistribution: tontine.dateDistribution,
+        montantCotisation: tontine.montantCotisation,
+        fraisOrganisateurParDefaut: tontine.fraisOrganisateurParDefaut,
+        scopeCommission: tontine.scopeCommission,
+        nombreTours: tontine.nombreTours,
+      },
+      membre: membreTx ?? { id: membreId, montantCotisationPersonnel: membre.montantCotisationPersonnel },
+      periodeDate: anchor,
+      surplus: unallocated,
+    });
+  });
+
+  return { imputees: result.futuresImbriquees, solde: result.soldeRestant };
 }
 
 // ─── Tour state machine ──────────────────────────────────────────
