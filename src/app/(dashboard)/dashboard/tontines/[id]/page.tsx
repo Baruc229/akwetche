@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear, faCoins, faHandHoldingDollar, faPercentage, faUsers, faCalendarDays, faSackDollar, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/utils";
 import { genererGrilleMises, startOfDay, calculerMisesMembre } from "@/lib/tontine-utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -125,28 +126,7 @@ export default function TontineDetail() {
 
   // Intégration modales ↔ historique : le retour téléphone/browser ferme d'abord
   // la modale ouverte (au lieu de quitter la page) ; une deuxième pression quitte la page.
-  const modalBackActive = useRef(false);
-  useEffect(() => {
-    if (anyModalOpen) {
-      if (!modalBackActive.current) {
-        window.history.pushState({ tontineModal: true }, "", window.location.href);
-        modalBackActive.current = true;
-      }
-      const onPopState = () => {
-        if (anyModalOpen) {
-          closeAllModals();
-          window.history.pushState({ tontineModal: true }, "", window.location.href);
-        }
-      };
-      window.addEventListener("popstate", onPopState);
-      return () => window.removeEventListener("popstate", onPopState);
-    } else {
-      if (modalBackActive.current) {
-        modalBackActive.current = false;
-        window.history.back();
-      }
-    }
-  }, [anyModalOpen]);
+  useModalBack(anyModalOpen, closeAllModals);
 
   async function loadData(signal?: AbortSignal) {
     try {

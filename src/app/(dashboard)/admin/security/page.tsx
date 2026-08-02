@@ -10,6 +10,7 @@ import CustomSelect from "@/components/ui/CustomSelect";
 import ConfirmModal from "@/components/ConfirmModal";
 import type { LoginLog } from "@/types/admin";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 const PAGE_SIZE = 30;
 
@@ -17,14 +18,24 @@ export default function AdminSecurity() {
   const { user } = useDashboard();
   const router = useRouter();
   const [logs, setLogs] = useState<LoginLog[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{ failedLoginsToday?: number; loginAttemptsToday?: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [search, setSearch] = useState("");
   const [filterSuccess, setFilterSuccess] = useState("all");
   const [page, setPage] = useState(0);
   const [selectedLog, setSelectedLog] = useState<LoginLog | null>(null);
-  useScrollLock(selectedLog !== null || clearConfirm);
+
+  const anyModalOpen = selectedLog !== null || clearConfirm;
+
+  useScrollLock(anyModalOpen);
+
+  function closeAllModals() {
+    setSelectedLog(null);
+    setClearConfirm(false);
+  }
+
+  useModalBack(anyModalOpen, closeAllModals);
 
   useEffect(() => {
     document.title = "Sécurité — Administration — Akwetche";
@@ -123,7 +134,7 @@ export default function AdminSecurity() {
           <div className="w-9 h-9 rounded-xl bg-gold-light flex items-center justify-center mb-3">
             <FontAwesomeIcon icon={faTriangleExclamation} className="w-[18px] h-[18px] text-gold" />
           </div>
-          <p className="text-label mb-1">Aujourd'hui</p>
+          <p className="text-label mb-1">Aujourd&apos;hui</p>
           <p className="text-amount text-2xl text-ink">{stats?.failedLoginsToday ?? 0}<span className="text-sm font-normal text-text-3">/{stats?.loginAttemptsToday ?? 0}</span></p>
         </div>
       </div>

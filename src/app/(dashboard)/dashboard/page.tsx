@@ -15,6 +15,7 @@ import ProjectionCard from "@/components/dashboard/ProjectionCard";
 import ActivitySummary from "@/components/dashboard/ActivitySummary";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 type ScopeSummary = {
   income: number;
@@ -65,7 +66,13 @@ export default function DashboardPage() {
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const activeCurrency = detectCurrency();
-  useScrollLock(showModal || showOnboarding);
+  const anyModalOpen = showModal || showOnboarding;
+  function closeAllModals() {
+    setShowModal(false);
+    setShowOnboarding(false);
+  }
+  useScrollLock(anyModalOpen);
+  useModalBack(anyModalOpen, closeAllModals);
 
   async function loadData() {
     try {

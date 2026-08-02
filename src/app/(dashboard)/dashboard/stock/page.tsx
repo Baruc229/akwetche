@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 type Product = {
   id: number;
@@ -49,7 +50,12 @@ export default function StockPage() {
   const [replenishError, setReplenishError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  useScrollLock(replenishProduct !== null);
+  const anyModalOpen = replenishProduct !== null;
+  function closeAllModals() {
+    setReplenishProduct(null);
+  }
+  useScrollLock(anyModalOpen);
+  useModalBack(anyModalOpen, closeAllModals);
 
   function computeProductStats(products: Product[], movements: Movement[]): ProductStats[] {
     const soldMap: Record<number, number> = {};
@@ -100,6 +106,7 @@ export default function StockPage() {
     document.title = "Stock — Akwetche";
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!user) return;
     if (user.role !== "user") { setPremiumLocked(false); loadData(); return; }
@@ -107,6 +114,7 @@ export default function StockPage() {
     if (user.subscription?.status === "expired") { setPremiumLocked(true); return; }
     router.replace("/dashboard");
   }, [user]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function handleReplenish(e: React.FormEvent) {
     e.preventDefault();

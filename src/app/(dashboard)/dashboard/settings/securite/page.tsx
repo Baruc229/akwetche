@@ -9,6 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../../layout";
 import SettingsHeader from "@/components/settings/SettingsHeader";
+import { useModalBack } from "@/hooks/useModalBack";
 
 export default function SecuritePage() {
   const { user } = useDashboard();
@@ -42,6 +43,17 @@ export default function SecuritePage() {
   const [sessions, setSessions] = useState<{ id: number; ipAddress: string; userAgent: string; lastActive: string; createdAt: string; isCurrent: boolean }[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [disconnectAllLoading, setDisconnectAllLoading] = useState(false);
+
+  const anyModalOpen = editingEmail || editingPassword;
+
+  function closeAllModals() {
+    setEditingEmail(false);
+    setEditingPassword(false);
+  }
+
+  // Intégration modales ↔ historique : le retour téléphone/browser ferme d'abord
+  // la modale ouverte (au lieu de quitter la page) ; une deuxième pression quitte la page.
+  useModalBack(anyModalOpen, closeAllModals);
 
   useEffect(() => { document.title = "Sécurité — Akwetche"; }, []);
 

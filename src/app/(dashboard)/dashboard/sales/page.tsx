@@ -10,6 +10,7 @@ import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import PremiumLock from "@/components/subscription/PremiumLock";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 type Sale = {
   id: number;
@@ -79,7 +80,17 @@ export default function SalesPage() {
 
   // Reconvertir le prix unitaire affiché quand la devise change
   const prevCurrencyRef = useRef(currency);
-  useScrollLock(showModal || deleteTarget !== null);
+  const anyModalOpen = showModal || deleteTarget !== null;
+  function closeAllModals() {
+    setShowModal(false);
+    setEditingSale(null);
+    setFormError("");
+    setDeleteTarget(null);
+    setDeleteMsg("");
+  }
+  useScrollLock(anyModalOpen);
+  useModalBack(anyModalOpen, closeAllModals);
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {
@@ -92,6 +103,7 @@ export default function SalesPage() {
       prevCurrencyRef.current = currency;
     }
   }, [currency, showModal]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function openNewModal() {
     setEditingSale(null);
@@ -143,13 +155,16 @@ export default function SalesPage() {
     document.title = "Ventes — Akwetche";
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (searchParams.get("action") === "create") {
       openNewModal();
       router.replace("/dashboard/sales");
     }
   }, [searchParams]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!user) return;
     if (user.role !== "user") { setPremiumLocked(false); loadData(); return; }
@@ -157,6 +172,7 @@ export default function SalesPage() {
     if (user.subscription?.status === "expired") { setPremiumLocked(true); return; }
     router.replace("/dashboard");
   }, [user]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const periodBounds = useMemo(() => {
     if (period === "month") return getMonthBounds(0);

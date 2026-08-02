@@ -10,6 +10,7 @@ import CustomSelect from "@/components/ui/CustomSelect";
 import FlagImg from "@/components/ui/FlagImg";
 import type { UserData } from "@/types/admin";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 function getStatusBadge(status: string) {
   if (status === "active") return <span className="badge badge-pos"><FontAwesomeIcon icon={faCircleCheck} className="w-2.5 h-2.5" />Actif</span>;
@@ -22,11 +23,20 @@ export default function AdminSubscriptions() {
   const { user } = useDashboard();
   const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{ subscriptionRevenue?: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
-  useScrollLock(selectedUser !== null);
+
+  const anyModalOpen = selectedUser !== null;
+
+  useScrollLock(anyModalOpen);
+
+  function closeAllModals() {
+    setSelectedUser(null);
+  }
+
+  useModalBack(anyModalOpen, closeAllModals);
 
   useEffect(() => {
     document.title = "Abonnements — Administration — Akwetche";
@@ -138,7 +148,7 @@ export default function AdminSubscriptions() {
           <div className="w-9 h-9 rounded-xl bg-neg-bg flex items-center justify-center mb-3">
             <FontAwesomeIcon icon={faArrowTrendDown} className="w-[18px] h-[18px] text-neg" />
           </div>
-          <p className="text-label mb-1">Taux d'attrition <span title="Abonnés expirés ÷ (actifs + expirés) × 100" className="cursor-help text-muted text-[10px] ml-0.5 font-semibold">(i)</span></p>
+          <p className="text-label mb-1">Taux d&apos;attrition <span title="Abonnés expirés ÷ (actifs + expirés) × 100" className="cursor-help text-muted text-[10px] ml-0.5 font-semibold">(i)</span></p>
           <p className="text-amount text-2xl text-ink">{churnRate}%</p>
         </div>
         <div className="card-inset">

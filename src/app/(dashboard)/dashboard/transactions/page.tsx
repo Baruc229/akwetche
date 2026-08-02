@@ -14,6 +14,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 type Transaction = {
   id: number;
@@ -74,7 +75,6 @@ export default function TransactionsPage() {
 
   // Reconvertir le montant affiché dans le formulaire quand la devise change
   const prevCurrencyRef = useRef(currency);
-  useScrollLock(showModal || showMobileFilters);
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {
@@ -102,6 +102,16 @@ export default function TransactionsPage() {
 
   const [confirmDeleteTx, setConfirmDeleteTx] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const anyModalOpen = showModal || showMobileFilters || confirmDeleteTx !== null;
+  function closeAllModals() {
+    setShowModal(false);
+    setEditTx(null);
+    setShowMobileFilters(false);
+    setConfirmDeleteTx(null);
+  }
+  useScrollLock(anyModalOpen);
+  useModalBack(anyModalOpen, closeAllModals);
 
   useEffect(() => {
     const timer = setTimeout(() => {

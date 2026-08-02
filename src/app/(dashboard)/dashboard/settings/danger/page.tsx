@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faRotateLeft, faLock, faCheck, faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import ConfirmModal from "@/components/ConfirmModal";
 import SettingsHeader from "@/components/settings/SettingsHeader";
+import { useModalBack } from "@/hooks/useModalBack";
 
 export default function DangerPage() {
   const router = useRouter();
@@ -17,6 +18,18 @@ export default function DangerPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetDone, setResetDone] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const anyModalOpen = showResetModal || showDeleteAccountModal || showDeactivateModal;
+
+  function closeAllModals() {
+    setShowResetModal(false);
+    setShowDeleteAccountModal(false);
+    setShowDeactivateModal(false);
+  }
+
+  // Intégration modales ↔ historique : le retour téléphone/browser ferme d'abord
+  // la modale ouverte (au lieu de quitter la page) ; une deuxième pression quitte la page.
+  useModalBack(anyModalOpen, closeAllModals);
 
   useEffect(() => { document.title = "Danger — Akwetche"; }, []);
 

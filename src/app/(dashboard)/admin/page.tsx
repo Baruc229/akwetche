@@ -12,6 +12,7 @@ import CustomSelect from "@/components/ui/CustomSelect";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Stats } from "@/types/admin";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 const MONTH_LABELS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
 function fmtMonth(m: string) {
@@ -31,7 +32,16 @@ export default function AdminOverview() {
   const [backfillState, setBackfillState] = useState<"idle" | "running" | "done">("idle");
   const [backfillResult, setBackfillResult] = useState<{ tontines: number; membresTraites: number; periodesImputees: number; soldeTotal: number } | null>(null);
   const [backfillError, setBackfillError] = useState("");
-  useScrollLock(showAddAdmin);
+
+  const anyModalOpen = showAddAdmin;
+
+  useScrollLock(anyModalOpen);
+
+  function closeAllModals() {
+    setShowAddAdmin(false);
+  }
+
+  useModalBack(anyModalOpen, closeAllModals);
 
   useEffect(() => {
     document.title = "Administration — Akwetche";

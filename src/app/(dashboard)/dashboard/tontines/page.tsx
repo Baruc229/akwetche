@@ -7,6 +7,7 @@ import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExcla
 import { formatCurrency } from "@/lib/utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/components/ui/DatePicker";
 
@@ -56,7 +57,15 @@ export default function TontinesPage() {
     penaliteRetardDelaiJours: "3",
   });
 
-  useScrollLock(showCreate);
+  const anyModalOpen = showCreate;
+  useScrollLock(anyModalOpen);
+
+  function closeAllModals() {
+    setShowCreate(false);
+    setError("");
+  }
+
+  useModalBack(anyModalOpen, closeAllModals);
 
   async function loadData(signal?: AbortSignal) {
     try {

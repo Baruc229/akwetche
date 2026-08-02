@@ -9,6 +9,7 @@ import { formatCurrency, toDisplayCurrency, toStorageCurrency } from "@/lib/util
 import ConfirmModal from "@/components/ConfirmModal";
 import PremiumLock from "@/components/subscription/PremiumLock";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 type Product = {
   id: number;
@@ -98,7 +99,15 @@ export default function ProductsPage() {
 
   // Reconvertir les prix affichés dans le formulaire quand la devise change
   const prevCurrencyRef = useRef(currency);
-  useScrollLock(showModal || confirmDeleteProduct !== null);
+  const anyModalOpen = showModal || sortOpen || confirmDeleteProduct !== null;
+  function closeAllModals() {
+    setShowModal(false);
+    setSortOpen(false);
+    setConfirmDeleteProduct(null);
+  }
+  useScrollLock(anyModalOpen);
+  useModalBack(anyModalOpen, closeAllModals);
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const prev = prevCurrencyRef.current;
     if (showModal && prev !== currency) {
@@ -120,6 +129,7 @@ export default function ProductsPage() {
       prevCurrencyRef.current = currency;
     }
   }, [currency, showModal]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function loadProducts() {
     setLoading(true);
@@ -148,6 +158,7 @@ export default function ProductsPage() {
     }
   }, [searchParams]);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!user) return;
     if (user.role !== "user") { setPremiumLocked(false); loadProducts(); return; }
@@ -155,6 +166,7 @@ export default function ProductsPage() {
     if (user.subscription?.status === "expired") { setPremiumLocked(true); return; }
     router.replace("/dashboard");
   }, [user]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput), 300);

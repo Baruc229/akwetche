@@ -8,6 +8,7 @@ import { useDashboard } from "../../../layout";
 import { formatCurrency, toStorageCurrency, toDisplayCurrency, roundByCurrency } from "@/lib/utils";
 import CustomSelect from "@/components/ui/CustomSelect";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { useModalBack } from "@/hooks/useModalBack";
 
 type Template = {
   id: number;
@@ -42,7 +43,19 @@ export default function RevenusRecurrentsPage() {
   const [formDayOfMonth, setFormDayOfMonth] = useState("1");
   const [formCategoryId, setFormCategoryId] = useState("");
   const [error, setError] = useState("");
-  useScrollLock(showForm);
+
+  const anyModalOpen = showForm;
+
+  useScrollLock(anyModalOpen);
+
+  function closeAllModals() {
+    resetForm();
+    setShowForm(false);
+  }
+
+  // Intégration modales ↔ historique : le retour téléphone/browser ferme d'abord
+  // la modale ouverte (au lieu de quitter la page) ; une deuxième pression quitte la page.
+  useModalBack(anyModalOpen, closeAllModals);
 
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const today = new Date().getDate();
@@ -69,6 +82,7 @@ export default function RevenusRecurrentsPage() {
     finally { setLoading(false); }
   }
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
@@ -78,6 +92,7 @@ export default function RevenusRecurrentsPage() {
       router.replace("/dashboard/recurring/income");
     }
   }, [searchParams]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function resetForm() {
     setFormName(""); setFormAmount(""); setFormScope("personal");
