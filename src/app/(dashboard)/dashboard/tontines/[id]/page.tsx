@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear, faCoins, faHandHoldingDollar, faPercentage, faUsers, faCalendarDays, faSackDollar, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
@@ -100,9 +100,53 @@ export default function TontineDetail() {
   const [settingsPenaliteDelai, setSettingsPenaliteDelai] = useState("");
   const [settingsSaving, setSettingsSaving] = useState(false);
 
-  useScrollLock(
-    showMembreForm || showNewCotisation || showNewTour || showDistribution || detailMembre !== null || showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null || deleteTourConfirm !== null || completingCotisation !== null || editingCotisation !== null || showSettings
-  );
+  const anyModalOpen =
+    showMembreForm || showNewCotisation || showNewTour || showDistribution || detailMembre !== null ||
+    showDeleteConfirm || deleteMembreConfirm !== null || deleteCotisationConfirm !== null ||
+    deleteTourConfirm !== null || completingCotisation !== null || editingCotisation !== null || showSettings;
+
+  useScrollLock(anyModalOpen);
+
+  function closeAllModals() {
+    setShowMembreForm(false);
+    setShowNewCotisation(false);
+    setShowNewTour(false);
+    setShowDistribution(false);
+    setDetailMembre(null);
+    setShowDeleteConfirm(false);
+    setDeleteMembreConfirm(null);
+    setDeleteCotisationConfirm(null);
+    setDeleteTourConfirm(null);
+    setCompletingCotisation(null);
+    setCompletionAmount("");
+    setEditingCotisation(null);
+    setShowSettings(false);
+  }
+
+  // Intégration modales ↔ historique : le retour téléphone/browser ferme d'abord
+  // la modale ouverte (au lieu de quitter la page) ; une deuxième pression quitte la page.
+  const modalBackActive = useRef(false);
+  useEffect(() => {
+    if (anyModalOpen) {
+      if (!modalBackActive.current) {
+        window.history.pushState({ tontineModal: true }, "", window.location.href);
+        modalBackActive.current = true;
+      }
+      const onPopState = () => {
+        if (anyModalOpen) {
+          closeAllModals();
+          window.history.pushState({ tontineModal: true }, "", window.location.href);
+        }
+      };
+      window.addEventListener("popstate", onPopState);
+      return () => window.removeEventListener("popstate", onPopState);
+    } else {
+      if (modalBackActive.current) {
+        modalBackActive.current = false;
+        window.history.back();
+      }
+    }
+  }, [anyModalOpen]);
 
   async function loadData(signal?: AbortSignal) {
     try {
