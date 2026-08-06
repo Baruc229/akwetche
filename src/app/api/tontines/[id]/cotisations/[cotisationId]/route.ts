@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
+import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, parseMoney } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
 import { startOfDay } from "@/lib/tontine-utils";
@@ -33,7 +33,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { montantPaye, datePaiement, periode } = await req.json();
     if (montantPaye === undefined) return badRequest("montantPaye requis");
 
-    const parsedMontantPaye = parseFloat(montantPaye) || 0;
+    const parsedMontantPaye = parseMoney(montantPaye) ?? 0;
+    if (parsedMontantPaye < 0) return badRequest("Montant payé invalide");
 
     // Date de la période modifiable (facultative).
     let nouvellePeriode = existing.periode;
@@ -144,7 +145,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           tontineId,
           membreId: existing.membreId,
           imputee: true,
-          periode: { gt: existing.periode },
+          periode: { gt: nouvellePeriode },
         },
         _sum: { montantPaye: true },
       });
@@ -157,7 +158,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         await desimputerSurplus(tx, {
           tontineId,
           membreId: existing.membreId,
-          periodeDate: existing.periode,
+          periodeDate: nouvellePeriode,
           reduction: montantChaineImputee - surplus,
           fraisOrganisateur: tontine.fraisOrganisateurParDefaut,
         });
@@ -178,7 +179,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             nombreTours: tontine.nombreTours,
           },
           membre: { id: membre.id, montantCotisationPersonnel: membre.montantCotisationPersonnel },
-          periodeDate: existing.periode,
+          periodeDate: nouvellePeriode,
           surplus: surplus - montantChaineImputee,
         });
       }
@@ -197,7 +198,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       const amount = (notificationInfo as { amount: number }).amount;
       const notifCurrency = resolveCurrency((await prisma.user.findUnique({ where: { id: userId }, select: { currency: true } }))?.currency);
       const scopeLabel = tontine.scopeCommission === "personnel" ? "" : " (Activité)";
-      await createNotification(userId, "transaction", `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} — Commission tontine : ${tontine.nom}`, "/dashboard/transactions");
+      await createNotification(userId, "transaction", `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} — Commission tontine : ${tontine.nom}`, "/dashboard/transactions").catch(() => {});
     }
 
     await recalculerSoldeAvanceMembre(existing.membreId);

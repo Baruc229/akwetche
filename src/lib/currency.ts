@@ -204,6 +204,13 @@ export function setActiveCurrency(c: CurrencyCode) {
   _activeCurrency = c;
 }
 
+/** Réinitialise la devise active au logout / changement de compte : évite
+ *  qu'un utilisateur hérite de la devise affichée du précédent. */
+export function resetActiveCurrency() {
+  _activeCurrency = null;
+  _activeBaseCurrency = null;
+}
+
 export function detectCurrency(): CurrencyCode {
   if (_activeCurrency) return _activeCurrency;
   return "XOF";

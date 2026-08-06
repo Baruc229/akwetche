@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
 
   await prisma.verificationToken.delete({ where: { id: record.id } });
 
-  const redirectUrl = user.plan === "premium" ? "/payment" : "/dashboard";
+  const redirectUrl = "/dashboard";
 
   const html = `
     <!DOCTYPE html>

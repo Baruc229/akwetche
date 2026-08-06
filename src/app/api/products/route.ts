@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, badRequest, ok, created } from "@/lib/api";
+import { requireAuth, badRequest, ok, created, parseMoney } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
@@ -41,29 +41,39 @@ export async function POST(req: NextRequest) {
       return badRequest("Le nom du produit est requis");
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        purchasePrice: parseFloat(purchasePrice || "0"),
-        salePrice: parseFloat(salePrice || "0"),
-        stock: parseInt(stock || "0"),
-        userId,
-      },
-    });
+    const purchase = parseMoney(purchasePrice ?? "0") ?? 0;
+    const price = parseMoney(salePrice ?? "0") ?? 0;
+    const initialStock = parseInt(stock ?? "0", 10);
+    if (purchase < 0 || price < 0) return badRequest("Prix invalide");
+    if (!Number.isFinite(initialStock) || initialStock < 0) return badRequest("Stock initial invalide");
 
-    if (parseInt(stock || "0") > 0) {
-      await prisma.stockMovement.create({
+    const product = await prisma.$transaction(async (tx) => {
+      const createdProduct = await tx.product.create({
         data: {
-          type: "in",
-          quantity: parseInt(stock),
-          description: "Stock initial",
-          productId: product.id,
+          name,
+          purchasePrice: purchase,
+          salePrice: price,
+          stock: initialStock,
           userId,
         },
       });
-    }
 
-    await createNotification(userId, "product", `Produit ajouté : ${product.name}`, "/dashboard/products");
+      if (initialStock > 0) {
+        await tx.stockMovement.create({
+          data: {
+            type: "in",
+            quantity: initialStock,
+            description: "Stock initial",
+            productId: createdProduct.id,
+            userId,
+          },
+        });
+      }
+
+      return createdProduct;
+    });
+
+    await createNotification(userId, "product", `Produit ajouté : ${product.name}`, "/dashboard/products").catch(() => {});
 
     return created({ product });
   } catch {
@@ -76,12 +86,16 @@ export async function PUT(req: NextRequest) {
     const userId = await requireAuth();
     const { id, name, purchasePrice, salePrice } = await req.json();
 
+    const purchase = parseMoney(purchasePrice ?? "0") ?? 0;
+    const price = parseMoney(salePrice ?? "0") ?? 0;
+    if (purchase < 0 || price < 0) return badRequest("Prix invalide");
+
     const product = await prisma.product.updateMany({
       where: { id: parseInt(id), userId },
       data: {
         name,
-        purchasePrice: parseFloat(purchasePrice),
-        salePrice: parseFloat(salePrice),
+        purchasePrice: purchase,
+        salePrice: price,
       },
     });
 
@@ -97,12 +111,16 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json();
     const productId = parseInt(id);
 
-    await prisma.sale.deleteMany({
-      where: { productId, userId },
-    });
+    // Atomicité : la suppression des ventes cascade vers les mouvements de
+    // stock et les transactions de revenu liés (saleId).
+    await prisma.$transaction(async (tx) => {
+      await tx.sale.deleteMany({
+        where: { productId, userId },
+      });
 
-    await prisma.product.deleteMany({
-      where: { id: productId, userId },
+      await tx.product.deleteMany({
+        where: { id: productId, userId },
+      });
     });
     return ok({ success: true });
   } catch {

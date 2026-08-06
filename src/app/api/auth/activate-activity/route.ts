@@ -6,9 +6,13 @@ export async function POST() {
   const userId = await getAuthUserId();
   if (!userId) return unauthorized();
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { subscription: { select: { status: true } } },
+  });
   if (!user) return unauthorized();
-  if (user.plan !== "premium" && user.role === "user") return badRequest("Réservé aux abonnés Premium");
+  const isPremium = user.subscription?.status === "active" || user.role !== "user";
+  if (!isPremium) return badRequest("Réservé aux abonnés Premium");
 
   await prisma.user.update({
     where: { id: userId },

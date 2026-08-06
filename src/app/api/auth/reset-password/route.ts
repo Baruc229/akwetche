@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
 
     await prisma.verificationToken.delete({ where: { id: record.id } });
 
+    // Révoque toutes les sessions existantes : le changement de mot de passe
+    // doit invalider les jetons déjà émis.
+    await prisma.session.deleteMany({ where: { userId: record.userId } });
+
     const jwtToken = generateToken(record.userId);
     const cookieStore = await cookies();
     cookieStore.set("token", jwtToken, {
@@ -37,6 +41,10 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60,
       path: "/",
+    });
+
+    await prisma.session.create({
+      data: { token: jwtToken, userId: record.userId, ipAddress: "", userAgent: "" },
     });
 
     return ok({ message: "Mot de passe réinitialisé avec succès." });

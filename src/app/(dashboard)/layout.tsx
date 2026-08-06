@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useRouter } from "next/navigation";
-import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, type CurrencyCode } from "@/lib/currency";
+import { resolveCurrency, setActiveCurrency, setActiveBaseCurrency, resetActiveCurrency, type CurrencyCode } from "@/lib/currency";
 import ExpirationBanner from "@/components/subscription/ExpirationBanner";
 import ExpiredModal from "@/components/subscription/ExpiredModal";
 import QuickTransactionModal from "@/components/QuickTransactionModal";
@@ -128,10 +128,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [commercialMode, user]);
 
   useEffect(() => {
-    if (user) fetch("/api/recurring/generate", { method: "POST" }).catch(() => {});
+    if (!user) return;
+    const monthKey = `akwetche_recurring_${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
+    if (localStorage.getItem(monthKey) === "done") return;
+    fetch("/api/recurring/generate", { method: "POST" })
+      .catch(() => {})
+      .finally(() => localStorage.setItem(monthKey, "done"));
   }, [user]);
 
   const handleLogout = useCallback(async () => {
+    resetActiveCurrency();
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
   }, [router]);

@@ -2,10 +2,24 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe, hasStripe, getWebhookSecret } from "@/lib/stripe";
 import { ok } from "@/lib/api";
-import { activatePremium } from "@/lib/subscription";
+import { activatePremium, expireSubscription } from "@/lib/subscription";
 
-async function activateSubscription(userId: number, provider: string, method: string) {
-  await activatePremium(userId, provider, method);
+// Enregistre un événement comme traité. Renvoie false s'il l'était déjà
+// (Stripe peut redélivrer le même événement — idempotence obligatoire,
+// sinon le renouvellement prolongerait l'abonnement à chaque redélivrance).
+async function markEventSeen(provider: string, eventId: string): Promise<boolean> {
+  if (!eventId) return true;
+  try {
+    await prisma.webhookEvent.create({ data: { provider, eventId } });
+    return true;
+  } catch (err) {
+    if ((err as { code?: string })?.code === "P2002") return false;
+    throw err;
+  }
+}
+
+async function activateSubscription(userId: number, provider: string, method: string, explicitEndDate?: Date) {
+  await activatePremium(userId, provider, method, 5000, "XOF", explicitEndDate);
 }
 
 async function handleStripeWebhook(req: NextRequest) {
@@ -22,6 +36,10 @@ async function handleStripeWebhook(req: NextRequest) {
     return new Response("Signature verification failed", { status: 400 });
   }
 
+  if (!(await markEventSeen("stripe", event.id))) {
+    return ok({ received: true, duplicate: true });
+  }
+
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object;
     const userId = parseInt(pi.metadata?.userId || "");
@@ -35,14 +53,24 @@ async function handleStripeWebhook(req: NextRequest) {
   }
 
   if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
-    const sub = event.data.object;
-    const status = sub.status === "active" ? "active" : sub.status === "past_due" ? "expired" : "cancelled";
+    const sub = event.data.object as {
+      status?: string;
+      current_period_end?: number;
+      metadata?: { userId?: string };
+    };
     const userId = parseInt(sub.metadata?.userId || "");
+
     if (userId) {
-      await prisma.subscription.update({
-        where: { userId },
-        data: { status },
-      });
+      if (sub.status === "active") {
+        // Renouvellement : on prolonge à partir de la fin de période Stripe
+        // (source de vérité) au lieu de toujours recalculer +30 jours.
+        const endTs = sub.current_period_end as number | undefined;
+        const endDate = typeof endTs === "number" && endTs > 0 ? new Date(endTs * 1000) : undefined;
+        await activateSubscription(userId, "stripe", "card", endDate);
+      } else if (sub.status === "past_due" || sub.status === "unpaid" || sub.status === "canceled") {
+        const current = await prisma.subscription.findUnique({ where: { userId } });
+        if (current?.status === "active") await expireSubscription(current.id);
+      }
     }
   }
 
@@ -53,6 +81,11 @@ async function handlePayPalWebhook(req: NextRequest) {
   const body = await req.json();
 
   const eventType = body.event_type;
+  const eventId = body.id || "";
+  if (eventId && !(await markEventSeen("paypal", eventId))) {
+    return ok({ received: true, duplicate: true });
+  }
+
   if (eventType === "CHECKOUT.ORDER.APPROVED" || eventType === "PAYMENT.CAPTURE.COMPLETED") {
     const resource = body.resource;
     const customId = resource?.purchase_units?.[0]?.custom_id
@@ -70,6 +103,11 @@ async function handlePayPalWebhook(req: NextRequest) {
 async function handleFedaPayWebhook(req: NextRequest) {
   try {
     const body = await req.json();
+
+    const eventId = body.id || body.transaction_id || "";
+    if (eventId && !(await markEventSeen("fedapay", String(eventId)))) {
+      return ok({ received: true, duplicate: true });
+    }
 
     const status = body.data?.status || body.status;
     const reference = body.data?.customer?.reference

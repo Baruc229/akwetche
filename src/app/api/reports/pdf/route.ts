@@ -17,6 +17,17 @@ const PERIOD_LABELS: Record<string, string> = {
 
 const COLORS = ["#0D1B35", "#142D54", "#C9A84C", "#dc2626", "#7c3aed", "#0891b2", "#be123c", "#ca8a04"];
 
+// Échappement HTML : les descriptions/catégories sont saisies par l'utilisateur
+// et injectées dans le HTML du PDF — on bloque toute injection de balises/scripts.
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export const maxDuration = 90;
 
 export async function GET(req: NextRequest) {
@@ -104,8 +115,8 @@ export async function GET(req: NextRequest) {
     const txRows = transactions.map(t => `
       <tr>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#64748b;font-size:12px">${new Date(t.date).toLocaleDateString("fr-FR")}</td>
-        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px">${t.description}</td>
-        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:12px">${t.category?.name || "—"}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px">${esc(t.description)}</td>
+        <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:12px">${esc(t.category?.name || "—")}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#94a3b8;font-size:11px;text-align:center">${t.scope === "activity" ? "Activité" : "Perso"}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#0D1B35;font-size:13px;text-align:right;font-weight:500">${t.type === "income" ? fmt(t.amount) : ""}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;color:#dc2626;font-size:13px;text-align:right;font-weight:500">${t.type === "expense" ? fmt(t.amount) : ""}</td>
@@ -116,7 +127,7 @@ export async function GET(req: NextRequest) {
       return `
       <tr>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee">
-          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS[i % COLORS.length]};margin-right:8px;vertical-align:middle"></span>${name}
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${COLORS[i % COLORS.length]};margin-right:8px;vertical-align:middle"></span>${esc(name)}
         </td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;font-weight:500">${fmt(amount)}</td>
         <td style="padding:7px 12px;border-bottom:1px solid #f0f0ee;text-align:right;color:#94a3b8">${pct}%</td>
@@ -129,7 +140,8 @@ export async function GET(req: NextRequest) {
 
     const html = `<!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="utf-8"><title>Rapport ${periodLabel} — Akwetche</title>
+<head><meta charset="utf-8"><title>Rapport ${esc(periodLabel)} — Akwetche</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
 <style>
   @page { margin: 18mm 15mm; size: A4; }
   * { box-sizing: border-box; }

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created } from "@/lib/api";
+import { requireTontineAccess, forbidden, unauthorized, badRequest, ok, created, parseMoney } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { formatCurrency, resolveCurrency } from "@/lib/currency";
 import { calculerProrata, calculerMontantTotalAvecPenalite, calculerStatutCotisation, getFrequenceJours, trouverTourPourPeriode, imputerSurplus, recalculerMontantCollecteTour } from "@/lib/tontine";
@@ -33,8 +33,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const montantMise = membre.montantCotisationPersonnel ?? tontine.montantCotisation;
     const montantBase = montantMise - tontine.fraisOrganisateurParDefaut;
     const fraisOrg = tontine.fraisOrganisateurParDefaut;
-    const parsedMontantPaye = parseFloat(montantPaye || "0");
+    const parsedMontantPaye = parseMoney(montantPaye ?? "0");
+    if (parsedMontantPaye === null || parsedMontantPaye < 0) {
+      return badRequest("Montant payé invalide");
+    }
     const periodeDate = new Date(periode);
+    if (isNaN(periodeDate.getTime())) return badRequest("Date de période invalide");
     const frequenceJours = getFrequenceJours(tontine.frequence);
 
     const dateLimite = new Date(periodeDate.getTime() + frequenceJours * 24 * 60 * 60 * 1000);
@@ -49,45 +53,50 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       now
     );
 
-    const existing = await prisma.tontineCotisation.findFirst({
-      where: { tontineId, membreId: membre.id, periode: periodeDate },
-      include: { commissionTransaction: true },
-    });
-
-    // L'avance disponible couvre d'abord la période courante, puis devient surplus.
-    const montantEffectifDus = Math.max(0, montantTotal - (existing ? existing.montantPaye : 0));
-    const soldeApplique = Math.min(membre.soldeAvance || 0, montantEffectifDus);
-    const montantEffectifDusApresAvance = montantEffectifDus - soldeApplique;
-    const totalCouvert = parsedMontantPaye + soldeApplique;
-    const estEnRetard = now > dateLimite && totalCouvert < montantEffectifDusApresAvance;
-
-    const montantCotisationCours = Math.min(totalCouvert, montantEffectifDusApresAvance);
-    const surplus = Math.max(0, totalCouvert - montantCotisationCours);
-    const nouveauPaye = (existing ? existing.montantPaye : 0) + montantCotisationCours;
-    const statut = nouveauPaye >= montantTotal
-      ? "paye"
-      : calculerStatutCotisation(nouveauPaye, montantTotal, estEnRetard);
-
-    // Commission organisateur : au prorata du total payé sur la période, moins celle déjà comptabilisée.
-    const fraisOrgTotal = calculerProrata(nouveauPaye, montantTotal, montantBase, fraisOrg).fraisOrganisateurEffectif;
-    const fraisOrgExistant = existing?.commissionTransaction?.amount ?? 0;
-    const fraisOrganisateurEffectif = Math.max(0, Math.round((fraisOrgTotal - fraisOrgExistant) * 100) / 100);
-
-    const datePaiementEffective = datePaiement
-      ? new Date(datePaiement)
-      : parsedMontantPaye > 0
-        ? now
-        : existing?.datePaiement ?? null;
-
     let commissionTx: { amount: number } | null = null;
 
     const result = await prisma.$transaction(async (tx) => {
+      // Relecture atomique du membre et de la période dans la transaction :
+      // évite les pertes d'update sur soldeAvance et les doublons de période
+      // (la contrainte @@unique([tontineId, membreId, periode]) protège aussi).
+      const membreTx = await tx.tontineMembre.findUnique({ where: { id: membre.id } });
+      const existing = await tx.tontineCotisation.findFirst({
+        where: { tontineId, membreId: membre.id, periode: periodeDate },
+        include: { commissionTransaction: true },
+      });
+
+      const soldeAvanceDispo = membreTx?.soldeAvance || 0;
+      const montantEffectifDus = Math.max(0, montantTotal - (existing ? existing.montantPaye : 0));
+      const soldeApplique = Math.min(soldeAvanceDispo, montantEffectifDus);
+      const montantEffectifDusApresAvance = montantEffectifDus - soldeApplique;
+      const totalCouvert = parsedMontantPaye + soldeApplique;
+      const estEnRetard = now > dateLimite && totalCouvert < montantEffectifDusApresAvance;
+
+      const montantCotisationCours = Math.min(totalCouvert, montantEffectifDusApresAvance);
+      const surplus = Math.max(0, totalCouvert - montantCotisationCours);
+      const nouveauPaye = (existing ? existing.montantPaye : 0) + montantCotisationCours;
+      const statut = nouveauPaye >= montantTotal
+        ? "paye"
+        : calculerStatutCotisation(nouveauPaye, montantTotal, estEnRetard);
+
+      // Commission organisateur : au prorata du total payé sur la période, moins celle déjà comptabilisée.
+      const fraisOrgTotal = calculerProrata(nouveauPaye, montantTotal, montantBase, fraisOrg).fraisOrganisateurEffectif;
+      const fraisOrgExistant = existing?.commissionTransaction?.amount ?? 0;
+      const fraisOrganisateurEffectif = Math.max(0, Math.round((fraisOrgTotal - fraisOrgExistant) * 100) / 100);
+
+      const datePaiementEffective = datePaiement
+        ? new Date(datePaiement)
+        : parsedMontantPaye > 0
+          ? now
+          : existing?.datePaiement ?? null;
+
       let cotisation;
       if (existing) {
         cotisation = await tx.tontineCotisation.update({
           where: { id: existing.id },
           data: {
             montantPaye: nouveauPaye,
+            montantTotal,
             montantPenalite,
             statut,
             datePaiement: datePaiementEffective,
@@ -174,7 +183,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         await recalculerMontantCollecteTour(cotisation.tourId, tx);
       }
 
-      return { cotisation, surplusResult };
+      return { cotisation, surplusResult, soldeApplique };
     });
 
     if (commissionTx) {
@@ -190,15 +199,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         "transaction",
         `Revenu : ${formatCurrency(amount, notifCurrency)}${scopeLabel} — Tontine — commission : ${tontine.nom}`,
         "/dashboard/transactions"
-      );
+      ).catch(() => {});
     }
 
     return created({
       cotisation: result.cotisation,
-      soldeApplique,
-      avance: surplus > 0 ? { surplus, ...result.surplusResult } : null,
+      soldeApplique: result.soldeApplique,
+      avance: result.surplusResult.futuresImbriquees > 0 || result.surplusResult.soldeRestant > 0 ? result.surplusResult : null,
     });
-  } catch {
+  } catch (err) {
+    if ((err as { code?: string })?.code === "P2002") {
+      return badRequest("Ce paiement a déjà été enregistré (double soumission).");
+    }
     return badRequest("Erreur lors de l'enregistrement de la cotisation");
   }
 }

@@ -115,17 +115,22 @@ export async function trouverTourPourPeriode(
   });
   if (tours.length === 0) return null;
 
-  let bestTourId: number | null = null;
-  let bestDiff = Infinity;
-  for (const tour of tours) {
-    if (tour.statut === "cloture" || tour.statut === "collecte_terminee") continue;
-    const diff = Math.abs(periode.getTime() - tour.datePrevue.getTime());
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestTourId = tour.id;
-    }
-  }
-  return bestTourId;
+  const ouverts = tours.filter((t) => t.statut !== "cloture" && t.statut !== "collecte_terminee");
+  if (ouverts.length === 0) return null;
+
+  const t = periode.getTime();
+
+  // Période correspondant exactement à la date d'un tour ouvert → ce tour.
+  const exact = ouverts.find((x) => x.datePrevue.getTime() === t);
+  if (exact) return exact.id;
+
+  // Sinon, premier tour ouvert dont la date couvre la période.
+  const suivant = ouverts.find((x) => x.datePrevue.getTime() >= t);
+  if (suivant) return suivant.id;
+
+  // Période postérieure à tous les tours ouverts : on ne l'attache à aucun
+  // tour (sinon le montantCollecte du dernier tour est gonflé).
+  return null;
 }
 
 /**
@@ -292,24 +297,66 @@ export async function imputerSurplus(
 
   for (const c of plan.creates) {
     const tourId = args.tontine.type === "rotative_simple" ? await trouverTourPourPeriode(args.tontine.id, c.periode, tx) : null;
-    const row = await tx.tontineCotisation.create({
-      data: {
-        tontineId: args.tontine.id,
-        membreId: args.membre.id,
-        tourId,
-        periode: c.periode,
-        montantBase: c.montantBase,
-        fraisOrganisateur: c.fraisOrganisateur,
-        montantTotal: c.montantTotal,
-        montantPaye: c.aImputer,
-        montantPenalite: 0,
-        datePaiement: new Date(),
-        statut: c.statut,
-        imputee: true,
-      },
-    });
 
-    if (c.commission > 0) {
+    let row: { id: number };
+    try {
+      row = await tx.tontineCotisation.create({
+        data: {
+          tontineId: args.tontine.id,
+          membreId: args.membre.id,
+          tourId,
+          periode: c.periode,
+          montantBase: c.montantBase,
+          fraisOrganisateur: c.fraisOrganisateur,
+          montantTotal: c.montantTotal,
+          montantPaye: c.aImputer,
+          montantPenalite: 0,
+          datePaiement: new Date(),
+          statut: c.statut,
+          imputee: true,
+        },
+      });
+    } catch (err) {
+      // Période déjà matérialisée par une requête concurrente (double POST) :
+      // on fusionne le paiement au lieu de créer un doublon.
+      if ((err as { code?: string })?.code === "P2002") {
+        const existante = await tx.tontineCotisation.findFirst({
+          where: { tontineId: args.tontine.id, membreId: args.membre.id, periode: c.periode },
+          include: { commissionTransaction: true },
+        });
+        if (!existante) throw err;
+        const nouveauPaye = existante.montantPaye + c.aImputer;
+        row = await tx.tontineCotisation.update({
+          where: { id: existante.id },
+          data: {
+            montantPaye: nouveauPaye,
+            statut: nouveauPaye >= existante.montantTotal ? "paye" : existante.statut,
+            datePaiement: existante.datePaiement ?? new Date(),
+          },
+        });
+        if (c.commission > 0) {
+          if (existante.commissionTransaction) {
+            await tx.transaction.update({
+              where: { id: existante.commissionTransaction.id },
+              data: { amount: { increment: c.commission } },
+            });
+          } else {
+            await bookCommissionInTx(tx, {
+              userId: args.userId,
+              tontine: args.tontine,
+              cotisationId: existante.id,
+              amount: c.commission,
+              date: new Date(),
+            });
+          }
+        }
+        if (existante.tourId) toursAActualiser.add(existante.tourId);
+      } else {
+        throw err;
+      }
+    }
+
+    if (row.id && (c.commission > 0)) {
       await bookCommissionInTx(tx, {
         userId: args.userId,
         tontine: args.tontine,
@@ -363,11 +410,7 @@ export async function genererTours(tontineId: number): Promise<{ tours: number; 
     select: { id: true },
   });
 
-  if (toursExistants.length > 0) {
-    await prisma.tontineTour.deleteMany({ where: { tontineId } });
-  }
-
-  const tours = [];
+  const tours: Prisma.TontineTourUncheckedCreateInput[] = [];
   for (let i = 0; i < tontine.nombreTours; i++) {
     const datePrevue = new Date(dateDebut.getTime() + i * frequenceJours * 24 * 60 * 60 * 1000);
     const beneficiaire = tontine.membres[i % tontine.membres.length];
@@ -382,7 +425,14 @@ export async function genererTours(tontineId: number): Promise<{ tours: number; 
     });
   }
 
-  await prisma.tontineTour.createMany({ data: tours });
+  // Atomicité : la suppression des tours existants et la recréation se font
+  // dans une même transaction (sinon un crash entre les deux perdrait tout).
+  await prisma.$transaction(async (tx) => {
+    if (toursExistants.length > 0) {
+      await tx.tontineTour.deleteMany({ where: { tontineId } });
+    }
+    await tx.tontineTour.createMany({ data: tours });
+  });
 
   const dateFin = new Date(dateDebut.getTime() + (tontine.nombreTours - 1) * frequenceJours * 24 * 60 * 60 * 1000);
 
@@ -398,31 +448,35 @@ export async function recalculerPenalitesTontine(tontineId: number): Promise<num
   });
 
   let count = 0;
-  for (const c of cotisations) {
-    // Une période déjà payée (y compris payée d'avance) ne reçoit jamais de pénalité rétroactive.
-    if (c.statut === "paye") continue;
+  // Transaction : évite les mises à jour perdues si une cotisation est
+  // enregistrée en parallèle pendant le recalcul des pénalités.
+  await prisma.$transaction(async (tx) => {
+    for (const c of cotisations) {
+      // Une période déjà payée (y compris payée d'avance) ne reçoit jamais de pénalité rétroactive.
+      if (c.statut === "paye") continue;
 
-    const membre = await prisma.tontineMembre.findUnique({ where: { id: c.membreId } });
-    const montantCotisationEffectif = membre?.montantCotisationPersonnel ?? tontine.montantCotisation;
+      const membre = await tx.tontineMembre.findUnique({ where: { id: c.membreId } });
+      const montantCotisationEffectif = membre?.montantCotisationPersonnel ?? tontine.montantCotisation;
 
-    const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
-      montantCotisationEffectif,
-      tontine.penaliteRetardActive,
-      tontine.penaliteRetardMontant,
-      tontine.penaliteRetardDelaiJours,
-      c.periode,
-      new Date()
-    );
+      const { montantTotal, montantPenalite } = calculerMontantTotalAvecPenalite(
+        montantCotisationEffectif,
+        tontine.penaliteRetardActive,
+        tontine.penaliteRetardMontant,
+        tontine.penaliteRetardDelaiJours,
+        c.periode,
+        new Date()
+      );
 
-    if (montantTotal !== c.montantTotal || montantPenalite !== c.montantPenalite) {
-      await prisma.tontineCotisation.update({
-        where: { id: c.id },
-        data: { montantTotal, montantPenalite },
-      });
-      if (c.tourId) await recalculerMontantCollecteTour(c.tourId);
-      count++;
+      if (montantTotal !== c.montantTotal || montantPenalite !== c.montantPenalite) {
+        await tx.tontineCotisation.update({
+          where: { id: c.id },
+          data: { montantTotal, montantPenalite },
+        });
+        if (c.tourId) await recalculerMontantCollecteTour(c.tourId, tx);
+        count++;
+      }
     }
-  }
+  });
   return count;
 }
 

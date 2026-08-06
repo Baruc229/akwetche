@@ -35,10 +35,10 @@ export async function archiveSubscription(userId: number) {
   });
 }
 
-export async function activatePremium(userId: number, provider: string, method: string, amount = 5000, currency = "XOF") {
+export async function activatePremium(userId: number, provider: string, method: string, amount = 5000, currency = "XOF", explicitEndDate?: Date) {
   await archiveSubscription(userId);
 
-  const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const endDate = explicitEndDate ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await prisma.subscription.upsert({
     where: { userId },
@@ -178,7 +178,7 @@ function buildInvoiceEmail(userName: string, amount: number, currency: string, p
         </tr>
         <tr>
           <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#a8a29e">Mode de paiement</td>
-          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right">${(providerLabel as any)[provider] || provider} — ${(methodLabel as any)[method] || method}</td>
+          <td style="padding:12px 16px;border-bottom:1px solid #f0f0ee;color:#1c1917;text-align:right">${providerLabel[provider] ?? provider} — ${methodLabel[method] ?? method}</td>
         </tr>
         <tr>
           <td style="padding:14px 16px;background:#fafaf9;border-top:2px solid #d97706" colspan="2">

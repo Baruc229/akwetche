@@ -47,9 +47,9 @@ type Props = {
   onLogout: () => void;
 };
 
-/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobileSidebar, unread, onOpenNotifications, onQuickTxOpen, onHelpOpen, onLogout }: Props) {
-  const { user, commercialMode, currency, setCurrency } = useDashboard();
+  const { user, commercialMode, currency, setCurrency, setUser } = useDashboard();
   const router = useRouter();
   const pathname = usePathname();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
     setCurrency(next);
     try {
       const res = await fetch("/api/user", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currency: next }) });
-      if (res.ok) { const data = await res.json(); useDashboard().setUser(data.user); }
+      if (res.ok) { const data = await res.json(); setUser(data.user); }
     } catch {} finally { setSavingCurrency(false); }
   }, [currency, savingCurrency, setCurrency]);
 

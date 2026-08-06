@@ -18,14 +18,27 @@ export async function PUT(req: NextRequest) {
       if (nameErr) return badRequest(nameErr);
       updateData.name = name;
     }
-    if (initialBalance !== undefined) updateData.initialBalance = parseFloat(String(initialBalance)) || 0;
-    if (initialBalanceActivity !== undefined) updateData.initialBalanceActivity = parseFloat(String(initialBalanceActivity)) || 0;
+    if (initialBalance !== undefined) {
+      const balance = parseFloat(String(initialBalance));
+      if (!Number.isFinite(balance) || balance < -1e12 || balance > 1e12) return badRequest("Solde initial invalide");
+      updateData.initialBalance = Math.round(balance * 100) / 100;
+    }
+    if (initialBalanceActivity !== undefined) {
+      const balance = parseFloat(String(initialBalanceActivity));
+      if (!Number.isFinite(balance) || balance < -1e12 || balance > 1e12) return badRequest("Solde d'activité initial invalide");
+      updateData.initialBalanceActivity = Math.round(balance * 100) / 100;
+    }
     if (currency !== undefined) {
       if (!["XOF", "EUR"].includes(currency)) return badRequest("Devise invalide");
       updateData.currency = currency || "XOF";
     }
     if (onboardingCompleted !== undefined) updateData.onboardingCompleted = onboardingCompleted;
-    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (avatarUrl !== undefined) {
+      if (typeof avatarUrl !== "string" || avatarUrl.length > 2048 || !/^https?:\/\//.test(avatarUrl)) {
+        return badRequest("URL d'avatar invalide");
+      }
+      updateData.avatarUrl = avatarUrl;
+    }
     if (notificationPrefs !== undefined) updateData.notificationPrefs = notificationPrefs;
     if (phone !== undefined) {
       if (phone && current.countryCode && !validatePhone(current.countryCode, phone)) {

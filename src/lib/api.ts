@@ -13,6 +13,22 @@ export function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
+/** Parse un montant et retourne null si ce n'est pas un nombre fini. */
+export function parseMoney(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const num = typeof value === "number" ? value : parseFloat(String(value));
+  return Number.isFinite(num) ? num : null;
+}
+
+/** Parse un entier strictement positif, sinon null. */
+export function parsePositiveInt(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const num = typeof value === "number" ? value : parseInt(String(value), 10);
+  if (!Number.isFinite(num)) return null;
+  if (!Number.isInteger(num) || num <= 0) return null;
+  return num;
+}
+
 export function ok(data: unknown) {
   return NextResponse.json(data, { status: 200 });
 }

@@ -159,6 +159,19 @@ model SubscriptionHistory {
   @@index([userId])
 }
 
+// Idempotence des webhooks : Stripe (et les autres providers) peuvent
+// redélivrer le même événement plusieurs fois. On enregistre ici chaque
+// événement déjà traité pour ne pas activer/étendre un abonnement deux fois.
+model WebhookEvent {
+  id        Int      @id @default(autoincrement())
+  provider  String
+  eventId   String
+  createdAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([createdAt])
+}
+
 model Category {
   id       Int    @id @default(autoincrement())
   name     String
@@ -186,10 +199,15 @@ model Transaction {
   categoryId  Int?
   userId      Int
   tontineCotisationId Int?   @unique
+  saleId      Int?
+  generationKey String? @unique // déduplication idempotente des transactions générées (récurrentes)
 
   category  Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   tontineCotisation TontineCotisation? @relation("TontineCommission", fields: [tontineCotisationId], references: [id])
+  sale      Sale?              @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
 }
 
 model Product {
@@ -219,6 +237,8 @@ model Sale {
 
   product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
+  transactions   Transaction[]
 }
 
 model StockMovement {
@@ -229,9 +249,13 @@ model StockMovement {
   description String @default("")
   productId Int
   userId    Int
+  saleId    Int?
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sale    Sale?   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
 }
 
 model Report {
@@ -337,6 +361,8 @@ model TontineCotisation {
   membre    TontineMembre @relation(fields: [membreId], references: [id], onDelete: Cascade)
   tour      TontineTour?  @relation(fields: [tourId], references: [id], onDelete: SetNull)
   commissionTransaction Transaction? @relation("TontineCommission")
+
+  @@unique([tontineId, membreId, periode])
 }
 
 model TontineTour {

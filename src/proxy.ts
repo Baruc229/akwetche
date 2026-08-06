@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken, generateToken } from "./lib/auth";
+import { verifyToken } from "./lib/auth";
 
 const MAIN_DOMAIN = "akwetche.com";
 const APP_DOMAIN = "app.akwetche.app";
@@ -29,10 +29,10 @@ function getHost(request: NextRequest): string {
 
 function slideSession(request: NextRequest, response: NextResponse): NextResponse {
   const token = request.cookies.get("token")?.value;
-  const payload = token ? verifyToken(token) : null;
-  if (payload) {
-    const newToken = generateToken(payload.userId);
-    response.cookies.set("token", newToken, {
+  if (token && verifyToken(token)) {
+    // Garde le même jeton (il référence la ligne Session en base) mais
+    // prolonge le cookie à 30 jours.
+    response.cookies.set("token", token, {
       httpOnly: true,
       secure: SECURE,
       sameSite: "lax",

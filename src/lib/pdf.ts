@@ -50,6 +50,9 @@ async function getBrowser(): Promise<Browser> {
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
+        "--disable-javascript",
+        "--disable-web-security",
+        "--allow-running-insecure-content",
       ],
       executablePath: execPath,
       headless: true,
@@ -64,6 +67,8 @@ export async function generatePdf(html: string): Promise<Buffer> {
   const page = await browser.newPage();
 
   try {
+    // Défense en profondeur : aucun script ne doit s'exécuter pendant le rendu.
+    await page.setJavaScriptEnabled(false);
     await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 15000 });
 
     const raw = await page.pdf({

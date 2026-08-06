@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
       return badRequest("Trop de tentatives. Réessayez dans une minute.");
     }
 
-    const { name, email, password, initialBalance, countryCode, phone, plan } = await req.json();
+    const { name, email, password, initialBalance, countryCode, phone } = await req.json();
 
-    if (!name || !email || !password || !plan || !countryCode || !phone) {
-      return badRequest("Tous les champs sont requis (nom, email, mot de passe, pays, téléphone, plan)");
+    if (!name || !email || !password || !countryCode || !phone) {
+      return badRequest("Tous les champs sont requis (nom, email, mot de passe, pays, téléphone)");
     }
 
     if (!ALLOWED_COUNTRY_CODES.includes(countryCode)) {
@@ -48,10 +48,6 @@ export async function POST(req: NextRequest) {
 
     const nameErr = validateName(name);
     if (nameErr) return badRequest(nameErr);
-
-    if (!["free", "premium"].includes(plan)) {
-      return badRequest("Plan invalide");
-    }
 
     if (!validatePhone(countryCode, phone)) {
       const phoneErr = validatePhoneMessage(countryCode, phone);
@@ -70,12 +66,14 @@ export async function POST(req: NextRequest) {
     const baseCurrency = getCurrencyForCountry(countryCode);
 
     const hashed = await hashPassword(password);
+    // Un compte créé à l'inscription est TOUJOURS gratuit : le plan Premium
+    // ne peut être accordé que par le système de paiement (activatePremium).
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashed,
-        plan,
+        plan: "free",
         status: "inactive",
         initialBalance: initialBalance || 0,
         countryCode,
@@ -111,9 +109,14 @@ export async function POST(req: NextRequest) {
       path: "/",
     });
 
+    // Crée la session côté serveur : nécessaire pour que getAuthUserId valide le jeton.
+    await prisma.session.create({
+      data: { token: jwt, userId: user.id, ipAddress: ip, userAgent: "" },
+    });
+
     return created({
       message: "Inscription réussie. Vérifiez votre email pour confirmer votre compte.",
-      user: { id: user.id, name: user.name, email: user.email, plan },
+      user: { id: user.id, name: user.name, email: user.email, plan: "free" },
     });
   } catch (error) {
     console.error("Register error:", error);

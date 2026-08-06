@@ -37,7 +37,19 @@ export async function getAuthUserId(): Promise<number | null> {
   const token = cookieStore.get("token")?.value;
   if (!token) return null;
   const payload = verifyToken(token);
-  return payload?.userId ?? null;
+  if (!payload) return null;
+
+  // Révocation : le jeton n'est valide que s'il correspond à une session
+  // existante ET à un compte actif. Une déconnexion, une suppression de
+  // session ou une désactivation de compte invalide immédiatement le jeton.
+  const { prisma } = await import("@/lib/prisma");
+  const session = await prisma.session.findUnique({
+    where: { token },
+    select: { userId: true, user: { select: { status: true } } },
+  });
+  if (!session) return null;
+  if (session.user.status === "inactive") return null;
+  return session.userId;
 }
 
 export async function requireAdmin(): Promise<number | null> {
