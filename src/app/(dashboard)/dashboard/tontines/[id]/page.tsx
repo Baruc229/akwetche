@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPlus, faXmark, faCircleExclamation, faCheckCircle, faArrowRight, faPencil, faTrash, faCircleCheck, faGear, faCoins, faHandHoldingDollar, faPercentage, faUsers, faCalendarDays, faSackDollar, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-import { genererGrilleMises, startOfDay, calculerMisesMembre } from "@/lib/tontine-utils";
+import { genererGrilleMises, startOfDay, calculerMisesMembre, calculerPeriodesMembre } from "@/lib/tontine-utils";
 import { useDashboard } from "@/app/(dashboard)/layout";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useModalBack } from "@/hooks/useModalBack";
@@ -50,6 +50,13 @@ type Tontine = {
   tours: Tour[];
   distribution: Distribution | null;
 };
+
+function dateToKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 export default function TontineDetail() {
@@ -241,6 +248,21 @@ export default function TontineDetail() {
   }, [tontine]);
 
   const aujourdHui = startOfDay(new Date()).getTime();
+
+  const membrePeriodes = useMemo(() => {
+    const map = new Map<number, { disponibles: string[]; prochaine: string }>();
+    for (const m of (tontine?.membres || []).filter(m => m.statut === "actif")) {
+      const payees = (tontine?.cotisations || [])
+        .filter(c => c.membre.id === m.id && c.statut === "paye")
+        .map(c => c.periode);
+      const { prochaine, disponibles } = calculerPeriodesMembre({ grille: grilleMises, periodesPayees: payees });
+      map.set(m.id, {
+        disponibles: disponibles.map(dateToKey),
+        prochaine: prochaine ? dateToKey(prochaine) : "",
+      });
+    }
+    return map;
+  }, [grilleMises, tontine]);
 
   async function handleSubmitMembre(e: React.FormEvent) {
     e.preventDefault();
@@ -1232,13 +1254,22 @@ export default function TontineDetail() {
                       };
                     })}
                     value={membreIdForCotisation}
-                    onChange={v => setMembreIdForCotisation(v)}
+                    onChange={v => {
+                      setMembreIdForCotisation(v);
+                      const p = v ? membrePeriodes.get(parseInt(v))?.prochaine : undefined;
+                      setCotisationPeriode(p ?? "");
+                    }}
                     placeholder="Sélectionner un membre"
                   />
                 </div>
                 <div>
                   <label className="field-label">Période</label>
-                  <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
+                  <DatePicker
+                    value={cotisationPeriode}
+                    onChange={v => setCotisationPeriode(v)}
+                    enabledDates={membreIdForCotisation ? membrePeriodes.get(parseInt(membreIdForCotisation))?.disponibles : undefined}
+                  />
+                  <p className="text-xs text-muted mt-1">Seules les périodes non payées sont sélectionnables — prochaine pré-sélectionnée.</p>
                 </div>
                 {cotisationPeriode && (() => {
                   const periodeDate = new Date(cotisationPeriode);
@@ -1352,13 +1383,22 @@ export default function TontineDetail() {
                         };
                       })}
                       value={membreIdForCotisation}
-                      onChange={v => setMembreIdForCotisation(v)}
+                      onChange={v => {
+                        setMembreIdForCotisation(v);
+                        const p = v ? membrePeriodes.get(parseInt(v))?.prochaine : undefined;
+                        setCotisationPeriode(p ?? "");
+                      }}
                       placeholder="Sélectionner un membre"
                     />
                   </div>
                   <div>
                     <label className="field-label">Période</label>
-                    <DatePicker value={cotisationPeriode} onChange={v => setCotisationPeriode(v)} />
+                    <DatePicker
+                      value={cotisationPeriode}
+                      onChange={v => setCotisationPeriode(v)}
+                      enabledDates={membreIdForCotisation ? membrePeriodes.get(parseInt(membreIdForCotisation))?.disponibles : undefined}
+                    />
+                    <p className="text-xs text-muted mt-1">Seules les périodes non payées sont sélectionnables — prochaine pré-sélectionnée.</p>
                   </div>
                   {cotisationPeriode && (() => {
                     const periodeDate = new Date(cotisationPeriode);

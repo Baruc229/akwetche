@@ -5,6 +5,7 @@ import {
   datePlusJours,
   genererGrilleMises,
   calculerMisesMembre,
+  calculerPeriodesMembre,
   planifierImputation,
   planifierDesimputation,
 } from "@/lib/tontine-utils";
@@ -104,6 +105,49 @@ describe("tontine-utils — calculerMisesMembre", () => {
     expect(m.montantImputable).toBe(4800);
     expect(m.misesCompletes).toBe(4);
     expect(m.restePartiel).toBe(0);
+  });
+});
+
+describe("tontine-utils — calculerPeriodesMembre", () => {
+  const grille = ["2026-01-01", "2026-01-05", "2026-01-09", "2026-01-13"].map((s) => new Date(s));
+
+  it("prochaine = première période non payée (peu importe passée ou future)", () => {
+    const r = calculerPeriodesMembre({
+      grille,
+      periodesPayees: ["2026-01-01"], // le 1er payé, le 5e toujours à payer
+    });
+    expect(r.prochaine!.getDate()).toBe(5);
+    expect(r.disponibles.map((d) => d.getDate())).toEqual([5, 9, 13]);
+  });
+
+  it("une période partielle/en retard reste disponible (seul statut paye exclut)", () => {
+    const r = calculerPeriodesMembre({
+      grille,
+      periodesPayees: ["2026-01-01", "2026-01-09"],
+    });
+    expect(r.prochaine!.getDate()).toBe(5);
+    expect(r.disponibles.map((d) => d.getDate())).toEqual([5, 13]);
+  });
+
+  it("pré-sélectionne la période passée non payée si elle précède les futures", () => {
+    const r = calculerPeriodesMembre({
+      grille,
+      periodesPayees: ["2026-01-09", "2026-01-13"], // payé d'avance, le 1er et le 5e en retard
+    });
+    expect(r.prochaine!.getDate()).toBe(1);
+    expect(r.disponibles.map((d) => d.getDate())).toEqual([1, 5]);
+  });
+
+  it("tout payé → prochaine null et aucune période disponible", () => {
+    const r = calculerPeriodesMembre({ grille, periodesPayees: grille });
+    expect(r.prochaine).toBeNull();
+    expect(r.disponibles).toEqual([]);
+  });
+
+  it("grille vide → rien de disponible", () => {
+    const r = calculerPeriodesMembre({ grille: [], periodesPayees: [] });
+    expect(r.prochaine).toBeNull();
+    expect(r.disponibles).toEqual([]);
   });
 });
 

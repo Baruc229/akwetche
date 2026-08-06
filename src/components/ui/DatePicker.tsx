@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useId } from 'react';
+import { useState, useRef, useEffect, useMemo, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -25,9 +25,12 @@ interface DatePickerProps {
   className?: string;
   min?: string;
   placeholder?: string;
+  /** Allowlist de dates sélectionnables (YYYY-MM-DD). Si fournie, seules ces dates sont cliquables. */
+  enabledDates?: string[];
 }
 
-export default function DatePicker({ value, onChange, className = '', min, placeholder = 'Choisir une date' }: DatePickerProps) {
+export default function DatePicker({ value, onChange, className = '', min, placeholder = 'Choisir une date', enabledDates }: DatePickerProps) {
+  const enabledSet = useMemo(() => (enabledDates ? new Set(enabledDates) : null), [enabledDates]);
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(0);
   const [viewMonth, setViewMonth] = useState(0);
@@ -133,9 +136,12 @@ export default function DatePicker({ value, onChange, className = '', min, place
   const minParsed = min ? new Date(min + 'T00:00:00Z') : null;
 
   function isDisabled(day: number) {
-    if (!minParsed) return false;
     const d = toUTCDate(viewYear, viewMonth, day);
-    return d < minParsed;
+    if (minParsed && d < minParsed) return true;
+    if (enabledSet) {
+      return !enabledSet.has(formatDate(viewYear, viewMonth, day));
+    }
+    return false;
   }
 
   const displayValue = isValid ? (
@@ -211,19 +217,21 @@ export default function DatePicker({ value, onChange, className = '', min, place
             })}
           </div>
           <div className="flex justify-between mt-3 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-            <button
-              type="button"
-              onClick={() => {
-                const n = new Date();
-                const val = formatDate(n.getFullYear(), n.getMonth(), n.getDate());
-                onChange(val);
-                setOpen(false);
-              }}
-              className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[44px]"
-              style={{ color: 'var(--color-brand)', background: 'rgba(27,58,107,0.07)' }}
-            >
-              Aujourd&apos;hui
-            </button>
+            {!enabledSet && (
+              <button
+                type="button"
+                onClick={() => {
+                  const n = new Date();
+                  const val = formatDate(n.getFullYear(), n.getMonth(), n.getDate());
+                  onChange(val);
+                  setOpen(false);
+                }}
+                className="text-xs font-medium px-3 py-2 rounded-lg transition-colors min-h-[44px]"
+                style={{ color: 'var(--color-brand)', background: 'rgba(27,58,107,0.07)' }}
+              >
+                Aujourd&apos;hui
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setOpen(false)}

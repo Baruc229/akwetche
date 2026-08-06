@@ -107,6 +107,30 @@ export function calculerMisesMembre(opts: {
   };
 }
 
+/**
+ * Périodes de mise disponibles d'un membre dans le formulaire de cotisation.
+ * Une période est "payée" quand le membre a une cotisation entièrement payée
+ * (statut "paye"). Une période partielle, en retard ou sans cotisation reste
+ * disponible au clic. `prochaine` = première période disponible (passée ou
+ * future) ; `null` si toutes les périodes sont déjà payées.
+ * Pure : aucune écriture DB.
+ */
+export function calculerPeriodesMembre(opts: {
+  grille: Date[];
+  periodesPayees: (Date | string)[];
+}): { prochaine: Date | null; disponibles: Date[] } {
+  const payees = new Set(opts.periodesPayees.map((p) => startOfDay(new Date(p)).getTime()));
+  const disponibles: Date[] = [];
+  let prochaine: Date | null = null;
+  for (const d of opts.grille) {
+    const key = startOfDay(d).getTime();
+    if (payees.has(key)) continue;
+    disponibles.push(startOfDay(d));
+    if (!prochaine) prochaine = startOfDay(d);
+  }
+  return { prochaine, disponibles };
+}
+
 export interface PeriodeImputable {
   id: number;
   periode: Date;
