@@ -264,6 +264,29 @@ export default function TontineDetail() {
     return map;
   }, [grilleMises, tontine]);
 
+  function calculerSituationPeriode(membreId: string, periodeKey: string) {
+    if (!tontine) return { dejaPaye: 0, montantTotal: 0, soldeApplique: 0, resteAPayer: 0, montantCotisationEffectif: 0, penaliteAppliquee: false };
+    const selectedMember = actifs.find(m => String(m.id) === membreId);
+    const periodeDate = new Date(periodeKey);
+    const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
+    const dateLimitePenalite = new Date(periodeDate.getTime() + tontine.penaliteRetardDelaiJours * 24 * 60 * 60 * 1000);
+    const penaliteAppliquee = penaliteActive && new Date() > dateLimitePenalite;
+    const montantCotisationEffectif = selectedMember?.montantCotisationPersonnel ?? tontine.montantCotisation;
+    const montantTotal = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+    const cotisation = cotisationParCle.get(`${membreId}:${startOfDay(periodeDate).getTime()}`);
+    const dejaPaye = cotisation?.montantPaye ?? 0;
+    const montantEffectifDus = Math.max(0, montantTotal - dejaPaye);
+    const soldeApplique = Math.min(selectedMember?.soldeAvance || 0, montantEffectifDus);
+    const resteAPayer = montantEffectifDus - soldeApplique;
+    return { dejaPaye, montantTotal, soldeApplique, resteAPayer, montantCotisationEffectif, penaliteAppliquee };
+  }
+
+  function calculerPrefillMontant(membreId: string, periodeKey: string): string {
+    if (!membreId || !periodeKey) return "";
+    const s = calculerSituationPeriode(membreId, periodeKey);
+    return s.dejaPaye > 0 && s.resteAPayer > 0 ? String(s.resteAPayer) : "";
+  }
+
   async function handleSubmitMembre(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -921,7 +944,7 @@ export default function TontineDetail() {
                         const c = cotisationParCle.get(`${m.id}:${startOfDay(d).getTime()}`);
                         let cell;
                         if (c && c.statut === "paye") cell = <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-emerald-50 text-emerald-600 font-bold line-through decoration-emerald-500">✓</span>;
-                        else if (c && c.statut === "partiel") cell = <span className={`w-6 h-6 inline-flex items-center justify-center rounded-full ${colors.bg} ${colors.text} font-bold`}>½</span>;
+                        else if (c && c.statut === "partiel") cell = <span title={`Partiel — reste : ${formatCurrency(Math.max(0, c.montantTotal - c.montantPaye))}`} className={`w-6 h-6 inline-flex items-center justify-center rounded-full ${colors.bg} ${colors.text} font-bold cursor-help`}>½</span>;
                         else if (c && c.statut === "en_retard") cell = <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-red-50 text-red-500 font-bold">!</span>;
                         else cell = <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-[var(--color-surface-raised)] text-muted/30">·</span>;
                         return <td key={i} className="py-1.5 px-1.5 text-center">{cell}</td>;
@@ -1034,6 +1057,9 @@ export default function TontineDetail() {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
+                              {c.statut === "partiel" && c.montantTotal > c.montantPaye && (
+                                <span className="text-xs text-amber-600">reste {formatCurrency(c.montantTotal - c.montantPaye)}</span>
+                              )}
                               <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
                             </div>
                           </div>
@@ -1141,6 +1167,9 @@ export default function TontineDetail() {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="text-sm font-medium text-ink">{formatCurrency(c.montantPaye)}</span>
+                              {c.statut === "partiel" && c.montantTotal > c.montantPaye && (
+                                <span className="text-xs text-amber-600">reste {formatCurrency(c.montantTotal - c.montantPaye)}</span>
+                              )}
                               <span className={`badge text-xs ${bandiere}`}>{statutLabel}</span>
                             </div>
                           </div>
@@ -1258,6 +1287,7 @@ export default function TontineDetail() {
                       setMembreIdForCotisation(v);
                       const p = v ? membrePeriodes.get(parseInt(v))?.prochaine : undefined;
                       setCotisationPeriode(p ?? "");
+                      setCotisationMontant(p ? calculerPrefillMontant(v, p) : "");
                     }}
                     placeholder="Sélectionner un membre"
                   />
@@ -1266,7 +1296,10 @@ export default function TontineDetail() {
                   <label className="field-label">Période</label>
                   <DatePicker
                     value={cotisationPeriode}
-                    onChange={v => setCotisationPeriode(v)}
+                    onChange={v => {
+                      setCotisationPeriode(v);
+                      setCotisationMontant(calculerPrefillMontant(membreIdForCotisation, v));
+                    }}
                     enabledDates={membreIdForCotisation ? membrePeriodes.get(parseInt(membreIdForCotisation))?.disponibles : undefined}
                   />
                   <p className="text-xs text-muted mt-1">Seules les périodes non payées sont sélectionnables — prochaine pré-sélectionnée.</p>
@@ -1279,28 +1312,33 @@ export default function TontineDetail() {
                   const estEnRetard = now > dateLimite;
                   const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
                   const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
-                  const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
                   const selectedMember = actifs.find(m => String(m.id) === membreIdForCotisation);
-                  const montantCotisationEffectif = selectedMember?.montantCotisationPersonnel ?? tontine.montantCotisation;
-                  const montantTotalBrut = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
-                  const soldeDisponible = selectedMember?.soldeAvance || 0;
-                  const soldeApplique = Math.min(soldeDisponible, montantTotalBrut);
-                  const montantDus = montantTotalBrut - soldeApplique;
+                  const { dejaPaye, montantTotal, soldeApplique, resteAPayer, montantCotisationEffectif, penaliteAppliquee } = calculerSituationPeriode(membreIdForCotisation, cotisationPeriode);
                   const montantPaye = parseFloat(cotisationMontant) || 0;
-                  const surplus = Math.max(0, montantPaye - montantDus);
+                  const totalCouvert = montantPaye + soldeApplique;
+                  const nouveauPaye = dejaPaye + Math.min(totalCouvert, resteAPayer);
+                  const surplus = Math.max(0, totalCouvert - resteAPayer);
                   const apercuMises = selectedMember ? calculerMisesMembre({
                     montantMise: montantCotisationEffectif,
                     totalPaye: (selectedMember.mises?.totalPaye ?? selectedMember.montantTotalPaye) + montantPaye,
                     totalPenalites: selectedMember.mises?.totalPenalites ?? 0,
                     soldeAvance: selectedMember.mises?.soldeAvance ?? selectedMember.soldeAvance,
                   }) : null;
-                  const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
-                    : montantPaye >= montantDus ? "Payé" : "Partiel";
+                  const statutResultant = montantPaye <= 0 && dejaPaye === 0
+                    ? (estEnRetard ? "En retard" : "En attente")
+                    : nouveauPaye >= montantTotal ? "Payé"
+                      : (estEnRetard ? "En retard" : "Partiel");
                   return (
                     <div className="card-inset space-y-2">
+                      {dejaPaye > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted">Déjà payé sur cette période</span>
+                          <span className="text-sm font-medium text-ink">{formatCurrency(dejaPaye)}</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted">Montant dû</span>
-                        <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
+                        <span className="text-xs text-muted">{dejaPaye > 0 ? "Reste à payer" : "Montant dû"}</span>
+                        <span className="text-sm font-semibold text-ink">{formatCurrency(resteAPayer)}</span>
                       </div>
                       {soldeApplique > 0 && (
                         <div className="flex items-center justify-between">
@@ -1387,6 +1425,7 @@ export default function TontineDetail() {
                         setMembreIdForCotisation(v);
                         const p = v ? membrePeriodes.get(parseInt(v))?.prochaine : undefined;
                         setCotisationPeriode(p ?? "");
+                        setCotisationMontant(p ? calculerPrefillMontant(v, p) : "");
                       }}
                       placeholder="Sélectionner un membre"
                     />
@@ -1395,7 +1434,10 @@ export default function TontineDetail() {
                     <label className="field-label">Période</label>
                     <DatePicker
                       value={cotisationPeriode}
-                      onChange={v => setCotisationPeriode(v)}
+                      onChange={v => {
+                        setCotisationPeriode(v);
+                        setCotisationMontant(calculerPrefillMontant(membreIdForCotisation, v));
+                      }}
                       enabledDates={membreIdForCotisation ? membrePeriodes.get(parseInt(membreIdForCotisation))?.disponibles : undefined}
                     />
                     <p className="text-xs text-muted mt-1">Seules les périodes non payées sont sélectionnables — prochaine pré-sélectionnée.</p>
@@ -1408,25 +1450,33 @@ export default function TontineDetail() {
                     const estEnRetard = now > dateLimite;
                     const penaliteActive = tontine.penaliteRetardActive && tontine.penaliteRetardMontant > 0;
                     const dateLimitePenalite = new Date(periodeDate.getTime() + (tontine.penaliteRetardDelaiJours) * 24 * 60 * 60 * 1000);
-                    const penaliteAppliquee = penaliteActive && now > dateLimitePenalite;
                     const selectedMember = actifs.find(m => String(m.id) === membreIdForCotisation);
-                    const montantCotisationEffectif = selectedMember?.montantCotisationPersonnel ?? tontine.montantCotisation;
-                    const montantDus = montantCotisationEffectif + (penaliteAppliquee ? tontine.penaliteRetardMontant : 0);
+                    const { dejaPaye, montantTotal, soldeApplique, resteAPayer, montantCotisationEffectif, penaliteAppliquee } = calculerSituationPeriode(membreIdForCotisation, cotisationPeriode);
                     const montantPaye = parseFloat(cotisationMontant) || 0;
-                    const surplus = Math.max(0, montantPaye - montantDus);
+                    const totalCouvert = montantPaye + soldeApplique;
+                    const nouveauPaye = dejaPaye + Math.min(totalCouvert, resteAPayer);
+                    const surplus = Math.max(0, totalCouvert - resteAPayer);
                     const apercuMises = selectedMember ? calculerMisesMembre({
                       montantMise: montantCotisationEffectif,
                       totalPaye: (selectedMember.mises?.totalPaye ?? selectedMember.montantTotalPaye) + montantPaye,
                       totalPenalites: selectedMember.mises?.totalPenalites ?? 0,
                       soldeAvance: selectedMember.mises?.soldeAvance ?? selectedMember.soldeAvance,
                     }) : null;
-                    const statutResultant = montantPaye <= 0 ? (estEnRetard ? "En retard" : "En attente")
-                      : montantPaye >= montantDus ? "Payé" : "Partiel";
+                    const statutResultant = montantPaye <= 0 && dejaPaye === 0
+                      ? (estEnRetard ? "En retard" : "En attente")
+                      : nouveauPaye >= montantTotal ? "Payé"
+                        : (estEnRetard ? "En retard" : "Partiel");
                     return (
                       <div className="card-inset space-y-2">
+                        {dejaPaye > 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted">Déjà payé sur cette période</span>
+                            <span className="text-sm font-medium text-ink">{formatCurrency(dejaPaye)}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted">Montant dû</span>
-                          <span className="text-sm font-semibold text-ink">{formatCurrency(montantDus)}</span>
+                          <span className="text-xs text-muted">{dejaPaye > 0 ? "Reste à payer" : "Montant dû"}</span>
+                          <span className="text-sm font-semibold text-ink">{formatCurrency(resteAPayer)}</span>
                         </div>
                         {penaliteAppliquee && (
                           <div className="flex items-center justify-between">
