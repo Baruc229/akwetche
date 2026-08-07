@@ -179,7 +179,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "var(--color-bg)" }}>
+        <div className="max-w-sm w-full text-center" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "1rem", padding: "2rem" }}>
+          <div className="text-4xl mb-4" role="img" aria-label="cadenas">🔒</div>
+          <h1 className="text-xl font-semibold mb-2" style={{ color: "var(--color-fg)", fontFamily: "var(--font-heading)" }}>
+            Session expirée
+          </h1>
+          <p className="text-sm mb-6" style={{ color: "var(--color-muted)", fontFamily: "var(--font-body)" }}>
+            Votre session a expiré. Reconnectez-vous pour continuer à utiliser Akwetche.
+          </p>
+          <button
+            onClick={() => { localStorage.removeItem("akwetche_session"); router.push("/login?expired=1"); }}
+            className="w-full py-2.5 rounded-xl font-medium"
+            style={{ background: "var(--color-brand)", color: "#fff" }}
+          >
+            Se reconnecter
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const subStatus = user?.subscription;
   const showExpiredModal = subStatus?.status === "expired" || (subStatus?.status === "active" && (subStatus?.daysRemaining ?? 999) <= 0);

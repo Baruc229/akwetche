@@ -21,12 +21,12 @@ export async function comparePassword(password: string, hash: string): Promise<b
 }
 
 export function generateToken(userId: number): string {
-  return jwt.sign({ userId }, SECRET, { expiresIn: "30d" });
+  return jwt.sign({ userId, ver: 2 }, SECRET, { expiresIn: "30d" });
 }
 
-export function verifyToken(token: string): { userId: number } | null {
+export function verifyToken(token: string): { userId: number; ver?: number } | null {
   try {
-    return jwt.verify(token, SECRET) as { userId: number };
+    return jwt.verify(token, SECRET) as { userId: number; ver?: number };
   } catch {
     return null;
   }
@@ -39,10 +39,23 @@ export async function getAuthUserId(): Promise<number | null> {
   const payload = verifyToken(token);
   if (!payload) return null;
 
+  const { prisma } = await import("@/lib/prisma");
+
+  // Jeton hérité (ver !== 2) : émis avant l'enregistrement des sessions en
+  // base. On l'accepte tant que le compte est actif, pour ne pas verrouiller
+  // les utilisateurs existants. Les nouveaux jetons (ver:2) sont révocables.
+  if (payload.ver !== 2) {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { status: true },
+    });
+    if (!user || user.status === "inactive") return null;
+    return payload.userId;
+  }
+
   // Révocation : le jeton n'est valide que s'il correspond à une session
   // existante ET à un compte actif. Une déconnexion, une suppression de
   // session ou une désactivation de compte invalide immédiatement le jeton.
-  const { prisma } = await import("@/lib/prisma");
   const session = await prisma.session.findUnique({
     where: { token },
     select: { userId: true, user: { select: { status: true } } },

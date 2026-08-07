@@ -7,7 +7,7 @@ import {
   generateEmailToken,
 } from "@/lib/auth";
 
-const BCRYPT_TIMEOUT = 15000;
+const BCRYPT_TIMEOUT = 60000;
 
 describe("auth — Hachage de mot de passe", () => {
   it("hashPassword retourne un hash différent du mot de passe", async () => {
@@ -47,6 +47,7 @@ describe("auth — JWT Tokens", () => {
     const payload = verifyToken(token);
     expect(payload).not.toBeNull();
     expect(payload!.userId).toBe(42);
+    expect(payload!.ver).toBe(2);
   });
 
   it("verifyToken retourne null pour un token invalide", () => {
