@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency } from "@/lib/utils";
-import { Line, XAxis, ResponsiveContainer, Tooltip, Area, ComposedChart, ReferenceLine } from 'recharts';
+import { Line, XAxis, ResponsiveContainer, Tooltip, ComposedChart } from 'recharts';
 
 type DailyBalance = { date: string; balance: number };
 
@@ -32,7 +32,6 @@ type ChartPoint = {
   futureValue: number | null;
   optimistic: number | null;
   pessimistic: number | null;
-  band: number | null;
 };
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ value: number; dataKey: string; payload?: ChartPoint }> }) {
@@ -96,7 +95,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           futureValue: null,
           optimistic: null,
           pessimistic: null,
-          band: null,
         });
       }
     }
@@ -127,7 +125,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
         futureValue: futureVal,
         optimistic: optVal,
         pessimistic: pessVal,
-        band: optVal - pessVal,
       });
     }
 
@@ -144,27 +141,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
   }, [chartData]);
 
   const isEmptyState = (!dailyBalances || dailyBalances.length === 0) && totalBalance === 0 && pendingRecurringExpense === 0 && pendingRecurringIncome === 0;
-
-  const hasPastPoint = chartData.length > 0 && (chartData[0].kind === "past" || chartData[0].kind === "today");
-  const todayPoint = chartData.find(p => p.kind === "today");
-  const todayLabel = todayPoint?.label ?? null;
-  const firstLabel = chartData.length > 0 ? chartData[0].label : null;
-  const lastLabel = chartData.length > 0 ? chartData[chartData.length - 1].label : null;
-
-  const tickValues = ((): string[] => {
-    if (chartData.length === 0) return [];
-    const anchors = hasPastPoint
-      ? [firstLabel, todayLabel, lastLabel]
-      : [firstLabel, lastLabel];
-    return Array.from(new Set(anchors.filter((v): v is string => Boolean(v))));
-  })();
-
-  const tickFormatter = (value: string) => {
-    if (value === lastLabel) return "Fin de mois";
-    if (value === todayLabel) return "Aujourd'hui";
-    if (value === firstLabel) return hasPastPoint ? "Début" : "Aujourd'hui";
-    return "";
-  };
 
   const delta = Math.abs(projectedRemaining - totalBalance);
   const isDeltaUp = projectedRemaining >= totalBalance;
@@ -220,6 +196,22 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
             </p>
           </div>
 
+          {/* Récapitulatif narratif */}
+          <div className="mt-3 rounded-xl border border-[#E2E8F0] overflow-hidden divide-y divide-[#E2E8F0]">
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+              <span className="text-xs text-[#94A3B8]">Vous avez actuellement</span>
+              <span className="text-sm font-bold text-[#1A2744] tabular-nums">{formatCurrency(totalBalance)}</span>
+            </div>
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+              <span className="text-xs text-[#94A3B8]">Votre dépense moyenne</span>
+              <span className="text-sm font-bold text-[#1A2744] tabular-nums">{formatCurrency(dailyAvgExpense)} / jour</span>
+            </div>
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+              <span className="text-xs text-[#94A3B8]">Jours restants avant la fin du mois</span>
+              <span className="text-sm font-bold text-[#1A2744]">{daysLeft}</span>
+            </div>
+          </div>
+
           {isNegative && (
             <div className="alert-inline neg mt-3">
               <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
@@ -248,49 +240,18 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
             </div>
           )}
 
-          {/* Graphe + légende */}
+          {/* Graphe simplifié */}
           {chartData.length > 0 && (
             <div className="mt-4">
               <div
-                className="h-[140px] mb-2"
+                className="h-[110px] mb-2"
                 role="img"
                 aria-label="Trajectoire de votre solde jusqu'à la fin du mois"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-                    <defs>
-                      <linearGradient id="projBand" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#F5A623" stopOpacity={0.10} />
-                        <stop offset="100%" stopColor="#F5A623" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis
-                      dataKey="label"
-                      ticks={tickValues}
-                      tickFormatter={tickFormatter}
-                      tick={{ fontSize: 9, fill: '#94A3B8' }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
+                  <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 4, left: 8 }}>
+                    <XAxis dataKey="label" hide />
                     <Tooltip content={<CustomTooltip />} cursor={false} />
-                    <Area
-                      type="monotone"
-                      dataKey="pessimistic"
-                      stackId="band"
-                      stroke="none"
-                      fill="transparent"
-                      connectNulls={false}
-                      isAnimationActive={false}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="band"
-                      stackId="band"
-                      stroke="none"
-                      fill="url(#projBand)"
-                      connectNulls={false}
-                      isAnimationActive={false}
-                    />
                     <Line
                       type="monotone"
                       dataKey="pastValue"
@@ -316,15 +277,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
                       animationDuration={800}
                       animationBegin={400}
                     />
-                    {hasPastPoint && todayLabel && (
-                      <ReferenceLine
-                        x={todayLabel}
-                        stroke="#F5A623"
-                        strokeWidth={1}
-                        strokeOpacity={0.5}
-                        label={{ value: "Aujourd'hui", fontSize: 9, fill: '#94A3B8', position: 'insideTopRight' }}
-                      />
-                    )}
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -337,10 +289,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ background: chartColor }} />
                   <span className="text-[10px] text-[#94A3B8]">Projection</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#F5A623] shrink-0" />
-                  <span className="text-[10px] text-[#94A3B8]">Fourchette estimée</span>
                 </span>
               </div>
 
@@ -385,22 +333,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
           )}
         </>
       )}
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 mt-4">
-        <div className="bg-[#F1F5F9] rounded-xl p-3">
-          <p className="text-[10px] text-[#94A3B8]">Dépense moyenne / jour</p>
-          <p className="text-amount text-sm text-[#1A2744] mt-0.5 tabular-nums">
-            {formatCurrency(dailyAvgExpense)}
-          </p>
-        </div>
-        <div className="bg-[#F1F5F9] rounded-xl p-3">
-          <p className="text-[10px] text-[#94A3B8]">Jours restants</p>
-          <p className="text-amount text-sm text-[#1A2744] mt-0.5">
-            {daysLeft}
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
