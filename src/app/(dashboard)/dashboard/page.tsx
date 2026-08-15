@@ -433,6 +433,8 @@ export default function DashboardPage() {
           totalBalance={totalBalance}
           pendingRecurringExpense={totalPendingRecurringExpense}
           pendingRecurringIncome={totalPendingRecurringIncome}
+          totalExpense={totalExpense}
+          totalRecurringExpense={totalRecurringExpense}
         />
       </div>
 

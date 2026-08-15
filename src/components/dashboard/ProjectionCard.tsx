@@ -18,6 +18,8 @@ type Props = {
   totalBalance?: number;
   pendingRecurringExpense?: number;
   pendingRecurringIncome?: number;
+  totalExpense?: number;
+  totalRecurringExpense?: number;
 };
 
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -63,7 +65,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   );
 }
 
-export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, daysLeft, dailyBalances, initialBalanceMissing, totalBalance = 0, pendingRecurringExpense = 0, pendingRecurringIncome = 0 }: Props) {
+export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBalances, initialBalanceMissing, totalBalance = 0, pendingRecurringExpense = 0, pendingRecurringIncome = 0, totalExpense = 0, totalRecurringExpense = 0 }: Props) {
   const isNegative = projectedRemaining < 0;
   const hasBreakdown = pendingRecurringExpense > 0 || pendingRecurringIncome > 0;
 
@@ -104,15 +106,15 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
       data[data.length - 1].kind = "today";
     }
 
-    const dailyAvgPonctuel = dayOfMonth > 0 ? (totalBalance - (dailyBalances && dailyBalances.length > 0 ? dailyBalances[dailyBalances.length - 1].balance : totalBalance) + pendingRecurringExpense - pendingRecurringIncome) / dayOfMonth : dailyAvgExpense;
-
-    const base = (data.length > 0 ? data[data.length - 1].pastValue : totalBalance) ?? totalBalance;
+    const futureSpend = totalBalance - pendingRecurringExpense + pendingRecurringIncome - projectedRemaining;
+    const pace = daysLeft > 0 ? futureSpend / daysLeft : 0;
+    const base = totalBalance;
 
     for (let i = 1; i <= daysLeft; i++) {
       const futureDate = new Date(year, month, dayOfMonth + i);
       const dayNum = futureDate.getDate();
       const futureLabel = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-      const dailyDrop = dailyAvgPonctuel > 0 ? dailyAvgPonctuel * i : 0;
+      const dailyDrop = pace * i;
       const futureVal = base - pendingRecurringExpense - dailyDrop + pendingRecurringIncome;
       const optVal = base - pendingRecurringExpense * 0.7 - dailyDrop * 0.75 + pendingRecurringIncome * 1.1;
       const pessVal = base - pendingRecurringExpense * 1.3 - dailyDrop * 1.25 + pendingRecurringIncome * 0.9;
@@ -129,7 +131,7 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
     }
 
     return data;
-  }, [dailyBalances, year, month, dayOfMonth, daysLeft, totalBalance, dailyAvgExpense, pendingRecurringExpense, pendingRecurringIncome]);
+  }, [dailyBalances, year, month, dayOfMonth, daysLeft, totalBalance, projectedRemaining, pendingRecurringExpense, pendingRecurringIncome]);
 
   const isLimitedHistory = useMemo(() => {
     if (chartData.length <= 3) return true;
@@ -144,6 +146,9 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
 
   const delta = Math.abs(projectedRemaining - totalBalance);
   const isDeltaUp = projectedRemaining >= totalBalance;
+
+  const futureSpend = totalBalance - pendingRecurringExpense + pendingRecurringIncome - projectedRemaining;
+  const pace = daysLeft > 0 ? futureSpend / daysLeft : 0;
 
   return (
     <div className="bg-white rounded-[18px] p-5 overflow-hidden">
@@ -196,21 +201,67 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
             </p>
           </div>
 
-          {/* Récapitulatif narratif */}
+          {/* Récapitulatif — le calcul, ligne par ligne */}
           <div className="mt-3 rounded-xl border border-[#E2E8F0] overflow-hidden divide-y divide-[#E2E8F0]">
             <div className="flex items-center justify-between px-3.5 py-2.5">
               <span className="text-xs text-[#94A3B8]">Vous avez actuellement</span>
               <span className="text-sm font-bold text-[#1A2744] tabular-nums">{formatCurrency(totalBalance)}</span>
             </div>
-            <div className="flex items-center justify-between px-3.5 py-2.5">
-              <span className="text-xs text-[#94A3B8]">Votre dépense moyenne</span>
-              <span className="text-sm font-bold text-[#1A2744] tabular-nums">{formatCurrency(dailyAvgExpense)} / jour</span>
-            </div>
-            <div className="flex items-center justify-between px-3.5 py-2.5">
-              <span className="text-xs text-[#94A3B8]">Jours restants avant la fin du mois</span>
-              <span className="text-sm font-bold text-[#1A2744]">{daysLeft}</span>
+            {daysLeft > 0 && (
+              <div className="flex items-center justify-between px-3.5 py-2.5">
+                <div className="min-w-0 pr-3">
+                  <span className="text-xs text-[#94A3B8]">Dépenses à venir à ce rythme</span>
+                  <span className="block text-[10px] text-[#94A3B8] mt-0.5 tabular-nums">
+                    ≈ {formatCurrency(Math.round(pace))} / jour × {daysLeft} jours
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-[#1A2744] tabular-nums">
+                  {futureSpend > 0.5 ? "−" : futureSpend < -0.5 ? "+" : ""}{formatCurrency(Math.abs(futureSpend))}
+                </span>
+              </div>
+            )}
+            {pendingRecurringExpense > 0 && (
+              <div className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
+                  Récurrentes à venir
+                </span>
+                <span className="text-sm font-bold text-[#B94A3E] tabular-nums">−{formatCurrency(pendingRecurringExpense)}</span>
+              </div>
+            )}
+            {pendingRecurringIncome > 0 && (
+              <div className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#0D7A4B]" />
+                  Revenus récurrents à venir
+                </span>
+                <span className="text-sm font-bold text-[#0D7A4B] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
+              </div>
+            )}
+            <div
+              className="flex items-center justify-between px-3.5 py-3"
+              style={{ background: isNegative ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)' }}
+            >
+              <span className="text-xs font-semibold text-[#1A2744]">{heroLabel}</span>
+              <span
+                className="text-base font-bold tabular-nums"
+                style={{ color: isNegative ? '#B94A3E' : '#0D7A4B' }}
+              >
+                {formatCurrency(projectedRemaining)}
+              </span>
             </div>
           </div>
+
+          {totalExpense > 0 && totalRecurringExpense >= totalExpense - 0.5 && (
+            <div className="alert-inline warn mt-3" style={{ padding: '8px 12px' }}>
+              <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <p>
+                Vos dépenses de ce mois ({formatCurrency(totalExpense)}) sont toutes des récurrentes déjà planifiées : elles
+                ne se répètent pas d&apos;ici la fin du mois, d&apos;où un rythme de {formatCurrency(Math.round(pace))} / jour.
+                Enregistrez vos dépenses du quotidien pour une estimation plus fine.
+              </p>
+            </div>
+          )}
 
           {isNegative && (
             <div className="alert-inline neg mt-3">
@@ -300,35 +351,6 @@ export default function ProjectionCard({ projectedRemaining, dailyAvgExpense, da
                   </p>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Récurrents prévus d'ici la fin du mois */}
-          {hasBreakdown && (
-            <div className="mt-4">
-              <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider mb-2">
-                DÉJÀ PRÉVU D&apos;ICI LA FIN DU MOIS
-              </p>
-              <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
-                {pendingRecurringExpense > 0 && (
-                  <div className="flex items-center justify-between px-3.5 py-2.5">
-                    <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
-                      <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
-                      Dépenses récurrentes prévues
-                    </span>
-                    <span className="text-sm font-bold text-[#B94A3E] tabular-nums">−{formatCurrency(pendingRecurringExpense)}</span>
-                  </div>
-                )}
-                {pendingRecurringIncome > 0 && (
-                  <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-[#E2E8F0]">
-                    <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
-                      <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#0D7A4B]" />
-                      Revenus récurrents prévus
-                    </span>
-                    <span className="text-sm font-bold text-[#0D7A4B] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
-                  </div>
-                )}
-              </div>
             </div>
           )}
         </>
