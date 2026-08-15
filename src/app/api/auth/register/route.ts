@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return badRequest("Trop de tentatives. Réessayez dans une minute.");
     }
 
-    const { name, email, password, initialBalance, countryCode, phone } = await req.json();
+    const { name, email, password, initialBalance, countryCode, phone, tontineEnabled, recoitCommissions, commissionScopeDefault } = await req.json();
 
     if (!name || !email || !password || !countryCode || !phone) {
       return badRequest("Tous les champs sont requis (nom, email, mot de passe, pays, téléphone)");
@@ -80,6 +80,9 @@ export async function POST(req: NextRequest) {
         phone,
         baseCurrency,
         currency: baseCurrency,
+        tontineAccess: Boolean(tontineEnabled),
+        recoitCommissions: recoitCommissions === undefined ? true : Boolean(recoitCommissions),
+        commissionScopeDefault: commissionScopeDefault === "activite" ? "activite" : "personnel",
       },
     });
 

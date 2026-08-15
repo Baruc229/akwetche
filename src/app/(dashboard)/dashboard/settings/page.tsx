@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser, faShield, faBell, faCrown, faCircleInfo,
   faLock, faRightFromBracket, faChevronRight,
-  faPhone, faMoneyBill, faIdCard, faSpinner, faStar, faCamera
+  faPhone, faMoneyBill, faIdCard, faSpinner, faStar, faCamera, faPeopleGroup
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../layout";
 import UserAvatar from "@/components/settings/UserAvatar";
@@ -131,6 +131,7 @@ export default function ComptePage() {
           { label: "Profil", desc: "Nom, téléphone, pays, devise, soldes initiaux", icon: faUser, href: "/dashboard/settings/profil", color: "var(--color-brand)" },
           { label: "Connexion et sécurité", desc: "Email, mot de passe, sessions", icon: faShield, href: "/dashboard/settings/securite", color: "var(--color-forest)" },
           { label: "Notifications", desc: "Préférences par canal", icon: faBell, href: "/dashboard/settings/notifications", color: "var(--color-gold)" },
+          { label: "Tontines", desc: "Activer les tontines, commissions, retirer les revenus enregistrés", icon: faPeopleGroup, href: "/dashboard/settings/tontines", color: "var(--color-teal)" },
           { label: "Abonnement", desc: "Gérer votre plan", icon: faCrown, href: "/dashboard/settings/abonnement", color: "var(--color-gold-dark)" },
           { label: "À propos", desc: "Version, liens utiles", icon: faCircleInfo, href: "/dashboard/settings/about", color: "var(--color-muted)" },
         ].map((item) => (

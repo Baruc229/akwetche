@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faPeopleGroup, faHandHoldingDollar, faSackDollar, faCircleExclamation, faCheckCircle, faArrowRight, faXmark, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
@@ -48,14 +48,29 @@ export default function TontinesPage() {
     frequenceCustom: "",
     dateDebut: "",
     fraisOrganisateurParDefaut: "0",
-    scopeCommission: "activite",
+    scopeCommission: "personnel",
     nombreTours: "",
     nbPersonnesPrevue: "",
     dateDistribution: "",
     penaliteRetardActive: false,
     penaliteRetardMontant: "0",
     penaliteRetardDelaiJours: "3",
+    description: "",
+    objectifMontant: "",
+    commissionsTransactionsEnabled: true,
   });
+
+  const prefsAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!user || prefsAppliedRef.current) return;
+    prefsAppliedRef.current = true;
+    setNewTnt(prev => ({
+      ...prev,
+      scopeCommission: user.commissionScopeDefault || "personnel",
+      commissionsTransactionsEnabled: user.recoitCommissions !== false,
+      fraisOrganisateurParDefaut: user.recoitCommissions === false ? "0" : prev.fraisOrganisateurParDefaut,
+    }));
+  }, [user]);
 
   const anyModalOpen = showCreate;
   useScrollLock(anyModalOpen);
@@ -126,6 +141,9 @@ export default function TontinesPage() {
         penaliteRetardActive: newTnt.penaliteRetardActive,
         penaliteRetardMontant: newTnt.penaliteRetardMontant,
         penaliteRetardDelaiJours: newTnt.penaliteRetardDelaiJours,
+        description: newTnt.description || null,
+        objectifMontant: newTnt.objectifMontant ? parseFloat(newTnt.objectifMontant) : null,
+        commissionsTransactionsEnabled: newTnt.commissionsTransactionsEnabled,
       };
       if (body.type === "vivres_fin_annee" && !body.dateDistribution) {
         setError("Date de distribution requise pour les tontines vivres/fin d'année");
@@ -139,7 +157,7 @@ export default function TontinesPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
       setShowCreate(false);
-      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequencePreset: "30", frequenceCustom: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: "activite", nombreTours: "", nbPersonnesPrevue: "", dateDistribution: "", penaliteRetardActive: false, penaliteRetardMontant: "0", penaliteRetardDelaiJours: "3" });
+      setNewTnt({ nom: "", type: "vivres_fin_annee", montantCotisation: "", frequencePreset: "30", frequenceCustom: "", dateDebut: "", fraisOrganisateurParDefaut: "0", scopeCommission: user?.commissionScopeDefault || "personnel", nombreTours: "", nbPersonnesPrevue: "", dateDistribution: "", penaliteRetardActive: false, penaliteRetardMontant: "0", penaliteRetardDelaiJours: "3", description: "", objectifMontant: "", commissionsTransactionsEnabled: user?.recoitCommissions !== false });
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -242,6 +260,10 @@ export default function TontinesPage() {
                   <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="input-field" placeholder="ex: Tontine 2026" required />
                 </div>
                 <div>
+                  <label className="field-label">Description (optionnel)</label>
+                  <textarea value={newTnt.description} onChange={e => setNewTnt({...newTnt, description: e.target.value})} className="input-field" placeholder="ex: Épargne pour les vivres de fin d'année" rows={2} />
+                </div>
+                <div>
                   <label className="field-label">Type</label>
                   <CustomSelect
                     options={[{ value: "vivres_fin_annee", label: "Vivres / Fin d'année" }, { value: "rotative_simple", label: "Rotative simple" }]}
@@ -298,18 +320,30 @@ export default function TontinesPage() {
                   <label className="field-label">Date de début</label>
                   <DatePicker value={newTnt.dateDebut} onChange={v => setNewTnt({...newTnt, dateDebut: v})} />
                 </div>
-                <div>
-                  <label className="field-label">Commission organisateur</label>
-                  <input type="number" inputMode="decimal" step="0.01" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
-                  <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
-                </div>
-                <div>
-                  <label className="field-label">Portée commission</label>
-                  <CustomSelect
-                    options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
-                    value={newTnt.scopeCommission}
-                    onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
-                  />
+                <div className="card-inset">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div>
+                      <label className="field-label mb-0">Commission organisateur</label>
+                      <p className="text-xs text-muted mt-0.5">Montant prélevé sur chaque cotisation</p>
+                    </div>
+                    <button type="button" onClick={() => setNewTnt({...newTnt, commissionsTransactionsEnabled: !newTnt.commissionsTransactionsEnabled})} role="switch" aria-checked={newTnt.commissionsTransactionsEnabled} aria-label="Comptabiliser les commissions comme revenu" className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${newTnt.commissionsTransactionsEnabled ? "bg-emerald-500" : "bg-stone-300"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${newTnt.commissionsTransactionsEnabled ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  <div className="mt-2">
+                    <input type="number" inputMode="decimal" step="0.01" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
+                    <p className="text-xs text-muted mt-1">Comptabilisées comme revenu automatiquement.</p>
+                  </div>
+                  {newTnt.commissionsTransactionsEnabled && (
+                    <div className="mt-3">
+                      <label className="field-label text-xs">Portée commission</label>
+                      <CustomSelect
+                        options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
+                        value={newTnt.scopeCommission}
+                        onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="card-inset">
                   <div className="flex items-center justify-between mb-2">
@@ -332,10 +366,17 @@ export default function TontinesPage() {
                   )}
                 </div>
                 {newTnt.type === "vivres_fin_annee" && (
-                  <div>
-                    <label className="field-label">Date de distribution</label>
-                    <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
-                  </div>
+                  <>
+                    <div>
+                      <label className="field-label">Date de distribution</label>
+                      <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                    </div>
+                    <div>
+                      <label className="field-label">Objectif d&apos;épargne (optionnel)</label>
+                      <input type="number" inputMode="decimal" step="0.01" value={newTnt.objectifMontant} onChange={e => setNewTnt({...newTnt, objectifMontant: e.target.value})} className="input-field" placeholder="ex: 250000" min="0" />
+                      <p className="text-xs text-muted mt-1">Montant total à atteindre d&apos;ici la distribution.</p>
+                    </div>
+                  </>
                 )}
                 {newTnt.type === "rotative_simple" && newTnt.montantCotisation && newTnt.nbPersonnesPrevue && (
                   <div className="card-inset bg-[var(--color-brand-subtle)]">
@@ -369,6 +410,10 @@ export default function TontinesPage() {
                   <input type="text" value={newTnt.nom} onChange={e => setNewTnt({...newTnt, nom: e.target.value})} className="input-field" placeholder="ex: Tontine 2026" required />
                 </div>
                 <div>
+                  <label className="field-label">Description (optionnel)</label>
+                  <textarea value={newTnt.description} onChange={e => setNewTnt({...newTnt, description: e.target.value})} className="input-field" placeholder="ex: Épargne pour les vivres de fin d'année" rows={2} />
+                </div>
+                <div>
                   <label className="field-label">Type</label>
                   <CustomSelect
                     options={[{ value: "vivres_fin_annee", label: "Vivres / Fin d'année" }, { value: "rotative_simple", label: "Rotative simple" }]}
@@ -425,18 +470,30 @@ export default function TontinesPage() {
                   <label className="field-label">Date de début</label>
                   <DatePicker value={newTnt.dateDebut} onChange={v => setNewTnt({...newTnt, dateDebut: v})} />
                 </div>
-                <div>
-                  <label className="field-label">Commission organisateur</label>
-                  <input type="number" inputMode="decimal" step="0.01" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
-                  <p className="text-xs text-muted mt-1">Montant prélevé comme commission sur chaque cotisation</p>
-                </div>
-                <div>
-                  <label className="field-label">Portée commission</label>
-                  <CustomSelect
-                    options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
-                    value={newTnt.scopeCommission}
-                    onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
-                  />
+                <div className="card-inset">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <div>
+                      <label className="field-label mb-0">Commission organisateur</label>
+                      <p className="text-xs text-muted mt-0.5">Montant prélevé sur chaque cotisation</p>
+                    </div>
+                    <button type="button" onClick={() => setNewTnt({...newTnt, commissionsTransactionsEnabled: !newTnt.commissionsTransactionsEnabled})} role="switch" aria-checked={newTnt.commissionsTransactionsEnabled} aria-label="Comptabiliser les commissions comme revenu" className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${newTnt.commissionsTransactionsEnabled ? "bg-emerald-500" : "bg-stone-300"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${newTnt.commissionsTransactionsEnabled ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  <div className="mt-2">
+                    <input type="number" inputMode="decimal" step="0.01" value={newTnt.fraisOrganisateurParDefaut} onChange={e => setNewTnt({...newTnt, fraisOrganisateurParDefaut: e.target.value})} className="input-field" placeholder="ex: 500" min="0" />
+                    <p className="text-xs text-muted mt-1">Comptabilisées comme revenu automatiquement.</p>
+                  </div>
+                  {newTnt.commissionsTransactionsEnabled && (
+                    <div className="mt-3">
+                      <label className="field-label text-xs">Portée commission</label>
+                      <CustomSelect
+                        options={[{ value: "activite", label: "Activité (commercial)" }, { value: "personnel", label: "Personnel" }]}
+                        value={newTnt.scopeCommission}
+                        onChange={v => setNewTnt({...newTnt, scopeCommission: v})}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="card-inset">
                   <div className="flex items-center justify-between mb-2">
@@ -459,10 +516,17 @@ export default function TontinesPage() {
                   )}
                 </div>
                 {newTnt.type === "vivres_fin_annee" && (
-                  <div>
-                    <label className="field-label">Date de distribution</label>
-                    <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
-                  </div>
+                  <>
+                    <div>
+                      <label className="field-label">Date de distribution</label>
+                      <DatePicker value={newTnt.dateDistribution} onChange={v => setNewTnt({...newTnt, dateDistribution: v})} min={newTnt.dateDebut || undefined} />
+                    </div>
+                    <div>
+                      <label className="field-label">Objectif d&apos;épargne (optionnel)</label>
+                      <input type="number" inputMode="decimal" step="0.01" value={newTnt.objectifMontant} onChange={e => setNewTnt({...newTnt, objectifMontant: e.target.value})} className="input-field" placeholder="ex: 250000" min="0" />
+                      <p className="text-xs text-muted mt-1">Montant total à atteindre d&apos;ici la distribution.</p>
+                    </div>
+                  </>
                 )}
                 {newTnt.type === "rotative_simple" && newTnt.montantCotisation && newTnt.nbPersonnesPrevue && (
                   <div className="card-inset bg-[var(--color-brand-subtle)]">

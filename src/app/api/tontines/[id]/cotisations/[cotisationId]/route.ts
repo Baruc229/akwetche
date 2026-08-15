@@ -102,41 +102,43 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         },
       });
 
-      if (existing.commissionTransaction) {
-        if (fraisOrganisateurEffectif <= 0) {
-          await tx.transaction.delete({
-            where: { id: existing.commissionTransaction.id },
+      if (tontine.commissionsTransactionsEnabled) {
+        if (existing.commissionTransaction) {
+          if (fraisOrganisateurEffectif <= 0) {
+            await tx.transaction.delete({
+              where: { id: existing.commissionTransaction.id },
+            });
+            await tx.tontineCotisation.update({
+              where: { id: cotisationIntId },
+              data: { commissionTransaction: { disconnect: true } },
+            });
+          } else {
+            await tx.transaction.update({
+              where: { id: existing.commissionTransaction.id },
+              data: { amount: fraisOrganisateurEffectif },
+            });
+          }
+        } else if (fraisOrganisateurEffectif > 0 && statut !== "en_attente") {
+          const commissionCategorie = await tx.category.upsert({
+            where: { name_userId: { name: "Commission tontine", userId } },
+            update: {},
+            create: { name: "Commission tontine", icon: "hand-holding-dollar", type: "income", userId },
           });
-          await tx.tontineCotisation.update({
-            where: { id: cotisationIntId },
-            data: { commissionTransaction: { disconnect: true } },
+          const transaction = await tx.transaction.create({
+            data: {
+              type: "income",
+              amount: fraisOrganisateurEffectif,
+              description: `Tontine — commission : ${tontine.nom}`,
+              date: datePaiement ? new Date(datePaiement) : new Date(),
+              scope: tontine.scopeCommission === "personnel" ? "personal" : "activity",
+              categoryId: commissionCategorie.id,
+              userId,
+              tontineCotisationId: cotisation.id,
+            },
           });
-        } else {
-          await tx.transaction.update({
-            where: { id: existing.commissionTransaction.id },
-            data: { amount: fraisOrganisateurEffectif },
-          });
+          notificationInfo = { amount: transaction.amount };
+          notificationSent = true;
         }
-      } else if (fraisOrganisateurEffectif > 0 && statut !== "en_attente") {
-        const commissionCategorie = await tx.category.upsert({
-          where: { name_userId: { name: "Commission tontine", userId } },
-          update: {},
-          create: { name: "Commission tontine", icon: "hand-holding-dollar", type: "income", userId },
-        });
-        const transaction = await tx.transaction.create({
-          data: {
-            type: "income",
-            amount: fraisOrganisateurEffectif,
-            description: `Tontine — commission : ${tontine.nom}`,
-            date: datePaiement ? new Date(datePaiement) : new Date(),
-            scope: tontine.scopeCommission === "personnel" ? "personal" : "activity",
-            categoryId: commissionCategorie.id,
-            userId,
-            tontineCotisationId: cotisation.id,
-          },
-        });
-        notificationInfo = { amount: transaction.amount };
-        notificationSent = true;
       }
 
       // Montant déjà imputé sur les jours de mise suivants (payés d'avance).
@@ -177,6 +179,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             fraisOrganisateurParDefaut: tontine.fraisOrganisateurParDefaut,
             scopeCommission: tontine.scopeCommission,
             nombreTours: tontine.nombreTours,
+            commissionsTransactionsEnabled: tontine.commissionsTransactionsEnabled,
           },
           membre: { id: membre.id, montantCotisationPersonnel: membre.montantCotisationPersonnel },
           periodeDate: nouvellePeriode,

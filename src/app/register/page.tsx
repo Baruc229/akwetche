@@ -52,6 +52,9 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ country?: string; phone?: string; name?: string; email?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [tontineEnabled, setTontineEnabled] = useState(false);
+  const [recoitCommissions, setRecoitCommissions] = useState(true);
+  const [commissionScope, setCommissionScope] = useState("personnel");
 
   const detectedCurrency = getCurrencyForCountry(countryCode);
   const phonePrefix = getPhonePrefix(countryCode);
@@ -93,6 +96,9 @@ export default function RegisterPage() {
 
       countryCode,
       phone,
+      tontineEnabled,
+      recoitCommissions,
+      commissionScopeDefault: commissionScope,
     }),
   });
 
@@ -354,6 +360,71 @@ export default function RegisterPage() {
   </div>
   {fieldErrors.phone && (
     <p className="text-[var(--color-neg)] text-xs mt-1">{fieldErrors.phone}</p>
+  )}
+  </div>
+
+  <div className="border-t border-[var(--color-border)] pt-4">
+  <div className="flex items-center justify-between gap-3">
+    <div>
+      <p className="text-sm font-medium text-ink">Tontines</p>
+      <p className="text-xs text-muted mt-0.5">
+        Gérez vos groupes d&apos;épargne collective (cotisations, mises, surplus).
+        Optionnel — vous pourrez l&apos;activer plus tard.
+      </p>
+    </div>
+    <button
+      type="button"
+      onClick={() => setTontineEnabled(!tontineEnabled)}
+      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${tontineEnabled ? "bg-[var(--color-brand)]" : "bg-[var(--color-border)]"}`}
+      role="switch"
+      aria-checked={tontineEnabled}
+      aria-label="Activer les tontines"
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${tontineEnabled ? "translate-x-5" : ""}`} />
+    </button>
+  </div>
+
+  {tontineEnabled && (
+    <div className="mt-4 space-y-4 bg-[var(--color-surface-raised)] rounded-xl p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-ink">Recevoir des commissions</p>
+          <p className="text-xs text-muted mt-0.5">
+            Percevez-vous une commission sur chaque cotisation ? Elle sera comptabilisée comme revenu.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setRecoitCommissions(!recoitCommissions)}
+          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${recoitCommissions ? "bg-[var(--color-brand)]" : "bg-[var(--color-border)]"}`}
+          role="switch"
+          aria-checked={recoitCommissions}
+          aria-label="Recevoir des commissions"
+        >
+          <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${recoitCommissions ? "translate-x-5" : ""}`} />
+        </button>
+      </div>
+
+      {recoitCommissions && (
+        <div>
+          <label className="block text-sm font-medium text-ink mb-1.5">
+            Comptabiliser les commissions
+          </label>
+          <CustomSelect
+            options={[
+              { value: "personnel", label: "Dans mon budget personnel" },
+              { value: "activite", label: "Dans mon activité commerciale" },
+            ]}
+            value={commissionScope}
+            onChange={(v) => setCommissionScope(v)}
+            placeholder="Où comptabiliser vos commissions"
+          />
+          <p className="text-xs text-muted mt-1">
+            Modifiable plus tard, par tontine et dans les paramètres.
+          </p>
+        </div>
+      )}
+    </div>
   )}
   </div>
 

@@ -6,7 +6,7 @@ import { ALLOWED_COUNTRY_CODES, getCurrencyForCountry, getPhonePrefix, validateP
 export async function PUT(req: NextRequest) {
   try {
     const userId = await requireAuth();
-    const { name, initialBalance, initialBalanceActivity, currency, adminNotificationPref, phone, countryCode, onboardingCompleted, avatarUrl, notificationPrefs } = await req.json();
+    const { name, initialBalance, initialBalanceActivity, currency, adminNotificationPref, phone, countryCode, onboardingCompleted, avatarUrl, notificationPrefs, tontineAccess, recoitCommissions, commissionScopeDefault } = await req.json();
 
     const current = await prisma.user.findUnique({ where: { id: userId } });
     if (!current) return badRequest("Utilisateur introuvable");
@@ -48,6 +48,12 @@ export async function PUT(req: NextRequest) {
       updateData.phone = phone;
     }
     if (adminNotificationPref !== undefined) updateData.adminNotificationPref = adminNotificationPref;
+    if (tontineAccess !== undefined) updateData.tontineAccess = Boolean(tontineAccess);
+    if (recoitCommissions !== undefined) updateData.recoitCommissions = Boolean(recoitCommissions);
+    if (commissionScopeDefault !== undefined) {
+      if (!["personnel", "activite"].includes(commissionScopeDefault)) return badRequest("Portée de commission invalide");
+      updateData.commissionScopeDefault = commissionScopeDefault;
+    }
 
     const isAdmin = current.role === "super_admin" || current.role === "admin";
 
@@ -88,6 +94,7 @@ export async function PUT(req: NextRequest) {
         avatarUrl: user.avatarUrl, onboardingCompleted: user.onboardingCompleted,
         notificationPrefs: user.notificationPrefs,
         emailVerified: user.emailVerified, activityActivated: user.activityActivated,
+        tontineAccess: user.tontineAccess, recoitCommissions: user.recoitCommissions, commissionScopeDefault: user.commissionScopeDefault,
         subscription,
       },
     });

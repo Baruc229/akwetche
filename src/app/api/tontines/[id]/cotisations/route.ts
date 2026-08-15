@@ -121,7 +121,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         });
       }
 
-      if (fraisOrganisateurEffectif > 0 && nouveauPaye > 0) {
+      if (tontine.commissionsTransactionsEnabled && fraisOrganisateurEffectif > 0 && nouveauPaye > 0) {
         if (existing?.commissionTransaction) {
           await tx.transaction.update({
             where: { id: existing.commissionTransaction.id },
@@ -172,6 +172,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             fraisOrganisateurParDefaut: tontine.fraisOrganisateurParDefaut,
             scopeCommission: tontine.scopeCommission,
             nombreTours: tontine.nombreTours,
+            commissionsTransactionsEnabled: tontine.commissionsTransactionsEnabled,
           },
           membre: { id: membre.id, montantCotisationPersonnel: membre.montantCotisationPersonnel },
           periodeDate,

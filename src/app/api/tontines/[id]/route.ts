@@ -65,6 +65,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.scopeCommission !== undefined) updateData.scopeCommission = body.scopeCommission;
   if (body.dateDistribution !== undefined) updateData.dateDistribution = body.dateDistribution ? new Date(body.dateDistribution) : null;
   if (body.statut !== undefined) updateData.statut = body.statut;
+  if (body.description !== undefined) updateData.description = body.description;
+  if (body.objectifMontant !== undefined) updateData.objectifMontant = body.objectifMontant ? parseFloat(body.objectifMontant) : null;
+  if (body.commissionsTransactionsEnabled !== undefined) updateData.commissionsTransactionsEnabled = Boolean(body.commissionsTransactionsEnabled);
   if (body.penaliteRetardActive !== undefined) { updateData.penaliteRetardActive = Boolean(body.penaliteRetardActive); penaltyChanged = true; }
   if (body.penaliteRetardMontant !== undefined) { updateData.penaliteRetardMontant = parseFloat(body.penaliteRetardMontant); penaltyChanged = true; }
   if (body.penaliteRetardDelaiJours !== undefined) { updateData.penaliteRetardDelaiJours = parseInt(body.penaliteRetardDelaiJours); penaltyChanged = true; }

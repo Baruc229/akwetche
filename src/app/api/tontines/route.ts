@@ -60,6 +60,9 @@ export async function POST(req: NextRequest) {
       penaliteRetardActive,
       penaliteRetardMontant,
       penaliteRetardDelaiJours,
+      description,
+      objectifMontant,
+      commissionsTransactionsEnabled,
     } = body;
 
     if (!nom || !type || !montantCotisation || !frequence || !dateDebut) {
@@ -69,6 +72,12 @@ export async function POST(req: NextRequest) {
       return badRequest("Type invalide");
     }
 
+    // Préférences utilisateur : appliquées par défaut aux nouvelles tontines.
+    const prefs = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { recoitCommissions: true, commissionScopeDefault: true },
+    });
+
     const tontine = await prisma.tontine.create({
       data: {
         nom,
@@ -77,13 +86,17 @@ export async function POST(req: NextRequest) {
         frequence,
         dateDebut: new Date(dateDebut),
         fraisOrganisateurParDefaut: parseFloat(fraisOrganisateurParDefaut || "0"),
-        scopeCommission: scopeCommission || "activite",
+        scopeCommission: scopeCommission || prefs?.commissionScopeDefault || "personnel",
         nombreTours: nombreTours ? parseInt(nombreTours) : null,
         nbPersonnesPrevue: nbPersonnesPrevue ? parseInt(nbPersonnesPrevue) : null,
         dateDistribution: dateDistribution ? new Date(dateDistribution) : null,
         penaliteRetardActive: penaliteRetardActive || false,
         penaliteRetardMontant: penaliteRetardMontant ? parseFloat(penaliteRetardMontant) : 0,
         penaliteRetardDelaiJours: penaliteRetardDelaiJours ? parseInt(penaliteRetardDelaiJours) : 3,
+        description: description || null,
+        objectifMontant: objectifMontant ? parseFloat(objectifMontant) : null,
+        commissionsTransactionsEnabled:
+          commissionsTransactionsEnabled === undefined ? (prefs?.recoitCommissions ?? true) : Boolean(commissionsTransactionsEnabled),
         organisateurId: userId,
       },
     });

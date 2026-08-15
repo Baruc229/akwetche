@@ -30,6 +30,8 @@ type UserData = {
   status?: string;
   activityActivated?: boolean;
   tontineAccess?: boolean;
+  recoitCommissions?: boolean;
+  commissionScopeDefault?: string;
   emailVerified?: string | null;
   adminNotificationPref?: string;
   notificationPrefs?: Record<string, { email?: boolean; inApp?: boolean }>;

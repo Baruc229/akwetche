@@ -141,13 +141,13 @@ async function bookCommissionInTx(
   tx: ClientLike,
   args: {
     userId: number;
-    tontine: { nom: string; scopeCommission: string };
+    tontine: { nom: string; scopeCommission: string; commissionsTransactionsEnabled: boolean };
     cotisationId: number;
     amount: number;
     date: Date;
   }
 ): Promise<void> {
-  if (args.amount <= 0) return;
+  if (!args.tontine.commissionsTransactionsEnabled || args.amount <= 0) return;
   const commissionCategorie = await tx.category.upsert({
     where: { name_userId: { name: "Commission tontine", userId: args.userId } },
     update: {},
@@ -224,6 +224,7 @@ export async function imputerSurplus(
       fraisOrganisateurParDefaut: number;
       scopeCommission: string;
       nombreTours: number | null;
+      commissionsTransactionsEnabled: boolean;
     };
     membre: { id: number; montantCotisationPersonnel: number | null };
     periodeDate: Date;
@@ -276,7 +277,7 @@ export async function imputerSurplus(
       },
     });
 
-    if (u.commission > 0) {
+    if (u.commission > 0 && args.tontine.commissionsTransactionsEnabled) {
       if (existante?.commissionTransaction) {
         await tx.transaction.update({
           where: { id: existante.commissionTransaction.id },
@@ -334,7 +335,7 @@ export async function imputerSurplus(
             datePaiement: existante.datePaiement ?? new Date(),
           },
         });
-        if (c.commission > 0) {
+        if (c.commission > 0 && args.tontine.commissionsTransactionsEnabled) {
           if (existante.commissionTransaction) {
             await tx.transaction.update({
               where: { id: existante.commissionTransaction.id },
@@ -356,7 +357,7 @@ export async function imputerSurplus(
       }
     }
 
-    if (row.id && (c.commission > 0)) {
+    if (row.id && c.commission > 0 && args.tontine.commissionsTransactionsEnabled) {
       await bookCommissionInTx(tx, {
         userId: args.userId,
         tontine: args.tontine,
@@ -667,6 +668,7 @@ export async function reconcilierMembre(tontineId: number, membreId: number): Pr
         fraisOrganisateurParDefaut: tontine.fraisOrganisateurParDefaut,
         scopeCommission: tontine.scopeCommission,
         nombreTours: tontine.nombreTours,
+        commissionsTransactionsEnabled: tontine.commissionsTransactionsEnabled,
       },
       membre: membreTx ?? { id: membreId, montantCotisationPersonnel: membre.montantCotisationPersonnel },
       periodeDate: anchor,

@@ -113,13 +113,6 @@ export async function PATCH(req: NextRequest) {
     });
     await createNotification(target.id, "system", `Votre compte a été déverrouillé par un administrateur.`, "/dashboard");
     await createNotification(userId, "system", `Compte de ${target.name} déverrouillé.`, "/admin");
-  } else if (body.tontineAccess !== undefined) {
-    const enabled = Boolean(body.tontineAccess);
-    await prisma.user.update({
-      where: { id: parseInt(id) },
-      data: { tontineAccess: enabled },
-    });
-    await createNotification(target.id, "system", enabled ? `L'accès aux tontines a été activé sur votre compte.` : `L'accès aux tontines a été désactivé sur votre compte.`, "/dashboard");
   } else {
     const role = body.role;
     if (!role) return badRequest("Rôle requis");

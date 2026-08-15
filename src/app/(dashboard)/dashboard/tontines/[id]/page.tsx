@@ -44,6 +44,7 @@ type Tontine = {
   dateDebut: string; fraisOrganisateurParDefaut: number; scopeCommission: string;
   nombreTours: number | null; dateDistribution: string | null; statut: string;
   penaliteRetardActive: boolean; penaliteRetardMontant: number; penaliteRetardDelaiJours: number;
+  description: string | null; objectifMontant: number | null; commissionsTransactionsEnabled: boolean;
   organisateurId: number; createdAt: string;
   membres: Membre[];
   cotisations: Cotisation[];
@@ -106,6 +107,12 @@ export default function TontineDetail() {
   const [settingsPenaliteActive, setSettingsPenaliteActive] = useState(false);
   const [settingsPenaliteMontant, setSettingsPenaliteMontant] = useState("");
   const [settingsPenaliteDelai, setSettingsPenaliteDelai] = useState("");
+  const [settingsDescription, setSettingsDescription] = useState("");
+  const [settingsObjectif, setSettingsObjectif] = useState("");
+  const [settingsCommissionsEnabled, setSettingsCommissionsEnabled] = useState(true);
+  const [settingsCommCount, setSettingsCommCount] = useState<number | null>(null);
+  const [settingsRetraitConfirm, setSettingsRetraitConfirm] = useState(false);
+  const [settingsRetraitLoading, setSettingsRetraitLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
 
   const anyModalOpen =
@@ -450,6 +457,9 @@ export default function TontineDetail() {
       body.penaliteRetardActive = settingsPenaliteActive;
       body.penaliteRetardMontant = parseFloat(settingsPenaliteMontant) || 0;
       body.penaliteRetardDelaiJours = parseInt(settingsPenaliteDelai) || 0;
+      body.description = settingsDescription.trim() ? settingsDescription.trim() : null;
+      body.objectifMontant = settingsObjectif ? parseFloat(settingsObjectif) : null;
+      body.commissionsTransactionsEnabled = settingsCommissionsEnabled;
       const res = await fetch(`/api/tontines/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -468,7 +478,30 @@ export default function TontineDetail() {
     setSettingsPenaliteActive(tontine.penaliteRetardActive);
     setSettingsPenaliteMontant(tontine.penaliteRetardMontant.toString());
     setSettingsPenaliteDelai(tontine.penaliteRetardDelaiJours.toString());
+    setSettingsDescription(tontine.description || "");
+    setSettingsObjectif(tontine.objectifMontant ? tontine.objectifMontant.toString() : "");
+    setSettingsCommissionsEnabled(tontine.commissionsTransactionsEnabled);
+    setSettingsCommCount(null);
+    setSettingsRetraitConfirm(false);
+    fetch(`/api/tontines/${id}/commissions/retirer`)
+      .then(r => r.json())
+      .then(d => setSettingsCommCount(typeof d.count === "number" ? d.count : 0))
+      .catch(() => setSettingsCommCount(0));
     setShowSettings(true);
+  }
+
+  async function handleRetirerCommissions() {
+    setSettingsRetraitLoading(true);
+    try {
+      const res = await fetch(`/api/tontines/${id}/commissions/retirer`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Erreur"); return; }
+      setSettingsCommissionsEnabled(data.commissionsTransactionsEnabled ?? false);
+      setSettingsCommCount(0);
+      setSettingsRetraitConfirm(false);
+      loadData();
+    } catch { setError("Erreur"); }
+    setSettingsRetraitLoading(false);
   }
 
   if (loading) return (
@@ -549,6 +582,20 @@ export default function TontineDetail() {
               <span className="text-muted/30">·</span>
               <span className="text-xs font-medium text-ink">{formatCurrency(tontine.montantCotisation)}</span>
             </div>
+            {tontine.description && (
+              <p className="text-sm text-muted mt-2 leading-relaxed">{tontine.description}</p>
+            )}
+            {tontine.objectifMontant !== null && tontine.objectifMontant > 0 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted">Objectif d&apos;épargne</span>
+                  <span className="font-medium text-ink">{formatCurrency(Math.min(totalCollecte, tontine.objectifMontant))} / {formatCurrency(tontine.objectifMontant)}</span>
+                </div>
+                <div className="h-2 rounded-full bg-[var(--color-border)] overflow-hidden">
+                  <div className="h-full rounded-full bg-[var(--color-brand)] transition-all" style={{ width: `${Math.min(100, (totalCollecte / tontine.objectifMontant) * 100)}%` }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0 mt-1 sm:mt-0">
@@ -2032,6 +2079,16 @@ export default function TontineDetail() {
                   <label className="field-label">Nom</label>
                   <input type="text" value={settingsNom} onChange={e => setSettingsNom(e.target.value)} className="input-field" required placeholder="Nom de la tontine" autoComplete="off" />
                 </div>
+                <div>
+                  <label className="field-label">Description</label>
+                  <textarea value={settingsDescription} onChange={e => setSettingsDescription(e.target.value)} className="input-field" placeholder="Décrivez le but de cette tontine" rows={2} />
+                </div>
+                {tontine?.type === "vivres_fin_annee" && (
+                  <div>
+                    <label className="field-label">Objectif d&apos;épargne</label>
+                    <input type="number" value={settingsObjectif} onChange={e => setSettingsObjectif(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" placeholder="Ex: 250000" />
+                  </div>
+                )}
                 <div className="border-t border-[var(--color-border)] pt-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -2055,6 +2112,40 @@ export default function TontineDetail() {
                     </div>
                   )}
                 </div>
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <p className="text-sm font-medium text-ink">Comptabiliser les commissions comme revenu</p>
+                      <p className="text-xs text-muted mt-0.5">Créer une transaction revenu pour chaque commission perçue</p>
+                    </div>
+                    <button type="button" onClick={() => setSettingsCommissionsEnabled(!settingsCommissionsEnabled)} className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${settingsCommissionsEnabled ? "bg-[var(--color-brand)]" : "bg-[var(--color-border)]"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settingsCommissionsEnabled ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  {settingsCommCount !== null && settingsCommCount > 0 && (
+                    <div className="card-inset mt-2">
+                      <p className="text-sm text-ink">{settingsCommCount} transaction{settingsCommCount > 1 ? "s" : ""} de commission comptabilisée{settingsCommCount > 1 ? "s" : ""}</p>
+                      {!settingsRetraitConfirm ? (
+                        <button type="button" onClick={() => setSettingsRetraitConfirm(true)} className="btn-mono w-full justify-center mt-3" style={{ color: "var(--color-neg)", borderColor: "var(--color-neg)" }}>
+                          Retirer {settingsCommCount} transaction{settingsCommCount > 1 ? "s" : ""}
+                        </button>
+                      ) : (
+                        <div className="mt-3">
+                          <p className="text-xs font-medium mb-2" style={{ color: "var(--color-neg)" }}>Confirmer le retrait définitif ?</p>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setSettingsRetraitConfirm(false)} className="btn-mono flex-1 py-2 text-sm">Annuler</button>
+                            <button type="button" onClick={handleRetirerCommissions} disabled={settingsRetraitLoading} className="btn-mono flex-1 py-2 text-sm" style={{ color: "var(--color-neg)", borderColor: "var(--color-neg)" }}>
+                              {settingsRetraitLoading ? "Retrait..." : "Confirmer"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-xs mt-2" style={{ color: "var(--color-muted)" }}>
+                        Supprime ces revenus de vos transactions et arrête la comptabilisation pour cette tontine.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
                 <button type="submit" disabled={settingsSaving} className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
@@ -2072,6 +2163,16 @@ export default function TontineDetail() {
                   <label className="field-label">Nom</label>
                   <input type="text" value={settingsNom} onChange={e => setSettingsNom(e.target.value)} className="input-field" required placeholder="Nom de la tontine" autoComplete="off" />
                 </div>
+                <div>
+                  <label className="field-label">Description</label>
+                  <textarea value={settingsDescription} onChange={e => setSettingsDescription(e.target.value)} className="input-field" placeholder="Décrivez le but de cette tontine" rows={2} />
+                </div>
+                {tontine?.type === "vivres_fin_annee" && (
+                  <div>
+                    <label className="field-label">Objectif d&apos;épargne</label>
+                    <input type="number" value={settingsObjectif} onChange={e => setSettingsObjectif(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" placeholder="Ex: 250000" />
+                  </div>
+                )}
                 <div className="border-t border-[var(--color-border)] pt-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -2092,6 +2193,40 @@ export default function TontineDetail() {
                         <label className="field-label">Délai (jours après la date prévue)</label>
                         <input type="number" value={settingsPenaliteDelai} onChange={e => setSettingsPenaliteDelai(e.target.value)} className="input-field" min="0" step="1" inputMode="numeric" placeholder="Ex: 3" />
                       </div>
+                    </div>
+                  )}
+                </div>
+                <div className="border-t border-[var(--color-border)] pt-4">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <p className="text-sm font-medium text-ink">Comptabiliser les commissions comme revenu</p>
+                      <p className="text-xs text-muted mt-0.5">Créer une transaction revenu pour chaque commission perçue</p>
+                    </div>
+                    <button type="button" onClick={() => setSettingsCommissionsEnabled(!settingsCommissionsEnabled)} className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${settingsCommissionsEnabled ? "bg-[var(--color-brand)]" : "bg-[var(--color-border)]"}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settingsCommissionsEnabled ? "translate-x-5" : ""}`} />
+                    </button>
+                  </div>
+                  {settingsCommCount !== null && settingsCommCount > 0 && (
+                    <div className="card-inset mt-2">
+                      <p className="text-sm text-ink">{settingsCommCount} transaction{settingsCommCount > 1 ? "s" : ""} de commission comptabilisée{settingsCommCount > 1 ? "s" : ""}</p>
+                      {!settingsRetraitConfirm ? (
+                        <button type="button" onClick={() => setSettingsRetraitConfirm(true)} className="btn-mono w-full justify-center mt-3" style={{ color: "var(--color-neg)", borderColor: "var(--color-neg)" }}>
+                          Retirer {settingsCommCount} transaction{settingsCommCount > 1 ? "s" : ""}
+                        </button>
+                      ) : (
+                        <div className="mt-3">
+                          <p className="text-xs font-medium mb-2" style={{ color: "var(--color-neg)" }}>Confirmer le retrait définitif ?</p>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setSettingsRetraitConfirm(false)} className="btn-mono flex-1 py-2 text-sm">Annuler</button>
+                            <button type="button" onClick={handleRetirerCommissions} disabled={settingsRetraitLoading} className="btn-mono flex-1 py-2 text-sm" style={{ color: "var(--color-neg)", borderColor: "var(--color-neg)" }}>
+                              {settingsRetraitLoading ? "Retrait..." : "Confirmer"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-xs mt-2" style={{ color: "var(--color-muted)" }}>
+                        Supprime ces revenus de vos transactions et arrête la comptabilisation pour cette tontine.
+                      </p>
                     </div>
                   )}
                 </div>

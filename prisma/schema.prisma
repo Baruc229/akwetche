@@ -27,6 +27,8 @@ model User {
   lockedUntil   DateTime?
   activityActivated Boolean @default(false)
   tontineAccess     Boolean @default(false)
+  recoitCommissions     Boolean @default(true) // l'utilisateur reçoit une commission sur chaque tontine
+  commissionScopeDefault String @default("personnel") // "personnel" ou "activite" — préférence appliquée aux nouvelles tontines
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -320,6 +322,9 @@ model Tontine {
   penaliteRetardMontant     Float     @default(0)
   penaliteRetardDelaiJours  Int       @default(3)
   nbPersonnesPrevue         Int?
+  description               String?
+  objectifMontant           Float?    // objectif d'épargne (ex: vivres de fin d'année)
+  commissionsTransactionsEnabled Boolean @default(true) // comptabiliser les commissions en transactions revenu
 
   organisateur User                    @relation(fields: [organisateurId], references: [id], onDelete: Cascade)
   membres      TontineMembre[]
