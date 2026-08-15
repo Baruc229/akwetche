@@ -28,6 +28,7 @@ export default function TontinesSettingsPage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const [commissionCount, setCommissionCount] = useState<number | null>(null);
 
   useEffect(() => { document.title = "Tontines — Akwetche"; }, []);
@@ -160,14 +161,19 @@ export default function TontinesSettingsPage() {
 
           <div className="border-t pt-4" style={{ borderColor: "var(--color-border)" }}>
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-ink">Commissions déjà enregistrées</p>
-                <p className="text-xs text-muted mt-0.5">
-                  {commissionCount === null ? "—" : commissionCount === 0 ? "Aucune commission enregistrée comme revenu." : `${commissionCount} commission(s) enregistrée(s) dans vos revenus.`}
-                </p>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <span className="font-display font-bold tabular-nums shrink-0" style={{ color: "var(--color-gold)", fontSize: "24px", lineHeight: 1 }}>
+                    {commissionCount === null ? <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 animate-spin" /> : commissionCount}
+                  </span>
+                  <p className="text-xs" style={{ color: "var(--color-muted)" }}>
+                    {commissionCount === null ? "Chargement…" : commissionCount === 0 ? "Aucune commission enregistrée comme revenu." : "commission(s) enregistrée(s) dans vos revenus."}
+                  </p>
+                </div>
               </div>
               <button
-                onClick={handleRemoveAll}
+                onClick={() => setConfirmRemove(true)}
                 disabled={removing || commissionCount === 0}
                 className="btn-mono"
                 style={{ color: "var(--color-neg)", borderColor: "var(--color-neg)", opacity: commissionCount === 0 ? 0.5 : 1 }}
@@ -182,6 +188,31 @@ export default function TontinesSettingsPage() {
           </div>
         </div>
       </div>
+
+      {confirmRemove && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/25 animate-fade-in" onClick={() => setConfirmRemove(false)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-semibold mb-2" style={{ color: "var(--color-ink)" }}>
+              {commissionCount === null ? "Confirmer le retrait des commissions ?" : `Confirmer le retrait de ${commissionCount} commission${commissionCount > 1 ? "s" : ""} ?`}
+            </h3>
+            <p className="text-sm mb-5" style={{ color: "var(--color-muted)" }}>
+              Les commissions seront retirées de vos revenus et la comptabilisation automatique sera désactivée pour toutes vos tontines.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmRemove(false)} className="btn-mono flex-1 py-2.5">Annuler</button>
+              <button
+                onClick={() => { setConfirmRemove(false); handleRemoveAll(); }}
+                disabled={removing}
+                className="btn-mono flex-1 py-2.5"
+                style={{ color: "var(--color-neg)", borderColor: "var(--color-neg)" }}
+              >
+                <FontAwesomeIcon icon={removing ? faSpinner : faTrash} className={`w-4 h-4 ${removing ? "animate-spin" : ""}`} />
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

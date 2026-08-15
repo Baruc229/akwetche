@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGauge, faArrowRightArrowLeft, faChartBar, faBox, faArrowTrendUp, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faShield, faXmark, faBagShopping, faCircleQuestion, faTag, faSackDollar } from '@fortawesome/free-solid-svg-icons';
+import { faGauge, faGear, faArrowRightArrowLeft, faChartBar, faBox, faArrowTrendUp, faArrowTrendDown, faCashRegister, faWarehouse, faPeopleGroup, faShield, faXmark, faBagShopping, faCircleQuestion, faTag, faSackDollar } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useDashboard } from "@/app/(dashboard)/layout";
 
@@ -22,6 +22,7 @@ const navItems = [
   { href: "/dashboard/recurring/income", label: "Rev. récurrents", icon: faArrowTrendUp },
   { href: "/dashboard/budgets", label: "Budgets", icon: faSackDollar },
   { href: "/dashboard/reports", label: "Bilans", icon: faChartBar },
+  { href: "/dashboard/settings", label: "Paramètres", icon: faGear },
 ];
 
 const tontineNavItems = [
@@ -48,19 +49,19 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
           href={item.href}
           onClick={onClose}
           className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${
-            collapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'
+            collapsed ? 'justify-center p-[12px] gap-0' : 'px-3 py-[12px] gap-[10px]'
           } ${
             isActive
               ? 'text-white font-semibold'
               : 'text-white/52 hover:text-white/90 hover:bg-white/7'
           }`}
-          style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: collapsed ? '10px' : '9px'} : {}}
+          style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: collapsed ? '7px' : '9px'} : {}}
         >
           <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
           <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
         </Link>
         {collapsed && (
-          <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
+          <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>
             {item.label}
           </div>
         )}
@@ -73,7 +74,7 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
       className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden transition-all duration-200
         ${collapsed ? 'w-16' : 'w-60'}
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-      style={{background:'var(--color-brand)', boxShadow:'2px 0 20px rgba(0,0,0,0.12)'}}
+      style={{background:'var(--color-brand)', boxShadow:'2px 0 0 rgba(245,166,35,0.18)'}}
     >
       <div className={`flex items-center shrink-0 ${collapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
         <Link href="/dashboard" className="flex items-center gap-2">
@@ -91,6 +92,11 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
             <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
           </button>
         </div>
+        {collapsed && (
+          <button onClick={onClose} className="lg:hidden absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all" title="Fermer le menu">
+            <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       <nav className={`flex-1 px-3 py-2 space-y-1 sidebar-scroll min-h-0 overscroll-contain ${collapsed ? 'sidebar-scroll--collapsed' : 'overflow-y-auto'}`} style={{ WebkitOverflowScrolling: 'touch' as unknown as undefined, touchAction: 'pan-y' }}>
@@ -113,12 +119,12 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
         {user && user.role !== "user" && (
           <div className={`${user.role !== "user" ? '' : 'hidden'}`} style={{ minHeight: 0 }}>
             <div className="relative group">
-              <Link href="/admin" onClick={onClose} className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${collapsed ? 'justify-center p-[10px] gap-0' : 'px-3 py-[9px] gap-[10px]'} ${pathname === '/admin' ? 'text-white font-semibold' : 'text-white/52 hover:text-white/90 hover:bg-white/7'}`} style={pathname === '/admin' ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: collapsed ? '10px' : '9px'} : {}}>
+              <Link href="/admin" onClick={onClose} className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${collapsed ? 'justify-center p-[12px] gap-0' : 'px-3 py-[12px] gap-[10px]'} ${pathname === '/admin' ? 'text-white font-semibold' : 'text-white/52 hover:text-white/90 hover:bg-white/7'}`} style={pathname === '/admin' ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: collapsed ? '7px' : '9px'} : {}}>
                 <FontAwesomeIcon icon={faShield} className="w-[15px] h-[15px] shrink-0" />
                 <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Administration</span>
               </Link>
               {collapsed && (
-                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>Administration</div>
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>Administration</div>
               )}
             </div>
           </div>
@@ -143,13 +149,17 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
             <div className="relative group flex justify-center">
               <button
                 onClick={() => { setCommercialMode(!commercialMode); if (!commercialMode && !user?.activityActivated) { fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {}); } }}
-                className="flex items-center justify-center w-10 h-10 rounded-lg transition-all hover:bg-white/10"
+                className="relative flex items-center justify-center w-11 h-11 rounded-lg transition-all hover:bg-white/10"
                 style={{ color: commercialMode ? '#C9A84C' : 'rgba(255,255,255,0.4)' }}
                 title={commercialMode ? "Désactiver mode activité" : "Activer mode activité"}
+                aria-pressed={commercialMode}
               >
-                <FontAwesomeIcon icon={faBagShopping} className="w-[15px] h-[15px]" />
+                <FontAwesomeIcon icon={faBagShopping} className="w-[18px] h-[18px]" />
+                {commercialMode && (
+                  <span className="absolute w-1.5 h-1.5 rounded-full" style={{ top: '13px', right: '13px', background: 'var(--color-gold)' }} aria-hidden="true" />
+                )}
               </button>
-              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-ink)', color:'white'}}>
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>
                 {commercialMode ? "Mode activité ON" : "Mode activité OFF"}
               </div>
             </div>

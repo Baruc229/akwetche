@@ -38,7 +38,7 @@ export default function QuickActionsSheet({ open, onClose, onQuickTxOpen }: Prop
   return (
     <>
       <div className="fixed inset-0 z-50 lg:hidden bg-black/40 animate-fade-in" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up shadow-xl pb-[max(env(safe-area-inset-bottom),16px)]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
           <h3 className="text-base font-semibold text-ink">Actions rapides</h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-[var(--color-surface-raised)] transition-colors">

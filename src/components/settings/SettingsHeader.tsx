@@ -13,7 +13,7 @@ export default function SettingsHeader({ title, subtitle }: { title: string; sub
         style={{ color: "var(--color-muted)" }}
       >
         <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
-        Compte
+        Paramètres
       </Link>
       <h1 className="text-2xl font-bold text-ink">{title}</h1>
       {subtitle && <p className="text-muted text-sm mt-0.5">{subtitle}</p>}

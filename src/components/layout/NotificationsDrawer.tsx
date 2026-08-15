@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -47,20 +47,28 @@ export default function NotificationsDrawer({ open, onClose, onUnreadChange }: P
   const [markingAll, setMarkingAll] = useState(false);
   const [confirmDeleteNotif, setConfirmDeleteNotif] = useState<Notification | null>(null);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications?limit=50");
-      if (res.ok) { const data = await res.json(); setNotifications(data.notifications); setUnread(data.unread); onUnreadChange(data.unread); }
-    } catch {}
-  }, [onUnreadChange]);
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
-
-  const now = useMemo(() => Date.now(), []);
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch("/api/notifications?limit=50");
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) {
+            setNotifications(data.notifications);
+            setUnread(data.unread);
+            setNow(Date.now());
+            onUnreadChange(data.unread);
+          }
+        }
+      } catch {}
+    }
+    load();
+    const interval = setInterval(load, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [onUnreadChange]);
 
   const notifFiltered = useMemo(() => {
     const day = 86400000;
@@ -126,7 +134,7 @@ export default function NotificationsDrawer({ open, onClose, onUnreadChange }: P
             </button>
           ))}
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pb-[max(env(safe-area-inset-bottom),16px)]">
           {notifFiltered.length === 0 && <div className="flex items-center justify-center py-12 text-sm" style={{color:'var(--color-muted)'}}>Aucune notification</div>}
           {notifFiltered.map(n => {
             const Icon = NOTIF_ICONS[n.type] || faBell;

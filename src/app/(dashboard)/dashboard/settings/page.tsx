@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser, faShield, faBell, faCrown, faCircleInfo,
-  faLock, faRightFromBracket, faChevronRight,
+  faLock, faArrowRightFromBracket, faChevronRight,
   faPhone, faMoneyBill, faIdCard, faSpinner, faStar, faCamera, faPeopleGroup
 } from "@fortawesome/free-solid-svg-icons";
 import { useDashboard } from "../../layout";
 import UserAvatar from "@/components/settings/UserAvatar";
+import { getCountryByCode } from "@/lib/utils";
 
 export default function ComptePage() {
   const { user, setUser } = useDashboard();
@@ -58,7 +59,7 @@ export default function ComptePage() {
     setAvatarLoading(false);
   }, [user, setUser]);
 
-  useEffect(() => { document.title = "Compte — Akwetche"; }, []);
+  useEffect(() => { document.title = "Paramètres — Akwetche"; }, []);
 
   const planLabel = (() => {
     if (user?.role === "super_admin" || user?.role === "admin") return "Admin";
@@ -114,7 +115,7 @@ export default function ComptePage() {
           { label: "Nom", value: user?.name || "—", icon: faUser, color: "var(--color-brand)" },
           { label: "Téléphone", value: user?.phone || "—", icon: faPhone, color: "var(--color-forest)" },
           { label: "Devise", value: currencyDisplay, icon: faMoneyBill, color: "var(--color-gold)" },
-          { label: "Pays", value: user?.countryCode || "—", icon: faIdCard, color: "var(--color-muted)" },
+          { label: "Pays", value: getCountryByCode(user?.countryCode || "")?.name || "—", icon: faIdCard, color: "var(--color-muted)" },
         ].map((item) => (
           <div key={item.label} className="card-compact text-center">
             <FontAwesomeIcon icon={item.icon} className="w-4 h-4 mb-1.5" style={{ color: item.color }} />
@@ -166,8 +167,8 @@ export default function ComptePage() {
       </div>
 
       {/* ─── DÉCONNEXION ─── */}
-      <button onClick={handleLogout} disabled={loggingOut} className="btn-primary w-full justify-center" style={{ borderRadius: "16px" }}>
-        <FontAwesomeIcon icon={loggingOut ? faSpinner : faRightFromBracket} className={`w-4 h-4 ${loggingOut ? "animate-spin" : ""}`} />
+      <button onClick={handleLogout} disabled={loggingOut} className="btn-mono w-full justify-center min-h-[44px]" style={{ borderRadius: "16px" }}>
+        <FontAwesomeIcon icon={loggingOut ? faSpinner : faArrowRightFromBracket} className={`w-4 h-4 ${loggingOut ? "animate-spin" : ""}`} />
         {loggingOut ? "Déconnexion…" : "Déconnexion"}
       </button>
     </div>

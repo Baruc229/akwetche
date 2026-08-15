@@ -15,6 +15,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/reports': 'Bilans',
   '/dashboard/history': 'Historique & Analyse',
   '/dashboard/settings': 'Paramètres',
+  '/dashboard/tontines': 'Tontines',
+  '/dashboard/categories': 'Catégories',
+  '/dashboard/budgets': 'Budgets',
   '/dashboard/recurring/expenses': 'Dépenses récurrentes',
   '/dashboard/recurring/income': 'Revenus récurrents',
   '/admin': 'Administration',
@@ -83,17 +86,28 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setAccountMenuOpen(false);
+        setQuickMenuOpen(false);
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
+
   return (
     <header className="sticky top-0 z-20" style={{background:'var(--color-surface)', borderBottom:'1px solid var(--color-border)'}}>
       <div className="flex items-center justify-between h-[58px] px-4 md:px-6">
-        <div className="flex items-center gap-2">
-          <button onClick={onOpenMobileSidebar} className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-brand-subtle)] transition-all" aria-label="Menu">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={onOpenMobileSidebar} className="lg:hidden flex items-center justify-center w-11 h-11 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-brand-subtle)] transition-all" aria-label="Menu">
             <FontAwesomeIcon icon={faOutdent} className="w-4 h-4" />
           </button>
           <button onClick={onToggleSidebar} className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-brand-subtle)] transition-all" title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}>
             <FontAwesomeIcon icon={sidebarCollapsed ? faIndent : faOutdent} className="w-4 h-4" />
           </button>
-          <h1 className="text-lg font-semibold" style={{fontFamily:'var(--font-display)', color:'var(--color-ink)'}}>{pageTitle}</h1>
+          <h1 className="text-lg font-semibold truncate" style={{fontFamily:'var(--font-display)', color:'var(--color-ink)'}}>{pageTitle}</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -123,7 +137,7 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
           </div>
 
           {/* Notification bell */}
-          <button onClick={onOpenNotifications} className="relative p-2 rounded-lg transition-all" style={{color:'var(--color-muted)'}} aria-label="Notifications">
+          <button onClick={onOpenNotifications} className="relative p-2.5 rounded-lg transition-all hover:bg-[var(--color-brand-subtle)]" style={{color:'var(--color-muted)'}} aria-label="Notifications">
             <FontAwesomeIcon icon={faBell} className="w-5 h-5" />
             {unread > 0 && (
               <span className="absolute -top-0.5 -right-0.5 text-[10px] font-bold flex items-center justify-center rounded-full min-w-[18px] min-h-[18px] leading-none" style={{background:'var(--color-neg)', color:'white'}}>
@@ -143,13 +157,13 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
           </div>
 
           {/* Currency toggle — mobile */}
-          <button onClick={handleCurrencyToggle} disabled={savingCurrency} className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-all" style={{color:'var(--color-muted)'}} title={`Basculer en ${currency === "EUR" ? "FCFA" : "EUR"}`}>
+          <button onClick={handleCurrencyToggle} disabled={savingCurrency} className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg transition-all" style={{color:'var(--color-muted)'}} title={`Basculer en ${currency === "EUR" ? "FCFA" : "EUR"}`}>
             {savingCurrency ? <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 animate-spin" /> : <FontAwesomeIcon icon={faCoins} className="w-4 h-4" />}
           </button>
 
           {/* Account avatar */}
           <div className="relative" ref={accountMenuRef}>
-            <button onClick={() => setAccountMenuOpen(!accountMenuOpen)} className="flex items-center gap-1.5 px-1 py-1 rounded-lg transition-all hover:bg-[var(--color-brand-subtle)] cursor-pointer">
+            <button onClick={() => setAccountMenuOpen(!accountMenuOpen)} className="flex items-center gap-1.5 p-1.5 rounded-lg transition-all hover:bg-[var(--color-brand-subtle)] cursor-pointer" aria-haspopup="menu" aria-expanded={accountMenuOpen} aria-label="Menu du compte">
               <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold overflow-hidden shrink-0" style={{background: user?.avatarUrl ? 'transparent' : 'var(--color-gold)', color: 'var(--color-brand)', outline: accountMenuOpen ? '2px solid var(--color-brand)' : '2px solid transparent', outlineOffset: '2px'}}>
                 {user?.avatarUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -182,7 +196,7 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
                 </div>
                 <div>
                   <button onClick={() => { setAccountMenuOpen(false); router.push('/dashboard/settings'); }} className="account-menu-item">
-                    <FontAwesomeIcon icon={faGear} className="w-4 h-4" /> Paramètres du compte
+                    <FontAwesomeIcon icon={faGear} className="w-4 h-4" /> Paramètres
                   </button>
                   {user && user.role !== "user" && (
                     <button onClick={() => { setAccountMenuOpen(false); router.push('/admin'); }} className="account-menu-item">
@@ -209,7 +223,7 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
       </div>
 
       <style>{`
-        .account-menu { position:absolute; right:0; top:calc(100% + 8px); width:260px; z-index:100; overflow:hidden; background:var(--color-surface); border:1px solid var(--color-border); border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06); animation:scaleIn 0.18s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin:top right; }
+        .account-menu { position:absolute; right:0; top:calc(100% + 8px); width:260px; z-index:100; overflow:hidden; background:var(--color-surface); border:none; border-top:1px solid rgba(245,166,35,0.35); border-radius:14px; box-shadow:0 8px 32px rgba(27,58,107,0.18), 0 2px 8px rgba(27,58,107,0.08); animation:scaleIn 0.18s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin:top right; }
         .account-menu-item { display:flex; align-items:center; gap:10px; width:100%; padding:11px 16px; border:none; background:transparent; font-size:13.5px; font-weight:500; cursor:pointer; font-family:var(--font-body); text-align:left; transition:background 0.11s; color:var(--color-body); }
         .account-menu-item:hover { background:var(--color-surface-raised); color:var(--color-ink); }
         .account-menu-item.upgrade { color:var(--color-brand); font-weight:600; }

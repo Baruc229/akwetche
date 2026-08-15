@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 
@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     title: "Akwetche",
   },
+};
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  interactiveWidget: "resizes-visual",
 };
 
 export default function RootLayout({
