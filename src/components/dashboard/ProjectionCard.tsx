@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp, faChartLine } from '@fortawesome/free-solid-svg-icons';
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, detectCurrency, toStorageCurrency } from "@/lib/utils";
 import { Line, XAxis, ResponsiveContainer, Tooltip, ComposedChart } from 'recharts';
 
 type DailyBalance = { date: string; balance: number };
@@ -66,7 +66,12 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 }
 
 export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBalances, initialBalanceMissing, totalBalance = 0, pendingRecurringExpense = 0, pendingRecurringIncome = 0, totalExpense = 0, totalRecurringExpense = 0 }: Props) {
-  const isNegative = projectedRemaining < 0;
+  const [whatIfInput, setWhatIfInput] = useState("");
+  const currency = detectCurrency();
+  const whatIf = whatIfInput === "" ? 0 : Math.max(0, Math.round(toStorageCurrency(parseFloat(whatIfInput.replace(",", ".")) || 0, currency)));
+
+  const adjustedRemaining = projectedRemaining - whatIf;
+  const isNegative = adjustedRemaining < 0;
   const hasBreakdown = pendingRecurringExpense > 0 || pendingRecurringIncome > 0;
 
   const now = new Date();
@@ -78,7 +83,7 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
     ? "Solde estimé aujourd'hui"
     : `Solde estimé au ${lastDayOfMonth} ${MOIS[month]}`;
 
-  const chartColor = projectedRemaining >= 0 ? '#0D7A4B' : '#B94A3E';
+  const chartColor = adjustedRemaining >= 0 ? '#0D7A4B' : '#B94A3E';
 
   const chartData = useMemo<ChartPoint[]>(() => {
     const data: ChartPoint[] = [];
@@ -106,7 +111,8 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
       data[data.length - 1].kind = "today";
     }
 
-    const futureSpend = totalBalance - pendingRecurringExpense + pendingRecurringIncome - projectedRemaining;
+    const ending = whatIf > 0 ? adjustedRemaining : projectedRemaining;
+    const futureSpend = totalBalance - pendingRecurringExpense + pendingRecurringIncome - ending;
     const pace = daysLeft > 0 ? futureSpend / daysLeft : 0;
     const base = totalBalance;
 
@@ -131,7 +137,7 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
     }
 
     return data;
-  }, [dailyBalances, year, month, dayOfMonth, daysLeft, totalBalance, projectedRemaining, pendingRecurringExpense, pendingRecurringIncome]);
+  }, [dailyBalances, year, month, dayOfMonth, daysLeft, totalBalance, projectedRemaining, pendingRecurringExpense, pendingRecurringIncome, adjustedRemaining, whatIf]);
 
   const isLimitedHistory = useMemo(() => {
     if (chartData.length <= 3) return true;
@@ -144,10 +150,11 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
 
   const isEmptyState = (!dailyBalances || dailyBalances.length === 0) && totalBalance === 0 && pendingRecurringExpense === 0 && pendingRecurringIncome === 0;
 
-  const delta = Math.abs(projectedRemaining - totalBalance);
-  const isDeltaUp = projectedRemaining >= totalBalance;
+  const delta = Math.abs(adjustedRemaining - totalBalance);
+  const isDeltaUp = adjustedRemaining >= totalBalance;
 
-  const futureSpend = totalBalance - pendingRecurringExpense + pendingRecurringIncome - projectedRemaining;
+  const ending = whatIf > 0 ? adjustedRemaining : projectedRemaining;
+  const futureSpend = totalBalance - pendingRecurringExpense + pendingRecurringIncome - ending;
   const pace = daysLeft > 0 ? futureSpend / daysLeft : 0;
 
   return (
@@ -184,7 +191,7 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
               className="text-amount text-4xl animate-fade-in"
               style={{ color: isNegative ? '#B94A3E' : '#0D7A4B' }}
             >
-              {formatCurrency(projectedRemaining)}
+              {formatCurrency(adjustedRemaining)}
             </p>
             {totalBalance !== 0 && (
               <span
@@ -238,6 +245,15 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                 <span className="text-sm font-bold text-[#0D7A4B] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
               </div>
             )}
+            {whatIf > 0 && (
+              <div className="flex items-center justify-between px-3.5 py-2.5" style={{ background: 'var(--color-neg-bg)' }}>
+                <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
+                  Et si dépense supplémentaire
+                </span>
+                <span className="text-sm font-bold text-[#B94A3E] tabular-nums">−{formatCurrency(whatIf)}</span>
+              </div>
+            )}
             <div
               className="flex items-center justify-between px-3.5 py-3"
               style={{ background: isNegative ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)' }}
@@ -247,12 +263,47 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                 className="text-base font-bold tabular-nums"
                 style={{ color: isNegative ? '#B94A3E' : '#0D7A4B' }}
               >
-                {formatCurrency(projectedRemaining)}
+                {formatCurrency(adjustedRemaining)}
               </span>
             </div>
           </div>
 
-          {totalExpense > 0 && totalRecurringExpense >= totalExpense - 0.5 && (
+          {/* Scénario « et si » */}
+          <div className="mt-3 rounded-xl border border-[#E2E8F0] p-3">
+            <label htmlFor="what-if" className="block text-xs text-[#94A3B8]">
+              Simuler une dépense supplémentaire d&apos;ici la fin du mois
+            </label>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 relative">
+                <input
+                  id="what-if"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  value={whatIfInput}
+                  onChange={(e) => setWhatIfInput(e.target.value)}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-2.5 pr-16 text-sm font-bold text-[#1A2744] tabular-nums outline-none transition-all focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  aria-label="Montant de la dépense supplémentaire à simuler"
+                />
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#94A3B8] pointer-events-none">
+                  {currency === "EUR" ? "€" : "FCFA"}
+                </span>
+              </div>
+              {whatIf > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setWhatIfInput("")}
+                  className="shrink-0 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#B94A3E] hover:bg-[var(--color-neg-bg)] transition-colors"
+                >
+                  Effacer
+                </button>
+              )}
+            </div>
+          </div>
+
+          {totalExpense > 0 && totalRecurringExpense >= totalExpense - 0.5 && whatIf === 0 && (
             <div className="alert-inline warn mt-3" style={{ padding: '8px 12px' }}>
               <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <p>
@@ -267,10 +318,12 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
             <div className="alert-inline neg mt-3">
               <FontAwesomeIcon icon={faTriangleExclamation} className="w-4 h-4 shrink-0 mt-0.5" />
               <p>
-                {hasBreakdown
-                  ? "Vos opérations récurrentes prévues dépassent votre solde actuel. Votre solde pourrait passer en négatif avant la fin du mois. "
-                  : "À ce rythme de dépenses, votre solde pourrait passer en négatif avant la fin du mois."}
-                {hasBreakdown && (
+                {whatIf > 0
+                  ? "Avec cette dépense supplémentaire, votre solde passerait en négatif avant la fin du mois. "
+                  : hasBreakdown
+                    ? "Vos opérations récurrentes prévues dépassent votre solde actuel. Votre solde pourrait passer en négatif avant la fin du mois. "
+                    : "À ce rythme de dépenses, votre solde pourrait passer en négatif avant la fin du mois."}
+                {hasBreakdown && whatIf === 0 && (
                   <Link href="/dashboard/recurring/expenses" className="font-semibold underline text-[#1B3A6B]">
                     Voir mes opérations récurrentes
                   </Link>
