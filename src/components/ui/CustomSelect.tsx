@@ -143,7 +143,7 @@ export default function CustomSelect({
   if (searchMode) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-black/40 animate-fade-in sm:hidden" onClick={() => setSearchMode(false)}>
-        <div className="mt-auto bg-white rounded-t-2xl max-h-[70vh] flex flex-col animate-slide-up" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-auto bg-[var(--color-surface)] rounded-t-2xl max-h-[70vh] flex flex-col animate-slide-up" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
             <p className="text-sm font-semibold text-ink">{placeholder}</p>
             <button onClick={() => setSearchMode(false)} className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink rounded-lg hover:bg-sand transition-colors">
@@ -211,7 +211,7 @@ export default function CustomSelect({
   const dropdownContent = open && dropdownPos ? (
     <div
       ref={dropdownRef}
-      className="fixed bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
+      className="fixed bg-[var(--color-surface)] border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in"
       style={{
         top: dropdownPos.top,
         left: dropdownPos.left,

@@ -23,7 +23,7 @@ export default function ExpiredModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 animate-fade-in">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl animate-scale-in p-6 text-center">
+      <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-md shadow-xl animate-scale-in p-6 text-center">
         <button
           onClick={() => setOpen(false)}
           className="absolute top-4 right-4 text-muted hover:text-muted"

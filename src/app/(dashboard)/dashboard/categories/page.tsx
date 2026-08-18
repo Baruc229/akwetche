@@ -316,7 +316,7 @@ export default function CategoriesPage() {
 
       {confirmDeleteCat && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={() => setConfirmDeleteCat(null)}>
-          <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 max-w-sm mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-2">Supprimer cette catégorie ?</h3>
             <p className="text-sm text-muted mb-4">Les transactions liées ne seront plus associées à une catégorie.</p>
             <div className="flex gap-3 justify-end">

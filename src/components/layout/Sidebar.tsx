@@ -136,7 +136,7 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
             <label className="flex items-center gap-3 px-3 py-2 text-sm text-white/52 cursor-pointer hover:bg-white/7 rounded-lg transition-all">
               <div className="relative shrink-0">
                 <input type="checkbox" checked={commercialMode} onChange={(e) => { setCommercialMode(e.target.checked); if (e.target.checked && !user?.activityActivated) { fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {}); } }} className="sr-only peer" />
-                <div className="w-9 h-5 rounded-full bg-white/15 peer-checked:bg-[#C9A84C] transition-colors" />
+                <div className="w-9 h-5 rounded-full bg-white/15 peer-checked:bg-[var(--color-gold)] transition-colors" />
                 <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white/60 peer-checked:translate-x-4 transition-transform" />
               </div>
               <FontAwesomeIcon icon={faBagShopping} className="w-4 h-4" />
@@ -150,7 +150,7 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
               <button
                 onClick={() => { setCommercialMode(!commercialMode); if (!commercialMode && !user?.activityActivated) { fetch("/api/auth/activate-activity", { method: "POST" }).catch(() => {}); } }}
                 className="relative flex items-center justify-center w-11 h-11 rounded-lg transition-all hover:bg-white/10"
-                style={{ color: commercialMode ? '#C9A84C' : 'rgba(255,255,255,0.4)' }}
+                style={{ color: commercialMode ? 'var(--color-gold)' : 'rgba(255,255,255,0.4)' }}
                 title={commercialMode ? "Désactiver mode activité" : "Activer mode activité"}
                 aria-pressed={commercialMode}
               >

@@ -167,7 +167,7 @@ export default function NotificationsDrawer({ open, onClose, onUnreadChange }: P
 
       {confirmDeleteNotif !== null && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/25 animate-fade-in" onClick={() => setConfirmDeleteNotif(null)}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-semibold mb-2" style={{color:'var(--color-ink)'}}>Supprimer cette notification ?</h3>
             <p className="text-sm mb-5" style={{color:'var(--color-muted)'}}>Cette notification sera définitivement supprimée.</p>
             <div className="flex gap-3 justify-end">

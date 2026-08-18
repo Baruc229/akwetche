@@ -191,7 +191,7 @@ export default function TontinesSettingsPage() {
 
       {confirmRemove && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/25 animate-fade-in" onClick={() => setConfirmRemove(false)}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-sm shadow-xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-semibold mb-2" style={{ color: "var(--color-ink)" }}>
               {commissionCount === null ? "Confirmer le retrait des commissions ?" : `Confirmer le retrait de ${commissionCount} commission${commissionCount > 1 ? "s" : ""} ?`}
             </h3>

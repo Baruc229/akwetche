@@ -183,7 +183,7 @@ export default function NotificationBell() {
       {open && createPortal(
         <div
           ref={portalRef}
-          className="fixed z-[9999] w-80 min-w-[320px] bg-white rounded-xl shadow-lg border border-border overflow-hidden"
+          className="fixed z-[9999] w-80 min-w-[320px] bg-[var(--color-surface)] rounded-xl shadow-lg border border-border overflow-hidden"
           style={{ top: coords.top, right: coords.right }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-sand/50">
