@@ -55,13 +55,13 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
               ? 'text-white font-semibold'
               : 'text-white/52 hover:text-white/90 hover:bg-white/7'
           }`}
-          style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: collapsed ? '7px' : '9px'} : {}}
+          style={isActive ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid rgba(255,255,255,0.5)', paddingLeft: collapsed ? '7px' : '9px'} : {}}
         >
           <FontAwesomeIcon icon={item.icon} className="w-[15px] h-[15px] shrink-0" />
           <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>{item.label}</span>
         </Link>
         {collapsed && (
-          <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>
+          <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-brand-dark)', color:'white'}}>
             {item.label}
           </div>
         )}
@@ -119,12 +119,12 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
         {user && user.role !== "user" && (
           <div className={`${user.role !== "user" ? '' : 'hidden'}`} style={{ minHeight: 0 }}>
             <div className="relative group">
-              <Link href="/admin" onClick={onClose} className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${collapsed ? 'justify-center p-[12px] gap-0' : 'px-3 py-[12px] gap-[10px]'} ${pathname === '/admin' ? 'text-white font-semibold' : 'text-white/52 hover:text-white/90 hover:bg-white/7'}`} style={pathname === '/admin' ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid var(--color-gold)', paddingLeft: collapsed ? '7px' : '9px'} : {}}>
+              <Link href="/admin" onClick={onClose} className={`flex items-center rounded-lg text-sm transition-all whitespace-nowrap overflow-hidden ${collapsed ? 'justify-center p-[12px] gap-0' : 'px-3 py-[12px] gap-[10px]'} ${pathname === '/admin' ? 'text-white font-semibold' : 'text-white/52 hover:text-white/90 hover:bg-white/7'}`} style={pathname === '/admin' ? {background:'rgba(255,255,255,0.13)', borderLeft:'3px solid rgba(255,255,255,0.5)', paddingLeft: collapsed ? '7px' : '9px'} : {}}>
                 <FontAwesomeIcon icon={faShield} className="w-[15px] h-[15px] shrink-0" />
                 <span className={`transition-all duration-200 overflow-hidden whitespace-nowrap inline-block ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>Administration</span>
               </Link>
               {collapsed && (
-                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-gold)', color:'var(--color-brand)'}}>Administration</div>
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none translate-x-[-6px] group-hover:translate-x-0 sidebar-tooltip" style={{background:'var(--color-brand-dark)', color:'white'}}>Administration</div>
               )}
             </div>
           </div>

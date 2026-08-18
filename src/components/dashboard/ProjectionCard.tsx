@@ -181,8 +181,8 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
       ) : (
         <>
           <div
-            className="rounded-xl p-4 border-l-[3px] animate-fade-in"
-            style={{ background: isNegative ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)', borderColor: isNegative ? 'var(--color-neg)' : 'var(--color-pos)' }}
+            className="rounded-xl p-4 animate-fade-in"
+            style={{ background: isNegative ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)' }}
           >
             <p className="text-xs text-[var(--color-placeholder)] mb-1">{heroLabel}</p>
             <p
