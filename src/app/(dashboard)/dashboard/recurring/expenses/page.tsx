@@ -165,7 +165,7 @@ export default function DepensesRecurrentesPage() {
 
   if (loading) return (
     <div className="space-y-4 animate-pulse">
-      <div className="card overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-neg) 0%, #b91c1c 100%)' }}>
+      <div className="card overflow-hidden" style={{ background: 'var(--color-neg)' }}>
         <div className="p-3 sm:p-5">
           <div className="flex items-center gap-3 mb-6">
             <div className="skeleton w-10 h-10 rounded-xl" />
@@ -350,7 +350,7 @@ export default function DepensesRecurrentesPage() {
   return (
     <div className="space-y-4">
       <div className="card overflow-hidden" style={{
-        background: 'linear-gradient(135deg, var(--color-neg) 0%, #b91c1c 100%)',
+        background: 'var(--color-neg)',
       }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-3 sm:p-5">
           <div>

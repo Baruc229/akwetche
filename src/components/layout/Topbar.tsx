@@ -223,7 +223,7 @@ export default function Topbar({ sidebarCollapsed, onToggleSidebar, onOpenMobile
       </div>
 
       <style>{`
-        .account-menu { position:absolute; right:0; top:calc(100% + 8px); width:260px; z-index:100; overflow:hidden; background:var(--color-surface); border:none; border-top:1px solid rgba(245,166,35,0.35); border-radius:14px; box-shadow:0 8px 32px rgba(27,58,107,0.18), 0 2px 8px rgba(27,58,107,0.08); animation:scaleIn 0.18s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin:top right; }
+        .account-menu { position:absolute; right:0; top:calc(100% + 8px); width:260px; z-index:100; overflow:hidden; background:var(--color-surface); border:1px solid var(--color-border); border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,0.10); animation:scaleIn 0.18s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin:top right; }
         .account-menu-item { display:flex; align-items:center; gap:10px; width:100%; padding:11px 16px; border:none; background:transparent; font-size:13.5px; font-weight:500; cursor:pointer; font-family:var(--font-body); text-align:left; transition:background 0.11s; color:var(--color-body); }
         .account-menu-item:hover { background:var(--color-surface-raised); color:var(--color-ink); }
         .account-menu-item.upgrade { color:var(--color-brand); font-weight:600; }

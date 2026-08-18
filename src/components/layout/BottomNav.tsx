@@ -56,7 +56,7 @@ export default function BottomNav({ onQuickMenuOpen, onOpenSidebar }: Props) {
               if (isHome || !createRoute) { onQuickMenuOpen(); } else { router.push(createRoute + "?action=create"); }
             }}
             className="absolute left-1/2 -translate-x-1/2 bottom-0 w-12 h-12 rounded-full bg-[var(--color-brand)] text-white flex items-center justify-center hover:bg-[var(--color-brand-hover)] active:scale-[0.98] transition-transform"
-            style={{marginBottom:'-4px', boxShadow:'0 0 0 2px var(--color-gold), 0 4px 12px rgba(27,58,107,0.35)'}}
+            style={{marginBottom:'-4px'}}
             aria-label="Action rapide"
           >
             <FontAwesomeIcon icon={faPlus} className="w-5 h-5" />

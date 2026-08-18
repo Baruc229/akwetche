@@ -74,11 +74,11 @@ export default function Sidebar({ collapsed, open, onToggle, onClose, onHelpOpen
       className={`fixed top-0 left-0 z-40 flex flex-col h-dvh lg:h-screen max-h-screen overflow-hidden transition-all duration-200
         ${collapsed ? 'w-16' : 'w-60'}
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-      style={{background:'var(--color-brand)', boxShadow:'2px 0 0 rgba(245,166,35,0.18)'}}
+      style={{background:'var(--color-brand)'}}
     >
       <div className={`flex items-center shrink-0 ${collapsed ? 'justify-center p-3' : 'justify-between px-4 py-4'}`}>
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/15" style={{background:'#0D1B35'}}>
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/15" style={{background:'var(--color-brand-dark)'}}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
           </div>

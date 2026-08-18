@@ -88,10 +88,10 @@ export default function AbonnementPage() {
       return (
         <div className="space-y-5">
           {/* ─── HERO PREMIUM ─── */}
-          <div className="card p-6 sm:p-7" style={{ border: "1px solid rgba(245,166,35,0.2)", background: "linear-gradient(135deg, rgba(245,166,35,0.04) 0%, rgba(245,166,35,0.08) 100%)" }}>
+          <div className="card p-6 sm:p-7 border border-[var(--color-border)]">
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(245,166,35,0.1)" }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "var(--color-brand-subtle)" }}>
                   <FontAwesomeIcon icon={faCrown} className="w-6 h-6" style={{ color: "var(--color-gold)" }} />
                 </div>
                 <div>
@@ -310,18 +310,18 @@ export default function AbonnementPage() {
       {isAdmin ? (
         <div className="space-y-5">
           {/* ─── HERO ADMIN ─── */}
-          <div className="card p-6 sm:p-7" style={{ border: "1px solid rgba(59,130,246,0.15)", background: "linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(59,130,246,0.08) 100%)" }}>
+          <div className="card p-6 sm:p-7 border border-[var(--color-border)]">
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.1)" }}>
-                  <FontAwesomeIcon icon={faShield} className="w-6 h-6" style={{ color: "#3b82f6" }} />
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "var(--color-brand-subtle)" }}>
+                  <FontAwesomeIcon icon={faShield} className="w-6 h-6" style={{ color: "var(--color-brand)" }} />
                 </div>
                 <div>
                   <p className="text-lg font-bold text-ink">Administrateur</p>
                   <p className="text-sm text-muted mt-0.5">Accès total — toutes les fonctionnalités débloquées</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "var(--color-brand-subtle)", color: "var(--color-brand)" }}>
                 <FontAwesomeIcon icon={faShield} className="w-2.5 h-2.5" />
                 Admin
               </span>
@@ -329,7 +329,7 @@ export default function AbonnementPage() {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-xl p-3" style={{ background: "var(--color-surface-raised)" }}>
-                <FontAwesomeIcon icon={faCheck} className="w-4 h-4 mb-1.5" style={{ color: "#3b82f6" }} />
+                <FontAwesomeIcon icon={faCheck} className="w-4 h-4 mb-1.5" style={{ color: "var(--color-brand)" }} />
                 <p className="text-xs text-muted">Fonctionnalités</p>
                 <p className="text-sm font-semibold text-ink mt-0.5">{PREMIUM_FEATURES.length + 1}/{PREMIUM_FEATURES.length + 1}</p>
               </div>

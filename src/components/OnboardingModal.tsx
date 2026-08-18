@@ -39,7 +39,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
       {step === "balance" ? (
         <div className="bg-[var(--color-surface-raised)] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
-            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
+            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "var(--color-brand-subtle)" }}>
               <FontAwesomeIcon icon={faWallet} className="w-7 h-7 text-[var(--color-ink)]" />
             </div>
             <h3 className="text-[20px] font-[family-name:var(--font-body)] font-bold text-[var(--color-ink)]">
@@ -98,7 +98,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
       ) : (
         <div className="bg-[var(--color-surface-raised)] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
-            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
+            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "var(--color-brand-subtle)" }}>
               <FontAwesomeIcon icon={faSun} className="w-7 h-7 text-[var(--color-ink)]" style={{ strokeWidth: 1.8 }} />
             </div>
             <h3 className="text-[20px] font-[family-name:var(--font-body)] font-bold text-[var(--color-ink)]">
@@ -118,7 +118,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
 
           <div className="space-y-2 mb-6">
             <div className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "var(--color-brand-subtle)" }}>
                 <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-[var(--color-ink)]" />
               </div>
               <div className="text-left">
@@ -127,7 +127,7 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "var(--color-brand-subtle)" }}>
                 <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-[var(--color-ink)]" />
               </div>
               <div className="text-left">

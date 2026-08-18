@@ -13,7 +13,7 @@ export default function LandingPage() {
   <header className="border-b border-border bg-[var(--color-surface)]/80 backdrop-blur-sm sticky top-0 z-50">
   <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
    <Link href="/" className="flex items-center gap-2 shrink-0">
-    <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm" style={{background:'#0D1B35'}}>
+     <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm" style={{background:'var(--color-brand-dark)'}}>
      <img src="/akwetche-symbole.svg" alt="Akwetche" className="w-5 h-5" />
    </div>
    <span className="text-xl font-bold text-[var(--color-brand)]">
@@ -180,7 +180,7 @@ export default function LandingPage() {
   </a>
   </div>
 
-  <div className="card-hero p-8 border-2 border-[var(--color-brand)] relative shadow-lg shadow-lg">
+  <div className="card-hero p-8 border-2 border-[var(--color-brand)] relative shadow-lg">
    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--color-surface)] text-[var(--color-brand)] text-xs font-semibold px-4 py-1 rounded-full">
   POPULAIRE
   </span>

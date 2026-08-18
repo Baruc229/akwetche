@@ -93,7 +93,7 @@ export default function ComptePage() {
             <p className="text-lg sm:text-xl font-bold text-ink truncate">{user?.name}</p>
             <p className="text-xs sm:text-sm truncate mt-1 text-muted">{user?.email}</p>
             {isPremium ? (
-              <span className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ background: "rgba(245,166,35,0.1)", color: "var(--color-gold)", border: "1px solid rgba(245,166,35,0.2)" }}>
+              <span className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[var(--color-gold)]/20" style={{ background: "var(--color-gold-light)", color: "var(--color-gold)" }}>
                 <FontAwesomeIcon icon={faCrown} className="w-2.5 h-2.5" />
                 {planLabel}
               </span>

@@ -175,9 +175,8 @@ export default function TontinesPage() {
 
   return (
     <div className="space-y-4 pb-24 sm:pb-0">
-      <div className="relative overflow-hidden rounded-2xl bg-[var(--color-brand)] p-5 sm:p-6 text-white shadow-sm shadow-[var(--color-brand)]/20">
-        <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/[0.07]" />
-        <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/[0.05]" />
+      <div className="relative overflow-hidden rounded-2xl bg-[var(--color-brand)] p-5 sm:p-6 text-white shadow-sm">
+
         <div className="relative flex items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -213,7 +212,7 @@ export default function TontinesPage() {
           {ordered.map((t, idx) => (
             <a key={t.id} href={`/dashboard/tontines/${t.id}`} className="group flex items-center justify-between py-4 px-1 -mx-1 hover:bg-[var(--color-surface-raised)] hover:shadow-sm hover:shadow-black/[0.03] hover:border-[var(--color-brand)]/10 transition-all duration-200 gap-3" style={{ animationDelay: `${idx * 40}ms` }}>
               <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${t.type === "rotative_simple" ? "bg-gradient-to-br from-emerald-50 to-emerald-100" : "bg-gradient-to-br from-amber-50 to-amber-100"}`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${t.type === "rotative_simple" ? "bg-[var(--color-pos-bg)]" : "bg-[var(--color-gold-light)]"}`}>
                   <FontAwesomeIcon icon={t.type === "rotative_simple" ? faHandHoldingDollar : faSackDollar} className={`w-[18px] h-[18px] ${t.type === "rotative_simple" ? "text-emerald-600" : "text-amber-600"}`} />
                 </div>
                 <div className="min-w-0 flex-1 group/name">
@@ -385,7 +384,7 @@ export default function TontinesPage() {
                   </div>
                 )}
                 {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
-                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm">Créer</button>
               </form>
             </div>
           </div>
@@ -535,7 +534,7 @@ export default function TontinesPage() {
                   </div>
                 )}
                 {error && <div className="alert-inline neg"><FontAwesomeIcon icon={faCircleExclamation} className="w-4 h-4" /><p>{error}</p></div>}
-                <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
+                <button type="submit" className="btn-primary w-full shadow-sm">Créer</button>
               </form>
             </div>
           </div>

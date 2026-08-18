@@ -1442,7 +1442,7 @@ export default function TontineDetail() {
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Enregistrer</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm">Enregistrer</button>
               </div>
             </form>
           </div>
@@ -1574,7 +1574,7 @@ export default function TontineDetail() {
                   </div>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Enregistrer</button>
+                  <button type="submit" className="btn-primary w-full shadow-sm">Enregistrer</button>
                 </div>
               </form>
             </div>
@@ -1620,7 +1620,7 @@ export default function TontineDetail() {
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm">Créer</button>
               </div>
             </form>
           </div>
@@ -1656,7 +1656,7 @@ export default function TontineDetail() {
                   </div>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Créer</button>
+                  <button type="submit" className="btn-primary w-full shadow-sm">Créer</button>
                 </div>
               </form>
             </div>
@@ -1693,7 +1693,7 @@ export default function TontineDetail() {
                 <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">Planifier</button>
+                <button type="submit" className="btn-primary w-full py-3 shadow-sm">Planifier</button>
               </div>
             </form>
           </div>
@@ -1720,7 +1720,7 @@ export default function TontineDetail() {
                   <p className="text-xs text-muted">Total collecté : {formatCurrency(totalCollecte)}</p>
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
-                  <button type="submit" className="btn-primary w-full shadow-sm shadow-[var(--color-brand)]/20">Planifier</button>
+                  <button type="submit" className="btn-primary w-full shadow-sm">Planifier</button>
                 </div>
               </form>
             </div>
@@ -2148,7 +2148,7 @@ export default function TontineDetail() {
                 </div>
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
-                <button type="submit" disabled={settingsSaving} className="btn-primary w-full py-3 shadow-sm shadow-[var(--color-brand)]/20">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
+                <button type="submit" disabled={settingsSaving} className="btn-primary w-full py-3 shadow-sm">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
               </div>
             </form>
           </div>
@@ -2232,7 +2232,7 @@ export default function TontineDetail() {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={() => setShowSettings(false)} className="btn-mono flex-1 py-3">Annuler</button>
-                  <button type="submit" disabled={settingsSaving} className="btn-primary flex-1 py-3 shadow-sm shadow-[var(--color-brand)]/20">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
+                  <button type="submit" disabled={settingsSaving} className="btn-primary flex-1 py-3 shadow-sm">{settingsSaving ? "Enregistrement..." : "Enregistrer"}</button>
                 </div>
               </form>
             </div>

@@ -15,7 +15,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
   const marginRate = rawMargin !== null ? (rawMargin < -100 ? -100 : rawMargin) : null;
 
   return (
-    <div className="rounded-[18px] p-5 border border-[var(--color-gold)]/20 shadow-sm" style={{ backgroundColor: 'var(--color-gold-light)' }}>
+    <div className="rounded-[18px] p-5 border border-[var(--color-border)] shadow-sm" style={{ backgroundColor: 'var(--color-gold-light)' }}>
       <div className="flex items-center gap-2.5 mb-4">
         <div className="w-10 h-10 rounded-xl bg-[var(--color-gold)]/15 flex items-center justify-center">
           <FontAwesomeIcon icon={faBriefcase} className="w-5 h-5 text-[var(--color-gold)]" />
@@ -28,7 +28,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
         </div>
       </div>
 
-      <div className="bg-[var(--color-surface)]/80 rounded-xl p-4 mb-3 border border-[var(--color-gold)]/10">
+      <div className="bg-[var(--color-surface)]/80 rounded-xl p-4 mb-3 border border-[var(--color-border)]">
         <p className="text-[10px] text-[var(--color-placeholder)] uppercase tracking-wider font-[family-name:var(--font-body)]">
           Chiffre d&apos;affaires
         </p>
@@ -38,7 +38,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-[var(--color-surface)]/80 rounded-xl p-4 border border-[var(--color-gold)]/10">
+        <div className="bg-[var(--color-surface)]/80 rounded-xl p-4 border border-[var(--color-border)]">
           <p className="text-[10px] text-[var(--color-placeholder)] uppercase tracking-wider font-[family-name:var(--font-body)]">
             Bénéfice
           </p>
@@ -49,7 +49,7 @@ export default function ActivitySummary({ income, expense, savings }: Props) {
             après dépenses
           </p>
         </div>
-        <div className="bg-[var(--color-surface)]/80 rounded-xl p-4 border border-[var(--color-gold)]/10">
+        <div className="bg-[var(--color-surface)]/80 rounded-xl p-4 border border-[var(--color-border)]">
           <p className="text-[10px] text-[var(--color-placeholder)] uppercase tracking-wider font-[family-name:var(--font-body)]">
             Marge
           </p>

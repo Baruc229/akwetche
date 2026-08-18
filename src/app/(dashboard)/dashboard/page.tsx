@@ -368,7 +368,7 @@ export default function DashboardPage() {
       })()}
 
       {/* Hero Card */}
-      <div className="card-hero" style={{ background: '#0D1B35' }}>
+      <div className="card-hero" style={{ background: 'var(--color-brand-dark)' }}>
         <div className="flex items-center justify-between">
           <p className="text-label text-white/50">ARGENT DISPONIBLE</p>
           {(() => {
@@ -382,7 +382,7 @@ export default function DashboardPage() {
             return (
               <span
                 className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(201,168,76,0.18)', color: 'var(--color-gold)' }}
+                style={{ background: 'var(--color-gold-light)', color: 'var(--color-gold)' }}
               >
                 {isUp ? '↑' : '↓'} {Math.abs(pctChange).toFixed(0)}% ce mois
               </span>
