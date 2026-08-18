@@ -184,7 +184,7 @@ export default function TontineDetail() {
   const MEMBER_COLORS = [
     { bg: "bg-emerald-100", text: "text-emerald-600", badge: "bg-emerald-500" },
     { bg: "bg-amber-100", text: "text-amber-600", badge: "bg-amber-500" },
-    { bg: "bg-violet-100", text: "text-violet-600", badge: "bg-violet-500" },
+    { bg: "bg-blue-100", text: "text-blue-600", badge: "bg-blue-500" },
     { bg: "bg-rose-100", text: "text-rose-600", badge: "bg-rose-500" },
     { bg: "bg-teal-100", text: "text-teal-600", badge: "bg-teal-500" },
     { bg: "bg-orange-100", text: "text-orange-600", badge: "bg-orange-500" },
@@ -655,8 +655,8 @@ export default function TontineDetail() {
                   </div>
                 )}
                 <div className="card-inset text-center p-4 relative overflow-hidden">
-            <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center mx-auto mb-2.5">
-              <FontAwesomeIcon icon={tontine.type === "rotative_simple" ? faArrowRight : faUsers} className="w-4 h-4 text-violet-600" />
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center mx-auto mb-2.5">
+              <FontAwesomeIcon icon={tontine.type === "rotative_simple" ? faArrowRight : faUsers} className="w-4 h-4 text-blue-600" />
             </div>
             <p className="text-label">{tontine.type === "rotative_simple" ? "Tours" : "Membres"}</p>
             <p className="text-amount text-base mt-1">{tontine.type === "rotative_simple" ? tontine.tours?.length || 0 : actifs.length}</p>
@@ -708,8 +708,8 @@ export default function TontineDetail() {
       <div className="card shadow-sm shadow-black/5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-              <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-violet-600" />
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-blue-600" />
             </div>
             <h3 className="text-sm font-semibold text-ink">Membres ({actifs.length})</h3>
           </div>

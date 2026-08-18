@@ -4,9 +4,29 @@ import { getAuthUserId, hashPassword, comparePassword } from "@/lib/auth";
 import { unauthorized, badRequest, ok } from "@/lib/api";
 import { cookies } from "next/headers";
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5;
+const RATE_WINDOW = 15 * 60 * 1000;
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   const userId = await getAuthUserId();
   if (!userId) return unauthorized();
+
+  if (!checkRateLimit(`change-pw:${userId}`)) {
+    return badRequest("Trop de tentatives. Réessayez dans 15 minutes.");
+  }
 
   const { currentPassword, newPassword } = await req.json();
 

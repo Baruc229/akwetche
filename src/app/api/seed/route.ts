@@ -36,6 +36,5 @@ export async function POST() {
     message: "Admin créé",
     id: admin.id,
     email: adminEmail,
-    password: adminPassword,
   });
 }

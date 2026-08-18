@@ -4,8 +4,29 @@ import { generateEmailToken } from "@/lib/auth";
 import { badRequest, ok } from "@/lib/api";
 import { sendEmail, resetPasswordEmailHtml } from "@/lib/email";
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 3;
+const RATE_WINDOW = 15 * 60 * 1000;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    if (!checkRateLimit(ip)) {
+      return badRequest("Trop de demandes. Réessayez dans 15 minutes.");
+    }
+
     const { email } = await req.json();
     if (!email) return badRequest("Email requis");
 

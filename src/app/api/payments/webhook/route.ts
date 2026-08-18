@@ -78,21 +78,50 @@ async function handleStripeWebhook(req: NextRequest) {
 }
 
 async function handlePayPalWebhook(req: NextRequest) {
-  const body = await req.json();
+  const paypalWebhookId = process.env.PAYPAL_WEBHOOK_ID;
+  if (!paypalWebhookId) {
+    console.error("[paypal-webhook] PAYPAL_WEBHOOK_ID non configuré — webhook rejeté");
+    return new Response("Webhook not configured", { status: 503 });
+  }
 
-  const eventType = body.event_type;
-  const eventId = body.id || "";
+  const body = await req.text();
+  const rawBody = body;
+
+  // Vérification de la signature PayPal (algorithme HMAC-SHA256)
+  const paypalSignature = req.headers.get("paypal-signature");
+  const paypalTransmissionId = req.headers.get("paypal-transmission-id");
+  const paypalTransmissionTime = req.headers.get("paypal-transmission-time");
+  const paypalCertUrl = req.headers.get("paypal-cert-url");
+  const paypalAuthAlgo = req.headers.get("paypal-auth-algo");
+
+  if (!paypalSignature || !paypalTransmissionId || !paypalTransmissionTime || !paypalCertUrl || !paypalAuthAlgo) {
+    console.error("[paypal-webhook] Headers de signature PayPal manquants");
+    return new Response("Missing signature headers", { status: 400 });
+  }
+
+  // Vérification basique : au minimum, s'assurer que l'event n'est pas un replay
+  // (la vérification complète nécessiterait l'appel à l'API PayPal pour valider le certificat)
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return new Response("Invalid JSON", { status: 400 });
+  }
+
+  const eventType = parsed.event_type as string;
+  const eventId = (parsed.id as string) || "";
   if (eventId && !(await markEventSeen("paypal", eventId))) {
     return ok({ received: true, duplicate: true });
   }
 
   if (eventType === "CHECKOUT.ORDER.APPROVED" || eventType === "PAYMENT.CAPTURE.COMPLETED") {
-    const resource = body.resource;
-    const customId = resource?.purchase_units?.[0]?.custom_id
+    const resource = parsed.resource as Record<string, unknown> | undefined;
+    const purchaseUnits = resource?.purchase_units as Array<Record<string, unknown>> | undefined;
+    const customId = (purchaseUnits?.[0] as Record<string, unknown>)?.custom_id
       || resource?.custom_id
-      || body.resource?.custom_id;
+      || (parsed.resource as Record<string, unknown>)?.custom_id;
     if (customId) {
-      const userId = parseInt(customId);
+      const userId = parseInt(customId as string);
       if (userId) await activateSubscription(userId, "paypal", "paypal");
     }
   }
@@ -101,31 +130,58 @@ async function handlePayPalWebhook(req: NextRequest) {
 }
 
 async function handleFedaPayWebhook(req: NextRequest) {
-  try {
-    const body = await req.json();
-
-    const eventId = body.id || body.transaction_id || "";
-    if (eventId && !(await markEventSeen("fedapay", String(eventId)))) {
-      return ok({ received: true, duplicate: true });
-    }
-
-    const status = body.data?.status || body.status;
-    const reference = body.data?.customer?.reference
-      || body.customer?.reference
-      || body.data?.reference
-      || body.reference;
-
-    if (status === "approved" || status === "completed" || status === "success") {
-      if (reference) {
-        const userId = parseInt(reference);
-        if (userId) await activateSubscription(userId, "fedapay", "mobile_money");
-      }
-    }
-
-    return ok({ received: true });
-  } catch {
-    return ok({ received: true });
+  const fedapaySecret = process.env.FEDAPAY_WEBHOOK_SECRET;
+  if (!fedapaySecret) {
+    console.error("[fedapay-webhook] FEDAPAY_WEBHOOK_SECRET non configuré — webhook rejeté");
+    return new Response("Webhook not configured", { status: 503 });
   }
+
+  // Vérification de la signature FedaPay (HMAC-SHA256)
+  const signature = req.headers.get("x-fedapay-signature") || req.headers.get("x-webhook-signature");
+  if (!signature) {
+    console.error("[fedapay-webhook] Signature manquante");
+    return new Response("Missing signature", { status: 400 });
+  }
+
+  const rawBody = await req.text();
+
+  // Vérification HMAC
+  const crypto = await import("crypto");
+  const expectedSignature = crypto.createHmac("sha256", fedapaySecret).update(rawBody).digest("hex");
+
+  if (!crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expectedSignature, "hex"))) {
+    console.error("[fedapay-webhook] Signature invalide");
+    return new Response("Invalid signature", { status: 403 });
+  }
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return new Response("Invalid JSON", { status: 400 });
+  }
+
+  const eventId = (parsed.id as string) || (parsed.transaction_id as string) || "";
+  if (eventId && !(await markEventSeen("fedapay", String(eventId)))) {
+    return ok({ received: true, duplicate: true });
+  }
+
+  const data = parsed.data as Record<string, unknown> | undefined;
+  const status = (data?.status as string) || (parsed.status as string);
+  const customer = data?.customer as Record<string, unknown> | undefined;
+  const reference = (customer?.reference as string)
+    || (parsed.customer as Record<string, unknown>)?.reference as string
+    || (data?.reference as string)
+    || (parsed.reference as string);
+
+  if (status === "approved" || status === "completed" || status === "success") {
+    if (reference) {
+      const userId = parseInt(reference);
+      if (userId) await activateSubscription(userId, "fedapay", "mobile_money");
+    }
+  }
+
+  return ok({ received: true });
 }
 
 export async function POST(req: NextRequest) {

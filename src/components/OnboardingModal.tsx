@@ -37,28 +37,28 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40">
       {step === "balance" ? (
-        <div className="bg-[#F1F5F9] rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="bg-[var(--color-surface-raised)] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
-              <FontAwesomeIcon icon={faWallet} className="w-7 h-7 text-[#1A2744]" />
+              <FontAwesomeIcon icon={faWallet} className="w-7 h-7 text-[var(--color-ink)]" />
             </div>
-            <h3 className="text-[20px] font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744]">
+            <h3 className="text-[20px] font-[family-name:var(--font-body)] font-bold text-[var(--color-ink)]">
               Votre solde de départ
             </h3>
-            <p className="text-[14px] text-[#94A3B8] mt-2 leading-relaxed font-[family-name:var(--font-inter)]">
+            <p className="text-[14px] text-[var(--color-placeholder)] mt-2 leading-relaxed font-[family-name:var(--font-body)]">
               Indiquez l&apos;argent que vous aviez <strong>avant</strong> de commencer à utiliser Akwetche.
               Cela nous permet de calculer vos soldes réels.
             </p>
             {currency && (
-              <p className="text-xs text-[#94A3B8] mt-3 bg-white rounded-xl px-3 py-2 font-[family-name:var(--font-inter)]">
+              <p className="text-xs text-[var(--color-placeholder)] mt-3 bg-[var(--color-surface)] rounded-xl px-3 py-2 font-[family-name:var(--font-body)]">
                 {countryCode && <FlagImg code={countryCode} className="w-4 h-4 rounded-sm inline-block align-middle mr-1" />}
-                Compte en <strong className="text-[#1A2744]">{currency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
+                Compte en <strong className="text-[var(--color-ink)]">{currency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
               </p>
             )}
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-ink mb-2 font-[family-name:var(--font-inter)]">
+            <label className="block text-sm font-medium text-ink mb-2 font-[family-name:var(--font-body)]">
               Solde de départ personnel
             </label>
             <div className="relative">
@@ -70,11 +70,11 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
                 value={balanceInput}
                 onChange={(e) => setBalanceInput(e.target.value)}
                 placeholder="ex: 150000"
-                className="w-full h-12 bg-white rounded-xl border border-[#E2E8F0] px-4 pl-16 text-sm text-[#1A2744] outline-none focus:border-[#1B3A6B] transition-colors"
+                className="w-full h-12 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] px-4 pl-16 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-brand)] transition-colors"
                 min="0"
               />
             </div>
-            <p className="text-xs text-[#94A3B8] mt-2 font-[family-name:var(--font-inter)]">
+            <p className="text-xs text-[var(--color-placeholder)] mt-2 font-[family-name:var(--font-body)]">
               Vous pourrez modifier ce montant plus tard dans les paramètres.
             </p>
           </div>
@@ -83,56 +83,56 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
             <button
               onClick={handleContinue}
               disabled={saving}
-              className="w-full h-12 bg-[#1B3A6B] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#1B3A6B]/90 transition-colors cursor-pointer disabled:opacity-50"
+              className="w-full h-12 bg-[var(--color-brand)] text-white rounded-xl font-[family-name:var(--font-body)] font-semibold text-[15px] hover:bg-[var(--color-brand-hover)] transition-colors cursor-pointer disabled:opacity-50"
             >
               {saving ? "..." : "Continuer"}
             </button>
             <button
               onClick={handleSkip}
-              className="w-full text-center text-[14px] font-[family-name:var(--font-inter)] font-medium text-[#94A3B8] hover:text-[#1A2744] transition-colors cursor-pointer bg-transparent border-none py-2"
+              className="w-full text-center text-[14px] font-[family-name:var(--font-body)] font-medium text-[var(--color-placeholder)] hover:text-[var(--color-ink)] transition-colors cursor-pointer bg-transparent border-none py-2"
             >
               Passer cette étape
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-[#F1F5F9] rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="bg-[var(--color-surface-raised)] rounded-2xl p-6 w-full max-w-md shadow-xl">
           <div className="flex flex-col items-center text-center mb-5">
             <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mb-4" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
-              <FontAwesomeIcon icon={faSun} className="w-7 h-7 text-[#1A2744]" style={{ strokeWidth: 1.8 }} />
+              <FontAwesomeIcon icon={faSun} className="w-7 h-7 text-[var(--color-ink)]" style={{ strokeWidth: 1.8 }} />
             </div>
-            <h3 className="text-[20px] font-[family-name:var(--font-dm-sans)] font-bold text-[#1A2744]">
+            <h3 className="text-[20px] font-[family-name:var(--font-body)] font-bold text-[var(--color-ink)]">
               Bienvenue sur Akwetche
             </h3>
-            <p className="text-[14px] text-[#94A3B8] mt-2 leading-relaxed font-[family-name:var(--font-inter)]">
+            <p className="text-[14px] text-[var(--color-placeholder)] mt-2 leading-relaxed font-[family-name:var(--font-body)]">
               Suivez vos revenus et dépenses en toute simplicité. Créez vos premières catégories
               pour commencer à organiser vos finances.
             </p>
             {currency && (
-              <p className="text-xs text-[#94A3B8] mt-3 bg-white rounded-xl px-3 py-2 font-[family-name:var(--font-inter)]">
+              <p className="text-xs text-[var(--color-placeholder)] mt-3 bg-[var(--color-surface)] rounded-xl px-3 py-2 font-[family-name:var(--font-body)]">
                 {countryCode && <FlagImg code={countryCode} className="w-4 h-4 rounded-sm inline-block align-middle mr-1" />}
-                Compte en <strong className="text-[#1A2744]">{currency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
+                Compte en <strong className="text-[var(--color-ink)]">{currency === "XOF" ? "FCFA (Franc CFA)" : "EUR (Euro)"}</strong>
               </p>
             )}
           </div>
 
           <div className="space-y-2 mb-6">
-            <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
+            <div className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
-                <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-[#1A2744]" />
+                <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4 text-[var(--color-ink)]" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-[#1A2744] font-[family-name:var(--font-inter)]">Revenus</p>
-                <p className="text-xs text-[#94A3B8] font-[family-name:var(--font-inter)]">Salaire, Freelance, Ventes...</p>
+                <p className="text-sm font-medium text-[var(--color-ink)] font-[family-name:var(--font-body)]">Revenus</p>
+                <p className="text-xs text-[var(--color-placeholder)] font-[family-name:var(--font-body)]">Salaire, Freelance, Ventes...</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white rounded-xl">
+            <div className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(27,58,107,0.08)" }}>
-                <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-[#1A2744]" />
+                <FontAwesomeIcon icon={faArrowTrendDown} className="w-4 h-4 text-[var(--color-ink)]" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-[#1A2744] font-[family-name:var(--font-inter)]">Dépenses</p>
-                <p className="text-xs text-[#94A3B8] font-[family-name:var(--font-inter)]">Alimentation, Logement, Transport...</p>
+                <p className="text-sm font-medium text-[var(--color-ink)] font-[family-name:var(--font-body)]">Dépenses</p>
+                <p className="text-xs text-[var(--color-placeholder)] font-[family-name:var(--font-body)]">Alimentation, Logement, Transport...</p>
               </div>
             </div>
           </div>
@@ -140,13 +140,13 @@ export default function OnboardingModal({ onClose, currency, countryCode }: { on
           <div className="space-y-3">
             <button
               onClick={() => router.push("/dashboard/categories")}
-              className="w-full h-12 bg-[#1B3A6B] text-white rounded-xl font-[family-name:var(--font-inter)] font-semibold text-[15px] hover:bg-[#1B3A6B]/90 transition-colors cursor-pointer"
+              className="w-full h-12 bg-[var(--color-brand)] text-white rounded-xl font-[family-name:var(--font-body)] font-semibold text-[15px] hover:bg-[var(--color-brand-hover)] transition-colors cursor-pointer"
             >
               Ajouter des catégories
             </button>
             <button
               onClick={onClose}
-              className="w-full text-center text-[14px] font-[family-name:var(--font-inter)] font-medium text-[#94A3B8] hover:text-[#1A2744] transition-colors cursor-pointer bg-transparent border-none py-2"
+              className="w-full text-center text-[14px] font-[family-name:var(--font-body)] font-medium text-[var(--color-placeholder)] hover:text-[var(--color-ink)] transition-colors cursor-pointer bg-transparent border-none py-2"
             >
               Plus tard
             </button>

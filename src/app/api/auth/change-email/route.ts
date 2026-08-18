@@ -4,10 +4,30 @@ import { getAuthUserId, comparePassword, generateEmailToken } from "@/lib/auth";
 import { unauthorized, badRequest, ok } from "@/lib/api";
 import { sendEmail, verificationEmailHtml } from "@/lib/email";
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 3;
+const RATE_WINDOW = 15 * 60 * 1000;
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const userId = await getAuthUserId();
     if (!userId) return unauthorized();
+
+    if (!checkRateLimit(`change-email:${userId}`)) {
+      return badRequest("Trop de tentatives. Réessayez dans 15 minutes.");
+    }
 
     const { currentPassword, newEmail } = await req.json();
 

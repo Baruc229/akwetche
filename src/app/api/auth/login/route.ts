@@ -31,8 +31,7 @@ export async function POST(req: NextRequest) {
       await prisma.loginLog.create({
         data: { ip, userAgent, success: false, reason: "account_locked", userId: user.id },
       });
-      const remaining = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
-      return badRequest(`Compte temporairement verrouillé. Réessayez dans ${remaining} minute(s).`);
+      return badRequest("Email ou mot de passe incorrect");
     }
 
     const valid = await comparePassword(password, user.password);

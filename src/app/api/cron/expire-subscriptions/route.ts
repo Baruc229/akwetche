@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { daysUntil, expireSubscription, sendExpiryReminderEmail, sendWeeklyRenewalReminderEmail } from "@/lib/subscription";
 import { notifyAdmin } from "@/lib/admin-emails";
 
-const CRON_SECRET = process.env.CRON_SECRET || "change-me-in-production";
+const CRON_SECRET = process.env.CRON_SECRET;
+if (!CRON_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("CRON_SECRET must be set in production");
+}
 
 async function getUser(id: number) {
   return prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true } });

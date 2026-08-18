@@ -19,6 +19,10 @@ const publicPaths = [
   "/login/forgot-password",
   "/api/payments/webhook",
   "/api/seed",
+  "/cgu",
+  "/privacy",
+  "/mentions-legales",
+  "/payment",
   "/_next",
   "/favicon.ico",
 ];

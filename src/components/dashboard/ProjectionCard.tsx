@@ -49,15 +49,15 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
       ? `Projection — ${point?.dateLabel ?? ""}`
       : `Solde réel — ${point?.dateLabel ?? ""}`;
   const value = main.value;
-  const color = value < 0 ? '#B94A3E' : '#0D7A4B';
+  const color = value < 0 ? 'var(--color-neg)' : 'var(--color-pos)';
   return (
-    <div className="bg-white rounded-xl px-3 py-2 shadow-lg border border-gray-100 text-xs">
-      <p className="font-semibold text-[#1A2744] mb-0.5">{title}</p>
+    <div className="bg-[var(--color-surface)] rounded-xl px-3 py-2 shadow-lg border border-[var(--color-border)] text-xs">
+      <p className="font-semibold text-[var(--color-ink)] mb-0.5">{title}</p>
       <p className="text-amount text-sm" style={{ color }}>
         {formatCurrency(value)}
       </p>
       {isFuture && point?.optimistic != null && point?.pessimistic != null && (
-        <p className="text-[10px] text-[#94A3B8] mt-0.5">
+        <p className="text-[10px] text-[var(--color-placeholder)] mt-0.5">
           Fourchette : {formatCurrency(point.pessimistic)} – {formatCurrency(point.optimistic)}
         </p>
       )}
@@ -83,7 +83,7 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
     ? "Solde estimé aujourd'hui"
     : `Solde estimé au ${lastDayOfMonth} ${MOIS[month]}`;
 
-  const chartColor = adjustedRemaining >= 0 ? '#0D7A4B' : '#B94A3E';
+  const chartColor = adjustedRemaining >= 0 ? 'var(--color-pos)' : 'var(--color-neg)';
 
   const chartData = useMemo<ChartPoint[]>(() => {
     const data: ChartPoint[] = [];
@@ -158,38 +158,36 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
   const pace = daysLeft > 0 ? futureSpend / daysLeft : 0;
 
   return (
-    <div className="bg-white rounded-[18px] p-5 overflow-hidden">
-      {/* En-tête */}
+    <div className="bg-[var(--color-surface)] rounded-[18px] p-5 overflow-hidden">
       <div className="flex items-center gap-2 mb-1">
-        <div className="w-2 h-2 rounded-full bg-[#C9A84C] shrink-0" />
-        <h2 className="text-sm font-semibold text-[#1A2744]">
+        <div className="w-2 h-2 rounded-full bg-[var(--color-gold)] shrink-0" />
+        <h2 className="text-sm font-semibold text-[var(--color-ink)]">
           Projection
         </h2>
       </div>
-      <p className="text-xs text-[#94A3B8] mb-4">Votre trajectoire jusqu&apos;à la fin du mois</p>
+      <p className="text-xs text-[var(--color-placeholder)] mb-4">Votre trajectoire jusqu&apos;à la fin du mois</p>
 
       {isEmptyState ? (
         <div className="text-center py-8">
-          <div className="w-10 h-10 bg-[#F1F5F9] rounded-xl flex items-center justify-center mx-auto mb-3">
-            <FontAwesomeIcon icon={faChartLine} className="w-4 h-4 text-[#1A2744]" />
+          <div className="w-10 h-10 bg-[var(--color-surface-raised)] rounded-xl flex items-center justify-center mx-auto mb-3">
+            <FontAwesomeIcon icon={faChartLine} className="w-4 h-4 text-[var(--color-ink)]" />
           </div>
-          <p className="text-sm font-semibold text-[#1A2744]">Pas encore assez de données pour projeter votre solde.</p>
-          <p className="text-xs text-[#94A3B8] mt-1 mb-3">Enregistrez vos premières opérations : la projection apparaîtra ici.</p>
-          <Link href="/dashboard/transactions" className="text-xs font-semibold text-[#1B3A6B] underline underline-offset-2">
+          <p className="text-sm font-semibold text-[var(--color-ink)]">Pas encore assez de données pour projeter votre solde.</p>
+          <p className="text-xs text-[var(--color-placeholder)] mt-1 mb-3">Enregistrez vos premières opérations : la projection apparaîtra ici.</p>
+          <Link href="/dashboard/transactions" className="text-xs font-semibold text-[var(--color-brand)] underline underline-offset-2">
             Enregistrer une opération
           </Link>
         </div>
       ) : (
         <>
-          {/* Hero : solde estimé */}
           <div
             className="rounded-xl p-4 border-l-[3px] animate-fade-in"
-            style={{ background: isNegative ? '#FEF2F2' : '#E6F7EF', borderColor: isNegative ? '#B94A3E' : '#0D7A4B' }}
+            style={{ background: isNegative ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)', borderColor: isNegative ? 'var(--color-neg)' : 'var(--color-pos)' }}
           >
-            <p className="text-xs text-[#94A3B8] mb-1">{heroLabel}</p>
+            <p className="text-xs text-[var(--color-placeholder)] mb-1">{heroLabel}</p>
             <p
               className="text-amount text-4xl animate-fade-in"
-              style={{ color: isNegative ? '#B94A3E' : '#0D7A4B' }}
+              style={{ color: isNegative ? 'var(--color-neg)' : 'var(--color-pos)' }}
             >
               {formatCurrency(adjustedRemaining)}
             </p>
@@ -197,80 +195,78 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
               <span
                 title="Différence entre votre solde actuel et le solde estimé à la fin du mois."
                 className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1.5"
-                style={{ background: isDeltaUp ? 'rgba(13,122,75,0.12)' : 'rgba(185,74,62,0.12)', color: isDeltaUp ? '#0D7A4B' : '#B94A3E' }}
+                style={{ background: isDeltaUp ? 'var(--color-pos-bg)' : 'var(--color-neg-bg)', color: isDeltaUp ? 'var(--color-pos)' : 'var(--color-neg)' }}
               >
                 <FontAwesomeIcon icon={isDeltaUp ? faArrowUp : faArrowDown} className="w-2.5 h-2.5" />
                 {isDeltaUp ? '+' : '−'}{formatCurrency(delta)}{" d'ici la fin du mois"}
               </span>
             )}
-            <p className="text-[11px] text-[#94A3B8] mt-2 leading-relaxed">
+            <p className="text-[11px] text-[var(--color-placeholder)] mt-2 leading-relaxed">
               Selon votre rythme de dépenses actuel et vos opérations récurrentes à venir.
             </p>
           </div>
 
-          {/* Récapitulatif — le calcul, ligne par ligne */}
-          <div className="mt-3 rounded-xl border border-[#E2E8F0] overflow-hidden divide-y divide-[#E2E8F0]">
+          <div className="mt-3 rounded-xl border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]">
             <div className="flex items-center justify-between px-3.5 py-2.5">
-              <span className="text-xs text-[#94A3B8]">Vous avez actuellement</span>
-              <span className="text-sm font-bold text-[#1A2744] tabular-nums">{formatCurrency(totalBalance)}</span>
+              <span className="text-xs text-[var(--color-placeholder)]">Vous avez actuellement</span>
+              <span className="text-sm font-bold text-[var(--color-ink)] tabular-nums">{formatCurrency(totalBalance)}</span>
             </div>
             {daysLeft > 0 && (
               <div className="flex items-center justify-between px-3.5 py-2.5">
                 <div className="min-w-0 pr-3">
-                  <span className="text-xs text-[#94A3B8]">Dépenses à venir à ce rythme</span>
-                  <span className="block text-[10px] text-[#94A3B8] mt-0.5 tabular-nums">
+                  <span className="text-xs text-[var(--color-placeholder)]">Dépenses à venir à ce rythme</span>
+                  <span className="block text-[10px] text-[var(--color-placeholder)] mt-0.5 tabular-nums">
                     ≈ {formatCurrency(Math.round(pace))} / jour × {daysLeft} jours
                   </span>
                 </div>
-                <span className="text-sm font-bold text-[#1A2744] tabular-nums">
+                <span className="text-sm font-bold text-[var(--color-ink)] tabular-nums">
                   {futureSpend > 0.5 ? "−" : futureSpend < -0.5 ? "+" : ""}{formatCurrency(Math.abs(futureSpend))}
                 </span>
               </div>
             )}
             {pendingRecurringExpense > 0 && (
               <div className="flex items-center justify-between px-3.5 py-2.5">
-                <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
+                <span className="text-xs text-[var(--color-placeholder)] flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[var(--color-neg)]" />
                   Récurrentes à venir
                 </span>
-                <span className="text-sm font-bold text-[#B94A3E] tabular-nums">−{formatCurrency(pendingRecurringExpense)}</span>
+                <span className="text-sm font-bold text-[var(--color-neg)] tabular-nums">−{formatCurrency(pendingRecurringExpense)}</span>
               </div>
             )}
             {pendingRecurringIncome > 0 && (
               <div className="flex items-center justify-between px-3.5 py-2.5">
-                <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[#0D7A4B]" />
+                <span className="text-xs text-[var(--color-placeholder)] flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5 text-[var(--color-pos)]" />
                   Revenus récurrents à venir
                 </span>
-                <span className="text-sm font-bold text-[#0D7A4B] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
+                <span className="text-sm font-bold text-[var(--color-pos)] tabular-nums">+{formatCurrency(pendingRecurringIncome)}</span>
               </div>
             )}
             {whatIf > 0 && (
               <div className="flex items-center justify-between px-3.5 py-2.5" style={{ background: 'var(--color-neg-bg)' }}>
-                <span className="text-xs text-[#94A3B8] flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[#B94A3E]" />
+                <span className="text-xs text-[var(--color-placeholder)] flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-[var(--color-neg)]" />
                   Et si dépense supplémentaire
                 </span>
-                <span className="text-sm font-bold text-[#B94A3E] tabular-nums">−{formatCurrency(whatIf)}</span>
+                <span className="text-sm font-bold text-[var(--color-neg)] tabular-nums">−{formatCurrency(whatIf)}</span>
               </div>
             )}
             <div
               className="flex items-center justify-between px-3.5 py-3"
               style={{ background: isNegative ? 'var(--color-neg-bg)' : 'var(--color-pos-bg)' }}
             >
-              <span className="text-xs font-semibold text-[#1A2744]">{heroLabel}</span>
+              <span className="text-xs font-semibold text-[var(--color-ink)]">{heroLabel}</span>
               <span
                 className="text-base font-bold tabular-nums"
-                style={{ color: isNegative ? '#B94A3E' : '#0D7A4B' }}
+                style={{ color: isNegative ? 'var(--color-neg)' : 'var(--color-pos)' }}
               >
                 {formatCurrency(adjustedRemaining)}
               </span>
             </div>
           </div>
 
-          {/* Scénario « et si » */}
-          <div className="mt-3 rounded-xl border border-[#E2E8F0] p-3">
-            <label htmlFor="what-if" className="block text-xs text-[#94A3B8]">
+          <div className="mt-3 rounded-xl border border-[var(--color-border)] p-3">
+            <label htmlFor="what-if" className="block text-xs text-[var(--color-placeholder)]">
               Simuler une dépense supplémentaire d&apos;ici la fin du mois
             </label>
             <div className="mt-2 flex items-center gap-2">
@@ -284,10 +280,10 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                   value={whatIfInput}
                   onChange={(e) => setWhatIfInput(e.target.value)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3.5 py-2.5 pr-16 text-sm font-bold text-[#1A2744] tabular-nums outline-none transition-all focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3.5 py-2.5 pr-16 text-sm font-bold text-[var(--color-ink)] tabular-nums outline-none transition-all focus:border-[var(--color-gold)] focus:ring-2 focus:ring-[var(--color-gold)]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   aria-label="Montant de la dépense supplémentaire à simuler"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#94A3B8] pointer-events-none">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[var(--color-placeholder)] pointer-events-none">
                   {currency === "EUR" ? "€" : "FCFA"}
                 </span>
               </div>
@@ -295,7 +291,7 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                 <button
                   type="button"
                   onClick={() => setWhatIfInput("")}
-                  className="shrink-0 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#B94A3E] hover:bg-[var(--color-neg-bg)] transition-colors"
+                  className="shrink-0 px-3 py-2.5 rounded-xl text-xs font-semibold text-[var(--color-neg)] hover:bg-[var(--color-neg-bg)] transition-colors"
                 >
                   Effacer
                 </button>
@@ -324,7 +320,7 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                     ? "Vos opérations récurrentes prévues dépassent votre solde actuel. Votre solde pourrait passer en négatif avant la fin du mois. "
                     : "À ce rythme de dépenses, votre solde pourrait passer en négatif avant la fin du mois."}
                 {hasBreakdown && whatIf === 0 && (
-                  <Link href="/dashboard/recurring/expenses" className="font-semibold underline text-[#1B3A6B]">
+                  <Link href="/dashboard/recurring/expenses" className="font-semibold underline text-[var(--color-brand)]">
                     Voir mes opérations récurrentes
                   </Link>
                 )}
@@ -337,14 +333,13 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
               <FontAwesomeIcon icon={faCircleInfo} className="w-4 h-4 shrink-0 mt-0.5" />
               <p>
                 Solde de départ non renseigné : la projection reflète uniquement vos opérations enregistrées.{" "}
-                <Link href="/dashboard/settings" className="font-semibold underline text-[#1B3A6B]">
+                <Link href="/dashboard/settings" className="font-semibold underline text-[var(--color-brand)]">
                   Ajouter mon solde de départ
                 </Link>
               </p>
             </div>
           )}
 
-          {/* Graphe simplifié */}
           {chartData.length > 0 && (
             <div className="mt-4">
               <div
@@ -359,10 +354,10 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                     <Line
                       type="monotone"
                       dataKey="pastValue"
-                      stroke="#1A2744"
+                      stroke="var(--color-ink)"
                       strokeWidth={2}
-                      dot={{ fill: '#1A2744', strokeWidth: 0, r: 2.5 }}
-                      activeDot={{ r: 4, fill: '#1A2744', stroke: '#fff', strokeWidth: 1.5 }}
+                      dot={{ fill: 'var(--color-ink)', strokeWidth: 0, r: 2.5 }}
+                      activeDot={{ r: 4, fill: 'var(--color-ink)', stroke: '#fff', strokeWidth: 1.5 }}
                       connectNulls={false}
                       isAnimationActive={true}
                       animationDuration={800}
@@ -387,12 +382,12 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#1A2744] shrink-0" />
-                  <span className="text-[10px] text-[#94A3B8]">Solde réel</span>
+                  <span className="w-2 h-2 rounded-full bg-[var(--color-ink)] shrink-0" />
+                  <span className="text-[10px] text-[var(--color-placeholder)]">Solde réel</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ background: chartColor }} />
-                  <span className="text-[10px] text-[#94A3B8]">Projection</span>
+                  <span className="text-[10px] text-[var(--color-placeholder)]">Projection</span>
                 </span>
               </div>
 

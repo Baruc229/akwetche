@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout } from "@/lib/email";
 import { getStartOfMonth, getEndOfMonth } from "@/lib/utils";
 
-const CRON_SECRET = process.env.CRON_SECRET || "change-me-in-production";
+const CRON_SECRET = process.env.CRON_SECRET;
+if (!CRON_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("CRON_SECRET must be set in production");
+}
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export async function GET(req: NextRequest) {

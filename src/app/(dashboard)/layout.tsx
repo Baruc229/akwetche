@@ -13,6 +13,8 @@ import Topbar from "@/components/layout/Topbar";
 import BottomNav from "@/components/layout/BottomNav";
 import NotificationsDrawer from "@/components/layout/NotificationsDrawer";
 import QuickActionsSheet from "@/components/layout/QuickActionsSheet";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLock } from '@fortawesome/free-solid-svg-icons';
 
 type UserData = {
   id: number;
@@ -185,7 +187,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "var(--color-bg)" }}>
         <div className="max-w-sm w-full text-center" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: "1rem", padding: "2rem" }}>
-          <div className="text-4xl mb-4" role="img" aria-label="cadenas">🔒</div>
+          <div className="w-16 h-16 rounded-2xl bg-[var(--color-brand-subtle)] flex items-center justify-center mx-auto mb-4">
+            <FontAwesomeIcon icon={faLock} className="w-7 h-7 text-[var(--color-brand)]" />
+          </div>
           <h1 className="text-xl font-semibold mb-2" style={{ color: "var(--color-fg)", fontFamily: "var(--font-heading)" }}>
             Session expirée
           </h1>
