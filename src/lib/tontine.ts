@@ -468,10 +468,11 @@ export async function recalculerPenalitesTontine(tontineId: number): Promise<num
         new Date()
       );
 
-      if (montantTotal !== c.montantTotal || montantPenalite !== c.montantPenalite) {
+      const montantBase = Math.max(0, montantTotal - montantPenalite - c.fraisOrganisateur);
+      if (montantTotal !== c.montantTotal || montantPenalite !== c.montantPenalite || Math.abs(montantBase - c.montantBase) > 0.005) {
         await tx.tontineCotisation.update({
           where: { id: c.id },
-          data: { montantTotal, montantPenalite },
+          data: { montantTotal, montantPenalite, montantBase },
         });
         if (c.tourId) await recalculerMontantCollecteTour(c.tourId, tx);
         count++;
@@ -618,6 +619,30 @@ export async function recalculerMontantCollecteTour(tourId: number, client: Clie
     where: { id: tourId },
     data: { montantCollecte: result._sum.montantPaye || 0 },
   });
+}
+
+export async function realignerBaseCotisationsMembre(
+  tontineId: number,
+  membreId: number,
+  client: ClientLike = prisma as unknown as ClientLike
+): Promise<number> {
+  const cotisations = await client.tontineCotisation.findMany({
+    where: { tontineId, membreId },
+    select: { id: true, montantTotal: true, montantPenalite: true, fraisOrganisateur: true, montantBase: true },
+  });
+
+  let reajustees = 0;
+  for (const c of cotisations) {
+    const base = Math.max(0, c.montantTotal - c.montantPenalite - c.fraisOrganisateur);
+    if (Math.abs(base - c.montantBase) > 0.005) {
+      await client.tontineCotisation.update({
+        where: { id: c.id },
+        data: { montantBase: base },
+      });
+      reajustees++;
+    }
+  }
+  return reajustees;
 }
 
 /**

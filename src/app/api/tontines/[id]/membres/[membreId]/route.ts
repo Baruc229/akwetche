@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireTontineAccess, forbidden, unauthorized, badRequest, ok } from "@/lib/api";
-import { resetMembreData } from "@/lib/tontine";
+import { resetMembreData, recalculerPenalitesTontine, realignerBaseCotisationsMembre } from "@/lib/tontine";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; membreId: string }> }) {
   let userId: number;
@@ -72,6 +72,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id: membreIntId },
     data: updateData,
   });
+
+  if (body.montantCotisationPersonnel !== undefined) {
+    await recalculerPenalitesTontine(tontineId);
+    await realignerBaseCotisationsMembre(tontineId, membreIntId);
+  }
 
   if (body.statut === "retire" || body.statut === "exclu") {
     await resetMembreData(membreIntId);
