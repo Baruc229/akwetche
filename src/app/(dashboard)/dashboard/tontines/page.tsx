@@ -87,7 +87,9 @@ export default function TontinesPage() {
       const res = await fetch("/api/tontines", { signal });
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          setError("Session expirée. Rafraîchissez la page.");
+          localStorage.removeItem("akwetche_session");
+          router.push("/login?expired=1");
+          return;
         } else {
           setError("Erreur de chargement");
         }

@@ -149,8 +149,12 @@ export default function TontineDetail() {
         fetch(`/api/tontines/${id}/membres`, { signal }),
       ]);
       if (!res.ok) {
-        if (res.status === 401 || res.status === 403) setError("Session expirée. Rafraîchissez la page.");
-        else if (res.status === 404) setError("Tontine introuvable");
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem("akwetche_session");
+          router.push("/login?expired=1");
+          return;
+        }
+        if (res.status === 404) setError("Tontine introuvable");
         else setError("Erreur de chargement");
         return;
       }
