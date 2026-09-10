@@ -20,6 +20,35 @@ function fmtMonth(m: string) {
   return MONTH_LABELS[parseInt(p[1]) - 1] || m;
 }
 
+function chartClickIndex(next: { activeTooltipIndex?: number | string | null } | null | undefined): number | null {
+  const raw = next?.activeTooltipIndex;
+  const idx = typeof raw === "number" ? raw : typeof raw === "string" && raw !== "" ? parseInt(raw, 10) : null;
+  return idx !== null && !Number.isNaN(idx) ? idx : null;
+}
+
+function renderSelectableDot(color: string, selectedIndex: number | null) {
+  const SelectableDot = (props: { cx?: number; cy?: number; index?: number }) => {
+    if (props.cx == null || props.cy == null) return <g key={`dot-${props.index ?? "?"}`} />;
+    const isSel = selectedIndex === props.index;
+    const dimmed = selectedIndex !== null && !isSel;
+    return (
+      <circle
+        key={`dot-${props.index ?? "?"}`}
+        cx={props.cx}
+        cy={props.cy}
+        r={isSel ? 5 : 3}
+        fill={color}
+        opacity={dimmed ? 0.15 : 1}
+        stroke={isSel ? "#fff" : "none"}
+        strokeWidth={isSel ? 1.5 : 0}
+        pointerEvents="none"
+      />
+    );
+  };
+  SelectableDot.displayName = "SelectableDot";
+  return SelectableDot;
+}
+
 export default function AdminOverview() {
   const { user } = useDashboard();
   const router = useRouter();
@@ -32,6 +61,8 @@ export default function AdminOverview() {
   const [backfillState, setBackfillState] = useState<"idle" | "running" | "done">("idle");
   const [backfillResult, setBackfillResult] = useState<{ tontines: number; membresTraites: number; periodesImputees: number; soldeTotal: number } | null>(null);
   const [backfillError, setBackfillError] = useState("");
+  const [userSel, setUserSel] = useState<number | null>(null);
+  const [revSel, setRevSel] = useState<{ idx: number; series: 'ventes' | 'abonnements' } | null>(null);
 
   const anyModalOpen = showAddAdmin;
 
@@ -186,9 +217,9 @@ export default function AdminOverview() {
         <div className="bg-bg-card rounded-[18px] border border-border p-5">
           <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Évolution utilisateurs</span>
           <p className="text-label text-xs text-text-3 mt-0.5">6 derniers mois</p>
-          <div className="mt-4 h-48">
+          <div className="mt-4 h-48 cursor-pointer">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={usersGrowthData}>
+              <LineChart data={usersGrowthData} onClick={(s) => setUserSel((prev) => { const i = chartClickIndex(s); return prev === i ? null : i; })}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
@@ -196,10 +227,31 @@ export default function AdminOverview() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '13px' }}
                   labelStyle={{ fontWeight: 600 }}
                 />
-                <Line type="monotone" dataKey="users" stroke="var(--color-pos)" strokeWidth={2.5} dot={{ fill: 'var(--color-pos)', strokeWidth: 0, r: 3 }} />
+                <Line type="monotone" dataKey="users" stroke="var(--color-pos)" strokeWidth={2.5} dot={renderSelectableDot('var(--color-pos)', userSel)} activeDot={{ r: 4, fill: 'var(--color-pos)', stroke: '#fff', strokeWidth: 1.5 }} isAnimationActive={userSel === null} />
               </LineChart>
             </ResponsiveContainer>
           </div>
+          {typeof userSel === "number" && usersGrowthData[userSel] && (
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-bg border border-border px-3 py-2 animate-fade-in">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-text-3">{usersGrowthData[userSel].month}</p>
+                <p className="text-sm font-bold text-ink mt-0.5 tabular-nums">
+                  {usersGrowthData[userSel].users} <span className="font-medium text-text-3 text-xs">inscrit(s)</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUserSel(null)}
+                aria-label="Fermer le détail"
+                className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-text-3 hover:text-text-1 hover:bg-border transition-colors"
+              >
+                <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+          {userSel === null && (
+            <p className="text-[10px] text-text-3 mt-2">Cliquez sur un point pour afficher le détail.</p>
+          )}
         </div>
         <div className="bg-bg-card rounded-[18px] border border-border p-5">
           <span className="text-[9px] font-bold uppercase tracking-widest text-text-3">Revenus mensuels</span>
@@ -208,9 +260,17 @@ export default function AdminOverview() {
             <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-gold)'}} /><span className="text-[10px] text-text-3">Ventes</span></div>
             <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:'var(--color-pos)'}} /><span className="text-[10px] text-text-3">Abonnements</span></div>
           </div>
-          <div className="mt-3 h-48">
+          <div className="mt-3 h-48 cursor-pointer">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueMonths}>
+              <LineChart
+                data={revenueMonths}
+                onClick={(s) => setRevSel((prev) => {
+                  const i = chartClickIndex(s);
+                  if (i === null) return prev;
+                  const series = s?.activeDataKey === 'abonnements' ? 'abonnements' : 'ventes';
+                  return prev && prev.idx === i && prev.series === series ? null : { idx: i, series };
+                })}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
@@ -218,11 +278,34 @@ export default function AdminOverview() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', fontSize: '13px' }}
                   labelStyle={{ fontWeight: 600 }}
                 />
-                <Line type="monotone" dataKey="ventes" name="Ventes" stroke="var(--color-gold)" strokeWidth={2.5} dot={{ fill: 'var(--color-gold)', strokeWidth: 0, r: 3 }} />
-                <Line type="monotone" dataKey="abonnements" name="Abonnements" stroke="var(--color-pos)" strokeWidth={2.5} dot={{ fill: 'var(--color-pos)', strokeWidth: 0, r: 3 }} />
+                <Line type="monotone" dataKey="ventes" name="Ventes" stroke="var(--color-gold)" strokeWidth={2.5} opacity={revSel === null || revSel.series === 'ventes' ? 1 : 0.3} dot={renderSelectableDot('var(--color-gold)', revSel && revSel.series === 'ventes' ? revSel.idx : null)} activeDot={{ r: 4, fill: 'var(--color-gold)', stroke: '#fff', strokeWidth: 1.5 }} isAnimationActive={revSel === null} />
+                <Line type="monotone" dataKey="abonnements" name="Abonnements" stroke="var(--color-pos)" strokeWidth={2.5} opacity={revSel === null || revSel.series === 'abonnements' ? 1 : 0.3} dot={renderSelectableDot('var(--color-pos)', revSel && revSel.series === 'abonnements' ? revSel.idx : null)} activeDot={{ r: 4, fill: 'var(--color-pos)', stroke: '#fff', strokeWidth: 1.5 }} isAnimationActive={revSel === null} />
               </LineChart>
             </ResponsiveContainer>
           </div>
+          {revSel && revenueMonths[revSel.idx] && (
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-bg border border-border px-3 py-2 animate-fade-in">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-text-3">{revenueMonths[revSel.idx].month}</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-text-3">
+                  <span><span className="font-bold text-gold tabular-nums">{formatCurrency(revenueMonths[revSel.idx].ventes)}</span> ventes</span>
+                  <span><span className="font-bold text-pos tabular-nums">{formatCurrency(revenueMonths[revSel.idx].abonnements)}</span> abonnements</span>
+                  <span><span className="font-bold text-ink tabular-nums">{formatCurrency(revenueMonths[revSel.idx].ventes + revenueMonths[revSel.idx].abonnements)}</span> total</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRevSel(null)}
+                aria-label="Fermer le détail"
+                className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-text-3 hover:text-text-1 hover:bg-border transition-colors"
+              >
+                <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+          {revSel === null && (
+            <p className="text-[10px] text-text-3 mt-2">Cliquez sur une courbe pour afficher le détail.</p>
+          )}
         </div>
       </div>
 

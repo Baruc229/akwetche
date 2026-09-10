@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faTriangleExclamation, faCircleInfo, faArrowDown, faArrowUp, faChartLine, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { formatCurrency, detectCurrency, toStorageCurrency } from "@/lib/utils";
 import { Line, XAxis, ResponsiveContainer, Tooltip, ComposedChart } from 'recharts';
 
@@ -36,6 +36,26 @@ type ChartPoint = {
   pessimistic: number | null;
 };
 
+function SelectableDot(props: { cx?: number; cy?: number; index?: number; payload?: { label?: string | null }; color: string; selLabel: string | null }) {
+  const { cx, cy, index, payload, color, selLabel } = props;
+  if (cx == null || cy == null) return <g key={`dot-${index ?? "?"}`} />;
+  const isSel = selLabel !== null && payload?.label === selLabel;
+  const dimmed = selLabel !== null && !isSel;
+  return (
+    <circle
+      key={`dot-${index ?? "?"}`}
+      cx={cx}
+      cy={cy}
+      r={isSel ? 5 : 2.5}
+      fill={color}
+      opacity={dimmed ? 0.15 : isSel ? 1 : 0.85}
+      stroke={isSel ? "#fff" : "none"}
+      strokeWidth={isSel ? 1.5 : 0}
+      pointerEvents="none"
+    />
+  );
+}
+
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ value: number; dataKey: string; payload?: ChartPoint }> }) {
   if (!active || !payload || payload.length === 0) return null;
   const main = payload.find(p => (p.dataKey === "futureValue" || p.dataKey === "pastValue") && typeof p.value === "number" && Number.isFinite(p.value));
@@ -67,6 +87,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 
 export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBalances, initialBalanceMissing, totalBalance = 0, pendingRecurringExpense = 0, pendingRecurringIncome = 0, totalExpense = 0, totalRecurringExpense = 0 }: Props) {
   const [whatIfInput, setWhatIfInput] = useState("");
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const currency = detectCurrency();
   const whatIf = whatIfInput === "" ? 0 : Math.max(0, Math.round(toStorageCurrency(parseFloat(whatIfInput.replace(",", ".")) || 0, currency)));
 
@@ -149,6 +170,21 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
   }, [chartData]);
 
   const isEmptyState = (!dailyBalances || dailyBalances.length === 0) && totalBalance === 0 && pendingRecurringExpense === 0 && pendingRecurringIncome === 0;
+
+  const selPoint = selectedIdx !== null && chartData[selectedIdx] ? chartData[selectedIdx] : null;
+  const selLabel = selPoint?.label ?? null;
+  const selIsFuture = selPoint?.kind === "future";
+  const selValue = selPoint ? (selPoint.pastValue ?? selPoint.futureValue) ?? 0 : 0;
+  const selTitle = selPoint
+    ? `${selPoint.kind === "today" ? "Aujourd'hui" : selPoint.kind === "future" ? "Projection" : "Solde réel"} — ${selPoint.dateLabel ?? ""}`
+    : "";
+
+  function handleChartClick(next: { activeTooltipIndex?: number | string | null }) {
+    const raw = next?.activeTooltipIndex;
+    const idx = typeof raw === "number" ? raw : typeof raw === "string" && raw !== "" ? parseInt(raw, 10) : null;
+    const safe = idx !== null && !Number.isNaN(idx) && chartData[idx] ? idx : null;
+    setSelectedIdx((prev) => (prev === safe ? null : safe));
+  }
 
   const delta = Math.abs(adjustedRemaining - totalBalance);
   const isDeltaUp = adjustedRemaining >= totalBalance;
@@ -343,12 +379,12 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
           {chartData.length > 0 && (
             <div className="mt-4">
               <div
-                className="h-[110px] mb-2"
+                className="h-[110px] mb-2 cursor-pointer"
                 role="img"
                 aria-label="Trajectoire de votre solde jusqu'à la fin du mois"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 4, left: 8 }}>
+                  <ComposedChart data={chartData} margin={{ top: 8, right: 8, bottom: 4, left: 8 }} onClick={handleChartClick}>
                     <XAxis dataKey="label" hide />
                     <Tooltip content={<CustomTooltip />} cursor={false} />
                     <Line
@@ -356,10 +392,11 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                       dataKey="pastValue"
                       stroke="var(--color-ink)"
                       strokeWidth={2}
-                      dot={{ fill: 'var(--color-ink)', strokeWidth: 0, r: 2.5 }}
+                      opacity={selLabel === null ? 1 : selIsFuture ? 0.3 : 1}
+                      dot={<SelectableDot color="var(--color-ink)" selLabel={selLabel} />}
                       activeDot={{ r: 4, fill: 'var(--color-ink)', stroke: '#fff', strokeWidth: 1.5 }}
                       connectNulls={false}
-                      isAnimationActive={true}
+                      isAnimationActive={selectedIdx === null}
                       animationDuration={800}
                     />
                     <Line
@@ -368,11 +405,11 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                       stroke={chartColor}
                       strokeWidth={2}
                       strokeDasharray="6 4"
-                      opacity={isLimitedHistory ? 0.65 : 1}
-                      dot={{ fill: chartColor, strokeWidth: 0, r: 2, opacity: 0.5 }}
+                      opacity={selLabel === null ? (isLimitedHistory ? 0.65 : 1) : selIsFuture ? 1 : 0.3}
+                      dot={<SelectableDot color={chartColor} selLabel={selLabel} />}
                       activeDot={{ r: 4, fill: chartColor, stroke: '#fff', strokeWidth: 1.5 }}
                       connectNulls={false}
-                      isAnimationActive={true}
+                      isAnimationActive={selectedIdx === null}
                       animationDuration={800}
                       animationBegin={400}
                     />
@@ -390,6 +427,36 @@ export default function ProjectionCard({ projectedRemaining, daysLeft, dailyBala
                   <span className="text-[10px] text-[var(--color-placeholder)]">Projection</span>
                 </span>
               </div>
+
+              {selPoint && (
+                <div className="mt-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3.5 py-2.5 flex items-center justify-between gap-3 animate-fade-in">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-placeholder)]">{selTitle}</p>
+                    <p className="text-base font-bold mt-0.5 tabular-nums" style={{ color: selValue < 0 ? 'var(--color-neg)' : 'var(--color-pos)' }}>
+                      {formatCurrency(selValue)}
+                    </p>
+                    {selIsFuture && selPoint.optimistic != null && selPoint.pessimistic != null && (
+                      <p className="text-[10px] text-[var(--color-placeholder)] mt-0.5 tabular-nums">
+                        Fourchette : {formatCurrency(selPoint.pessimistic)} – {formatCurrency(selPoint.optimistic)}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIdx(null)}
+                    aria-label="Fermer le détail du point"
+                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-[var(--color-placeholder)] hover:text-[var(--color-ink)] hover:bg-[var(--color-border)] transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {selPoint === null && (
+                <p className="text-[10px] text-[var(--color-placeholder)] mt-1.5">
+                  Cliquez sur un point pour afficher le détail.
+                </p>
+              )}
 
               {isLimitedHistory && (
                 <div className="alert-inline warn mt-3" style={{ padding: '8px 12px' }}>
