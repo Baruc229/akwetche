@@ -524,8 +524,10 @@ export async function desimputerSurplus(
     periodeDate: Date; // dés-impute les périodes imputées STRICTEMENT après cette date
     reduction: number; // montant à récupérer
     fraisOrganisateur: number;
+    convertirResteEnAvance?: boolean; // false = suppression de cotisation : le reste est annulé, pas stocké en avance
   }
 ): Promise<{ desimputees: number; versAvance: number }> {
+  const convertirResteEnAvance = args.convertirResteEnAvance !== false;
   if (args.reduction <= 0) return { desimputees: 0, versAvance: 0 };
 
   const periodes = await tx.tontineCotisation.findMany({
@@ -540,12 +542,16 @@ export async function desimputerSurplus(
   });
 
   if (periodes.length === 0) {
-    // Rien à reprendre sur la grille : tout l'excédent redevient une avance.
-    await tx.tontineMembre.update({
-      where: { id: args.membreId },
-      data: { soldeAvance: { increment: args.reduction } },
-    });
-    return { desimputees: 0, versAvance: args.reduction };
+    // Rien à reprendre sur la grille : l'excédent redevient une avance,
+    // sauf en suppression de cotisation où il est simplement annulé.
+    if (convertirResteEnAvance) {
+      await tx.tontineMembre.update({
+        where: { id: args.membreId },
+        data: { soldeAvance: { increment: args.reduction } },
+      });
+      return { desimputees: 0, versAvance: args.reduction };
+    }
+    return { desimputees: 0, versAvance: 0 };
   }
 
   const plan = planifierDesimputation({
@@ -596,7 +602,7 @@ export async function desimputerSurplus(
     if (p.tourId) toursAActualiser.add(p.tourId);
   }
 
-  if (plan.reste > 0) {
+  if (plan.reste > 0 && convertirResteEnAvance) {
     await tx.tontineMembre.update({
       where: { id: args.membreId },
       data: { soldeAvance: { increment: plan.reste } },
@@ -607,7 +613,7 @@ export async function desimputerSurplus(
     await recalculerMontantCollecteTour(tourId, tx);
   }
 
-  return { desimputees: plan.updates.length + plan.deletes.length, versAvance: plan.reste };
+  return { desimputees: plan.updates.length + plan.deletes.length, versAvance: convertirResteEnAvance ? plan.reste : 0 };
 }
 
 export async function recalculerMontantCollecteTour(tourId: number, client: ClientLike = prisma as unknown as ClientLike): Promise<void> {

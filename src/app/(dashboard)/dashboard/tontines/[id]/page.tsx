@@ -2047,7 +2047,7 @@ export default function TontineDetail() {
       <ConfirmModal
         open={deleteCotisationConfirm !== null}
         title="Supprimer la cotisation"
-        message="Êtes-vous sûr de vouloir supprimer cette cotisation ? La commission associée sera aussi supprimée."
+        message="Êtes-vous sûr de vouloir supprimer cette cotisation ? La commission associée et toute avance imputée sur les jours de mise suivants seront aussi annulées."
         confirmLabel="Supprimer"
         variant="danger"
         onConfirm={() => { if (deleteCotisationConfirm !== null) handleDeleteCotisation(deleteCotisationConfirm); }}

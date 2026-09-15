@@ -239,9 +239,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const tourIdToDelete = existing.tourId;
 
     await prisma.$transaction(async (tx) => {
-      // La mise supprimée était payée : les jours suivants payés d'avance
-      // rendent l'argent (des plus lointains vers les plus proches), l'excédent
-      // restant redevient une avance.
+      // La mise supprimée était payée : l'avance déjà imputée sur les jours de
+      // mise suivants est reprise (des plus lointains vers les plus proches).
+      // Le paiement étant annulé, le reste ne redevient PAS une avance : il
+      // est tout simplement retiré (convertirResteEnAvance: false).
       if (existing.montantPaye > 0) {
         await desimputerSurplus(tx, {
           tontineId,
@@ -249,6 +250,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
           periodeDate: existing.periode,
           reduction: existing.montantPaye,
           fraisOrganisateur: tontine.fraisOrganisateurParDefaut,
+          convertirResteEnAvance: false,
         });
       }
 
