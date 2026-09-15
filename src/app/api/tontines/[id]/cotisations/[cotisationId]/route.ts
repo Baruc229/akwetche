@@ -260,6 +260,21 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         });
       }
       await tx.tontineCotisation.delete({ where: { id: cotisationIntId } });
+
+      // Retrait complet : si la mise supprimée était la dernière à porter un
+      // réel paiement, le solde d'avance (souvent fantôme après des suppressions
+      // successives) est remis à zéro — une avance sans aucun argent payé restant
+      // n'a pas de support.
+      const restant = await tx.tontineCotisation.aggregate({
+        where: { tontineId, membreId: existing.membreId },
+        _sum: { montantPaye: true },
+      });
+      if (!restant._sum.montantPaye) {
+        await tx.tontineMembre.update({
+          where: { id: existing.membreId },
+          data: { soldeAvance: 0 },
+        });
+      }
     });
 
     if (tourIdToDelete) {

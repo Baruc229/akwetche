@@ -67,6 +67,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.montantCotisationPersonnel !== undefined) {
     updateData.montantCotisationPersonnel = body.montantCotisationPersonnel === null || body.montantCotisationPersonnel === "" ? null : parseFloat(body.montantCotisationPersonnel) || null;
   }
+  if (body.soldeAvance !== undefined) {
+    const avance = parseFloat(body.soldeAvance);
+    if (isNaN(avance) || avance < 0) return badRequest("Solde avance invalide");
+    updateData.soldeAvance = avance;
+  }
 
   const membre = await prisma.tontineMembre.update({
     where: { id: membreIntId },

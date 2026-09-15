@@ -79,6 +79,7 @@ export default function TontineDetail() {
   const [membreFormNom, setMembreFormNom] = useState("");
   const [membreFormContact, setMembreFormContact] = useState("");
   const [membreFormMontant, setMembreFormMontant] = useState("");
+  const [membreFormAvance, setMembreFormAvance] = useState("");
   const [membreIdForCotisation, setMembreIdForCotisation] = useState("");
   const [cotisationPeriode, setCotisationPeriode] = useState("");
   const [cotisationMontant, setCotisationMontant] = useState("");
@@ -301,13 +302,14 @@ export default function TontineDetail() {
   async function handleSubmitMembre(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const body = { nom: membreFormNom, contact: membreFormContact || null, montantCotisationPersonnel: membreFormMontant !== "" ? membreFormMontant : null };
+      const body: Record<string, unknown> = { nom: membreFormNom, contact: membreFormContact || null, montantCotisationPersonnel: membreFormMontant !== "" ? membreFormMontant : null };
+      if (membreFormMode === "edit" && membreFormAvance !== "") body.soldeAvance = membreFormAvance;
       const res = membreFormMode === "edit" && editingMembreId
         ? await fetch(`/api/tontines/${id}/membres/${editingMembreId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
         : await fetch(`/api/tontines/${id}/membres`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Erreur"); return; }
-      setShowMembreForm(false); setMembreFormNom(""); setMembreFormContact(""); setMembreFormMontant(""); setEditingMembreId(null);
+      setShowMembreForm(false); setMembreFormNom(""); setMembreFormContact(""); setMembreFormMontant(""); setMembreFormAvance(""); setEditingMembreId(null);
       loadData();
     } catch { setError("Erreur"); }
   }
@@ -717,7 +719,7 @@ export default function TontineDetail() {
             </div>
             <h3 className="text-sm font-semibold text-ink">Membres ({actifs.length})</h3>
           </div>
-          {tontine.statut === "active" && <button onClick={() => { setMembreFormMode("add"); setEditingMembreId(null); setMembreFormNom(""); setMembreFormContact(""); setMembreFormMontant(""); setShowMembreForm(true); }} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Ajouter</button>}
+          {tontine.statut === "active" && <button onClick={() => { setMembreFormMode("add"); setEditingMembreId(null); setMembreFormNom(""); setMembreFormContact(""); setMembreFormMontant(""); setMembreFormAvance(""); setShowMembreForm(true); }} className="btn-primary-sm"><FontAwesomeIcon icon={faPlus} /> Ajouter</button>}
         </div>
         {actifs.length === 0 ? (
           <div className="text-center py-6">
@@ -1087,7 +1089,7 @@ export default function TontineDetail() {
                 {/* Édition */}
                 {tontine.statut === "active" && (
                   <div className="border-t border-[var(--color-border)] pt-4">
-                    <button onClick={() => { setMembreFormMode("edit"); setEditingMembreId(detailMembreData.id); setMembreFormNom(detailMembreData.nom); setMembreFormContact(detailMembreData.contact || ""); setMembreFormMontant(detailMembreData.montantCotisationPersonnel != null ? String(detailMembreData.montantCotisationPersonnel) : ""); setShowMembreForm(true); setDetailMembre(null); }} className="btn-primary-sm w-full justify-center gap-2">
+                    <button onClick={() => { setMembreFormMode("edit"); setEditingMembreId(detailMembreData.id); setMembreFormNom(detailMembreData.nom); setMembreFormContact(detailMembreData.contact || ""); setMembreFormMontant(detailMembreData.montantCotisationPersonnel != null ? String(detailMembreData.montantCotisationPersonnel) : ""); setMembreFormAvance(detailMembreData.soldeAvance ? String(detailMembreData.soldeAvance) : ""); setShowMembreForm(true); setDetailMembre(null); }} className="btn-primary-sm w-full justify-center gap-2">
                       <FontAwesomeIcon icon={faPencil} className="w-3 h-3" /> Modifier
                     </button>
                   </div>
@@ -1198,7 +1200,7 @@ export default function TontineDetail() {
                 )}
                 {tontine.statut === "active" && (
                   <div className="border-t border-[var(--color-border)] pt-4">
-                    <button onClick={() => { setMembreFormMode("edit"); setEditingMembreId(detailMembreData.id); setMembreFormNom(detailMembreData.nom); setMembreFormContact(detailMembreData.contact || ""); setMembreFormMontant(detailMembreData.montantCotisationPersonnel != null ? String(detailMembreData.montantCotisationPersonnel) : ""); setShowMembreForm(true); setDetailMembre(null); }} className="btn-primary-sm w-full justify-center gap-2">
+                    <button onClick={() => { setMembreFormMode("edit"); setEditingMembreId(detailMembreData.id); setMembreFormNom(detailMembreData.nom); setMembreFormContact(detailMembreData.contact || ""); setMembreFormMontant(detailMembreData.montantCotisationPersonnel != null ? String(detailMembreData.montantCotisationPersonnel) : ""); setMembreFormAvance(detailMembreData.soldeAvance ? String(detailMembreData.soldeAvance) : ""); setShowMembreForm(true); setDetailMembre(null); }} className="btn-primary-sm w-full justify-center gap-2">
                       <FontAwesomeIcon icon={faPencil} className="w-3 h-3" /> Modifier
                     </button>
                   </div>
@@ -1269,6 +1271,13 @@ export default function TontineDetail() {
                   <input type="number" value={membreFormMontant} onChange={e => setMembreFormMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
                   <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
                 </div>
+                {membreFormMode === "edit" && (
+                  <div>
+                    <label className="field-label">Solde avance</label>
+                    <input type="number" value={membreFormAvance} onChange={e => setMembreFormAvance(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" />
+                    <p className="text-xs text-muted mt-1">Avance flottante du membre. Mettre 0 pour supprimer une avance fantôme.</p>
+                  </div>
+                )}
               </div>
               <div className="shrink-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-5">
                 <button type="submit" className="btn-primary w-full py-3">{membreFormMode === "edit" ? "Enregistrer" : "Ajouter"}</button>
@@ -1296,6 +1305,13 @@ export default function TontineDetail() {
                     <input type="number" value={membreFormMontant} onChange={e => setMembreFormMontant(e.target.value)} className="input-field" placeholder={tontine.montantCotisation.toString()} min="0" step="0.01" inputMode="decimal" />
                     <p className="text-xs text-muted mt-1">Laisser vide = montant standard ({formatCurrency(tontine.montantCotisation)})</p>
                   </div>
+                  {membreFormMode === "edit" && (
+                    <div>
+                      <label className="field-label">Solde avance</label>
+                      <input type="number" value={membreFormAvance} onChange={e => setMembreFormAvance(e.target.value)} className="input-field" min="0" step="0.01" inputMode="decimal" />
+                      <p className="text-xs text-muted mt-1">Avance flottante du membre. Mettre 0 pour supprimer une avance fantôme.</p>
+                    </div>
+                  )}
                 </div>
                 <div className="shrink-0 border-t border-[var(--color-border)] px-6 py-4">
                   <button type="submit" className="btn-primary w-full">{membreFormMode === "edit" ? "Enregistrer" : "Ajouter"}</button>
@@ -2047,7 +2063,7 @@ export default function TontineDetail() {
       <ConfirmModal
         open={deleteCotisationConfirm !== null}
         title="Supprimer la cotisation"
-        message="Êtes-vous sûr de vouloir supprimer cette cotisation ? La commission associée et toute avance imputée sur les jours de mise suivants seront aussi annulées."
+        message="Êtes-vous sûr de vouloir supprimer cette mise ? La commission associée et toute avance imputée sur les jours suivants seront annulées. S'il ne reste aucune autre mise pour ce membre, son solde d'avance sera remis à zéro."
         confirmLabel="Supprimer"
         variant="danger"
         onConfirm={() => { if (deleteCotisationConfirm !== null) handleDeleteCotisation(deleteCotisationConfirm); }}
